@@ -15,37 +15,24 @@ jobs:
       DOCKER_BUILDKIT: 1
 
     services:
-      # -----------------------------
-      # Base de données PostgreSQL + PostGIS
-      # -----------------------------
       postgres:
         image: postgis/postgis:15-3.4
         env:
-          POSTGRES_USER: kupanga
+          POSTGRES_USER: panganga
           POSTGRES_PASSWORD: devpassword
-          POSTGRES_DB: kupanga_dev
+          POSTGRES_DB: panganga_dev
         options: >-
-          --health-cmd="pg_isready -U kupanga -d kupanga_dev"
+          --health-cmd="pg_isready -U panganga -d panganga_dev"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
 
     steps:
-      # -----------------------------
-      # 1️⃣ Récupérer le code
-      # -----------------------------
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Message
-        run: echo "📥 Code récupéré depuis le dépôt GitHub"
-
-      # -----------------------------
-      # 2️⃣ Démarrer MinIO manuellement
-      # -----------------------------
       - name: Start MinIO manually
         run: |
-          echo "🚀 Démarrage de MinIO..."
           docker run -d \
             --name minio \
             -p 9000:9000 \
@@ -56,99 +43,43 @@ jobs:
 
       - name: Wait for MinIO
         run: |
-          echo "⏳ Attente du démarrage de MinIO..."
           for i in {1..10}; do
-            if curl -f http://localhost:9000/minio/health/live > /dev/null 2>&1; then
-              echo "✅ MinIO est opérationnel"
-              exit 0
-            fi
+            curl -f http://localhost:9000/minio/health/live && exit 0
             sleep 3
           done
-          echo "❌ MinIO n'a pas démarré"
           exit 1
 
-      # -----------------------------
-      # 3️⃣ Installer Java 21
-      # -----------------------------
       - name: Installer Java 21
         uses: actions/setup-java@v3
         with:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: Message
-        run: echo "☕ Java 21 installé"
-
-      # -----------------------------
-      # 4️⃣ Définir les variables DB pour Maven & tests
-      # -----------------------------
-      - name: Set DB env for Maven & tests
+      - name: Set DB env
         run: |
-          echo "SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/kupanga_dev" >> $GITHUB_ENV
-          echo "SPRING_DATASOURCE_USERNAME=kupanga" >> $GITHUB_ENV
+          echo "SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/panganga_dev" >> $GITHUB_ENV
+          echo "SPRING_DATASOURCE_USERNAME=panganga" >> $GITHUB_ENV
           echo "SPRING_DATASOURCE_PASSWORD=devpassword" >> $GITHUB_ENV
-          echo "SPRING_JPA_HIBERNATE_DDL_AUTO=update" >> $GITHUB_ENV
-          echo "SPRING_JPA_DATABASE_PLATFORM=org.hibernate.dialect.PostgreSQLDialect" >> $GITHUB_ENV
 
-      # -----------------------------
-      # 5️⃣ Attendre PostgreSQL prêt
-      # -----------------------------
       - name: Wait for PostgreSQL
         run: |
-          for i in {1..15}; do
-            if PGPASSWORD=devpassword psql -h postgres -U kupanga -d kupanga_dev -c '\l' > /dev/null 2>&1; then
-              echo "✅ PostgreSQL prêt"
-              exit 0
-            fi
-            echo "⏳ Attente de PostgreSQL..."
+          for i in {1..10}; do
+            PGPASSWORD=devpassword psql -h postgres -U panganga -d panganga_dev -c '\q' && exit 0
             sleep 3
           done
-          echo "❌ PostgreSQL non démarré"
           docker logs ${{ job.services.postgres.id }}
           exit 1
 
-      # -----------------------------
-      # 6️⃣ Build Maven sans tests
-      # -----------------------------
-      - name: Build Maven sans tests
-        run: |
-          echo "🔨 Compilation du projet Maven (tests ignorés pour le moment)"
-          mvn clean install -DskipTests
+      - name: Build Maven
+        run: mvn clean install -DskipTests
 
-      # -----------------------------
-      # 7️⃣ Lancer les tests unitaires
-      # -----------------------------
-      - name: Lancer tests unitaires
-        run: |
-          echo "🧪 Lancement des tests unitaires"
-          mvn test
+      - name: Tests
+        run: mvn test
 
-      # -----------------------------
-      # 8️⃣ Analyse statique Semgrep
-      # -----------------------------
       - name: Analyse statique Semgrep
         uses: returntocorp/semgrep-action@v1
         with:
           config: p/java
 
-      - name: Message
-        run: echo "🔍 Analyse statique du code terminée avec Semgrep"
-
-      # -----------------------------
-      # 9️⃣ Build Docker image
-      # -----------------------------
       - name: Build Docker image
-        run: |
-          echo "🐳 Construction de l'image Docker pour test local"
-          docker build -t kupanga-ci-test:latest .
-
-      # -----------------------------
-      # 🔟 Vérification PostgreSQL et MinIO
-      # -----------------------------
-      - name: Vérification PostgreSQL et MinIO
-        run: |
-          echo "✅ Vérification de la connexion à PostgreSQL..."
-          PGPASSWORD=devpassword psql -h postgres -U kupanga -d kupanga_dev -c '\l' || echo "⚠️ PostgreSQL non accessible"
-
-          echo "✅ Vérification de la connexion à MinIO..."
-          curl -s http://localhost:9000/minio/health/live || echo "⚠️ MinIO non accessible"
+        run: docker build -t panganga-ci-test:latest .
