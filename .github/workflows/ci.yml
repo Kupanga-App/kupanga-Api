@@ -80,17 +80,9 @@ jobs:
         run: echo "☕ Java 21 installé"
 
       # -----------------------------
-      # 4️⃣ Build Maven sans tests
+      # 4️⃣ Définir les variables DB pour Maven & tests
       # -----------------------------
-      - name: Build Maven sans tests
-        run: |
-          echo "🔨 Compilation du projet Maven (tests ignorés pour le moment)"
-          mvn clean install -DskipTests
-
-      # -----------------------------
-      # 5️⃣ Lancer les tests unitaires
-      # -----------------------------
-      - name: Set DB env for tests
+      - name: Set DB env for Maven & tests
         run: |
           echo "SPRING_DATASOURCE_URL=jdbc:postgresql://${{ job.services.postgres.host }}:5432/kupanga_dev" >> $GITHUB_ENV
           echo "SPRING_DATASOURCE_USERNAME=kupanga" >> $GITHUB_ENV
@@ -98,13 +90,40 @@ jobs:
           echo "SPRING_JPA_HIBERNATE_DDL_AUTO=update" >> $GITHUB_ENV
           echo "SPRING_JPA_DATABASE_PLATFORM=org.hibernate.dialect.PostgreSQLDialect" >> $GITHUB_ENV
 
+      # -----------------------------
+      # 5️⃣ Attendre PostgreSQL prêt
+      # -----------------------------
+      - name: Wait for PostgreSQL
+        run: |
+          for i in {1..10}; do
+            if PGPASSWORD=devpassword psql -h ${{ job.services.postgres.host }} -U kupanga -d kupanga_dev -c '\l' > /dev/null 2>&1; then
+              echo "✅ PostgreSQL prêt"
+              exit 0
+            fi
+            echo "⏳ Attente de PostgreSQL..."
+            sleep 3
+          done
+          echo "❌ PostgreSQL non démarré"
+          exit 1
+
+      # -----------------------------
+      # 6️⃣ Build Maven sans tests
+      # -----------------------------
+      - name: Build Maven sans tests
+        run: |
+          echo "🔨 Compilation du projet Maven (tests ignorés pour le moment)"
+          mvn clean install -DskipTests
+
+      # -----------------------------
+      # 7️⃣ Lancer les tests unitaires
+      # -----------------------------
       - name: Lancer tests unitaires
         run: |
           echo "🧪 Lancement des tests unitaires"
           mvn test
 
       # -----------------------------
-      # 6️⃣ Analyse statique Semgrep
+      # 8️⃣ Analyse statique Semgrep
       # -----------------------------
       - name: Analyse statique Semgrep
         uses: returntocorp/semgrep-action@v1
@@ -115,7 +134,7 @@ jobs:
         run: echo "🔍 Analyse statique du code terminée avec Semgrep"
 
       # -----------------------------
-      # 7️⃣ Build Docker image
+      # 9️⃣ Build Docker image
       # -----------------------------
       - name: Build Docker image
         run: |
@@ -123,7 +142,7 @@ jobs:
           docker build -t kupanga-ci-test:latest .
 
       # -----------------------------
-      # 8️⃣ Vérification PostgreSQL et MinIO
+      # 🔟 Vérification PostgreSQL et MinIO
       # -----------------------------
       - name: Vérification PostgreSQL et MinIO
         run: |
