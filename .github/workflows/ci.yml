@@ -31,6 +31,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # -----------------------------
+      # MinIO
+      # -----------------------------
       - name: Start MinIO manually
         run: |
           docker run -d \
@@ -44,42 +47,68 @@ jobs:
       - name: Wait for MinIO
         run: |
           for i in {1..10}; do
-            curl -f http://localhost:9000/minio/health/live && exit 0
+            if curl -f http://localhost:9000/minio/health/live > /dev/null 2>&1; then
+              echo "✅ MinIO prêt"
+              exit 0
+            fi
             sleep 3
           done
+          echo "❌ MinIO non démarré"
           exit 1
 
+      # -----------------------------
+      # Java
+      # -----------------------------
       - name: Installer Java 21
         uses: actions/setup-java@v3
         with:
           java-version: '21'
           distribution: 'temurin'
 
+      # -----------------------------
+      # Variables DB
+      # -----------------------------
       - name: Set DB env
         run: |
-          echo "SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/panganga_dev" >> $GITHUB_ENV
+          echo "SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/panganga_dev" >> $GITHUB_ENV
           echo "SPRING_DATASOURCE_USERNAME=panganga" >> $GITHUB_ENV
           echo "SPRING_DATASOURCE_PASSWORD=devpassword" >> $GITHUB_ENV
 
+      # -----------------------------
+      # Wait PostgreSQL
+      # -----------------------------
       - name: Wait for PostgreSQL
         run: |
-          for i in {1..10}; do
-            PGPASSWORD=devpassword psql -h postgres -U panganga -d panganga_dev -c '\q' && exit 0
+          for i in {1..15}; do
+            if PGPASSWORD=devpassword psql -h localhost -U panganga -d panganga_dev -c '\q' > /dev/null 2>&1; then
+              echo "✅ PostgreSQL prêt"
+              exit 0
+            fi
+            echo "⏳ Attente de PostgreSQL..."
             sleep 3
           done
           docker logs ${{ job.services.postgres.id }}
           exit 1
 
+      # -----------------------------
+      # Build & tests
+      # -----------------------------
       - name: Build Maven
         run: mvn clean install -DskipTests
 
       - name: Tests
         run: mvn test
 
+      # -----------------------------
+      # Analyse statique
+      # -----------------------------
       - name: Analyse statique Semgrep
         uses: returntocorp/semgrep-action@v1
         with:
           config: p/java
 
+      # -----------------------------
+      # Docker
+      # -----------------------------
       - name: Build Docker image
         run: docker build -t panganga-ci-test:latest .
