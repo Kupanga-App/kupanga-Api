@@ -89,6 +89,14 @@ jobs:
       # -----------------------------
       # 5️⃣ Lancer les tests unitaires
       # -----------------------------
+      - name: Set DB env for tests
+        run: |
+          echo "SPRING_DATASOURCE_URL=jdbc:postgresql://${{ job.services.postgres.host }}:5432/kupanga_dev" >> $GITHUB_ENV
+          echo "SPRING_DATASOURCE_USERNAME=kupanga" >> $GITHUB_ENV
+          echo "SPRING_DATASOURCE_PASSWORD=devpassword" >> $GITHUB_ENV
+          echo "SPRING_JPA_HIBERNATE_DDL_AUTO=update" >> $GITHUB_ENV
+          echo "SPRING_JPA_DATABASE_PLATFORM=org.hibernate.dialect.PostgreSQLDialect" >> $GITHUB_ENV
+
       - name: Lancer tests unitaires
         run: |
           echo "🧪 Lancement des tests unitaires"
