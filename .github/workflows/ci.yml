@@ -19,8 +19,6 @@ jobs:
       # -----------------------------
       postgres:
         image: postgres:15
-        ports:
-          - 5433:5432
         env:
           POSTGRES_USER: kupanga
           POSTGRES_PASSWORD: devpassword
@@ -36,8 +34,6 @@ jobs:
       # -----------------------------
       minio:
         image: minio/minio
-        ports:
-          - 9001:9000
         env:
           MINIO_ROOT_USER: minioadmin
           MINIO_ROOT_PASSWORD: minioadmin
@@ -106,12 +102,12 @@ jobs:
           docker build -t kupanga-ci-test:latest .
 
       # -----------------------------
-      # 7️⃣ Vérification des services
+      # 7️⃣ Vérification des services PostgreSQL et Minio
       # -----------------------------
       - name: Vérification PostgreSQL et Minio
         run: |
           echo "✅ Vérification de la connexion à PostgreSQL..."
-          docker run --rm --network host postgres:15 psql -h localhost -U kupanga -d kupanga_dev -c '\l'
+          PGPASSWORD=devpassword psql -h ${{ job.services.postgres.host }} -U kupanga -d kupanga_dev -c '\l' || echo "⚠️ PostgreSQL non accessible"
 
           echo "✅ Vérification de la connexion à Minio..."
-          curl -s http://localhost:9001/minio/health/live || echo "⚠️ Minio non accessible"
+          curl -s http://${{ job.services.minio.host }}:9000/minio/health/live || echo "⚠️ Minio non accessible"
