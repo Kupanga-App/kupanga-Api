@@ -25,7 +25,7 @@ jobs:
           POSTGRES_PASSWORD: devpassword
           POSTGRES_DB: kupanga_dev
         options: >-
-          --health-cmd="pg_isready -U kupanga"
+          --health-cmd="pg_isready -U kupanga -d kupanga_dev"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
