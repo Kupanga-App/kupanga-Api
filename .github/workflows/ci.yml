@@ -14,22 +14,36 @@ jobs:
     env:
       DOCKER_BUILDKIT: 1
 
-    services:
-      postgres:
-        image: postgis/postgis:15-3.4-bullseye
-        env:
-          POSTGRES_USER: panganga
-          POSTGRES_PASSWORD: devpassword
-          POSTGRES_DB: panganga_dev
-        options: >-
-          --health-cmd="psql -U panganga -d panganga_dev -c 'SELECT 1' || exit 1"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=10
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      # -----------------------------
+      # Start PostgreSQL + PostGIS
+      # -----------------------------
+      - name: Start PostGIS manually
+        run: |
+          docker run -d \
+            --name postgres \
+            -e POSTGRES_USER=panganga \
+            -e POSTGRES_PASSWORD=devpassword \
+            -e POSTGRES_DB=panganga_dev \
+            -p 5432:5432 \
+            postgis/postgis:15-3.4-bullseye
+
+      - name: Wait for PostgreSQL + PostGIS
+        run: |
+          for i in {1..40}; do
+            if PGPASSWORD=devpassword psql -h localhost -U panganga -d panganga_dev -c "SELECT PostGIS_Version();" > /dev/null 2>&1; then
+              echo "✅ PostgreSQL + PostGIS prêts"
+              exit 0
+            fi
+            echo "⏳ Attente de PostgreSQL/PostGIS..."
+            sleep 3
+          done
+          echo "❌ PostgreSQL/PostGIS n'a pas démarré à temps"
+          docker logs postgres
+          exit 1
 
       # -----------------------------
       # MinIO
@@ -73,23 +87,6 @@ jobs:
           echo "SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/panganga_dev" >> $GITHUB_ENV
           echo "SPRING_DATASOURCE_USERNAME=panganga" >> $GITHUB_ENV
           echo "SPRING_DATASOURCE_PASSWORD=devpassword" >> $GITHUB_ENV
-
-      # -----------------------------
-      # Wait PostgreSQL + PostGIS
-      # -----------------------------
-      - name: Wait for PostgreSQL + PostGIS
-        run: |
-          for i in {1..30}; do
-            if PGPASSWORD=devpassword psql -h localhost -U panganga -d panganga_dev -c "SELECT PostGIS_Version();" > /dev/null 2>&1; then
-              echo "✅ PostgreSQL + PostGIS prêts"
-              exit 0
-            fi
-            echo "⏳ Attente de PostgreSQL/PostGIS..."
-            sleep 3
-          done
-          echo "❌ PostgreSQL/PostGIS n'a pas démarré à temps"
-          docker logs ${{ job.services.postgres.id }}
-          exit 1
 
       # -----------------------------
       # Build & tests
