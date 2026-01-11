@@ -22,10 +22,10 @@ jobs:
           POSTGRES_PASSWORD: devpassword
           POSTGRES_DB: panganga_dev
         options: >-
-          --health-cmd="pg_isready -U panganga -d panganga_dev"
+          --health-cmd="psql -U panganga -d panganga_dev -c 'SELECT 1' || exit 1"
           --health-interval=10s
           --health-timeout=5s
-          --health-retries=5
+          --health-retries=10
 
     steps:
       - name: Checkout code
@@ -75,18 +75,19 @@ jobs:
           echo "SPRING_DATASOURCE_PASSWORD=devpassword" >> $GITHUB_ENV
 
       # -----------------------------
-      # Wait PostgreSQL
+      # Wait PostgreSQL + PostGIS
       # -----------------------------
-      - name: Wait for PostgreSQL
+      - name: Wait for PostgreSQL + PostGIS
         run: |
-          for i in {1..15}; do
-            if PGPASSWORD=devpassword psql -h localhost -U panganga -d panganga_dev -c '\q' > /dev/null 2>&1; then
-              echo "✅ PostgreSQL prêt"
+          for i in {1..30}; do
+            if PGPASSWORD=devpassword psql -h localhost -U panganga -d panganga_dev -c "SELECT PostGIS_Version();" > /dev/null 2>&1; then
+              echo "✅ PostgreSQL + PostGIS prêts"
               exit 0
             fi
-            echo "⏳ Attente de PostgreSQL..."
+            echo "⏳ Attente de PostgreSQL/PostGIS..."
             sleep 3
           done
+          echo "❌ PostgreSQL/PostGIS n'a pas démarré à temps"
           docker logs ${{ job.services.postgres.id }}
           exit 1
 
