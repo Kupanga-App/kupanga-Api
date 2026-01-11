@@ -1,0 +1,62 @@
+name: CI Kupanga
+
+# -----------------------------
+# Déclenchement automatique sur push
+# -----------------------------
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - 'feature/*'
+
+jobs:
+  build-test-static-docker:
+    runs-on: ubuntu-latest
+    env:
+      DOCKER_BUILDKIT: 1   # Active le build Docker optimisé
+
+    steps:
+
+      # -----------------------------
+      # 1️⃣ Récupérer le code
+      # -----------------------------
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # -----------------------------
+      # 2️⃣ Installer Java 21
+      # -----------------------------
+      - name: Set up JDK 21
+        uses: actions/setup-java@v3
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      # -----------------------------
+      # 3️⃣ Build Maven (sans tests)
+      # -----------------------------
+      - name: Build with Maven
+        run: mvn clean install -DskipTests
+
+      # -----------------------------
+      # 4️⃣ Lancer les tests unitaires
+      # -----------------------------
+      - name: Run unit tests
+        run: mvn test
+
+      # -----------------------------
+      # 5️⃣ Analyse statique avec Semgrep (GRATUIT)
+      # -----------------------------
+      - name: Static analysis with Semgrep
+        uses: returntocorp/semgrep-action@v1
+        with:
+          config: p/java
+
+      # -----------------------------
+      # 6️⃣ Build Docker image (test local)
+      # -----------------------------
+      - name: Build Docker image
+        run: |
+          echo "Building Docker image locally..."
+          docker build -t kupanga-ci-test:latest .

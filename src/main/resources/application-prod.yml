@@ -1,0 +1,16 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://db:5432/kupanga
+    username: kupanga
+    password: prodpassword
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+
+minio:
+  endpoint: http://localhost:9002
+  access-key: prodminio
+  secret-key: prodminio123
+  bucket: kupanga-prod

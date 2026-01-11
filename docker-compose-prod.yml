@@ -1,0 +1,70 @@
+
+services:
+
+  # ------------------------
+  # 1️⃣ Spring Boot App
+  # ------------------------
+  kupanga:
+    build:
+      context: .
+      dockerfile: Dockerfile        # Dockerfile léger multi-stage
+    container_name: kupanga-prod
+    ports:
+      - "8086:8080"                # Port PROD exposé
+    env_file:
+      - .env.prod
+    depends_on:
+      - db
+      - minio
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+
+  # ------------------------
+  # 2️⃣ PostgreSQL Database
+  # ------------------------
+  db:
+    image: postgres:15-alpine
+    container_name: kupanga-db-prod
+    environment:
+      POSTGRES_DB: kupanga
+      POSTGRES_USER: kupanga
+      POSTGRES_PASSWORD: prodpassword
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-data-prod:/var/lib/postgresql/data
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+
+  # ------------------------
+  # 3️⃣ MinIO Storage
+  # ------------------------
+  minio:
+    image: minio/minio:latest
+    container_name: minio-prod
+    environment:
+      MINIO_ROOT_USER: prodminio
+      MINIO_ROOT_PASSWORD: prodminio123
+    command: server /data
+    ports:
+      - "9002:9000"
+    volumes:
+      - minio-data-prod:/data
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+
+volumes:
+  db-data-prod:
+  minio-data-prod:

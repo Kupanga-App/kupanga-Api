@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: kupanga
+  profiles:
+    active: dev
+
+server:
+  port: 8089
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+email:
+  sender: "no-reply@kupanga.com"
+  host: "smtp.kupanga.com"
+  port: 587
+
+app:
+  feature-flags:
+    newFeature: false

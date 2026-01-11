@@ -1,0 +1,37 @@
+name: Deploy Kupanga
+
+# -----------------------------
+# Déclenchement manuel
+# -----------------------------
+on:
+  workflow_dispatch:  # permet le déclenchement manuel depuis GitHub
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1️⃣ Récupérer le code
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2️⃣ Installer Fly.io CLI
+      - name: Install Flyctl
+        run: curl -L https://fly.io/install.sh | sh
+
+      # 3️⃣ Authentification Fly.io
+      - name: Authenticate Fly.io
+        run: flyctl auth token ${{ secrets.FLY_API_TOKEN }}
+
+      # 4️⃣ Déploiement selon la branche
+      - name: Deploy to environment
+        run: |
+          if [[ "${GITHUB_REF}" == "refs/heads/develop" ]]; then
+            echo "Deploying to DEV..."
+            flyctl deploy --config fly.dev.toml --remote-only
+          elif [[ "${GITHUB_REF}" == "refs/heads/main" ]]; then
+            echo "Deploying to PROD..."
+            flyctl deploy --config fly.prod.toml --remote-only
+          else
+            echo "This branch is not mapped to an environment. Deploy skipped."
+          fi
