@@ -11,7 +11,7 @@ jobs:
   build-test-static-docker:
     runs-on: ubuntu-latest
     env:
-      DOCKER_BUILDKIT: 1   # Active le build Docker optimisé
+      DOCKER_BUILDKIT: 1
 
     services:
       # -----------------------------
@@ -29,27 +29,9 @@ jobs:
           --health-timeout=5s
           --health-retries=5
 
-      # -----------------------------
-      # Minio pour le stockage d'objets
-      # -----------------------------
-      minio:
-        image: minio/minio
-        env:
-          MINIO_ROOT_USER: minioadmin
-          MINIO_ROOT_PASSWORD: minioadmin
-        ports:
-          - 9000:9000
-          - 9001:9001
-        options: >-
-          --health-cmd="curl -f http://localhost:9000/minio/health/live || exit 1"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
-          server /data --console-address ":9001"
-
     steps:
       # -----------------------------
-      # 1️⃣ Récupérer le code depuis GitHub
+      # 1️⃣ Récupérer le code
       # -----------------------------
       - name: Checkout code
         uses: actions/checkout@v4
@@ -58,7 +40,34 @@ jobs:
         run: echo "📥 Code récupéré depuis le dépôt GitHub"
 
       # -----------------------------
-      # 2️⃣ Installer Java 21
+      # 2️⃣ Démarrer MinIO manuellement
+      # -----------------------------
+      - name: Start MinIO manually
+        run: |
+          echo "🚀 Démarrage de MinIO..."
+          docker run -d \
+            --name minio \
+            -p 9000:9000 \
+            -p 9001:9001 \
+            -e MINIO_ROOT_USER=minioadmin \
+            -e MINIO_ROOT_PASSWORD=minioadmin \
+            minio/minio server /data --console-address ":9001"
+
+      - name: Wait for MinIO
+        run: |
+          echo "⏳ Attente du démarrage de MinIO..."
+          for i in {1..10}; do
+            if curl -f http://localhost:9000/minio/health/live > /dev/null 2>&1; then
+              echo "✅ MinIO est opérationnel"
+              exit 0
+            fi
+            sleep 3
+          done
+          echo "❌ MinIO n'a pas démarré"
+          exit 1
+
+      # -----------------------------
+      # 3️⃣ Installer Java 21
       # -----------------------------
       - name: Installer Java 21
         uses: actions/setup-java@v3
@@ -70,7 +79,7 @@ jobs:
         run: echo "☕ Java 21 installé"
 
       # -----------------------------
-      # 3️⃣ Build Maven sans tests
+      # 4️⃣ Build Maven sans tests
       # -----------------------------
       - name: Build Maven sans tests
         run: |
@@ -78,7 +87,7 @@ jobs:
           mvn clean install -DskipTests
 
       # -----------------------------
-      # 4️⃣ Lancer les tests unitaires
+      # 5️⃣ Lancer les tests unitaires
       # -----------------------------
       - name: Lancer tests unitaires
         run: |
@@ -86,7 +95,7 @@ jobs:
           mvn test
 
       # -----------------------------
-      # 5️⃣ Analyse statique avec Semgrep
+      # 6️⃣ Analyse statique Semgrep
       # -----------------------------
       - name: Analyse statique Semgrep
         uses: returntocorp/semgrep-action@v1
@@ -97,7 +106,7 @@ jobs:
         run: echo "🔍 Analyse statique du code terminée avec Semgrep"
 
       # -----------------------------
-      # 6️⃣ Build Docker image pour test local
+      # 7️⃣ Build Docker image
       # -----------------------------
       - name: Build Docker image
         run: |
@@ -105,12 +114,12 @@ jobs:
           docker build -t kupanga-ci-test:latest .
 
       # -----------------------------
-      # 7️⃣ Vérification des services PostgreSQL et Minio
+      # 8️⃣ Vérification PostgreSQL et MinIO
       # -----------------------------
-      - name: Vérification PostgreSQL et Minio
+      - name: Vérification PostgreSQL et MinIO
         run: |
           echo "✅ Vérification de la connexion à PostgreSQL..."
           PGPASSWORD=devpassword psql -h ${{ job.services.postgres.host }} -U kupanga -d kupanga_dev -c '\l' || echo "⚠️ PostgreSQL non accessible"
 
-          echo "✅ Vérification de la connexion à Minio..."
-          curl -s http://${{ job.services.minio.host }}:9000/minio/health/live || echo "⚠️ Minio non accessible"
+          echo "✅ Vérification de la connexion à MinIO..."
+          curl -s http://localhost:9000/minio/health/live || echo "⚠️ MinIO non accessible"
