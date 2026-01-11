@@ -16,13 +16,48 @@ jobs:
     env:
       DOCKER_BUILDKIT: 1   # Active le build Docker optimisé
 
-    steps:
+    services:
+      # -----------------------------
+      # Base de données PostgreSQL
+      # -----------------------------
+      postgres:
+        image: postgres:15
+        ports:
+          - 5433:5432
+        env:
+          POSTGRES_USER: kupanga
+          POSTGRES_PASSWORD: devpassword
+          POSTGRES_DB: kupanga_dev
+        options: >-
+          --health-cmd="pg_isready -U kupanga"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
 
       # -----------------------------
-      # 1️⃣ Récupérer le code
+      # Minio pour le stockage d'objets
+      # -----------------------------
+      minio:
+        image: minio/minio
+        ports:
+          - 9001:9000
+        env:
+          MINIO_ROOT_USER: minioadmin
+          MINIO_ROOT_PASSWORD: minioadmin
+        command: server /data
+        options: >-
+          --health-cmd="curl -f http://localhost:9000/minio/health/live || exit 1"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      # -----------------------------
+      # 1️⃣ Récupérer le code depuis GitHub
       # -----------------------------
       - name: Checkout code
         uses: actions/checkout@v4
+        run: echo "📥 Code récupéré depuis le dépôt GitHub"
 
       # -----------------------------
       # 2️⃣ Installer Java 21
@@ -32,31 +67,48 @@ jobs:
         with:
           java-version: '21'
           distribution: 'temurin'
+        run: echo "☕ Java 21 installé"
 
       # -----------------------------
-      # 3️⃣ Build Maven (sans tests)
+      # 3️⃣ Build Maven sans tests
       # -----------------------------
       - name: Build with Maven
-        run: mvn clean install -DskipTests
+        run: |
+          echo "🔨 Compilation du projet Maven (tests ignorés pour le moment)"
+          mvn clean install -DskipTests
 
       # -----------------------------
       # 4️⃣ Lancer les tests unitaires
       # -----------------------------
       - name: Run unit tests
-        run: mvn test
+        run: |
+          echo "🧪 Lancement des tests unitaires"
+          mvn test
 
       # -----------------------------
-      # 5️⃣ Analyse statique avec Semgrep (GRATUIT)
+      # 5️⃣ Analyse statique avec Semgrep
       # -----------------------------
       - name: Static analysis with Semgrep
         uses: returntocorp/semgrep-action@v1
         with:
           config: p/java
+        run: echo "🔍 Analyse statique du code avec Semgrep"
 
       # -----------------------------
-      # 6️⃣ Build Docker image (test local)
+      # 6️⃣ Build Docker image pour test local
       # -----------------------------
       - name: Build Docker image
         run: |
-          echo "Building Docker image locally..."
+          echo "🐳 Construction de l'image Docker pour test local"
           docker build -t kupanga-ci-test:latest .
+
+      # -----------------------------
+      # 7️⃣ Test de connexion à la BD et Minio
+      # -----------------------------
+      - name: Check DB and Minio connections
+        run: |
+          echo "✅ Vérification de la connexion à PostgreSQL..."
+          docker run --rm --network host postgres:15 psql -h localhost -U kupanga -d kupanga_dev -c '\l'
+          
+          echo "✅ Vérification de la connexion à Minio..."
+          curl -s http://localhost:9001/minio/health/live || echo "⚠️ Minio non accessible"
