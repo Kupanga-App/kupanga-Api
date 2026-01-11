@@ -29,7 +29,7 @@ WORKDIR /app
 # Copier uniquement le JAR depuis l'étape build
 COPY --from=build /app/target/kupanga-0.0.1-SNAPSHOT.jar app.jar
 
-# Exposer le port (Spring Boot écoute sur 8080)
+# Exposer le port (Spring Boot écoute sur 8089)
 EXPOSE 8089
 
 # Commande de lancement
