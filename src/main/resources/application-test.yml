@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5433/kupanga_dev
+    url: "jdbc:postgresql://${POSTGRES_HOST:localhost}:5432/kupanga_dev"
     username: kupanga
     password: devpassword
     driver-class-name: org.postgresql.Driver
