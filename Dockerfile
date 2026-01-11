@@ -30,7 +30,7 @@ WORKDIR /app
 COPY --from=build /app/target/kupanga-0.0.1-SNAPSHOT.jar app.jar
 
 # Exposer le port (Spring Boot écoute sur 8080)
-EXPOSE 8080
+EXPOSE 8089
 
 # Commande de lancement
 ENTRYPOINT ["java","-jar","/app/app.jar"]
