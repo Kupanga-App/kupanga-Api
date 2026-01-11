@@ -9,6 +9,7 @@ on:
 
 jobs:
   build-test-static-docker:
+    name: 🚀🧱 Build Maven | 🧪 Tests | 🔍 Analyse Qualité | 🐳 Docker Build
     runs-on: ubuntu-latest
     env:
       DOCKER_BUILDKIT: 1
