@@ -88,6 +88,31 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- Spring Security pour la gestion de l'authentification et de l'autorisation -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+
+        <!-- Hibernate Spatial pour le support des types géographiques (latitude / longitude) -->
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-spatial</artifactId>
+            <version>6.3.0.Final</version>
+        </dependency>
+
+        <!-- Spring Boot starter pour l'envoi d'emails -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
+
+        <!-- Validation Bean (JSR 380 / Jakarta Bean Validation) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+
     </dependencies>
 
     <build>
