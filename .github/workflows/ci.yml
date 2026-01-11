@@ -11,7 +11,7 @@ jobs:
   build-test-static-docker:
     runs-on: ubuntu-latest
     env:
-      DOCKER_BUILDKIT: 1
+      DOCKER_BUILDKIT: 1   # Active le build Docker optimisé
 
     services:
       # -----------------------------
@@ -41,8 +41,8 @@ jobs:
         env:
           MINIO_ROOT_USER: minioadmin
           MINIO_ROOT_PASSWORD: minioadmin
-        command: server /data
         options: >-
+          --entrypoint "/bin/sh -c 'minio server /data'" 
           --health-cmd="curl -f http://localhost:9000/minio/health/live || exit 1"
           --health-interval=10s
           --health-timeout=5s
@@ -50,7 +50,7 @@ jobs:
 
     steps:
       # -----------------------------
-      # 1️⃣ Récupérer le code
+      # 1️⃣ Récupérer le code depuis GitHub
       # -----------------------------
       - name: Checkout code
         uses: actions/checkout@v4
