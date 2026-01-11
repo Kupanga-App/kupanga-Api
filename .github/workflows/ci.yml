@@ -1,8 +1,5 @@
 name: CI Kupanga
 
-# -----------------------------
-# Déclenchement automatique sur push
-# -----------------------------
 on:
   push:
     branches:
@@ -14,7 +11,7 @@ jobs:
   build-test-static-docker:
     runs-on: ubuntu-latest
     env:
-      DOCKER_BUILDKIT: 1   # Active le build Docker optimisé
+      DOCKER_BUILDKIT: 1
 
     services:
       # -----------------------------
@@ -53,26 +50,30 @@ jobs:
 
     steps:
       # -----------------------------
-      # 1️⃣ Récupérer le code depuis GitHub
+      # 1️⃣ Récupérer le code
       # -----------------------------
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Message
         run: echo "📥 Code récupéré depuis le dépôt GitHub"
 
       # -----------------------------
       # 2️⃣ Installer Java 21
       # -----------------------------
-      - name: Set up JDK 21
+      - name: Installer Java 21
         uses: actions/setup-java@v3
         with:
           java-version: '21'
           distribution: 'temurin'
+
+      - name: Message
         run: echo "☕ Java 21 installé"
 
       # -----------------------------
       # 3️⃣ Build Maven sans tests
       # -----------------------------
-      - name: Build with Maven
+      - name: Build Maven sans tests
         run: |
           echo "🔨 Compilation du projet Maven (tests ignorés pour le moment)"
           mvn clean install -DskipTests
@@ -80,7 +81,7 @@ jobs:
       # -----------------------------
       # 4️⃣ Lancer les tests unitaires
       # -----------------------------
-      - name: Run unit tests
+      - name: Lancer tests unitaires
         run: |
           echo "🧪 Lancement des tests unitaires"
           mvn test
@@ -88,11 +89,13 @@ jobs:
       # -----------------------------
       # 5️⃣ Analyse statique avec Semgrep
       # -----------------------------
-      - name: Static analysis with Semgrep
+      - name: Analyse statique Semgrep
         uses: returntocorp/semgrep-action@v1
         with:
           config: p/java
-        run: echo "🔍 Analyse statique du code avec Semgrep"
+
+      - name: Message
+        run: echo "🔍 Analyse statique du code terminée avec Semgrep"
 
       # -----------------------------
       # 6️⃣ Build Docker image pour test local
@@ -103,12 +106,12 @@ jobs:
           docker build -t kupanga-ci-test:latest .
 
       # -----------------------------
-      # 7️⃣ Test de connexion à la BD et Minio
+      # 7️⃣ Vérification des services
       # -----------------------------
-      - name: Check DB and Minio connections
+      - name: Vérification PostgreSQL et Minio
         run: |
           echo "✅ Vérification de la connexion à PostgreSQL..."
           docker run --rm --network host postgres:15 psql -h localhost -U kupanga -d kupanga_dev -c '\l'
-          
+
           echo "✅ Vérification de la connexion à Minio..."
           curl -s http://localhost:9001/minio/health/live || echo "⚠️ Minio non accessible"
