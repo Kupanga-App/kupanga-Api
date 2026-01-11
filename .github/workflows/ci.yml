@@ -84,7 +84,7 @@ jobs:
       # -----------------------------
       - name: Set DB env for Maven & tests
         run: |
-          echo "SPRING_DATASOURCE_URL=jdbc:postgresql://${{ job.services.postgres.host }}:5432/kupanga_dev" >> $GITHUB_ENV
+          echo "SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/kupanga_dev" >> $GITHUB_ENV
           echo "SPRING_DATASOURCE_USERNAME=kupanga" >> $GITHUB_ENV
           echo "SPRING_DATASOURCE_PASSWORD=devpassword" >> $GITHUB_ENV
           echo "SPRING_JPA_HIBERNATE_DDL_AUTO=update" >> $GITHUB_ENV
@@ -96,7 +96,7 @@ jobs:
       - name: Wait for PostgreSQL
         run: |
           for i in {1..10}; do
-            if PGPASSWORD=devpassword psql -h ${{ job.services.postgres.host }} -U kupanga -d kupanga_dev -c '\l' > /dev/null 2>&1; then
+            if PGPASSWORD=devpassword psql -h postgres -U kupanga -d kupanga_dev -c '\l' > /dev/null 2>&1; then
               echo "✅ PostgreSQL prêt"
               exit 0
             fi
@@ -105,6 +105,7 @@ jobs:
           done
           echo "❌ PostgreSQL non démarré"
           exit 1
+      
 
       # -----------------------------
       # 6️⃣ Build Maven sans tests
