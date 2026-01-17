@@ -31,15 +31,21 @@ class JwtUtilsTest {
     }
 
     @Test
-    @DisplayName("Génération d'un access token valide avec l'email comme subject")
+    @DisplayName("Génération d'un access token valide avec l'email comme subject (20 minutes)")
     void shouldGenerateValidAccessToken() {
-        // WHEN
+        // Arrange : durée du token = 20 minutes
+        long twentyMinutesInMillis = 20 * 60 * 1000; // 20 min = 1_200_000 ms
+        ReflectionTestUtils.setField(jwtUtils, "accessTokenExpirationTime", twentyMinutesInMillis);
+
+        // WHEN : génération du token
         String token = jwtUtils.generateAccessToken("test@mail.com");
 
-        // THEN
-        assertNotNull(token);
-        assertEquals("test@mail.com", jwtUtils.extractUserEmail(token));
+        // THEN : vérifications
+        assertNotNull(token, "Le token ne doit pas être null");
+        assertEquals("test@mail.com", jwtUtils.extractUserEmail(token),
+                "L'email extrait du token doit correspondre");
     }
+
 
     @Test
     @DisplayName("Le refresh token doit être différent de l'access token")
