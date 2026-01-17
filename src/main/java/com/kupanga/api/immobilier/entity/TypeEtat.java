@@ -1,4 +1,4 @@
-package com.kupanga.api.model.entity;
+package com.kupanga.api.immobilier.entity;
 
 public enum TypeEtat {
 

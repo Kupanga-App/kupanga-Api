@@ -1,4 +1,4 @@
-package com.kupanga.api.model.entity;
+package com.kupanga.api.utilisateur.entity;
 
 public enum Role {
 

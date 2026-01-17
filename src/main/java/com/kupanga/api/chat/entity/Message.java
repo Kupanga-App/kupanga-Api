@@ -1,5 +1,7 @@
-package com.kupanga.api.model.entity;
+package com.kupanga.api.chat.entity;
 
+import com.kupanga.api.immobilier.entity.Bien;
+import com.kupanga.api.utilisateur.entity.Utilisateur;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
