@@ -14,37 +14,3 @@ minio:
   access-key: minioadmin
   secret-key: minioadmin
   bucket: kupanga-test
-
-mail:
-  host: smtp.gmail.com
-  port: 587
-  username: noreplydevback@gmail.com
-  password: bwpfjdtbtiobxmoe
-  properties:
-    mail:
-      smtp:
-        auth: true
-        starttls:
-          enable: true
-
-server:
-  port: 8089
-
-springdoc:
-  api-docs:
-    path: /v3/api-docs
-  swagger-ui:
-    path: /swagger-ui.html
-
-email:
-  sender: "no-reply@kupanga.com"
-
-app:
-  feature-flags:
-    newFeature: false
-
-jwt:
-  secret-key: 6Z7v1pL8y8KZgA0h5ZJm6Q1sZ3D7GxK9E3Zxv7Z9rA4=
-  expiration-time: 1200000
-  refresh-expiration-time: 86400000
-
