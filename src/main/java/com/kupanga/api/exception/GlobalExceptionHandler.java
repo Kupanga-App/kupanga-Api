@@ -2,6 +2,8 @@ package com.kupanga.api.exception;
 
 import com.kupanga.api.exception.business.BusinessException;
 import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -27,6 +29,8 @@ import java.time.LocalDateTime;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
     /**
      * Intercepte toutes les exceptions métier {@link BusinessException}.
      *
@@ -39,6 +43,8 @@ public class GlobalExceptionHandler {
             BusinessException ex,
             HttpServletRequest request
     ) {
+
+        logger.warn("Une exception métier est survenue : {}", ex.getMessage(), ex);
         return buildResponse(
                 ex.getStatus(),
                 ex.getMessage(),
