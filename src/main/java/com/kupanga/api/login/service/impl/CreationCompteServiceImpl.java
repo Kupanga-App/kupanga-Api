@@ -25,6 +25,7 @@ public class CreationCompteServiceImpl implements CreationCompteService {
     public UtilisateurDTO creationUtilisateur(String email ,String role) throws UserAlreadyExistsException {
 
         utilisateurService.verifieSiUtilisateurEstPresent(email);
+        utilisateurService.verifieSiRoleUtilisateurCorrect(role);
         String motDePasseTemporaire = generationMotDePasseTemporaire();
         Utilisateur utilisateur = Utilisateur.builder()
                 .email(email)
@@ -41,6 +42,11 @@ public class CreationCompteServiceImpl implements CreationCompteService {
         }
         return utilisateurMapper.toDTO(utilisateur);
     }
+
+    /**
+     * Génère un Mot de passe provisoire
+     * @return un mot de passe provisoire
+     */
 
     private String generationMotDePasseTemporaire(){
 

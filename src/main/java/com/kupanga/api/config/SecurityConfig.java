@@ -85,19 +85,19 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http
-                // ⚡ CORS configuré via le bean corsConfigurationSource()
+                //  CORS configuré via le bean corsConfigurationSource()
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
-                // ⚡ CSRF désactivé pour API REST
+                //  CSRF désactivé pour API REST
                 .csrf(AbstractHttpConfigurer::disable)
 
-                // 🔐 Règles d'autorisation
+                //  Règles d'autorisation
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/public/**").permitAll() // Endpoints publics
                         .anyRequest().authenticated()             // Tout le reste nécessite authentification
                 )
 
-                // ⚡ Ajout du filtre JWT avant UsernamePasswordAuthenticationFilter
+                //  Ajout du filtre JWT avant UsernamePasswordAuthenticationFilter
                 .addFilterBefore(
                         new JwtFilter(userDetailsService, jwtUtils),
                         UsernamePasswordAuthenticationFilter.class

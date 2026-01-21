@@ -18,8 +18,11 @@ import org.springframework.http.HttpStatus;
  * <p>
  * Exemple d'utilisation :
  * <pre>
- * if (role == null || !validRoles.contains(role)) {
- *     throw new InvalidRoleException(role);
+ * if (role == null ) {
+ *     throw new InvalidRoleException();
+ * }
+ * if (!validRoles.contains(role)) {
+ *      throw new InvalidRoleException(message);
  * }
  * </pre>
  * </p>
@@ -28,11 +31,18 @@ public class InvalidRoleException extends BusinessException {
 
     /**
      * Construit une exception pour un rôle invalide donné.
-     *
-     * @param role le rôle qui est invalide ou non reconnu
      */
-    public InvalidRoleException(String role) {
-        super("Rôle métier invalide : " + role, HttpStatus.BAD_REQUEST);
+    public InvalidRoleException() {
+        super("Rôle métier invalide ", HttpStatus.BAD_REQUEST);
+    }
+
+    /**
+     * Construit une exception pour un rôle invalide avec un message personnalisé.
+     *
+     * @param message message métier décrivant l'erreur
+     */
+    public InvalidRoleException(String message) {
+        super(message, HttpStatus.BAD_REQUEST);
     }
 }
 

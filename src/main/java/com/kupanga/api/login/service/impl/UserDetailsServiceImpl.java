@@ -92,7 +92,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
          *    → Rôles / permissions de l'utilisateur.
          *      Exemple : ROLE_PROPRIETAIRE, ROLE_LOCATAIRE, etc.
          *
-         * ⚠️ Important :
+         * Important :
          * Si tu utilises hasRole("PROPRIETAIRE") ou hasRole("LOCATAIRE") dans
          * ta configuration, le rôle doit être stocké sous la forme "ROLE_PROPRIETAIRE",
          * "ROLE_LOCATAIRE".
