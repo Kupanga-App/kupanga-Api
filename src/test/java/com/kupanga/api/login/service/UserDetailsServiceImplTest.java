@@ -1,5 +1,6 @@
 package com.kupanga.api.login.service;
 
+import com.kupanga.api.login.service.impl.UserDetailsServiceImpl;
 import com.kupanga.api.utilisateur.entity.Role;
 import com.kupanga.api.utilisateur.entity.Utilisateur;
 import com.kupanga.api.utilisateur.repository.UtilisateurRepository;

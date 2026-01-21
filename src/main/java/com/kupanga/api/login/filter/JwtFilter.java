@@ -1,6 +1,6 @@
 package com.kupanga.api.login.filter;
 
-import com.kupanga.api.login.service.UserDetailsServiceImpl;
+import com.kupanga.api.login.service.impl.UserDetailsServiceImpl;
 import com.kupanga.api.login.utils.JwtUtils;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
