@@ -1,9 +1,10 @@
 package com.kupanga.api.login.service;
 
 
+import com.kupanga.api.exception.business.UserAlreadyExistsException;
 import com.kupanga.api.utilisateur.dto.readDTO.UtilisateurDTO;
 
 public interface CreationCompteService {
 
-    UtilisateurDTO creationUtilisateur(String email , String role);
+    UtilisateurDTO creationUtilisateur(String email , String role) throws UserAlreadyExistsException;
 }

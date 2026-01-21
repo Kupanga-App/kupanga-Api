@@ -1,12 +1,15 @@
 package com.kupanga.api.login.service.impl;
 
 import com.kupanga.api.email.service.EmailService;
+import com.kupanga.api.exception.business.UserAlreadyExistsException;
 import com.kupanga.api.login.service.CreationCompteService;
 import com.kupanga.api.utilisateur.dto.readDTO.UtilisateurDTO;
+import com.kupanga.api.utilisateur.entity.Role;
 import com.kupanga.api.utilisateur.entity.Utilisateur;
 import com.kupanga.api.utilisateur.mapper.UtilisateurMapper;
 import com.kupanga.api.utilisateur.service.UtilisateurService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -16,18 +19,19 @@ public class CreationCompteServiceImpl implements CreationCompteService {
     private final UtilisateurService utilisateurService;
     private final EmailService emailService;
     private final UtilisateurMapper utilisateurMapper;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
-    public UtilisateurDTO creationUtilisateur(String email ,String role){
+    public UtilisateurDTO creationUtilisateur(String email ,String role) throws UserAlreadyExistsException {
 
-        if (utilisateurService.getUtilisateurByEmail(email).isPresent()) {
-            throw new IllegalArgumentException("Un utilisateur avec cet email existe déjà : " + email);
-        }
+        utilisateurService.verifieSiUtilisateurEstPresent(email);
         String motDePasseTemporaire = generationMotDePasseTemporaire();
         Utilisateur utilisateur = Utilisateur.builder()
                 .email(email)
-                .motDePasse(motDePasseTemporaire)
+                .motDePasse(passwordEncoder.encode(motDePasseTemporaire))
+                .role(Role.valueOf(role))
                 .build();
+        utilisateurService.save(utilisateur);
         try {
             emailService.envoyerMailMotDePasseTemporaire(email, motDePasseTemporaire);
 

@@ -1,5 +1,6 @@
 package com.kupanga.api.utilisateur.service.impl;
 
+import com.kupanga.api.exception.business.UserAlreadyExistsException;
 import com.kupanga.api.utilisateur.entity.Utilisateur;
 import com.kupanga.api.utilisateur.repository.UtilisateurRepository;
 import com.kupanga.api.utilisateur.service.UtilisateurService;
@@ -19,4 +20,19 @@ public class UtilisateurServiceImpl implements UtilisateurService {
 
         return utilisateurRepository.findByEmail(email);
     }
+
+    @Override
+    public void verifieSiUtilisateurEstPresent(String email) throws UserAlreadyExistsException{
+
+        if(utilisateurRepository.existsByEmail(email)){
+            throw new UserAlreadyExistsException(email);
+        }
+    }
+
+    @Override
+    public void save(Utilisateur utilisateur){
+
+        utilisateurRepository.save(utilisateur);
+    }
+
 }

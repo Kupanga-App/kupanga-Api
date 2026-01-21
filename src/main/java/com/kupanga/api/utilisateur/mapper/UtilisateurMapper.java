@@ -9,9 +9,9 @@ import org.mapstruct.Named;
 @Mapper(componentModel = "spring")
 public interface UtilisateurMapper {
 
-    @Named("toDTO")
+    //@Named("toDTO")
     UtilisateurDTO toDTO(Utilisateur utilisateur);
 
-    @Named("toEntity")
+    //@Named("toEntity")
     Utilisateur toEntity(UtilisateurFormDTO utilisateurFormDTO);
 }
