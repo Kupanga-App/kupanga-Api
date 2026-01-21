@@ -12,6 +12,7 @@ import java.util.Base64;
 import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
+@DisplayName("Tests unitaires pour JwtUtils")
 class JwtUtilsTest {
 
     private JwtUtils jwtUtils;

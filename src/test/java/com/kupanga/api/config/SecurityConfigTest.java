@@ -22,6 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Tests unitaires et d'intégration pour la configuration SecurityConfig.
  */
 @SpringBootTest
+@DisplayName("Tests unitaires pour SecurityConfig")
 class SecurityConfigTest {
 
     @Autowired

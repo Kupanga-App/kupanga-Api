@@ -23,6 +23,7 @@ import static org.mockito.Mockito.*;
  * Tests unitaires de {@link UserDetailsServiceImpl}.
  */
 @ExtendWith(MockitoExtension.class)
+@DisplayName("Tests unitaires pour UserDetailsServiceImpl")
 class UserDetailsServiceImplTest {
 
     @Mock
