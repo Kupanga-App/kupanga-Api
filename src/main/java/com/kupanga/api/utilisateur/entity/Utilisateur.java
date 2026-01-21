@@ -3,9 +3,7 @@ package com.kupanga.api.utilisateur.entity;
 import com.kupanga.api.immobilier.entity.Bien;
 import com.kupanga.api.chat.entity.Message;
 import jakarta.persistence.*;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.List;
 
@@ -13,6 +11,8 @@ import java.util.List;
 @Table(name = "utilisateurs")
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class Utilisateur {
     @Id

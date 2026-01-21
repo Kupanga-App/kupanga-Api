@@ -15,6 +15,7 @@ public class CreationCompteServiceImpl implements CreationCompteService {
 
     private final UtilisateurService utilisateurService;
     private final EmailService emailService;
+    private final UtilisateurMapper utilisateurMapper;
 
     @Override
     public UtilisateurDTO creationUtilisateur(String email ,String role){
@@ -34,7 +35,7 @@ public class CreationCompteServiceImpl implements CreationCompteService {
 
             System.err.println("Erreur envoi email: " + e.getMessage());
         }
-        return UtilisateurMapper.INSTANCE.toDTO(utilisateur);
+        return utilisateurMapper.toDTO(utilisateur);
     }
 
     private String generationMotDePasseTemporaire(){
