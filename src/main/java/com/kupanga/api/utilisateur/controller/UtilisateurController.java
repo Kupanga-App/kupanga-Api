@@ -42,7 +42,7 @@ public class UtilisateurController {
      * @param loginDTO DTO contenant l'email et le mot de passe de l'utilisateur
      * @return ResponseEntity contenant {@link AuthResponseDTO} avec le JWT, refresh token, rôle et email
      */
-    @PostMapping("/login")
+
     @Operation(
             summary = "Connexion d'un utilisateur",
             description = "Vérifie l'email et le mot de passe de l'utilisateur. Retourne JWT, refresh token et rôle."
@@ -55,6 +55,7 @@ public class UtilisateurController {
             @ApiResponse(responseCode = "401", description = "Mot de passe incorrect",
                     content = @Content)
     })
+    @PostMapping("/login")
     public ResponseEntity<AuthResponseDTO> login(
             @RequestBody @Parameter(description = "Données de connexion de l'utilisateur", required = true) LoginDTO loginDTO
     ) {

@@ -43,7 +43,7 @@ public class CreationCompteController {
      * @return ResponseEntity contenant l'objet {@link UtilisateurDTO} créé
      * @throws UserAlreadyExistsException si un utilisateur avec le même email existe déjà
      */
-    @PostMapping
+
     @Operation(
             summary = "Créer un nouvel utilisateur",
             description = "Crée un utilisateur avec un email et un rôle. Retourne le DTO de l'utilisateur créé."
@@ -56,6 +56,7 @@ public class CreationCompteController {
             @ApiResponse(responseCode = "400", description = "Rôle invalide fourni",
                     content = @Content)
     })
+    @PostMapping
     public ResponseEntity<UtilisateurDTO> creationCompte(
             @RequestBody @Parameter(description = "Données du nouvel utilisateur", required = true) UtilisateurFormDTO utilisateurFormDTO
     ) throws UserAlreadyExistsException {
