@@ -2,9 +2,9 @@ package com.kupanga.api.exception.business;
 
 import org.springframework.http.HttpStatus;
 
-public class IncorrectPassword extends BusinessException {
+public class InvalidPasswordException extends BusinessException {
 
-    public IncorrectPassword(){
+    public InvalidPasswordException(){
 
         super("Mot de passe invalide" , HttpStatus.UNAUTHORIZED);
     }

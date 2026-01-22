@@ -1,6 +1,6 @@
 package com.kupanga.api.utilisateur.service.impl;
 
-import com.kupanga.api.exception.business.IncorrectPassword;
+import com.kupanga.api.exception.business.InvalidPasswordException;
 import com.kupanga.api.exception.business.InvalidRoleException;
 import com.kupanga.api.exception.business.UserAlreadyExistsException;
 import com.kupanga.api.exception.business.UserNotFoundException;
@@ -86,7 +86,7 @@ public class UtilisateurServiceImpl implements UtilisateurService {
 
         if(!passwordEncoder.matches(passwordLogin , passwordUser) ){
 
-            throw new IncorrectPassword();
+            throw new InvalidPasswordException();
         }
     }
 
