@@ -3,6 +3,9 @@ package com.kupanga.api.utilisateur.service;
 import com.kupanga.api.exception.business.InvalidRoleException;
 import com.kupanga.api.exception.business.UserAlreadyExistsException;
 import com.kupanga.api.exception.business.UserNotFoundException;
+import com.kupanga.api.login.dto.AuthResponseDTO;
+import com.kupanga.api.login.dto.LoginDTO;
+import com.kupanga.api.login.utils.JwtUtils;
 import com.kupanga.api.utilisateur.entity.Role;
 import com.kupanga.api.utilisateur.entity.Utilisateur;
 import com.kupanga.api.utilisateur.repository.UtilisateurRepository;
@@ -12,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Optional;
 
@@ -25,12 +29,17 @@ class UtilisateurServiceImplTest {
     @Mock
     private UtilisateurRepository utilisateurRepository;
 
+    @Mock
+    private JwtUtils jwtUtils;
+
+    @Mock
+    private PasswordEncoder passwordEncoder;
+
+    @Spy
     @InjectMocks
     private UtilisateurServiceImpl utilisateurService;
 
-    // -----------------------
-    // Test getUtilisateurByEmail
-    // -----------------------
+
     @Test
     @DisplayName("Doit retourner un utilisateur existant par email")
     void testGetUtilisateurByEmail_success() {
@@ -57,9 +66,7 @@ class UtilisateurServiceImplTest {
                 .hasMessageContaining(email);
     }
 
-    // -----------------------
-    // Test verifieSiUtilisateurEstPresent
-    // -----------------------
+
     @Test
     @DisplayName("Doit lancer UserAlreadyExistsException si l'utilisateur existe")
     void testVerifieSiUtilisateurEstPresent_exists() {
@@ -81,9 +88,7 @@ class UtilisateurServiceImplTest {
                 .doesNotThrowAnyException();
     }
 
-    // -----------------------
-    // Test save
-    // -----------------------
+
     @Test
     @DisplayName("Doit sauvegarder un utilisateur via le repository")
     void testSave() {
@@ -95,9 +100,7 @@ class UtilisateurServiceImplTest {
         verify(utilisateurRepository, times(1)).save(utilisateur);
     }
 
-    // -----------------------
-    // Test verifieSiRoleUtilisateurCorrect
-    // -----------------------
+
     @Test
     @DisplayName("Doit lancer InvalidRoleException si le rôle est null")
     void testVerifieSiRoleUtilisateurCorrect_null() {
@@ -112,9 +115,7 @@ class UtilisateurServiceImplTest {
                 .doesNotThrowAnyException();
     }
 
-    // -----------------------
-    // Test verifieSiUtilisateurEstLocataire
-    // -----------------------
+
     @Test
     @DisplayName("Doit lancer InvalidRoleException si le rôle n'est pas locataire")
     void testVerifieSiUtilisateurEstLocataire_invalid() {
@@ -131,9 +132,7 @@ class UtilisateurServiceImplTest {
                 .doesNotThrowAnyException();
     }
 
-    // -----------------------
-    // Test verifieSiUtilisateurEstProprietaire
-    // -----------------------
+
     @Test
     @DisplayName("Doit lancer InvalidRoleException si le rôle n'est pas propriétaire")
     void testVerifieSiUtilisateurEstProprietaire_invalid() {
@@ -148,5 +147,71 @@ class UtilisateurServiceImplTest {
     void testVerifieSiUtilisateurEstProprietaire_valid() {
         assertThatCode(() -> utilisateurService.verifieSiUtilisateurEstProprietaire(Role.ROLE_PROPRIETAIRE))
                 .doesNotThrowAnyException();
+    }
+
+    @Test
+    @DisplayName("Login réussi : retourne AuthResponseDTO")
+    void testLogin_success() {
+        String email = "test@example.com";
+        String motDePasse = "password123";
+
+        LoginDTO loginDTO = new LoginDTO(email, motDePasse);
+        Utilisateur utilisateur = Utilisateur.builder()
+                .email(email)
+                .motDePasse("encodedPassword")
+                .role(Role.ROLE_LOCATAIRE)
+                .build();
+
+        // Mock des méthodes appelées dans login
+        doReturn(utilisateur).when(utilisateurService).getUtilisateurByEmail(email);
+        doNothing().when(utilisateurService).isCorrectPassword(motDePasse, utilisateur.getMotDePasse());
+        when(jwtUtils.generateAccessToken(email)).thenReturn("jwt-token");
+        when(jwtUtils.generateRefreshToken(email)).thenReturn("refresh-token");
+
+        AuthResponseDTO response = utilisateurService.login(loginDTO);
+
+        assertThat(response.email()).isEqualTo(email);
+        assertThat(response.role()).isEqualTo(Role.ROLE_LOCATAIRE);
+        assertThat(response.jwtToken()).isEqualTo("jwt-token");
+        assertThat(response.refreshToken()).isEqualTo("refresh-token");
+    }
+
+    @Test
+    @DisplayName("Utilisateur introuvable : UserNotFoundException")
+    void testLogin_userNotFound() {
+        String email = "inconnu@example.com";
+        String motDePasse = "password123";
+        LoginDTO loginDTO = new LoginDTO(email, motDePasse);
+
+        // Ici on spy l'instance réelle et on force getUtilisateurByEmail à lancer l'exception
+        doThrow(new UserNotFoundException(email))
+                .when(utilisateurService).getUtilisateurByEmail(email);
+
+        assertThatThrownBy(() -> utilisateurService.login(loginDTO))
+                .isInstanceOf(UserNotFoundException.class)
+                .hasMessageContaining(email);
+    }
+
+    @Test
+    @DisplayName("Mot de passe incorrect : exception")
+    void testLogin_wrongPassword() {
+        String email = "test@example.com";
+        String motDePasse = "wrong-password";
+
+        Utilisateur utilisateur = Utilisateur.builder()
+                .email(email)
+                .motDePasse("encodedPassword")
+                .role(Role.ROLE_PROPRIETAIRE)
+                .build();
+
+        LoginDTO loginDTO = new LoginDTO(email, motDePasse);
+
+        doReturn(utilisateur).when(utilisateurService).getUtilisateurByEmail(email);
+        doThrow(new RuntimeException("Mot de passe incorrect"))
+                .when(utilisateurService).isCorrectPassword(motDePasse, utilisateur.getMotDePasse());
+
+        assertThatThrownBy(() -> utilisateurService.login(loginDTO))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("Mot de passe incorrect");
     }
 }

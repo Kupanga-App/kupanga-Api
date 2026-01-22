@@ -3,6 +3,8 @@ package com.kupanga.api.utilisateur.service;
 import com.kupanga.api.exception.business.InvalidRoleException;
 import com.kupanga.api.exception.business.UserAlreadyExistsException;
 import com.kupanga.api.exception.business.UserNotFoundException;
+import com.kupanga.api.login.dto.AuthResponseDTO;
+import com.kupanga.api.login.dto.LoginDTO;
 import com.kupanga.api.utilisateur.entity.Role;
 import com.kupanga.api.utilisateur.entity.Utilisateur;
 
@@ -81,5 +83,33 @@ public interface UtilisateurService {
      * @throws InvalidRoleException si le rôle n'est pas "ROLE_PROPRIETAIRE"
      */
     void verifieSiUtilisateurEstProprietaire(Role role) throws InvalidRoleException;
+
+    /**
+     * Vérifie si le mot de passe fourni lors de la connexion correspond
+     * au mot de passe stocké de l'utilisateur.
+     *
+     * @param passwordLogin Le mot de passe fourni par l'utilisateur lors de la connexion
+     * @param passwordUser  Le mot de passe encodé stocké pour l'utilisateur
+     * @throws IllegalArgumentException si le mot de passe ne correspond pas
+     */
+    void isCorrectPassword(String passwordLogin, String passwordUser);
+
+    /**
+     * Authentifie un utilisateur avec ses identifiants de connexion.
+     *
+     * Cette méthode effectue les opérations suivantes :
+     * <ul>
+     *     <li>Récupère l'utilisateur à partir de son email</li>
+     *     <li>Vérifie que le mot de passe fourni correspond au mot de passe stocké</li>
+     *     <li>Génère un JWT et un token de refresh</li>
+     *     <li>Retourne les informations d'authentification dans un DTO</li>
+     * </ul>
+     *
+     * @param loginDTO Objet contenant l'email et le mot de passe de l'utilisateur
+     * @return AuthResponseDTO contenant le JWT, le refresh token, l'email et le rôle
+     * @throws UserNotFoundException si aucun utilisateur n'est trouvé pour l'email fourni
+     * @throws IllegalArgumentException si le mot de passe est incorrect
+     */
+    AuthResponseDTO login(LoginDTO loginDTO);
 
 }

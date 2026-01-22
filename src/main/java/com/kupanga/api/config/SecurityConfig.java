@@ -93,8 +93,8 @@ public class SecurityConfig {
 
                 //  Règles d'autorisation
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/public/**").permitAll() // Endpoints publics
-                        .anyRequest().authenticated()             // Tout le reste nécessite authentification
+                        .requestMatchers("/**").permitAll() // Endpoints publics
+                        //.anyRequest().authenticated()             // Tout le reste nécessite authentification
                 )
 
                 //  Ajout du filtre JWT avant UsernamePasswordAuthenticationFilter
