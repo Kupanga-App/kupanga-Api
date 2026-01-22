@@ -21,6 +21,7 @@ public class CreationCompteController {
     @PostMapping
     public ResponseEntity<UtilisateurDTO> creationCompte(@RequestBody UtilisateurFormDTO utilisateurFormDTO) throws UserAlreadyExistsException {
 
-        return ResponseEntity.ok(creationCompteService.creationUtilisateur(utilisateurFormDTO.email(), utilisateurFormDTO.role()));
+        return ResponseEntity.ok(creationCompteService
+                .creationUtilisateur(utilisateurFormDTO.email(), utilisateurFormDTO.role()));
     }
 }
