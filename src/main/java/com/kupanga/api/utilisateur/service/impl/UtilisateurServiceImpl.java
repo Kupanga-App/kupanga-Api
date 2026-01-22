@@ -17,9 +17,9 @@ import java.util.List;
 public class UtilisateurServiceImpl implements UtilisateurService {
 
     private final UtilisateurRepository utilisateurRepository;
-    public static final List<String> ROLES = List.of(
-            "ROLE_PROPRIETAIRE",
-            "ROLE_LOCATAIRE"
+    public static final List<Role> ROLES = List.of(
+            Role.ROLE_PROPRIETAIRE,
+            Role.ROLE_LOCATAIRE
     );
 
     @Override
@@ -46,7 +46,7 @@ public class UtilisateurServiceImpl implements UtilisateurService {
     @Override
     public void verifieSiRoleUtilisateurCorrect(Role role) throws InvalidRoleException{
 
-        if(role == null || !ROLES.contains(role.name())){
+        if(role == null || !ROLES.contains(role)){
             throw new InvalidRoleException();
         }
     }
