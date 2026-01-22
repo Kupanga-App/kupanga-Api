@@ -46,7 +46,7 @@ class CreationCompteServiceImplTest {
     @DisplayName("Doit créer un utilisateur avec rôle correct et envoyer email")
     void testCreationUtilisateurSuccess() throws UserAlreadyExistsException {
         String email = "test@example.com";
-        String role = "ROLE_LOCATAIRE";
+        Role role = Role.ROLE_LOCATAIRE;
         String motDePasseTemporaire = "temp1234";
 
         Utilisateur utilisateur = Utilisateur.builder()
@@ -79,7 +79,7 @@ class CreationCompteServiceImplTest {
     @DisplayName("Doit lancer UserAlreadyExistsException si l'utilisateur existe déjà")
     void testCreationUtilisateurUserAlreadyExists() throws UserAlreadyExistsException {
         String email = "exist@example.com";
-        String role = "ROLE_LOCATAIRE";
+        Role role = Role.ROLE_LOCATAIRE;
 
         doThrow(new UserAlreadyExistsException(email))
                 .when(utilisateurService).verifieSiUtilisateurEstPresent(email);
@@ -95,18 +95,23 @@ class CreationCompteServiceImplTest {
     @DisplayName("Doit lancer InvalidRoleException si rôle incorrect")
     void testCreationUtilisateurInvalidRole() throws UserAlreadyExistsException {
         String email = "test@example.com";
-        String role = "ROLE_INVALID";
 
+        // verifieSiUtilisateurEstPresent ne fait rien
         doNothing().when(utilisateurService).verifieSiUtilisateurEstPresent(email);
+
+        // on force l'exception quand la méthode est appelée avec le rôle invalide
         doThrow(new InvalidRoleException())
-                .when(utilisateurService).verifieSiRoleUtilisateurCorrect(role);
+                .when(utilisateurService).verifieSiRoleUtilisateurCorrect(any());
 
+        // test la création du compte avec un rôle invalide
         assertThrows(InvalidRoleException.class, () ->
-                creationCompteService.creationUtilisateur(email, role));
+                creationCompteService.creationUtilisateur(email, any()));
 
+        // vérifie que le reste n'a pas été exécuté
         verify(utilisateurService, never()).save(any());
         verify(emailService, never()).envoyerMailMotDePasseTemporaire(anyString(), anyString());
     }
+
 
     @Test
     @DisplayName("Doit continuer si l'envoi d'email échoue")
@@ -115,7 +120,7 @@ class CreationCompteServiceImplTest {
         String role = "ROLE_LOCATAIRE";
 
         doNothing().when(utilisateurService).verifieSiUtilisateurEstPresent(email);
-        doNothing().when(utilisateurService).verifieSiRoleUtilisateurCorrect(role);
+        doNothing().when(utilisateurService).verifieSiRoleUtilisateurCorrect(Role.valueOf(role));
         when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
         when(utilisateurMapper.toDTO(any(Utilisateur.class))).thenReturn(UtilisateurDTO.builder().build());
 
@@ -123,7 +128,7 @@ class CreationCompteServiceImplTest {
         doThrow(new RuntimeException("Erreur email"))
                 .when(emailService).envoyerMailMotDePasseTemporaire(anyString(), anyString());
 
-        UtilisateurDTO result = creationCompteService.creationUtilisateur(email, role);
+        UtilisateurDTO result = creationCompteService.creationUtilisateur(email, Role.valueOf(role));
 
         assertThat(result).isNotNull();
         verify(utilisateurService).save(any(Utilisateur.class));

@@ -3,6 +3,7 @@ package com.kupanga.api.utilisateur.service;
 import com.kupanga.api.exception.business.InvalidRoleException;
 import com.kupanga.api.exception.business.UserAlreadyExistsException;
 import com.kupanga.api.exception.business.UserNotFoundException;
+import com.kupanga.api.utilisateur.entity.Role;
 import com.kupanga.api.utilisateur.entity.Utilisateur;
 
 /**
@@ -60,25 +61,25 @@ public interface UtilisateurService {
     /**
      * Vérifie que le rôle fourni correspond à un rôle valide défini dans l'application.
      *
-     * @param role le rôle de l'utilisateur sous forme de {@link String}
+     * @param role le rôle de l'utilisateur
      * @throws InvalidRoleException si le rôle n'est pas reconnu ou invalide
      */
-    void verifieSiRoleUtilisateurCorrect(String role) throws InvalidRoleException;
+    void verifieSiRoleUtilisateurCorrect(Role role) throws InvalidRoleException;
 
     /**
      * Vérifie que le rôle fourni correspond au rôle "LOCATAIRE".
      *
-     * @param role le rôle de l'utilisateur sous forme de {@link String}
+     * @param role le rôle de l'utilisateur
      * @throws InvalidRoleException si le rôle n'est pas "ROLE_LOCATAIRE"
      */
-    void verifieSiUtilisateurEstLocataire(String role) throws InvalidRoleException;
+    void verifieSiUtilisateurEstLocataire(Role role) throws InvalidRoleException;
 
     /**
      * Vérifie que le rôle fourni correspond au rôle "PROPRIETAIRE".
      *
-     * @param role le rôle de l'utilisateur sous forme de {@link String}
+     * @param role le rôle de l'utilisateur
      * @throws InvalidRoleException si le rôle n'est pas "ROLE_PROPRIETAIRE"
      */
-    void verifieSiUtilisateurEstProprietaire(String role) throws InvalidRoleException;
+    void verifieSiUtilisateurEstProprietaire(Role role) throws InvalidRoleException;
 
 }

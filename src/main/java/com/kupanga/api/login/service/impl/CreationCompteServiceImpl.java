@@ -22,7 +22,7 @@ public class CreationCompteServiceImpl implements CreationCompteService {
     private final PasswordEncoder passwordEncoder;
 
     @Override
-    public UtilisateurDTO creationUtilisateur(String email ,String role) throws UserAlreadyExistsException {
+    public UtilisateurDTO creationUtilisateur(String email ,Role role) throws UserAlreadyExistsException {
 
         utilisateurService.verifieSiUtilisateurEstPresent(email);
         utilisateurService.verifieSiRoleUtilisateurCorrect(role);
@@ -30,7 +30,7 @@ public class CreationCompteServiceImpl implements CreationCompteService {
         Utilisateur utilisateur = Utilisateur.builder()
                 .email(email)
                 .motDePasse(passwordEncoder.encode(motDePasseTemporaire))
-                .role(Role.valueOf(role))
+                .role(role)
                 .build();
         utilisateurService.save(utilisateur);
         try {

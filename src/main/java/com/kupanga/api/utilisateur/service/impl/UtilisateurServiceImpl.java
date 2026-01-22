@@ -44,26 +44,26 @@ public class UtilisateurServiceImpl implements UtilisateurService {
     }
 
     @Override
-    public void verifieSiRoleUtilisateurCorrect(String role) throws InvalidRoleException{
+    public void verifieSiRoleUtilisateurCorrect(Role role) throws InvalidRoleException{
 
-        if(role == null || !ROLES.contains(role)){
+        if(role == null || !ROLES.contains(role.name())){
             throw new InvalidRoleException();
         }
     }
 
     @Override
-    public void verifieSiUtilisateurEstLocataire(String role) throws InvalidRoleException{
+    public void verifieSiUtilisateurEstLocataire(Role role) throws InvalidRoleException{
 
-        if(!Role.ROLE_LOCATAIRE.name().equals(role)){
+        if(!Role.ROLE_LOCATAIRE.equals(role)){
 
             throw new InvalidRoleException("L'utilisateur n'a pas le rôle de locataire pour accéder à cette ressource :" + role);
         }
     }
 
     @Override
-    public void verifieSiUtilisateurEstProprietaire(String role) throws InvalidRoleException{
+    public void verifieSiUtilisateurEstProprietaire(Role role) throws InvalidRoleException{
 
-        if(!Role.ROLE_PROPRIETAIRE.name().equals(role)){
+        if(!Role.ROLE_PROPRIETAIRE.equals(role)){
 
             throw new InvalidRoleException("L'utilisateur n'a pas le rôle de propriétaire pour accéder à cette ressource :" + role);
         }

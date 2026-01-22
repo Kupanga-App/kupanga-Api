@@ -7,16 +7,18 @@ import com.kupanga.api.utilisateur.entity.Role;
 import com.kupanga.api.utilisateur.entity.Utilisateur;
 import com.kupanga.api.utilisateur.repository.UtilisateurRepository;
 import com.kupanga.api.utilisateur.service.impl.UtilisateurServiceImpl;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 @DisplayName("Tests pour le service utilisateur")
 class UtilisateurServiceImplTest {
 
@@ -25,11 +27,6 @@ class UtilisateurServiceImplTest {
 
     @InjectMocks
     private UtilisateurServiceImpl utilisateurService;
-
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-    }
 
     // -----------------------
     // Test getUtilisateurByEmail
@@ -109,16 +106,9 @@ class UtilisateurServiceImplTest {
     }
 
     @Test
-    @DisplayName("Doit lancer InvalidRoleException si le rôle n'existe pas")
-    void testVerifieSiRoleUtilisateurCorrect_invalid() {
-        assertThatThrownBy(() -> utilisateurService.verifieSiRoleUtilisateurCorrect("ROLE_INVALIDE"))
-                .isInstanceOf(InvalidRoleException.class);
-    }
-
-    @Test
     @DisplayName("Ne doit rien faire si le rôle est correct")
     void testVerifieSiRoleUtilisateurCorrect_valid() {
-        assertThatCode(() -> utilisateurService.verifieSiRoleUtilisateurCorrect("ROLE_LOCATAIRE"))
+        assertThatCode(() -> utilisateurService.verifieSiRoleUtilisateurCorrect(Role.valueOf("ROLE_LOCATAIRE")))
                 .doesNotThrowAnyException();
     }
 
@@ -129,7 +119,7 @@ class UtilisateurServiceImplTest {
     @DisplayName("Doit lancer InvalidRoleException si le rôle n'est pas locataire")
     void testVerifieSiUtilisateurEstLocataire_invalid() {
         String role = "ROLE_PROPRIETAIRE";
-        assertThatThrownBy(() -> utilisateurService.verifieSiUtilisateurEstLocataire(role))
+        assertThatThrownBy(() -> utilisateurService.verifieSiUtilisateurEstLocataire(Role.valueOf(role)))
                 .isInstanceOf(InvalidRoleException.class)
                 .hasMessageContaining("locataire");
     }
@@ -137,7 +127,7 @@ class UtilisateurServiceImplTest {
     @Test
     @DisplayName("Ne doit rien faire si le rôle est locataire")
     void testVerifieSiUtilisateurEstLocataire_valid() {
-        assertThatCode(() -> utilisateurService.verifieSiUtilisateurEstLocataire(Role.ROLE_LOCATAIRE.name()))
+        assertThatCode(() -> utilisateurService.verifieSiUtilisateurEstLocataire(Role.ROLE_LOCATAIRE))
                 .doesNotThrowAnyException();
     }
 
@@ -148,7 +138,7 @@ class UtilisateurServiceImplTest {
     @DisplayName("Doit lancer InvalidRoleException si le rôle n'est pas propriétaire")
     void testVerifieSiUtilisateurEstProprietaire_invalid() {
         String role = "ROLE_LOCATAIRE";
-        assertThatThrownBy(() -> utilisateurService.verifieSiUtilisateurEstProprietaire(role))
+        assertThatThrownBy(() -> utilisateurService.verifieSiUtilisateurEstProprietaire(Role.valueOf(role)))
                 .isInstanceOf(InvalidRoleException.class)
                 .hasMessageContaining("propriétaire");
     }
@@ -156,7 +146,7 @@ class UtilisateurServiceImplTest {
     @Test
     @DisplayName("Ne doit rien faire si le rôle est propriétaire")
     void testVerifieSiUtilisateurEstProprietaire_valid() {
-        assertThatCode(() -> utilisateurService.verifieSiUtilisateurEstProprietaire(Role.ROLE_PROPRIETAIRE.name()))
+        assertThatCode(() -> utilisateurService.verifieSiUtilisateurEstProprietaire(Role.ROLE_PROPRIETAIRE))
                 .doesNotThrowAnyException();
     }
 }
