@@ -6,6 +6,7 @@ import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import static com.kupanga.api.email.constantes.Constante.CONTENU_MAIL_MOT_DE_PASSE_TEMPORAIRE;
@@ -18,6 +19,7 @@ public class EmailServiceImpl implements EmailService {
     private final JavaMailSender mailSender;
 
     @Override
+    @Async
     public void envoyerMailMotDePasseTemporaire(String destinataire, String password){
 
         try {
@@ -37,6 +39,7 @@ public class EmailServiceImpl implements EmailService {
     }
 
     @Override
+    @Async
     public void envoyerMailNouveauCompteFinaliser(String destinataire, String nom, String prenom, String email){
 
     }
