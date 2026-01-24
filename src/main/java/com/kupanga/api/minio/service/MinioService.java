@@ -1,4 +1,4 @@
-package com.kupanga.api.config.service;
+package com.kupanga.api.minio.service;
 
 import org.springframework.web.multipart.MultipartFile;
 

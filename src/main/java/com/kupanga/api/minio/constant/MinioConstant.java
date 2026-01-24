@@ -1,6 +1,6 @@
-package com.kupanga.api.config.Constant;
+package com.kupanga.api.minio.constant;
 
-public class ConfigConstant {
+public class MinioConstant {
 
     public static final String URL_MINO = "http://localhost:9001";
 }

@@ -1,13 +1,13 @@
-package com.kupanga.api.config.service.impl;
+package com.kupanga.api.minio.service.impl;
 
-import com.kupanga.api.config.service.MinioService;
+import com.kupanga.api.minio.service.MinioService;
 import io.minio.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.UUID;
 
-import static com.kupanga.api.config.Constant.ConfigConstant.URL_MINO;
+import static com.kupanga.api.minio.constant.MinioConstant.URL_MINO;
 
 @Service
 public class MinioServiceImpl implements MinioService {

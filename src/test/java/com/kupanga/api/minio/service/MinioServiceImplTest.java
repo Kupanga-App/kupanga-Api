@@ -1,6 +1,6 @@
-package com.kupanga.api.config.service;
+package com.kupanga.api.minio.service;
 
-import com.kupanga.api.config.service.impl.MinioServiceImpl;
+import com.kupanga.api.minio.service.impl.MinioServiceImpl;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
 import io.minio.BucketExistsArgs;
@@ -13,7 +13,7 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 
-import static com.kupanga.api.config.Constant.ConfigConstant.URL_MINO;
+import static com.kupanga.api.minio.constant.MinioConstant.URL_MINO;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 

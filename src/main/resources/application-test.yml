@@ -13,4 +13,3 @@ minio:
   endpoint: http://localhost:9001
   access-key: minioadmin
   secret-key: minioadmin
-  bucket: kupanga-test

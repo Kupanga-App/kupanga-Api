@@ -1,4 +1,4 @@
-package com.kupanga.api.config;
+package com.kupanga.api.minio.config;
 
 import io.minio.MinioClient;
 import org.springframework.beans.factory.annotation.Value;
