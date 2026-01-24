@@ -85,7 +85,7 @@ class LoginControllerWebMvcTest {
         void testCreateUserSuccess() throws Exception {
                 UserDTO userDTO = UserDTO.builder()
                                 .id(1L)
-                                .email("user@example.com")
+                                .mail("user@example.com")
                                 .role(Role.ROLE_LOCATAIRE)
                                 .build();
 
@@ -96,7 +96,7 @@ class LoginControllerWebMvcTest {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(userFormDTO)))
                                 .andExpect(status().isOk())
-                                .andExpect(jsonPath("$.email").value("user@example.com"))
+                                .andExpect(jsonPath("$.mail").value("user@example.com"))
                                 .andExpect(jsonPath("$.role").value("ROLE_LOCATAIRE"));
         }
 

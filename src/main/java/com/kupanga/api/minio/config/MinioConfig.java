@@ -5,11 +5,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import static com.kupanga.api.minio.constant.MinioConstant.URL_MINIO;
+
 @Configuration
 public class MinioConfig {
-
-    @Value("${minio.endpoint}")
-    private String url ;
 
     @Value("${minio.access-key}")
     private String accessKey ;
@@ -25,7 +24,7 @@ public class MinioConfig {
     public MinioClient minioClient(){
 
         return MinioClient.builder()
-                .endpoint(url)
+                .endpoint(URL_MINIO)
                 .credentials(accessKey , secretKey)
                 .build();
     }

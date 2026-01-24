@@ -15,6 +15,7 @@ import com.kupanga.api.utilisateur.entity.User;
 import com.kupanga.api.utilisateur.mapper.UserMapper;
 import com.kupanga.api.utilisateur.service.UserService;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,6 +43,7 @@ public class LoginServiceImpl implements LoginService {
     private final JwtUtils jwtUtils;
     private final RefreshTokenService refreshTokenService;
 
+    @Transactional
     @Override
     public UserDTO creationUtilisateur(String email , Role role) throws UserAlreadyExistsException {
 

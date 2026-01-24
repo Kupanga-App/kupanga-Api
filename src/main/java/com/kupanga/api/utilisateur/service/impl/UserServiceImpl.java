@@ -23,7 +23,8 @@ public class UserServiceImpl implements UserService {
 
     public static final List<Role> ROLES = List.of(
             Role.ROLE_PROPRIETAIRE,
-            Role.ROLE_LOCATAIRE
+            Role.ROLE_LOCATAIRE,
+            Role.ROLE_ADMIN
     );
 
     @Override

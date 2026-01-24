@@ -7,7 +7,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.UUID;
 
-import static com.kupanga.api.minio.constant.MinioConstant.URL_MINO;
+import static com.kupanga.api.minio.constant.MinioConstant.URL_MINIO;
 
 @Service
 public class MinioServiceImpl implements MinioService {
@@ -67,7 +67,7 @@ public class MinioServiceImpl implements MinioService {
                             .build()
             );
 
-            return URL_MINO + "/" + bucketName + "/" + fileName;
+            return URL_MINIO + "/" + bucketName + "/" + fileName;
         } catch (Exception e) {
             throw new RuntimeException("Erreur lors de upload vers MinIO", e);
         }

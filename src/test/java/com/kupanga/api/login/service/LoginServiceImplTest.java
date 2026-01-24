@@ -83,7 +83,7 @@ class LoginServiceImplTest {
                 .build();
 
         UserDTO userDTO = UserDTO.builder()
-                .email(email)
+                .mail(email)
                 .role(role)
                 .build();
 
@@ -94,7 +94,7 @@ class LoginServiceImplTest {
 
         UserDTO result = loginService.creationUtilisateur(email, role);
 
-        assertThat(result.email()).isEqualTo(email);
+        assertThat(result.mail()).isEqualTo(email);
         assertThat(result.role()).isEqualTo(role);
         verify(userService).save(any(User.class));
         verify(emailService).SendPasswordProvisional(eq(email), anyString());
