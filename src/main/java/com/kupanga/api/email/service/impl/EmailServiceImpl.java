@@ -20,7 +20,7 @@ public class EmailServiceImpl implements EmailService {
 
     @Override
     @Async
-    public void envoyerMailMotDePasseTemporaire(String destinataire, String password){
+    public void SendPasswordProvisional(String destinataire, String password){
 
         try {
             MimeMessage message = mailSender.createMimeMessage();
@@ -40,7 +40,7 @@ public class EmailServiceImpl implements EmailService {
 
     @Override
     @Async
-    public void envoyerMailNouveauCompteFinaliser(String destinataire, String nom, String prenom, String email){
+    public void sendWelcomeMessage(String destinataire, String nom, String prenom, String email){
 
     }
 }

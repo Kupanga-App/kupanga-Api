@@ -1,8 +1,8 @@
 package com.kupanga.api.login.service.impl;
 
 import com.kupanga.api.utilisateur.entity.Role;
-import com.kupanga.api.utilisateur.entity.Utilisateur;
-import com.kupanga.api.utilisateur.repository.UtilisateurRepository;
+import com.kupanga.api.utilisateur.entity.User;
+import com.kupanga.api.utilisateur.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -40,10 +40,8 @@ import java.util.Collections;
 @RequiredArgsConstructor
 public class UserDetailsServiceImpl implements UserDetailsService {
 
-    /**
-     * Repository permettant l'accès aux utilisateurs en base de données.
-     */
-    private final UtilisateurRepository utilisateurRepository;
+
+    private final UserRepository userRepository;
 
     /**
      * Charge un utilisateur à partir de son email.
@@ -66,7 +64,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
 
         // Récupération de l'utilisateur à partir de son email
-        Utilisateur user = utilisateurRepository.findByEmail(email)
+        User user = userRepository.findByMail(email)
                 .orElseThrow(() ->
                         new UsernameNotFoundException(
                                 "Utilisateur non trouvé avec l'email : " + email
@@ -98,8 +96,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
          * "ROLE_LOCATAIRE".
          */
         return new org.springframework.security.core.userdetails.User(
-                user.getEmail(),
-                user.getMotDePasse(),
+                user.getMail(),
+                user.getPassword(),
                 Collections.singleton(
                         new SimpleGrantedAuthority(role.name())
                 )

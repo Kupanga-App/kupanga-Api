@@ -4,7 +4,6 @@ import com.kupanga.api.login.service.impl.UserDetailsServiceImpl;
 import com.kupanga.api.login.utils.JwtUtils;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-@DisplayName("Tests unitaires pour JwtFilter")
+@DisplayName("Tests unitaires pour JwtFilter avec nouvelle implémentation")
 class JwtFilterTest {
 
     @Mock
@@ -59,7 +58,7 @@ class JwtFilterTest {
     }
 
     @Test
-    @DisplayName("Token valide : l'utilisateur est authentifié")
+    @DisplayName("Token valide : utilisateur authentifié et context Spring rempli")
     void shouldAuthenticateUserWithValidToken() throws Exception {
         when(request.getHeader("Authorization")).thenReturn("Bearer validToken");
         when(jwtUtils.extractUserEmail("validToken")).thenReturn("test@mail.com");
@@ -68,22 +67,19 @@ class JwtFilterTest {
 
         jwtFilter.doFilterInternal(request, response, filterChain);
 
-        assertNotNull(SecurityContextHolder.getContext().getAuthentication());
         UsernamePasswordAuthenticationToken auth =
                 (UsernamePasswordAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
-
+        assertNotNull(auth);
         assertEquals("test@mail.com", auth.getName());
-
-        // Vérifie que le rôle ROLE_LOCATAIRE est présent
         assertTrue(auth.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_LOCATAIRE")));
 
         verify(filterChain, times(1)).doFilter(request, response);
+        verify(response, never()).sendError(anyInt(), anyString());
     }
 
-
     @Test
-    @DisplayName("Token invalide : l'utilisateur n'est pas authentifié")
+    @DisplayName("Token invalide : renvoie 401 et ne remplit pas le context")
     void shouldNotAuthenticateWithInvalidToken() throws Exception {
         when(request.getHeader("Authorization")).thenReturn("Bearer invalidToken");
         when(jwtUtils.extractUserEmail("invalidToken")).thenThrow(new RuntimeException("Token invalide"));
@@ -91,37 +87,33 @@ class JwtFilterTest {
         jwtFilter.doFilterInternal(request, response, filterChain);
 
         assertNull(SecurityContextHolder.getContext().getAuthentication());
-        verify(filterChain, times(1)).doFilter(request, response);
+        verify(response, times(1)).sendError(HttpServletResponse.SC_UNAUTHORIZED, "Impossible d'authentifier");
+        verify(filterChain, never()).doFilter(request, response); // ne continue pas
     }
 
     @Test
-    @DisplayName("Token expiré : l'utilisateur n'est pas authentifié")
+    @DisplayName("Token expiré : renvoie 401 et ne remplit pas le context")
     void shouldNotAuthenticateWithExpiredToken() throws Exception {
         when(request.getHeader("Authorization")).thenReturn("Bearer expiredToken");
-        when(jwtUtils.extractUserEmail("expiredToken")).thenThrow(new ExpiredJwtException(null, null, "Token expiré"));
+        when(jwtUtils.extractUserEmail("expiredToken"))
+                .thenThrow(new ExpiredJwtException(null, null, "Token expiré"));
+
+        jwtFilter.doFilterInternal(request, response, filterChain);
+
+        assertNull(SecurityContextHolder.getContext().getAuthentication());
+        verify(response, times(1)).sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token expiré");
+        verify(filterChain, never()).doFilter(request, response);
+    }
+
+    @Test
+    @DisplayName("Pas de token : continue la chaîne sans erreur")
+    void shouldContinueChainWithoutToken() throws Exception {
+        when(request.getHeader("Authorization")).thenReturn(null);
 
         jwtFilter.doFilterInternal(request, response, filterChain);
 
         assertNull(SecurityContextHolder.getContext().getAuthentication());
         verify(filterChain, times(1)).doFilter(request, response);
-    }
-
-    @Test
-    @DisplayName("JWT dans cookie : l'utilisateur est authentifié")
-    void shouldAuthenticateUserFromCookie() throws Exception {
-        Cookie jwtCookie = new Cookie("jwt_token", "cookieToken");
-        when(request.getHeader("Authorization")).thenReturn(null);
-        when(request.getCookies()).thenReturn(new Cookie[]{jwtCookie});
-        when(jwtUtils.extractUserEmail("cookieToken")).thenReturn("test@mail.com");
-        when(userDetailsService.loadUserByUsername("test@mail.com")).thenReturn(userDetails);
-        when(jwtUtils.validateToken("cookieToken", userDetails)).thenReturn(true);
-
-        jwtFilter.doFilterInternal(request, response, filterChain);
-
-        assertNotNull(SecurityContextHolder.getContext().getAuthentication());
-        UsernamePasswordAuthenticationToken auth =
-                (UsernamePasswordAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
-        assertEquals("test@mail.com", auth.getName());
+        verify(response, never()).sendError(anyInt(), anyString());
     }
 }
-

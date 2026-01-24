@@ -34,5 +34,4 @@ app:
 
 jwt:
   secret-key: 6Z7v1pL8y8KZgA0h5ZJm6Q1sZ3D7GxK9E3Zxv7Z9rA4=
-  expiration-time: 1200000
-  refresh-expiration-time: 86400000
+  expiration-time: 300000

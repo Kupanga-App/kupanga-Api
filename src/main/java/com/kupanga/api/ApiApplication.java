@@ -10,12 +10,14 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
  */
 @SpringBootApplication(scanBasePackages = "com.kupanga.api")
 @EnableJpaRepositories(basePackages = {
-        "com.kupanga.api.utilisateur.repository"
+        "com.kupanga.api.utilisateur.repository",
+        "com.kupanga.api.login.repository"
 })
 @EntityScan(basePackages = {
         "com.kupanga.api.utilisateur.entity",
         "com.kupanga.api.immobilier.entity",
-        "com.kupanga.api.chat.entity"
+        "com.kupanga.api.chat.entity",
+        "com.kupanga.api.login.entity"
 })
 public class ApiApplication {
 

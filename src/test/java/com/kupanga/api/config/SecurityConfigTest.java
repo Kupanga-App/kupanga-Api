@@ -2,7 +2,7 @@ package com.kupanga.api.config;
 
 import com.kupanga.api.login.service.impl.UserDetailsServiceImpl;
 import com.kupanga.api.login.utils.JwtUtils;
-import com.kupanga.api.utilisateur.repository.UtilisateurRepository;
+import com.kupanga.api.utilisateur.repository.UserRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -48,7 +48,7 @@ class SecurityConfigTest {
     private JwtUtils jwtUtils;
 
     @MockBean
-    private UtilisateurRepository utilisateurRepository;
+    private UserRepository userRepository;
 
     @Test
     @DisplayName(" Le contexte Spring se charge correctement")

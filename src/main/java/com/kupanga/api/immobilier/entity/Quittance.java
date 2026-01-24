@@ -1,6 +1,6 @@
 package com.kupanga.api.immobilier.entity;
 
-import com.kupanga.api.utilisateur.entity.Utilisateur;
+import com.kupanga.api.utilisateur.entity.User;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
@@ -28,5 +28,5 @@ public class Quittance {
 
     @ManyToOne
     @JoinColumn(name = "locataire_id")
-    private Utilisateur locataire;
+    private User locataire;
 }

@@ -14,17 +14,28 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Utilisateur {
+public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private Long id;
 
-    private String nom;
-    private String prenom;
-    private String email;
-    private String motDePasse;
+
+    @Column(name = "prenom")
+    private String firstName;
+
+
+    @Column(name = "nom")
+    private String lastName;
+
+    @Column(name = "email")
+    private String mail;
+
+    @Column(name = "motDePasse")
+    private String password;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "role")
     private Role role; // PROPRIETAIRE, LOCATAIRE, ADMIN
 
     // relations

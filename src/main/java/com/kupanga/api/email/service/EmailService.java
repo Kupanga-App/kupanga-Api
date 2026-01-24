@@ -21,7 +21,7 @@ public interface EmailService {
      * @param destinataire l'adresse email du destinataire
      * @param password le mot de passe temporaire à communiquer
      */
-    void envoyerMailMotDePasseTemporaire(String destinataire, String password);
+    void SendPasswordProvisional(String destinataire, String password);
 
     /**
      * Envoie un email de confirmation pour un nouveau compte utilisateur finalisé.
@@ -36,5 +36,5 @@ public interface EmailService {
      * @param prenom le prénom de l'utilisateur
      * @param email l'adresse email de l'utilisateur pour la connexion
      */
-    void envoyerMailNouveauCompteFinaliser(String destinataire, String nom, String prenom, String email);
+    void sendWelcomeMessage(String destinataire, String nom, String prenom, String email);
 }

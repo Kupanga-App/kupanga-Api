@@ -1,13 +1,15 @@
 package com.kupanga.api;
 
-import com.kupanga.api.utilisateur.repository.UtilisateurRepository;
+import com.kupanga.api.login.entity.RefreshToken;
+import com.kupanga.api.utilisateur.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest
-@MockBean(UtilisateurRepository.class)
+@MockBean(UserRepository.class)
+@MockBean(RefreshToken.class)
 @ActiveProfiles("test")
 class ApiApplicationTests {
 

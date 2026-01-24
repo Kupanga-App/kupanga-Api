@@ -41,11 +41,6 @@ public class JwtUtils {
     @Value("${jwt.expiration-time}")
     private Long accessTokenExpirationTime;
 
-    /**
-     * Temps d'expiration du Refresh Token (en millisecondes)
-     */
-    @Value("${jwt.refresh-expiration-time}")
-    private Long refreshTokenExpirationTime;
 
     /**
      * Valide un token JWT par rapport à un utilisateur.
@@ -75,26 +70,11 @@ public class JwtUtils {
      * @param email Email de l'utilisateur
      * @return Access Token JWT
      */
-    public String generateAccessToken(String email) {
+    public String generateAccessToken(String email , String role) {
         Map<String, Object> claims = new HashMap<>();
-        return createToken(claims, email, accessTokenExpirationTime);
+        return createToken(claims, email,role, accessTokenExpirationTime);
     }
 
-    /**
-     * Génère un Refresh Token JWT.
-     * <p>
-     * Ce token est utilisé pour générer un nouvel Access Token
-     * lorsque celui-ci est expiré.
-     * </p>
-     *
-     * @param email Email de l'utilisateur
-     * @return Refresh Token JWT
-     */
-    public String generateRefreshToken(String email) {
-        Map<String, Object> claims = new HashMap<>();
-        claims.put("type", "refresh");
-        return createToken(claims, email, refreshTokenExpirationTime);
-    }
 
     /**
      * Crée un token JWT signé.
@@ -106,7 +86,11 @@ public class JwtUtils {
      */
     private String createToken(Map<String, Object> claims,
                                String subject,
+                               String role,
                                Long expirationTime) {
+
+        // Ajouter le rôle aux claims
+        claims.put("role", role);
 
         return Jwts.builder()
                 .setClaims(claims)
@@ -116,6 +100,7 @@ public class JwtUtils {
                 .signWith(getSignKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
+
 
     /**
      * Génère la clé de signature à partir de la clé secrète.

@@ -1,6 +1,6 @@
 package com.kupanga.api.immobilier.entity;
 
-import com.kupanga.api.utilisateur.entity.Utilisateur;
+import com.kupanga.api.utilisateur.entity.User;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
@@ -29,11 +29,11 @@ public class Bien {
 
     @ManyToOne
     @JoinColumn(name = "proprietaire_id")
-    private Utilisateur proprietaire;
+    private User proprietaire;
 
     @ManyToOne
     @JoinColumn(name = "locataire_id")
-    private Utilisateur locataire;
+    private User locataire;
 
     @OneToMany(mappedBy = "bien")
     private List<Contrat> contrats;

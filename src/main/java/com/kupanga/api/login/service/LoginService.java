@@ -1,0 +1,48 @@
+package com.kupanga.api.login.service;
+
+import com.kupanga.api.exception.business.UserAlreadyExistsException;
+import com.kupanga.api.login.dto.AuthResponseDTO;
+import com.kupanga.api.login.dto.LoginDTO;
+import com.kupanga.api.utilisateur.dto.readDTO.UserDTO;
+import com.kupanga.api.utilisateur.entity.Role;
+import jakarta.servlet.http.HttpServletResponse;
+
+
+public interface LoginService {
+
+    /**
+     * Crée un nouveau compte utilisateur.
+     *
+     * @param email l'adresse email utilisée comme identifiant de connexion
+     * @param role  le rôle métier de l'utilisateur à créer
+     *              (ex : PROPRIETAIRE, LOCATAIRE, ADMIN)
+     * @return un {@link UserDTO} représentant l'utilisateur créé
+     * @throws UserAlreadyExistsException
+     *         si un utilisateur existe déjà avec l'email fourni
+     */
+    UserDTO creationUtilisateur(String email, Role role)
+            throws UserAlreadyExistsException;
+
+    /**
+     * Permet de se connecter
+     * @param loginDTO dto de connexion
+     * @param response HttpServletResponse
+     * @return Réponse d'authentification contenant le JWT
+     */
+    AuthResponseDTO login(LoginDTO loginDTO, HttpServletResponse response);
+
+    /**
+     * Permet de refresh avec le token de refresh si access token est expiré
+     * @param token token
+     * @return réponse d'authentification
+     */
+    AuthResponseDTO refresh(String token);
+
+    /**
+     * Se déconnecte
+     * @param token token de refresh qui va être supprimé
+     * @param response HttpServletResponse
+     * @return Déconnexion
+     */
+    String logout( String token , HttpServletResponse response);
+}

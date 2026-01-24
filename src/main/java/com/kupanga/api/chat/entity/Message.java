@@ -1,7 +1,7 @@
 package com.kupanga.api.chat.entity;
 
 import com.kupanga.api.immobilier.entity.Bien;
-import com.kupanga.api.utilisateur.entity.Utilisateur;
+import com.kupanga.api.utilisateur.entity.User;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
@@ -26,11 +26,11 @@ public class Message {
 
     @ManyToOne
     @JoinColumn(name = "expediteur_id")
-    private Utilisateur expediteur;
+    private User expediteur;
 
     @ManyToOne
     @JoinColumn(name = "destinataire_id")
-    private Utilisateur destinataire;
+    private User destinataire;
 
     @ManyToOne
     @JoinColumn(name = "bien_id")

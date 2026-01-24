@@ -5,7 +5,6 @@ import com.kupanga.api.login.utils.JwtUtils;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +23,6 @@ import java.io.IOException;
  *
  * <p>
  * Récupère le token JWT soit depuis le header "Authorization: Bearer <token>",
- * soit depuis le cookie HttpOnly "jwt_token".
  * Si le token est valide, l'utilisateur est authentifié dans Spring Security.
  * </p>
  */
@@ -41,60 +39,58 @@ public class JwtFilter extends OncePerRequestFilter {
                                     @NotNull FilterChain filterChain)
             throws ServletException, IOException {
 
-        String authHeader = request.getHeader("Authorization");
+        final String authHeader = request.getHeader("Authorization");
         String jwt = null;
         String userEmail = null;
 
-        // Récupération du JWT depuis le header "Authorization" ou cookie "jwt_token"
+        // 1️. Extraction du JWT depuis le header Authorization
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             jwt = authHeader.substring(7);
-        } else if (request.getCookies() != null) {
-            for (Cookie cookie : request.getCookies()) {
-                if ("jwt_token".equals(cookie.getName())) {
-                    jwt = cookie.getValue();
-                    break;
-                }
-            }
         }
 
-        // Extraction de l'email depuis le JWT
+        // 2️. Si token présent, extraction de l’email et validation
         if (jwt != null) {
             try {
                 userEmail = jwtUtils.extractUserEmail(jwt);
-            } catch (ExpiredJwtException e) {
-                SecurityContextHolder.clearContext();
-                logger.warn("JWT expiré : {}");
-            } catch (Exception e) {
-                SecurityContextHolder.clearContext();
-                logger.warn("JWT invalide : {}");
-            }
-        }
 
-        // Authentification si email présent et pas déjà authentifié
-        if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            try {
-                UserDetails userDetails = userDetailsService.loadUserByUsername(userEmail);
+                if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
-                if (jwtUtils.validateToken(jwt, userDetails)) {
-                    UsernamePasswordAuthenticationToken authenticationToken =
-                            new UsernamePasswordAuthenticationToken(
-                                    userDetails,
-                                    null,
-                                    userDetails.getAuthorities()
-                            );
+                    // Charger l’utilisateur depuis la DB
+                    UserDetails userDetails = userDetailsService.loadUserByUsername(userEmail);
 
-                    authenticationToken.setDetails(
-                            new WebAuthenticationDetailsSource().buildDetails(request)
-                    );
+                    // Vérifier la validité du token
+                    if (jwtUtils.validateToken(jwt, userDetails)) {
+                        UsernamePasswordAuthenticationToken authenticationToken =
+                                new UsernamePasswordAuthenticationToken(
+                                        userDetails,
+                                        null,
+                                        userDetails.getAuthorities()
+                                );
+                        authenticationToken.setDetails(
+                                new WebAuthenticationDetailsSource().buildDetails(request)
+                        );
 
-                    SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+                        // Mettre à jour le contexte Spring Security
+                        SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+                    } else {
+                        // Token invalide
+                        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token invalide");
+                        return;
+                    }
                 }
+
+            } catch (ExpiredJwtException e) {
+                // Token expiré
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token expiré");
+                return;
             } catch (Exception e) {
-                SecurityContextHolder.clearContext();
-                logger.warn("Impossible d'authentifier l'utilisateur depuis le JWT : {}");
+                // Autres erreurs liées au JWT
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Impossible d'authentifier");
+                return;
             }
         }
 
+        // 3️. Continuer la chaîne de filtres
         filterChain.doFilter(request, response);
     }
 }
