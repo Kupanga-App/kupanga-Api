@@ -18,6 +18,9 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
+import static com.kupanga.api.login.constant.LoginConstant.AUTHORIZATION;
+import static com.kupanga.api.login.constant.LoginConstant.BEARER;
+
 /**
  * Filtre JWT exécuté une seule fois par requête.
  *
@@ -39,12 +42,12 @@ public class JwtFilter extends OncePerRequestFilter {
                                     @NotNull FilterChain filterChain)
             throws ServletException, IOException {
 
-        final String authHeader = request.getHeader("Authorization");
+        final String authHeader = request.getHeader(AUTHORIZATION);
         String jwt = null;
         String userEmail = null;
 
         // 1️. Extraction du JWT depuis le header Authorization
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+        if (authHeader != null && authHeader.startsWith(BEARER)) {
             jwt = authHeader.substring(7);
         }
 

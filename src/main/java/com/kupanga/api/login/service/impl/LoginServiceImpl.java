@@ -27,6 +27,9 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.time.Instant;
 
+import static com.kupanga.api.login.constant.LoginConstant.DECONNEXION;
+import static com.kupanga.api.login.constant.LoginConstant.REFRESHTOKEN;
+
 @Service
 @RequiredArgsConstructor
 public class LoginServiceImpl implements LoginService {
@@ -109,7 +112,7 @@ public class LoginServiceImpl implements LoginService {
         String refreshToken = refreshTokenService.createRefreshToken(utilisateur);
 
         // 5️. Envoyer le refresh token dans un cookie httpOnly sécurisé
-        ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", refreshToken)
+        ResponseCookie refreshCookie = ResponseCookie.from(REFRESHTOKEN, refreshToken)
                 .httpOnly(true)
                 .secure(true)                // true en production HTTPS
                 .sameSite("Strict")
@@ -158,7 +161,7 @@ public class LoginServiceImpl implements LoginService {
             refreshTokenService.deleteRefreshToken(token);
 
             // 2. Supprimer le cookie du navigateur
-            ResponseCookie deleteCookie = ResponseCookie.from("refreshToken", "")
+            ResponseCookie deleteCookie = ResponseCookie.from(REFRESHTOKEN, "")
                     .httpOnly(true)
                     .secure(true)                // true en prod HTTPS
                     .path("/auth/refresh")
@@ -167,7 +170,7 @@ public class LoginServiceImpl implements LoginService {
             response.addHeader(HttpHeaders.SET_COOKIE, deleteCookie.toString());
         }
 
-        return " Déconnexion Réussie" ;
+        return DECONNEXION ;
     }
 
 }
