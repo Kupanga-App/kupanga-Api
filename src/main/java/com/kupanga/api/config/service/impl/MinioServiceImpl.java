@@ -1,9 +1,7 @@
 package com.kupanga.api.config.service.impl;
 
 import com.kupanga.api.config.service.MinioService;
-import io.minio.MinioClient;
-import io.minio.PutObjectArgs;
-import org.springframework.beans.factory.annotation.Value;
+import io.minio.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -15,39 +13,63 @@ import static com.kupanga.api.config.Constant.ConfigConstant.URL_MINO;
 public class MinioServiceImpl implements MinioService {
 
     private final MinioClient minioClient;
-    private final String bucketAvatarProfil;
 
-    public MinioServiceImpl(MinioClient minioClient,
-                        @Value("${minio.bucket.avatar-profil}") String bucketAvatarProfil) {
+    public MinioServiceImpl(MinioClient minioClient) {
         this.minioClient = minioClient;
-        this.bucketAvatarProfil = bucketAvatarProfil;
     }
 
     @Override
-    public String uploadImage( MultipartFile file){
+    public void createBucketIfNotExists(String bucketName, boolean publicRead) {
+        try {
+            boolean exists = minioClient.bucketExists(BucketExistsArgs.builder().bucket(bucketName).build());
+            if (!exists) {
+                minioClient.makeBucket(MakeBucketArgs.builder().bucket(bucketName).build());
+            }
 
-        try{
+            if (publicRead) {
+                String policyJson = "{\n" +
+                        "  \"Version\": \"2012-10-17\",\n" +
+                        "  \"Statement\": [\n" +
+                        "    {\n" +
+                        "      \"Effect\": \"Allow\",\n" +
+                        "      \"Principal\": \"*\",\n" +
+                        "      \"Action\": [\"s3:GetObject\"],\n" +
+                        "      \"Resource\": [\"arn:aws:s3:::" + bucketName + "/*\"]\n" +
+                        "    }\n" +
+                        "  ]\n" +
+                        "}";
+                minioClient.setBucketPolicy(
+                        SetBucketPolicyArgs.builder()
+                                .bucket(bucketName)
+                                .config(policyJson)
+                                .build()
+                );
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Erreur lors de la création du bucket MinIO: " + bucketName, e);
+        }
+    }
 
-            // Génère un nom unique pour éviter les collisions des fichiers
+    @Override
+    public String uploadImage(MultipartFile file, String bucketName) {
+        try {
+            // Crée le bucket si nécessaire
+            createBucketIfNotExists(bucketName, true);
+
             String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
 
-            // Envoie du fichier vers MinIO
             minioClient.putObject(
                     PutObjectArgs.builder()
-                            .bucket(bucketAvatarProfil)
+                            .bucket(bucketName)
                             .object(fileName)
-                            .stream(
-                                    file.getInputStream(), // flux du fichier
-                                    file.getSize(), // Taille connue
-                                    -1 // taille inconnue
-                            )
-                            .contentType(file.getContentType())// Type MIME (image/png, pdf, etc.)
+                            .stream(file.getInputStream(), file.getSize(), -1)
+                            .contentType(file.getContentType())
                             .build()
             );
-            // construction de l'Url publique permanente
-            return URL_MINO + "/" + bucketAvatarProfil + "/" + fileName;
-        } catch (Exception e){
-            throw new RuntimeException("Erreur lors de upload vers MinIO" , e);
+
+            return URL_MINO + "/" + bucketName + "/" + fileName;
+        } catch (Exception e) {
+            throw new RuntimeException("Erreur lors de upload vers MinIO", e);
         }
     }
 }
