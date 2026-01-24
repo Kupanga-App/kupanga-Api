@@ -19,7 +19,9 @@ public class OpenApiConfig {
                                 + "Utilisez cette interface pour tester et explorer les endpoints REST.")
                         .version("1.0.0")
                         .contact(new Contact()
-                                .name(" Pour des questions d'ordre techniques adressez-vous à :  noreplydevback@gmail.com"))
+                                .name("Support de l'API Kupanga")
+                                .url("mailto:noreplydevback@gmail.com"))
+
                         .license(new License()
                                 .name("Apache 2.0")
                                 .url("https://www.apache.org/licenses/LICENSE-2.0.html")));
