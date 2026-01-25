@@ -123,7 +123,4 @@ public class Constante {
                 </body>
             </html>
             """;
-
-
-
 }

@@ -6,6 +6,7 @@ import com.kupanga.api.exception.business.KupangaBusinessException;
 import com.kupanga.api.exception.business.UserAlreadyExistsException;
 import com.kupanga.api.login.dto.AuthResponseDTO;
 import com.kupanga.api.login.dto.LoginDTO;
+import com.kupanga.api.login.entity.PasswordResetToken;
 import com.kupanga.api.login.service.impl.LoginServiceImpl;
 import com.kupanga.api.login.utils.JwtUtils;
 import com.kupanga.api.utilisateur.dto.readDTO.UserDTO;
@@ -23,9 +24,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.http.HttpHeaders;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 
+import static com.kupanga.api.login.constant.LoginConstant.MOT_DE_PASSE_A_JOUR;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @DisplayName("Tests unitaires pour LoginServiceImpl")
@@ -45,6 +48,9 @@ class LoginServiceImplTest {
 
     @Mock
     private RefreshTokenService refreshTokenService;
+
+    @Mock
+    private PasswordResetTokenService passwordResetTokenService ;
 
     @Mock
     private JwtUtils jwtUtils;
@@ -253,5 +259,81 @@ class LoginServiceImplTest {
         assertThat(result).contains("Réussie");
         verify(refreshTokenService, never()).deleteRefreshToken(any());
         verify(response, never()).addHeader(any(), any());
+    }
+
+
+    // ======================
+    // Tests forgotPassword
+    // ======================
+
+    @Test
+    @DisplayName("forgotPassword — retourne un token valide et envoie un mail")
+    void forgotPassword_shouldReturnToken_andSendMail() {
+        when(userService.getUserByEmail("user@kupanga.com")).thenReturn(utilisateur);
+
+        String token = loginService.forgotPassword("user@kupanga.com");
+
+        assertNotNull(token);
+        verify(passwordResetTokenService, times(1)).save(any(PasswordResetToken.class));
+        verify(emailService, times(1)).sendPasswordResetMail(eq("user@kupanga.com"), contains(token));
+    }
+
+    @Test
+    @DisplayName("forgotPassword — lance une exception si l'email n'existe pas")
+    void forgotPassword_shouldThrowException_whenEmailDoesNotExist() {
+        when(userService.getUserByEmail("invalide@kupanga.com"))
+                .thenThrow(new RuntimeException("Utilisateur introuvable"));
+
+        RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> loginService.forgotPassword("invalide@kupanga.com"));
+
+        assertEquals("Utilisateur introuvable", exception.getMessage());
+        verify(passwordResetTokenService, never()).save(any());
+        verify(emailService, never()).sendPasswordResetMail(any(), any());
+    }
+
+    // ======================
+    // Tests resetPassword
+    // ======================
+
+    @Test
+    @DisplayName("resetPassword — met à jour le mot de passe et envoie confirmation")
+    void resetPassword_shouldUpdatePassword_andSendConfirmation() {
+        PasswordResetToken token = PasswordResetToken.builder()
+                .token("123")
+                .user(utilisateur)
+                .expirationDate(LocalDateTime.now().plusMinutes(10))
+                .build();
+
+        when(passwordResetTokenService.getByToken("123")).thenReturn(token);
+        when(passwordEncoder.encode("newPassword")).thenReturn("encodedPassword");
+
+        String result = loginService.resetPassword("123", "newPassword");
+
+        assertEquals(MOT_DE_PASSE_A_JOUR, result);
+        assertEquals("encodedPassword", utilisateur.getPassword());
+        verify(userService, times(1)).save(utilisateur);
+        verify(passwordResetTokenService, times(1)).delete(token);
+        verify(emailService, times(1)).sendPasswordUpdatedConfirmation(utilisateur.getMail());
+    }
+
+    @Test
+    @DisplayName("resetPassword — lance une exception si le token est expiré")
+    void resetPassword_shouldThrowException_whenTokenExpired() {
+        PasswordResetToken token = PasswordResetToken.builder()
+                .token("123")
+                .user(utilisateur)
+                .expirationDate(LocalDateTime.now().minusMinutes(1))
+                .build();
+
+        when(passwordResetTokenService.getByToken("123")).thenReturn(token);
+
+        RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> loginService.resetPassword("123", "newPassword"));
+
+        assertEquals("Token expiré", exception.getMessage());
+        verify(userService, never()).save(any());
+        verify(passwordResetTokenService, never()).delete(any());
+        verify(emailService, never()).sendPasswordUpdatedConfirmation(any());
     }
 }
