@@ -223,15 +223,84 @@ public class LoginController {
         return ResponseEntity.ok(loginService.logout(refreshToken, response));
     }
 
-    @PostMapping("/forgot-password")
-    public ResponseEntity<String> forgotPassword(@RequestParam String email){
+    // =========================================
+    // FORGOT PASSWORD
+    // =========================================
 
+    @Operation(
+            summary = "Réinitialisation du mot de passe",
+            description = "Génère un token temporaire pour réinitialiser le mot de passe et envoie un email contenant le lien de réinitialisation."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Email de réinitialisation envoyé avec succès",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                {
+                                    "message": "Lien de réinitialisation envoyé à l'adresse email"
+                                }
+                                """)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Email inexistant ou invalide",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                {
+                                    "error": "Utilisateur introuvable"
+                                }
+                                """)
+                    )
+            )
+    })
+    @PostMapping("/forgot-password")
+    public ResponseEntity<String> forgotPassword(@RequestParam String email) {
         return ResponseEntity.ok(loginService.forgotPassword(email));
     }
 
+    // =========================================
+    // RESET PASSWORD
+    // =========================================
+
+    @Operation(
+            summary = "Mise à jour du mot de passe",
+            description = "Permet à l'utilisateur de réinitialiser son mot de passe à partir du token reçu par email. " +
+                    "Le token est valide pendant 10 minutes."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Mot de passe mis à jour avec succès",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                {
+                                    "message": "Mot de passe mis à jour"
+                                }
+                                """)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Token invalide ou expiré",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                {
+                                    "error": "Token expiré ou invalide"
+                                }
+                                """)
+                    )
+            )
+    })
     @PostMapping("/reset-password")
     public ResponseEntity<String> resetPassword(@RequestParam String token,
-                                                @RequestParam String newPassword){
-        return ResponseEntity.ok(loginService.resetPassword(token , newPassword));
+                                                @RequestParam String newPassword) {
+        return ResponseEntity.ok(loginService.resetPassword(token, newPassword));
     }
+
 }
