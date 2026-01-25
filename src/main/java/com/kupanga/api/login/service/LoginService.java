@@ -45,4 +45,19 @@ public interface LoginService {
      * @return Déconnexion
      */
     String logout( String token , HttpServletResponse response);
+
+    /**
+     * Envoie un mail avec le lien de mise à jour
+     * @param email email
+     * @return le token
+     */
+    String forgotPassword(String email);
+
+    /**
+     * Mise à jour du mot de passe.
+     * @param token le token
+     * @param newPassword le nouveau mot de passe
+     * @return un message
+     */
+    String resetPassword( String token , String newPassword);
 }

@@ -9,8 +9,7 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import static com.kupanga.api.email.constantes.Constante.CONTENU_MAIL_MOT_DE_PASSE_TEMPORAIRE;
-import static com.kupanga.api.email.constantes.Constante.SUJET_MAIL_MOT_DE_PASSE_TEMPORAIRE;
+import static com.kupanga.api.email.constantes.Constante.*;
 
 @Service
 @RequiredArgsConstructor
@@ -38,9 +37,57 @@ public class EmailServiceImpl implements EmailService {
         }
     }
 
+
     @Override
     @Async
     public void sendWelcomeMessage(String destinataire, String nom, String prenom, String email){
 
     }
+
+    @Override
+    @Async
+    public void sendPasswordResetMail(String destinataire, String resetLink) {
+
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper =
+                    new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setTo(destinataire);
+            helper.setSubject(SUJET_MAIL_REINITIALISATION_MOT_DE_PASSE);
+
+            String htmlContent =
+                    String.format(CONTENU_MAIL_REINITIALISATION_MOT_DE_PASSE, resetLink);
+
+            helper.setText(htmlContent, true);
+            mailSender.send(message);
+
+        } catch (MessagingException e) {
+            throw new RuntimeException(
+                    "Erreur lors de l'envoi de l'email de réinitialisation", e);
+        }
+    }
+
+    @Override
+    @Async
+    public void sendPasswordUpdatedConfirmation(String destinataire) {
+
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper =
+                    new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setTo(destinataire);
+            helper.setSubject(SUJET_MAIL_CONFIRMATION_MOT_DE_PASSE);
+            helper.setText(CONTENU_MAIL_CONFIRMATION_MOT_DE_PASSE, true);
+
+            mailSender.send(message);
+
+        } catch (MessagingException e) {
+            throw new RuntimeException(
+                    "Erreur lors de l'envoi de l'email de confirmation du mot de passe", e);
+        }
+    }
+
+
 }

@@ -37,4 +37,17 @@ public interface EmailService {
      * @param email l'adresse email de l'utilisateur pour la connexion
      */
     void sendWelcomeMessage(String destinataire, String nom, String prenom, String email);
+
+    /**
+     * Email de mise à jour du mot de passe.
+     * @param destinataire le destinataire
+     * @param resetLink le lien pour la mise à jour du mot de passe
+     */
+    void sendPasswordResetMail(String destinataire, String resetLink);
+
+    /**
+     * Email de confirmation de la mise à jour du mot de passe.
+     * @param destinataire le destinataire
+     */
+    void sendPasswordUpdatedConfirmation(String destinataire);
 }

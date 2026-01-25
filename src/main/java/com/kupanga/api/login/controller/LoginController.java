@@ -222,4 +222,16 @@ public class LoginController {
                                          HttpServletResponse response) {
         return ResponseEntity.ok(loginService.logout(refreshToken, response));
     }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<String> forgotPassword(@RequestParam String email){
+
+        return ResponseEntity.ok(loginService.forgotPassword(email));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<String> resetPassword(@RequestParam String token,
+                                                @RequestParam String newPassword){
+        return ResponseEntity.ok(loginService.resetPassword(token , newPassword));
+    }
 }

@@ -5,8 +5,10 @@ import com.kupanga.api.exception.business.KupangaBusinessException;
 import com.kupanga.api.exception.business.UserAlreadyExistsException;
 import com.kupanga.api.login.dto.AuthResponseDTO;
 import com.kupanga.api.login.dto.LoginDTO;
+import com.kupanga.api.login.entity.PasswordResetToken;
 import com.kupanga.api.login.entity.RefreshToken;
 import com.kupanga.api.login.service.LoginService;
+import com.kupanga.api.login.service.PasswordResetTokenService;
 import com.kupanga.api.login.service.RefreshTokenService;
 import com.kupanga.api.login.utils.JwtUtils;
 import com.kupanga.api.utilisateur.dto.readDTO.UserDTO;
@@ -27,9 +29,11 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.util.UUID;
 
-import static com.kupanga.api.login.constant.LoginConstant.DECONNEXION;
-import static com.kupanga.api.login.constant.LoginConstant.REFRESHTOKEN;
+import static com.kupanga.api.email.constantes.Constante.RESET_LINK;
+import static com.kupanga.api.login.constant.LoginConstant.*;
 
 @Service
 @RequiredArgsConstructor
@@ -42,6 +46,7 @@ public class LoginServiceImpl implements LoginService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtils jwtUtils;
     private final RefreshTokenService refreshTokenService;
+    private final PasswordResetTokenService passwordResetTokenService ;
 
     @Transactional
     @Override
@@ -175,4 +180,42 @@ public class LoginServiceImpl implements LoginService {
         return DECONNEXION ;
     }
 
+    @Transactional
+    @Override
+    public String forgotPassword(String email){
+
+        User user = userService.getUserByEmail(email);
+
+        PasswordResetToken passwordResetToken = PasswordResetToken.builder()
+                .token(UUID.randomUUID().toString())
+                .user(user)
+                .expirationDate(LocalDateTime.now().plusMinutes(10))
+                .build();
+        passwordResetTokenService.save(passwordResetToken);
+
+        emailService.sendPasswordResetMail(email , RESET_LINK + passwordResetToken.getToken());
+
+        return passwordResetToken.getToken();
+    }
+
+    @Transactional
+    @Override
+    public String resetPassword( String token , String newPassword){
+
+        PasswordResetToken passwordResetToken = passwordResetTokenService.getByToken(token);
+
+        if(passwordResetToken.getExpirationDate().isBefore(LocalDateTime.now())){
+
+            throw new RuntimeException("Token expiré");
+        }
+
+        User user = passwordResetToken.getUser();
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userService.save(user);
+        passwordResetTokenService.delete(passwordResetToken);
+
+        emailService.sendPasswordUpdatedConfirmation(user.getMail());
+
+        return MOT_DE_PASSE_A_JOUR ;
+    }
 }

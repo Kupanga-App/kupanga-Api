@@ -1,7 +1,9 @@
 package com.kupanga.api.login.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.kupanga.api.exception.business.TokenExpiredException;
 import com.kupanga.api.exception.business.UserAlreadyExistsException;
+import com.kupanga.api.exception.business.UserNotFoundException;
 import com.kupanga.api.login.dto.AuthResponseDTO;
 import com.kupanga.api.login.dto.LoginDTO;
 import com.kupanga.api.login.service.LoginService;
@@ -22,11 +24,13 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import com.kupanga.api.config.SecurityConfig;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -176,4 +180,76 @@ class LoginControllerWebMvcTest {
                                 .andExpect(status().isOk())
                                 .andExpect(content().string("Déconnexion réussie"));
         }
+
+    @Test
+    @DisplayName("POST /forgot-password — succès : email de réinitialisation envoyé")
+    void forgotPassword_shouldReturnOk() throws Exception {
+
+        String email = "test@kupanga.com";
+
+        when(loginService.forgotPassword(email))
+                .thenReturn("Email de réinitialisation envoyé");
+
+        mockMvc.perform(post("/auth/forgot-password")
+                        .param("email", email))
+                .andExpect(status().isOk())
+                .andExpect(content().string("Email de réinitialisation envoyé"));
+
+        verify(loginService).forgotPassword(email);
+    }
+
+    @Test
+    @DisplayName("POST /forgot-password — erreur : email inexistant")
+    void forgotPassword_shouldReturnNotFound_whenEmailDoesNotExist() throws Exception {
+
+        String email = "invalide@kupanga.com";
+
+        when(loginService.forgotPassword(email))
+                .thenThrow(new UserNotFoundException(email));
+
+        mockMvc.perform(post("/auth/forgot-password")
+                        .param("email", email))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message")
+                        .value("Aucun utilisateur trouvé pour l'email : " + email));
+    }
+
+    @Test
+    @DisplayName("POST /reset-password — succès : mot de passe mis à jour")
+    void resetPassword_shouldReturnOk() throws Exception {
+
+        String token = "valid-token";
+        String newPassword = "NewPassword@123";
+
+        when(loginService.resetPassword(token, newPassword))
+                .thenReturn("Mot de passe mis à jour");
+
+        mockMvc.perform(post("/auth/reset-password")
+                        .param("token", token)
+                        .param("newPassword", newPassword))
+                .andExpect(status().isOk())
+                .andExpect(content().string("Mot de passe mis à jour"));
+
+        verify(loginService).resetPassword(token, newPassword);
+    }
+
+    @Test
+    @DisplayName("POST /reset-password — erreur : token expiré ou invalide")
+    void resetPassword_shouldReturnBadRequest_whenTokenIsInvalid() throws Exception {
+
+        String token = "expired-token";
+        String newPassword = "NewPassword@123";
+
+        when(loginService.resetPassword(token, newPassword))
+                .thenThrow(new TokenExpiredException());
+
+        mockMvc.perform(post("/auth/reset-password")
+                        .param("token", token)
+                        .param("newPassword", newPassword))
+                .andExpect(status().isBadRequest());
+    }
+
+
+
+
 }
