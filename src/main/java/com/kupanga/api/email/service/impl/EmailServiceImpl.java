@@ -88,6 +88,4 @@ public class EmailServiceImpl implements EmailService {
                     "Erreur lors de l'envoi de l'email de confirmation du mot de passe", e);
         }
     }
-
-
 }
