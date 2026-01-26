@@ -1,4 +1,4 @@
-package com.kupanga.api.utilisateur.dto.researchDTO;
+package com.kupanga.api.utilisateur.research.researchDTO;
 
 import lombok.Builder;
 import lombok.Getter;

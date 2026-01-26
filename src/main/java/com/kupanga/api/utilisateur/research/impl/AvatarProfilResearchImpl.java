@@ -1,13 +1,14 @@
-package com.kupanga.api.utilisateur.service.research.impl;
+package com.kupanga.api.utilisateur.research.impl;
 
-import com.kupanga.api.pagination.Pagination;
-import com.kupanga.api.utilisateur.dto.AvatarProfilPagination;
-import com.kupanga.api.utilisateur.dto.researchDTO.AvatarProfileResearchDTO;
+import com.kupanga.api.pagination.model.Pagination;
+import com.kupanga.api.utilisateur.dto.paginationDTO.AvatarProfilPagination;
+import com.kupanga.api.utilisateur.research.researchDTO.AvatarProfileResearchDTO;
 import com.kupanga.api.utilisateur.entity.AvatarProfil;
 import com.kupanga.api.utilisateur.mapper.AvatarProfilMapper;
+import com.kupanga.api.utilisateur.research.service.AvatarProfilResearch;
 import com.kupanga.api.utilisateur.service.AvatarProfilService;
-import com.kupanga.api.utilisateur.service.research.sort.SortEnum;
-import com.kupanga.api.utilisateur.service.research.specification.AvatarProfileSpecification;
+import com.kupanga.api.pagination.sort.SortEnum;
+import com.kupanga.api.utilisateur.research.specification.AvatarProfileSpecification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -18,11 +19,12 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class AvatarProfilResearchImpl {
+public class AvatarProfilResearchImpl implements AvatarProfilResearch {
 
     private final AvatarProfilService avatarProfilService;
     private final AvatarProfilMapper avatarProfilMapper;
 
+    @Override
     public AvatarProfilPagination research(AvatarProfileResearchDTO avatarProfileResearchDTO){
 
         Specification<AvatarProfil> spec = AvatarProfileSpecification.searchAll();

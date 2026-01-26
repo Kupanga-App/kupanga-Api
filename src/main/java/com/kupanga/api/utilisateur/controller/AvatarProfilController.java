@@ -1,12 +1,12 @@
 package com.kupanga.api.utilisateur.controller;
 
 import com.kupanga.api.exception.business.InvalidRoleException;
-import com.kupanga.api.utilisateur.dto.AvatarProfilPagination;
+import com.kupanga.api.utilisateur.dto.paginationDTO.AvatarProfilPagination;
 import com.kupanga.api.utilisateur.dto.readDTO.AvatarProfilDTO;
-import com.kupanga.api.utilisateur.dto.researchDTO.AvatarProfileResearchDTO;
+import com.kupanga.api.utilisateur.research.researchDTO.AvatarProfileResearchDTO;
 import com.kupanga.api.utilisateur.entity.Role;
 import com.kupanga.api.utilisateur.service.AvatarProfilService;
-import com.kupanga.api.utilisateur.service.research.impl.AvatarProfilResearchImpl;
+import com.kupanga.api.utilisateur.research.impl.AvatarProfilResearchImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;

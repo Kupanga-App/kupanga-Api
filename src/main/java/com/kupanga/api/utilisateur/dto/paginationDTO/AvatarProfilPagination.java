@@ -1,6 +1,6 @@
-package com.kupanga.api.utilisateur.dto;
+package com.kupanga.api.utilisateur.dto.paginationDTO;
 
-import com.kupanga.api.pagination.Pagination;
+import com.kupanga.api.pagination.model.Pagination;
 import com.kupanga.api.utilisateur.dto.readDTO.AvatarProfilDTO;
 import lombok.Builder;
 import lombok.Getter;

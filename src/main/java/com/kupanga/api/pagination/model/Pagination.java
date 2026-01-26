@@ -1,4 +1,4 @@
-package com.kupanga.api.pagination;
+package com.kupanga.api.pagination.model;
 
 import lombok.*;
 import org.springframework.data.domain.Sort;

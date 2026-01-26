@@ -1,4 +1,4 @@
-package com.kupanga.api.utilisateur.service.research.specification;
+package com.kupanga.api.utilisateur.research.specification;
 
 import com.kupanga.api.utilisateur.entity.AvatarProfil;
 import org.springframework.data.jpa.domain.Specification;

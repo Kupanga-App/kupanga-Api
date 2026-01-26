@@ -1,4 +1,4 @@
-package com.kupanga.api.utilisateur.service.research.sort;
+package com.kupanga.api.pagination.sort;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
