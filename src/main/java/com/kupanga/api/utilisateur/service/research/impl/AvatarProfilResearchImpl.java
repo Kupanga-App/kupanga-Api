@@ -6,6 +6,7 @@ import com.kupanga.api.utilisateur.dto.researchDTO.AvatarProfileResearchDTO;
 import com.kupanga.api.utilisateur.entity.AvatarProfil;
 import com.kupanga.api.utilisateur.mapper.AvatarProfilMapper;
 import com.kupanga.api.utilisateur.service.AvatarProfilService;
+import com.kupanga.api.utilisateur.service.research.sort.SortEnum;
 import com.kupanga.api.utilisateur.service.research.specification.AvatarProfileSpecification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -53,10 +54,12 @@ public class AvatarProfilResearchImpl {
 
     private Sort getSort(AvatarProfileResearchDTO avatarProfileResearchDTO , Pagination pagination){
 
-        if( avatarProfileResearchDTO.getSort().isEmpty()){
+        String sortBy = avatarProfileResearchDTO.getSort().isEmpty() ? null : avatarProfileResearchDTO.getSort().get();
+
+        if(!(SortEnum.isValidField(sortBy))){
 
             return Sort.by( pagination.getDirection() , pagination.getSortBy());
         }
-        return Sort.by( pagination.getDirection() , pagination.getSortBy());
+        return Sort.by( pagination.getDirection() , avatarProfileResearchDTO.getSort().get());
     }
 }
