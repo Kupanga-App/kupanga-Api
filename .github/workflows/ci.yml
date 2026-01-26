@@ -84,8 +84,8 @@ jobs:
       # -----------------------------
       - name: Set DB env
         run: |
-          echo "SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/panganga_dev" >> $GITHUB_ENV
-          echo "SPRING_DATASOURCE_USERNAME=panganga" >> $GITHUB_ENV
+          echo "SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/kupanga_dev" >> $GITHUB_ENV
+          echo "SPRING_DATASOURCE_USERNAME=Kupanga" >> $GITHUB_ENV
           echo "SPRING_DATASOURCE_PASSWORD=devpassword" >> $GITHUB_ENV
 
       # -----------------------------
@@ -109,4 +109,4 @@ jobs:
       # Docker
       # -----------------------------
       - name: Build Docker image
-        run: docker build -t panganga-ci-test:latest .
+        run: docker build -t kupanga-ci-test:latest .
