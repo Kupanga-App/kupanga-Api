@@ -71,7 +71,7 @@ class AvatarProfilControllerTest {
         when(avatarProfilService.createAvatarsProfil(anyList())).thenReturn(Collections.emptyList());
 
         // Act & Assert
-        mockMvc.perform(multipart("/admin/avatars")
+        mockMvc.perform(multipart("/avatar/admin")
                         .file(file))
                 .andExpect(status().isOk());
 
@@ -93,7 +93,7 @@ class AvatarProfilControllerTest {
         // En mode standalone sans ExceptionHandler, l'exception remonte enveloppée dans
         // une ServletException
         jakarta.servlet.ServletException exception = org.junit.jupiter.api.Assertions.assertThrows(
-                jakarta.servlet.ServletException.class, () -> mockMvc.perform(multipart("/admin/avatars").file(file)));
+                jakarta.servlet.ServletException.class, () -> mockMvc.perform(multipart("/avatar/admin").file(file)));
 
         assertInstanceOf(InvalidRoleException.class, exception.getCause());
         assertEquals(
