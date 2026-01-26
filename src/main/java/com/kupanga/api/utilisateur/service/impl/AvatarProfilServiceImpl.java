@@ -8,6 +8,9 @@ import com.kupanga.api.utilisateur.repository.AvatarProfilRepository;
 import com.kupanga.api.utilisateur.service.AvatarProfilService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -45,5 +48,12 @@ public class AvatarProfilServiceImpl implements AvatarProfilService {
 
         return avatarsDTO;
     }
+
+    @Override
+    public Page<AvatarProfil> finAll(Specification<AvatarProfil> avatarProfilSpecification , Pageable pageable){
+
+        return avatarProfilRepository.findAll(avatarProfilSpecification , pageable);
+    }
+
 
 }

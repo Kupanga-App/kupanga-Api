@@ -1,9 +1,12 @@
 package com.kupanga.api.utilisateur.controller;
 
 import com.kupanga.api.exception.business.InvalidRoleException;
+import com.kupanga.api.utilisateur.dto.AvatarProfilPagination;
 import com.kupanga.api.utilisateur.dto.readDTO.AvatarProfilDTO;
+import com.kupanga.api.utilisateur.dto.researchDTO.AvatarProfileResearchDTO;
 import com.kupanga.api.utilisateur.entity.Role;
 import com.kupanga.api.utilisateur.service.AvatarProfilService;
+import com.kupanga.api.utilisateur.service.research.impl.AvatarProfilResearchImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -14,20 +17,18 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/admin")
+@RequestMapping("/avatar")
 @RequiredArgsConstructor
 public class AvatarProfilController {
 
     private final AvatarProfilService avatarProfilService;
+    private final AvatarProfilResearchImpl avatarProfilResearch;
 
     // =========================================
     // CREATION AVATAR PROFIL
@@ -86,7 +87,7 @@ public class AvatarProfilController {
                     )
             )
     })
-    @PostMapping("/avatars")
+    @PostMapping("/admin")
     public ResponseEntity<List<AvatarProfilDTO>> createAvatarProfil(
             @RequestParam("images") List<MultipartFile> images
     ) {
@@ -101,6 +102,12 @@ public class AvatarProfilController {
         }
 
         return ResponseEntity.ok(avatarProfilService.createAvatarsProfil(images));
+    }
+
+    @PostMapping("/search")
+    public ResponseEntity<AvatarProfilPagination> search( @RequestBody AvatarProfileResearchDTO avatarProfileResearchDTO){
+
+        return ResponseEntity.ok(avatarProfilResearch.research(avatarProfileResearchDTO));
     }
 
 }
