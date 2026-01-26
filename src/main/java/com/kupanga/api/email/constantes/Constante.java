@@ -17,7 +17,7 @@ public class Constante {
                                     <p style="margin: 0;"><strong>Mot de passe :</strong> <span style="font-family: monospace; font-size: 1.2em;">%s</span></p>
                                 </div>
                                 <p>Connectez-vous dès maintenant pour compléter votre profil.</p>
-                                <a href="http://localhost:8081/login" style="display: inline-block; background-color: #2563eb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Se connecter</a>
+                                <a href="https://kupanga.lespacelibellule.com" style="display: inline-block; background-color: #2563eb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Se connecter</a>
                             </div>
                         </div>
                     </body>
@@ -67,7 +67,7 @@ public class Constante {
             """;
 
     public static final String RESET_LINK =
-            "http://localhost:8081/reset-password?token=" ;
+            "https://kupanga.lespacelibellule.com/reset-password?token=" ;
 
     public static String SUJET_MAIL_CONFIRMATION_MOT_DE_PASSE =
             "Confirmation de mise à jour du mot de passe – KUPANGA";
@@ -108,7 +108,7 @@ public class Constante {
                                 immédiatement notre support.
                             </p>
     
-                            <a href="http://localhost:8081/login"
+                            <a href="https://kupanga.lespacelibellule.com"
                                style="display: inline-block; background-color: #2563eb; color: white;
                                       padding: 12px 25px; text-decoration: none; border-radius: 5px;
                                       font-weight: bold;">
