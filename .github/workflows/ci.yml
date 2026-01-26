@@ -25,9 +25,9 @@ jobs:
         run: |
           docker run -d \
             --name postgres \
-            -e POSTGRES_USER=panganga \
+            -e POSTGRES_USER=kupanga \
             -e POSTGRES_PASSWORD=devpassword \
-            -e POSTGRES_DB=panganga_dev \
+            -e POSTGRES_DB=kupanga_dev \
             -p 5432:5432 \
             postgis/postgis:15-3.4-alpine
 
@@ -85,7 +85,7 @@ jobs:
       - name: Set DB env
         run: |
           echo "SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/kupanga_dev" >> $GITHUB_ENV
-          echo "SPRING_DATASOURCE_USERNAME=Kupanga" >> $GITHUB_ENV
+          echo "SPRING_DATASOURCE_USERNAME=kupanga" >> $GITHUB_ENV
           echo "SPRING_DATASOURCE_PASSWORD=devpassword" >> $GITHUB_ENV
 
       # -----------------------------
