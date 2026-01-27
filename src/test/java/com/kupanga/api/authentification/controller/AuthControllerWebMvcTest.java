@@ -9,12 +9,9 @@ import com.kupanga.api.authentification.dto.LoginDTO;
 import com.kupanga.api.authentification.service.AuthService;
 import com.kupanga.api.authentification.service.impl.UserDetailsServiceImpl;
 import com.kupanga.api.authentification.utils.JwtUtils;
-import com.kupanga.api.user.dto.formDTO.UserFormDTO;
 import com.kupanga.api.user.dto.readDTO.UserDTO;
-import com.kupanga.api.user.entity.Role;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.servlet.http.Cookie;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,136 +45,151 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DisplayName("Tests pour LoginController via MockMvc")
 class AuthControllerWebMvcTest {
 
-        @Autowired
-        private MockMvc mockMvc;
+    @Autowired
+    private MockMvc mockMvc;
 
-        @MockBean
-        private AuthService authService;
+    @MockBean
+    private AuthService authService;
 
-        @MockBean
-        private JwtUtils jwtUtils;
+    @MockBean
+    private JwtUtils jwtUtils;
 
-        @MockBean
-        private UserDetailsServiceImpl userDetailsService;
+    @MockBean
+    private UserDetailsServiceImpl userDetailsService;
 
-        // Filet de sécurité indispensable si une config globale traîne
-        @MockBean
-        private EntityManagerFactory entityManagerFactory;
+    // Filet de sécurité indispensable si une config globale traîne
+    @MockBean
+    private EntityManagerFactory entityManagerFactory;
 
-        private ObjectMapper objectMapper = new ObjectMapper();
+    private ObjectMapper objectMapper = new ObjectMapper();
 
-        private UserFormDTO userFormDTO;
-        private LoginDTO loginDTO;
 
-        @BeforeEach
-        void setUp() {
-                userFormDTO = UserFormDTO.builder()
-                                .mail("user@example.com")
-                                .role(Role.ROLE_LOCATAIRE)
-                                .build();
 
-                loginDTO = new LoginDTO("user@example.com", "password");
-        }
+    // =============================
+    // TEST CREATION UTILISATEUR
+    // =============================
+    @Test
+    @DisplayName("POST /auth/register : succès création utilisateur avec valid email et password")
+    void testCreateUserSuccess() throws Exception {
+        // DTO que le service retournera après création (role est null)
+        UserDTO userDTO = UserDTO.builder()
+                .id(1L)
+                .mail("user.mechant@gmail.com")
+                .role(null) // role à null à la création
+                .build();
 
-        // =============================
-        // TEST CREATION UTILISATEUR
-        // =============================
-        @Test
-        @DisplayName("POST /auth/register : succès création utilisateur")
-        void testCreateUserSuccess() throws Exception {
-                UserDTO userDTO = UserDTO.builder()
-                                .id(1L)
-                                .mail("user@example.com")
-                                .role(Role.ROLE_LOCATAIRE)
-                                .build();
+        // Mock du service pour renvoyer le UserDTO créé
+        when(authService.creationUtilisateur(any(LoginDTO.class)))
+                .thenReturn(userDTO);
 
-                when(authService.creationUtilisateur(any()))
-                                .thenReturn(userDTO);
+        // DTO envoyé à l'API (doit respecter les validateurs)
+        LoginDTO loginDTO = LoginDTO.builder()
+                .email("user.mechant@gmail.com")
+                .password("Abcd1234") // Mot de passe valide selon le pattern
+                .build();
 
-                mockMvc.perform(post("/auth/register")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(userFormDTO)))
-                                .andExpect(status().isOk())
-                                .andExpect(jsonPath("$.mail").value("user@example.com"))
-                                .andExpect(jsonPath("$.role").value("ROLE_LOCATAIRE"));
-        }
+        mockMvc.perform(post("/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(loginDTO)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.mail").value("user.mechant@gmail.com"))
+                .andExpect(jsonPath("$.role").doesNotExist()); // rôle null ne doit pas apparaître
+    }
 
-        @Test
-        @DisplayName("POST /auth/register : utilisateur déjà existant")
-        void testCreateUserAlreadyExists() throws Exception {
-                when(authService.creationUtilisateur(any()))
-                                .thenThrow(new UserAlreadyExistsException(loginDTO.email()));
+    // =============================
+    // TEST CREATION UTILISATEUR DEJA EXISTANT
+    // =============================
+    @Test
+    @DisplayName("POST /auth/register : utilisateur déjà existant")
+    void testCreateUserAlreadyExists() throws Exception {
+        // On simule que l'utilisateur existe déjà
+        when(authService.creationUtilisateur(any(LoginDTO.class)))
+                .thenThrow(new UserAlreadyExistsException("user.mechant@gmail.com"));
 
-                mockMvc.perform(post("/auth/register")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(userFormDTO)))
-                                .andExpect(status().isConflict());
-        }
+        // DTO envoyé à l'API (email + mot de passe)
+        LoginDTO loginDTO = LoginDTO.builder()
+                .email("user.mechant@gmail.com")
+                .password("Abcd1234")
+                .build();
 
-        // =============================
-        // TEST LOGIN
-        // =============================
-        @Test
-        @DisplayName("POST /auth/login : connexion réussie")
-        void testLoginSuccess() throws Exception {
-                AuthResponseDTO authResponseDTO = AuthResponseDTO.builder()
-                                .accessToken("access-token")
-                                .build();
+        mockMvc.perform(post("/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(loginDTO)))
+                .andExpect(status().isConflict()); // 409 Conflict attendu
+    }
 
-                when(authService.login(any(LoginDTO.class), any()))
-                                .thenReturn(authResponseDTO);
+    // =============================
+    // TEST LOGIN
+    // =============================
+    @Test
+    @DisplayName("POST /auth/login : connexion réussie")
+    void testLoginSuccess() throws Exception {
+        AuthResponseDTO authResponseDTO = AuthResponseDTO.builder()
+                .accessToken("access-token")
+                .build();
 
-                mockMvc.perform(post("/auth/login")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(loginDTO)))
-                                .andExpect(status().isOk())
-                                .andExpect(jsonPath("$.accessToken").value("access-token"));
-        }
+        // Mock du service login
+        when(authService.login(any(LoginDTO.class), any()))
+                .thenReturn(authResponseDTO);
 
-        // =============================
-        // TEST REFRESH TOKEN
-        // =============================
-        @Test
-        @DisplayName("POST /auth/refresh : succès refresh token")
-        void testRefreshTokenSuccess() throws Exception {
-                String refreshToken = "refresh-token";
-                AuthResponseDTO newToken = AuthResponseDTO.builder()
-                                .accessToken("new-access-token")
-                                .build();
+        // DTO envoyé à l'API
+        LoginDTO loginDTO = LoginDTO.builder()
+                .email("user.mechant@gmail.com")
+                .password("Abcd1234")
+                .build();
 
-                when(authService.refresh(refreshToken)).thenReturn(newToken);
+        mockMvc.perform(post("/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(loginDTO)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.accessToken").value("access-token"));
+    }
 
-                mockMvc.perform(post("/auth/refresh")
-                                .cookie(new Cookie("refreshToken", refreshToken)))
-                                .andExpect(status().isOk())
-                                .andExpect(jsonPath("$.accessToken").value("new-access-token"));
-        }
 
-        // =============================
-        // TEST LOGOUT
-        // =============================
-        @Test
-        @DisplayName("POST /auth/logout : succès déconnexion avec token")
-        void testLogoutWithToken() throws Exception {
-                String refreshToken = "refresh-token";
+    // =============================
+    // TEST REFRESH TOKEN
+    // =============================
+    @Test
+    @DisplayName("POST /auth/refresh : succès refresh token")
+    void testRefreshTokenSuccess() throws Exception {
+        String refreshToken = "refresh-token";
+        AuthResponseDTO newToken = AuthResponseDTO.builder()
+                .accessToken("new-access-token")
+                .build();
 
-                when(authService.logout(any(), any())).thenReturn("Déconnexion réussie");
+        when(authService.refresh(refreshToken)).thenReturn(newToken);
 
-                mockMvc.perform(post("/auth/logout")
-                                .cookie(new Cookie("refreshToken", refreshToken)))
-                                .andExpect(status().isOk())
-                                .andExpect(content().string("Déconnexion réussie"));
-        }
+        mockMvc.perform(post("/auth/refresh")
+                        .cookie(new Cookie("refreshToken", refreshToken)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.accessToken").value("new-access-token"));
+    }
 
-        @Test
-        @DisplayName("POST /auth/logout : succès déconnexion sans token")
-        void testLogoutWithoutToken() throws Exception {
-                when(authService.logout(any(), any())).thenReturn("Déconnexion réussie");
+    // =============================
+    // TEST LOGOUT
+    // =============================
+    @Test
+    @DisplayName("POST /auth/logout : succès déconnexion avec token")
+    void testLogoutWithToken() throws Exception {
+        String refreshToken = "refresh-token";
 
-                mockMvc.perform(post("/auth/logout"))
-                                .andExpect(status().isOk())
-                                .andExpect(content().string("Déconnexion réussie"));
-        }
+        when(authService.logout(any(), any())).thenReturn("Déconnexion réussie");
+
+        mockMvc.perform(post("/auth/logout")
+                        .cookie(new Cookie("refreshToken", refreshToken)))
+                .andExpect(status().isOk())
+                .andExpect(content().string("Déconnexion réussie"));
+    }
+
+    @Test
+    @DisplayName("POST /auth/logout : succès déconnexion sans token")
+    void testLogoutWithoutToken() throws Exception {
+        when(authService.logout(any(), any())).thenReturn("Déconnexion réussie");
+
+        mockMvc.perform(post("/auth/logout"))
+                .andExpect(status().isOk())
+                .andExpect(content().string("Déconnexion réussie"));
+    }
 
     @Test
     @DisplayName("POST /forgot-password — succès : email de réinitialisation envoyé")
@@ -246,8 +258,4 @@ class AuthControllerWebMvcTest {
                         .param("newPassword", newPassword))
                 .andExpect(status().isBadRequest());
     }
-
-
-
-
 }
