@@ -57,7 +57,7 @@ public class AuthServiceImpl implements AuthService {
 
         User utilisateur = User.builder()
                 .mail(loginDTO.email())
-                .password(passwordEncoder.encode(loginDTO.motDepasse()))
+                .password(passwordEncoder.encode(loginDTO.password()))
                 .build();
 
         userService.save(utilisateur);
@@ -92,7 +92,7 @@ public class AuthServiceImpl implements AuthService {
         LOGGER.debug("Utilisateur {} récupéré avec succès " , utilisateur);
 
         // 2️. Vérifier le mot de passe
-        userService.isCorrectPassword(loginDTO.motDepasse(), utilisateur.getPassword());
+        userService.isCorrectPassword(loginDTO.password(), utilisateur.getPassword());
 
         // 3. Générer access token (court)
         String accessToken = jwtUtils.generateAccessToken(

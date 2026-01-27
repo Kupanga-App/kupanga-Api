@@ -150,7 +150,7 @@ class AuthServiceImplTest {
         LoginDTO loginDTO = new LoginDTO("user@example.com", "password");
 
         when(userService.getUserByEmail(loginDTO.email())).thenReturn(utilisateur);
-        doNothing().when(userService).isCorrectPassword(loginDTO.motDepasse(), utilisateur.getPassword());
+        doNothing().when(userService).isCorrectPassword(loginDTO.password(), utilisateur.getPassword());
         when(jwtUtils.generateAccessToken(utilisateur.getMail(), String.valueOf(utilisateur.getRole())))
                 .thenReturn("accessToken");
         when(refreshTokenService.createRefreshToken(utilisateur)).thenReturn("refreshToken");
@@ -170,7 +170,7 @@ class AuthServiceImplTest {
         LoginDTO loginDTO = new LoginDTO("user@example.com", "wrongpassword");
         when(userService.getUserByEmail(loginDTO.email())).thenReturn(utilisateur);
         doThrow(new RuntimeException("Mot de passe incorrect"))
-                .when(userService).isCorrectPassword(loginDTO.motDepasse(), utilisateur.getPassword());
+                .when(userService).isCorrectPassword(loginDTO.password(), utilisateur.getPassword());
 
         assertThrows(RuntimeException.class, () -> loginService.login(loginDTO, response));
         verify(response, never()).addHeader(any(), any());

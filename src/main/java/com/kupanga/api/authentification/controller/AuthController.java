@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -74,7 +75,7 @@ public class AuthController {
             )
     })
     @PostMapping("/register")
-    public ResponseEntity<UserDTO> creationCompte(@RequestBody LoginDTO loginDTO)
+    public ResponseEntity<UserDTO> creationCompte(@Valid @RequestBody LoginDTO loginDTO)
             throws UserAlreadyExistsException {
         return ResponseEntity.ok(authService.creationUtilisateur(loginDTO));
     }
@@ -127,7 +128,7 @@ public class AuthController {
             )
     })
     @PostMapping("/login")
-    public ResponseEntity<AuthResponseDTO> login(@RequestBody LoginDTO loginDTO, HttpServletResponse response) {
+    public ResponseEntity<AuthResponseDTO> login(@Valid @RequestBody LoginDTO loginDTO, HttpServletResponse response) {
         return ResponseEntity.ok(authService.login(loginDTO, response));
     }
 

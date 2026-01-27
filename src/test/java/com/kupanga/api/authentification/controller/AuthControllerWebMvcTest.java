@@ -72,7 +72,7 @@ class AuthControllerWebMvcTest {
         @BeforeEach
         void setUp() {
                 userFormDTO = UserFormDTO.builder()
-                                .email("user@example.com")
+                                .mail("user@example.com")
                                 .role(Role.ROLE_LOCATAIRE)
                                 .build();
 

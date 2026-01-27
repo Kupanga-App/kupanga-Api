@@ -6,10 +6,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Gestionnaire global des exceptions pour l'application.
@@ -52,6 +55,44 @@ public class GlobalExceptionHandler {
         );
     }
 
+    /** Intercepte toutes les exceptions liées à la validation {@link MethodArgumentNotValidException}
+     *
+     * @param ex l'exception levée
+     * @param request la requête HTTP ayant causé l'exception
+     * @return {@link ResponseEntity} contenant {@link ApiErrorResponse}
+     */
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ApiErrorResponse> handleValidationException(
+            MethodArgumentNotValidException ex,
+            HttpServletRequest request
+    ) {
+
+        Map<String, String> fieldErrors = new HashMap<>();
+
+        ex.getBindingResult()
+                .getFieldErrors()
+                .forEach(error ->
+                        fieldErrors.put(
+                                error.getField(),
+                                error.getDefaultMessage()
+                        )
+                );
+
+        ApiErrorResponse response = new ApiErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                "Erreur de validation des champs",
+                request.getRequestURI(),
+                LocalDateTime.now() ,
+                fieldErrors
+        );
+
+
+        return ResponseEntity.badRequest().body(response);
+    }
+
+
     /**
      * Construit une réponse d'erreur standardisée pour l'API.
      *
@@ -70,7 +111,8 @@ public class GlobalExceptionHandler {
                 status.getReasonPhrase(),
                 message,
                 request.getRequestURI(),
-                LocalDateTime.now()
+                LocalDateTime.now(),
+                null
         );
 
         return new ResponseEntity<>(response, status);
