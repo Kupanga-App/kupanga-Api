@@ -38,6 +38,9 @@ public class User {
     @Column(name = "role")
     private Role role; // PROPRIETAIRE, LOCATAIRE, ADMIN
 
+    @Column(name = "A_completer_profil")
+    private Boolean hasCompleteProfil = false;
+
     // relations
     @OneToMany(mappedBy = "proprietaire")
     private List<Bien> biensProprietes;

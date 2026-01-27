@@ -23,7 +23,7 @@ public record UserFormDTO(
                 message = "Le mot de passe doit contenir au moins 8 caractères, " +
                         "une majuscule, une minuscule et un chiffre"
         )
-        String password,
+        String password ,
 
         @NotNull(message = "Un rôle valide est nécessaire")
         Role role

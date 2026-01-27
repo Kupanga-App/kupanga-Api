@@ -10,6 +10,7 @@ public record UserDTO(
         String lastName,
         String mail ,
         String password ,
-        Role role
+        Role role,
+        Boolean hasCompleteProfil
 ) {
 }
