@@ -4,7 +4,7 @@ import com.kupanga.api.exception.business.KupangaBusinessException;
 import com.kupanga.api.authentification.entity.RefreshToken;
 import com.kupanga.api.authentification.repository.RefreshTokenRepository;
 import com.kupanga.api.authentification.service.RefreshTokenService;
-import com.kupanga.api.utilisateur.entity.User;
+import com.kupanga.api.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;

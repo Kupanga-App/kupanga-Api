@@ -3,7 +3,7 @@ package com.kupanga.api.authentification.service;
 import com.kupanga.api.exception.business.UserAlreadyExistsException;
 import com.kupanga.api.authentification.dto.AuthResponseDTO;
 import com.kupanga.api.authentification.dto.LoginDTO;
-import com.kupanga.api.utilisateur.dto.readDTO.UserDTO;
+import com.kupanga.api.user.dto.readDTO.UserDTO;
 import jakarta.servlet.http.HttpServletResponse;
 
 

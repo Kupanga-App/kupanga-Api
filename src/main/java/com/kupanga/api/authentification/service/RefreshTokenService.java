@@ -1,7 +1,7 @@
 package com.kupanga.api.authentification.service;
 
 import com.kupanga.api.authentification.entity.RefreshToken;
-import com.kupanga.api.utilisateur.entity.User;
+import com.kupanga.api.user.entity.User;
 
 public interface RefreshTokenService {
 

@@ -1,9 +1,9 @@
 package com.kupanga.api.authentification.service;
 
 import com.kupanga.api.authentification.service.impl.UserDetailsServiceImpl;
-import com.kupanga.api.utilisateur.entity.Role;
-import com.kupanga.api.utilisateur.entity.User;
-import com.kupanga.api.utilisateur.repository.UserRepository;
+import com.kupanga.api.user.entity.Role;
+import com.kupanga.api.user.entity.User;
+import com.kupanga.api.user.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

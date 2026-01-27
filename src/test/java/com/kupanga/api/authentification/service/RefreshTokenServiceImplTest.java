@@ -4,7 +4,7 @@ import com.kupanga.api.exception.business.KupangaBusinessException;
 import com.kupanga.api.authentification.entity.RefreshToken;
 import com.kupanga.api.authentification.repository.RefreshTokenRepository;
 import com.kupanga.api.authentification.service.impl.RefreshTokenServiceImpl;
-import com.kupanga.api.utilisateur.entity.User;
+import com.kupanga.api.user.entity.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

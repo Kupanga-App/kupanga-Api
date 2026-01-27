@@ -1,8 +1,8 @@
 package com.kupanga.api.authentification.service.impl;
 
-import com.kupanga.api.utilisateur.entity.Role;
-import com.kupanga.api.utilisateur.entity.User;
-import com.kupanga.api.utilisateur.repository.UserRepository;
+import com.kupanga.api.user.entity.Role;
+import com.kupanga.api.user.entity.User;
+import com.kupanga.api.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
