@@ -39,7 +39,7 @@ public class Constante {
     
                             <p>
                                 Pour des raisons de sécurité, ce lien est valable
-                                <strong>15 minutes</strong>.
+                                <strong>10 minutes</strong>.
                             </p>
     
                             <div style="background-color: #eff6ff; padding: 15px; border-radius: 5px; margin: 20px 0;">
@@ -64,7 +64,7 @@ public class Constante {
             """;
 
     public static final String RESET_LINK =
-            "https://kupanga.lespacelibellule.com/setNewPassword" ;
+            "https://kupanga.lespacelibellule.com/auth/reset-password/?token=" ;
 
     public static String SUJET_MAIL_CONFIRMATION_MOT_DE_PASSE =
             "Confirmation de mise à jour du mot de passe – KUPANGA";
