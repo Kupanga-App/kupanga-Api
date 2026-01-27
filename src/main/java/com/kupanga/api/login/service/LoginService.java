@@ -4,7 +4,6 @@ import com.kupanga.api.exception.business.UserAlreadyExistsException;
 import com.kupanga.api.login.dto.AuthResponseDTO;
 import com.kupanga.api.login.dto.LoginDTO;
 import com.kupanga.api.utilisateur.dto.readDTO.UserDTO;
-import com.kupanga.api.utilisateur.entity.Role;
 import jakarta.servlet.http.HttpServletResponse;
 
 

@@ -1,7 +1,6 @@
 package com.kupanga.api.login.service;
 
 import com.kupanga.api.email.service.EmailService;
-import com.kupanga.api.exception.business.InvalidRoleException;
 import com.kupanga.api.exception.business.KupangaBusinessException;
 import com.kupanga.api.exception.business.UserAlreadyExistsException;
 import com.kupanga.api.login.dto.AuthResponseDTO;
