@@ -1,7 +1,7 @@
 package com.kupanga.api.config;
 
-import com.kupanga.api.login.service.impl.UserDetailsServiceImpl;
-import com.kupanga.api.login.utils.JwtUtils;
+import com.kupanga.api.authentification.service.impl.UserDetailsServiceImpl;
+import com.kupanga.api.authentification.utils.JwtUtils;
 import com.kupanga.api.utilisateur.repository.UserRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;

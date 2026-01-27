@@ -1,8 +1,8 @@
 package com.kupanga.api.config;
 
-import com.kupanga.api.login.filter.JwtFilter;
-import com.kupanga.api.login.service.impl.UserDetailsServiceImpl;
-import com.kupanga.api.login.utils.JwtUtils;
+import com.kupanga.api.authentification.filter.JwtFilter;
+import com.kupanga.api.authentification.service.impl.UserDetailsServiceImpl;
+import com.kupanga.api.authentification.utils.JwtUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

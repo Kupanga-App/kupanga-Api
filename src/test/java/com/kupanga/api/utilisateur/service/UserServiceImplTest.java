@@ -3,7 +3,7 @@ package com.kupanga.api.utilisateur.service;
 import com.kupanga.api.exception.business.InvalidRoleException;
 import com.kupanga.api.exception.business.UserAlreadyExistsException;
 import com.kupanga.api.exception.business.UserNotFoundException;
-import com.kupanga.api.login.utils.JwtUtils;
+import com.kupanga.api.authentification.utils.JwtUtils;
 import com.kupanga.api.utilisateur.entity.Role;
 import com.kupanga.api.utilisateur.entity.User;
 import com.kupanga.api.utilisateur.repository.UserRepository;

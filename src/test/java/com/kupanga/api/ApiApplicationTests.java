@@ -1,6 +1,6 @@
 package com.kupanga.api;
 
-import com.kupanga.api.login.entity.RefreshToken;
+import com.kupanga.api.authentification.entity.RefreshToken;
 import com.kupanga.api.utilisateur.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
