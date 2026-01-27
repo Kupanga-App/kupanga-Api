@@ -64,7 +64,7 @@ public class Constante {
             """;
 
     public static final String RESET_LINK =
-            "https://kupanga.lespacelibellule.com/setNewPassword?token=" ;
+            "https://kupanga.lespacelibellule.com/setNewPassword" ;
 
     public static String SUJET_MAIL_CONFIRMATION_MOT_DE_PASSE =
             "Confirmation de mise à jour du mot de passe – KUPANGA";
