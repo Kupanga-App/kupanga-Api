@@ -83,7 +83,7 @@ class LoginControllerWebMvcTest {
         // TEST CREATION UTILISATEUR
         // =============================
         @Test
-        @DisplayName("POST /auth/create-count : succès création utilisateur")
+        @DisplayName("POST /auth/register : succès création utilisateur")
         void testCreateUserSuccess() throws Exception {
                 UserDTO userDTO = UserDTO.builder()
                                 .id(1L)
@@ -94,7 +94,7 @@ class LoginControllerWebMvcTest {
                 when(loginService.creationUtilisateur(any()))
                                 .thenReturn(userDTO);
 
-                mockMvc.perform(post("/auth/create-count")
+                mockMvc.perform(post("/auth/register")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(userFormDTO)))
                                 .andExpect(status().isOk())
@@ -103,12 +103,12 @@ class LoginControllerWebMvcTest {
         }
 
         @Test
-        @DisplayName("POST /auth/create-count : utilisateur déjà existant")
+        @DisplayName("POST /auth/register : utilisateur déjà existant")
         void testCreateUserAlreadyExists() throws Exception {
                 when(loginService.creationUtilisateur(any()))
                                 .thenThrow(new UserAlreadyExistsException(loginDTO.email()));
 
-                mockMvc.perform(post("/auth/create-count")
+                mockMvc.perform(post("/auth/register")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(userFormDTO)))
                                 .andExpect(status().isConflict());

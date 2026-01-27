@@ -73,7 +73,7 @@ public class LoginController {
                     )
             )
     })
-    @PostMapping("/create-count")
+    @PostMapping("/register")
     public ResponseEntity<UserDTO> creationCompte(@RequestBody LoginDTO loginDTO)
             throws UserAlreadyExistsException {
         return ResponseEntity.ok(loginService.creationUtilisateur(loginDTO));
