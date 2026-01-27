@@ -62,6 +62,7 @@ class LoginServiceImplTest {
     private LoginServiceImpl loginService;
 
     private User utilisateur;
+    private LoginDTO loginDTO ;
 
     @BeforeEach
     void setUp() {
@@ -70,8 +71,8 @@ class LoginServiceImplTest {
         utilisateur = User.builder()
                 .mail("user@example.com")
                 .password("encodedPassword")
-                .role(Role.ROLE_LOCATAIRE)
                 .build();
+        loginDTO = new LoginDTO("test@example.com" ,"encodedPassword" );
     }
 
     // ====================== Tests création compte ======================
@@ -98,43 +99,27 @@ class LoginServiceImplTest {
         when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
         when(userMapper.toDTO(any(User.class))).thenReturn(userDTO);
 
-        UserDTO result = loginService.creationUtilisateur(email, role);
+        UserDTO result = loginService.creationUtilisateur(loginDTO);
 
         assertThat(result.mail()).isEqualTo(email);
         assertThat(result.role()).isEqualTo(role);
         verify(userService).save(any(User.class));
-        verify(emailService).SendPasswordProvisional(eq(email), anyString());
+        verify(emailService).SendWelcomeMessage(eq(email));
     }
 
     @Test
     @DisplayName("Doit lancer UserAlreadyExistsException si l'utilisateur existe déjà")
     void testCreationUtilisateurUserAlreadyExists() throws UserAlreadyExistsException {
-        String email = "exist@example.com";
-        Role role = Role.ROLE_LOCATAIRE;
+        String email = "test@example.com";
 
         doThrow(new UserAlreadyExistsException(email))
                 .when(userService).verifyIfUserExistWithEmail(email);
 
         assertThrows(UserAlreadyExistsException.class, () ->
-                loginService.creationUtilisateur(email, role));
+                loginService.creationUtilisateur(loginDTO));
 
         verify(userService, never()).save(any());
-        verify(emailService, never()).SendPasswordProvisional(anyString(), anyString());
-    }
-
-    @Test
-    @DisplayName("Doit lancer InvalidRoleException si rôle incorrect")
-    void testCreationUtilisateurInvalidRole() throws UserAlreadyExistsException {
-        String email = "test@example.com";
-
-        doNothing().when(userService).verifyIfUserExistWithEmail(email);
-        doThrow(new InvalidRoleException()).when(userService).verifyIfRoleOfUserValid(any());
-
-        assertThrows(InvalidRoleException.class, () ->
-                loginService.creationUtilisateur(email, any()));
-
-        verify(userService, never()).save(any());
-        verify(emailService, never()).SendPasswordProvisional(anyString(), anyString());
+        verify(emailService, never()).SendWelcomeMessage(anyString());
     }
 
     @Test
@@ -149,13 +134,13 @@ class LoginServiceImplTest {
         when(userMapper.toDTO(any(User.class))).thenReturn(UserDTO.builder().build());
 
         doThrow(new RuntimeException("Erreur email"))
-                .when(emailService).SendPasswordProvisional(anyString(), anyString());
+                .when(emailService).SendWelcomeMessage(anyString());
 
-        UserDTO result = loginService.creationUtilisateur(email, Role.valueOf(role));
+        UserDTO result = loginService.creationUtilisateur(loginDTO);
 
         assertThat(result).isNotNull();
         verify(userService).save(any(User.class));
-        verify(emailService).SendPasswordProvisional(eq(email), anyString());
+        verify(emailService).SendWelcomeMessage(eq(email));
     }
 
     // ====================== Tests login ======================

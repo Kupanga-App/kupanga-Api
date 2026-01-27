@@ -31,8 +31,8 @@ class EmailServiceImplTest {
     }
 
     @Test
-    @DisplayName(" Doit envoyer un email avec mot de passe temporaire correctement")
-    void testSendPasswordProvisional() throws MessagingException {
+    @DisplayName(" Doit envoyer un email pour la confirmation de création du compte correctement")
+    void testSendWelcomeMessage() throws MessagingException {
         String destinataire = "test@example.com";
         String password = "123456";
 
@@ -41,7 +41,7 @@ class EmailServiceImplTest {
         when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
 
         // Appel du service
-        emailService.SendPasswordProvisional(destinataire, password);
+        emailService.SendWelcomeMessage(destinataire);
 
         // Vérifie que l'email a été créé et envoyé
         verify(mailSender, times(1)).send(mimeMessage);
@@ -49,7 +49,7 @@ class EmailServiceImplTest {
 
     @Test
     @DisplayName("Doit lancer RuntimeException si JavaMailSender.send() échoue")
-    void testSendPasswordProvisionalRuntimeException() throws MessagingException {
+    void testSendWelcomeMessageRuntimeException() throws MessagingException {
         String destinataire = "test@example.com";
         String password = "123456";
 
@@ -61,7 +61,7 @@ class EmailServiceImplTest {
 
         // Vérifie que RuntimeException est levée
         RuntimeException exception = assertThrows(RuntimeException.class, () ->
-                emailService.SendPasswordProvisional(destinataire, password)
+                emailService.SendWelcomeMessage(destinataire)
         );
 
         assertThat(exception.getMessage()).contains("Erreur lors de l'envoi de l'email");
@@ -80,7 +80,7 @@ class EmailServiceImplTest {
         MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
         EmailServiceImpl emailSpy = spy(emailService);
 
-        emailSpy.SendPasswordProvisional(destinataire, password);
+        emailSpy.SendWelcomeMessage(destinataire);
 
         // On peut capturer l'argument envoyé à mailSender.send
         ArgumentCaptor<MimeMessage> captor = ArgumentCaptor.forClass(MimeMessage.class);

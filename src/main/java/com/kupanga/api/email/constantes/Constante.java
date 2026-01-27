@@ -2,9 +2,10 @@ package com.kupanga.api.email.constantes;
 
 public class Constante {
 
-    public static String SUJET_MAIL_MOT_DE_PASSE_TEMPORAIRE =
-            "Bienvenue sur KUPANGA - Vos identifiants de connexion temporaire";
-    public static String CONTENU_MAIL_MOT_DE_PASSE_TEMPORAIRE =
+    public static String SUJET_MAIL_CONFIRMATION_CREATION_COMPTE =
+            "Bienvenue sur KUPANGA - Confirmation de création de votre compte";
+
+    public static String CONTENU_MAIL_CONFIRMATION_CREATION_COMPTE =
             """
                 <html>
                     <body style="font-family: Arial, sans-serif;">
@@ -12,18 +13,14 @@ public class Constante {
                             <div style="background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
                                 <h2 style="color: #2563eb;">Bienvenue sur KUPANGA, Votre application de Gestion Immobilière !</h2>
                                 <p>Votre compte a été créé avec succès.</p>
-                                <p>Voici votre mot de passe temporaire pour vous connecter et finaliser votre inscription :</p>
-                                <div style="background-color: #eff6ff; padding: 15px; border-radius: 5px; margin: 20px 0;">
-                                    <p style="margin: 0;"><strong>Mot de passe :</strong> <span style="font-family: monospace; font-size: 1.2em;">%s</span></p>
-                                </div>
-                                <p>Connectez-vous dès maintenant pour compléter votre profil.</p>
+                                <p>Vous pouvez dès à présent vous connecter à votre espace personnel pour compléter votre profil et commencer à utiliser l’application.</p>
+                                <p>Si vous avez oublié votre mot de passe ou souhaitez en définir un nouveau, vous pouvez utiliser la fonctionnalité <strong>« Mot de passe oublié »</strong> depuis la page de connexion.</p>
                                 <a href="https://kupanga.lespacelibellule.com" style="display: inline-block; background-color: #2563eb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Se connecter</a>
                             </div>
                         </div>
                     </body>
                 </html>
                 """;
-
 
     public static String SUJET_MAIL_REINITIALISATION_MOT_DE_PASSE =
             "Réinitialisation de votre mot de passe – KUPANGA";
@@ -67,7 +64,7 @@ public class Constante {
             """;
 
     public static final String RESET_LINK =
-            "https://kupanga.lespacelibellule.com/reset-password?token=" ;
+            "https://kupanga.lespacelibellule.com/setNewPassword?token=" ;
 
     public static String SUJET_MAIL_CONFIRMATION_MOT_DE_PASSE =
             "Confirmation de mise à jour du mot de passe – KUPANGA";

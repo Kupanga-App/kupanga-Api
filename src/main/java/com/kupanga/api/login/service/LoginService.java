@@ -13,14 +13,12 @@ public interface LoginService {
     /**
      * Crée un nouveau compte utilisateur.
      *
-     * @param email l'adresse email utilisée comme identifiant de connexion
-     * @param role  le rôle métier de l'utilisateur à créer
-     *              (ex : PROPRIETAIRE, LOCATAIRE, ADMIN)
+     * @param loginDTO contient email et mot de passe.
      * @return un {@link UserDTO} représentant l'utilisateur créé
      * @throws UserAlreadyExistsException
      *         si un utilisateur existe déjà avec l'email fourni
      */
-    UserDTO creationUtilisateur(String email, Role role)
+    UserDTO creationUtilisateur(LoginDTO loginDTO)
             throws UserAlreadyExistsException;
 
     /**

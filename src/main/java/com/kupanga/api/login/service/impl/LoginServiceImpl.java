@@ -12,7 +12,6 @@ import com.kupanga.api.login.service.PasswordResetTokenService;
 import com.kupanga.api.login.service.RefreshTokenService;
 import com.kupanga.api.login.utils.JwtUtils;
 import com.kupanga.api.utilisateur.dto.readDTO.UserDTO;
-import com.kupanga.api.utilisateur.entity.Role;
 import com.kupanga.api.utilisateur.entity.User;
 import com.kupanga.api.utilisateur.mapper.UserMapper;
 import com.kupanga.api.utilisateur.service.UserService;
@@ -50,19 +49,15 @@ public class LoginServiceImpl implements LoginService {
 
     @Transactional
     @Override
-    public UserDTO creationUtilisateur(String email , Role role) throws UserAlreadyExistsException {
+    public UserDTO creationUtilisateur(LoginDTO loginDTO) throws UserAlreadyExistsException {
 
         LOGGER.info("Service pour la création du compte utilisateur démarré");
 
-        userService.verifyIfUserExistWithEmail(email);
-        userService.verifyIfRoleOfUserValid(role);
-
-        String motDePasseTemporaire = generationMotDePasseTemporaire();
+        userService.verifyIfUserExistWithEmail(loginDTO.email());
 
         User utilisateur = User.builder()
-                .mail(email)
-                .password(passwordEncoder.encode(motDePasseTemporaire))
-                .role(role)
+                .mail(loginDTO.email())
+                .password(passwordEncoder.encode(loginDTO.motDepasse()))
                 .build();
 
         userService.save(utilisateur);
@@ -70,14 +65,14 @@ public class LoginServiceImpl implements LoginService {
 
         try {
 
-            emailService.SendPasswordProvisional(email, motDePasseTemporaire);
+            emailService.SendWelcomeMessage(loginDTO.email());
 
-            LOGGER.info("Email renvoyé à l'utilisateur à l'adresse {} avec le mot de passe temporaire" , email);
+            LOGGER.info("Email renvoyé à l'utilisateur à l'adresse {} avec le mot de passe temporaire" , loginDTO.email()                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       );
 
         } catch (Exception e) {
 
             LOGGER.warn("Erreur lors de l'envoi  de l'email de mot de passe temporaire à {} " +
-                    "mais l'utilisateur a été crée" , email);
+                    "mais l'utilisateur a été crée" , loginDTO.email());
 
             LOGGER.debug("détail de l'exception : {}" ,e.getMessage());
         }
@@ -86,16 +81,6 @@ public class LoginServiceImpl implements LoginService {
         return userMapper.toDTO(utilisateur);
     }
 
-    /**
-     * Génère un Mot de passe provisoire
-     * @return un mot de passe provisoire
-     */
-
-    private String generationMotDePasseTemporaire(){
-
-        return java.util.UUID.randomUUID().toString().substring(0, 8);
-
-    }
 
     @Override
     public AuthResponseDTO login(LoginDTO loginDTO, HttpServletResponse response) {

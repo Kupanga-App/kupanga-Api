@@ -11,17 +11,15 @@ package com.kupanga.api.email.service;
 public interface EmailService {
 
     /**
-     * Envoie un email contenant un mot de passe temporaire à un utilisateur.
+     * Envoie un email de confirmation de création du compte utilisateur.
      *
      * <p>
-     * Ce mail est généralement envoyé lors de la création d'un compte ou
-     * d'une réinitialisation de mot de passe.
+     * Ce mail est généralement envoyé lors de la création d'un compte
      * </p>
      *
      * @param destinataire l'adresse email du destinataire
-     * @param password le mot de passe temporaire à communiquer
      */
-    void SendPasswordProvisional(String destinataire, String password);
+    void SendWelcomeMessage(String destinataire);
 
     /**
      * Envoie un email de confirmation pour un nouveau compte utilisateur finalisé.

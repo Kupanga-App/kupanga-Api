@@ -91,7 +91,7 @@ class LoginControllerWebMvcTest {
                                 .role(Role.ROLE_LOCATAIRE)
                                 .build();
 
-                when(loginService.creationUtilisateur(any(), any()))
+                when(loginService.creationUtilisateur(any()))
                                 .thenReturn(userDTO);
 
                 mockMvc.perform(post("/auth/create-count")
@@ -105,8 +105,8 @@ class LoginControllerWebMvcTest {
         @Test
         @DisplayName("POST /auth/create-count : utilisateur déjà existant")
         void testCreateUserAlreadyExists() throws Exception {
-                when(loginService.creationUtilisateur(any(), any()))
-                                .thenThrow(new UserAlreadyExistsException(userFormDTO.email()));
+                when(loginService.creationUtilisateur(any()))
+                                .thenThrow(new UserAlreadyExistsException(loginDTO.email()));
 
                 mockMvc.perform(post("/auth/create-count")
                                 .contentType(MediaType.APPLICATION_JSON)
