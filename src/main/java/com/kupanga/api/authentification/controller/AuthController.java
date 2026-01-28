@@ -108,7 +108,8 @@ public class AuthController {
                     "mail": "user@example.com",
                     "password": "$2a$10$hASvFqpTZAgWQNb.nPKVB.9uejUfwitZ99cn/uULT4f678usM6FVy",
                     "role": "ROLE_LOCATAIRE",
-                    "hasCompleteProfil": true
+                    "hasCompleteProfil": true,
+                    "urlProfil": null
                   },
                   "authResponseDTO": {
                     "accessToken": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUk9MRV9MT0NBVEFJUkQiLCJzdWIiOiJ1c2VyQGV4YW1wbGUuY29tIiwiaWF0IjoxNzY5NjMxNTYzLCJleHAiOjE3Njk2MzE4NjN9._M4sPiCCxW934w95XEw8_Ix05JsnpOcQlbX1bNHN2GA"
