@@ -49,8 +49,9 @@
                 "value": "application/json"
               },
               {
-                "key": "Authorization",
-                "value": "Bearer {{accessToken}}"
+                "key": "",
+                "value": "",
+                "disabled": true
               }
             ],
             "body": {

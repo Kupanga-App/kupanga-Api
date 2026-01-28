@@ -98,22 +98,26 @@ public class AuthController {
                     description = "Profil utilisateur complété avec succès",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = UserDTO.class),
+                            schema = @Schema(implementation = CompleteProfileResponseDTO.class),
                             examples = @ExampleObject(value = """
-                                    {
-                                         "id": 20,
-                                         "firstName": "KAli",
-                                         "lastName": "Linux",
-                                         "mail": "kbg.al.pr@gmail.com",
-                                         "password": "$2a$10$xJU7xkf8VpGw14cDRpImWODUpzCMmBwj0.DOLrDMGou27YdSn0DWu",
-                                         "role": "ROLE_LOCATAIRE",
-                                         "hasCompleteProfil": true
-                                         "urlProfil": null
-                                         "accessToken": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUk9MRV9MT0NBVEFJUkUiLCJzdWIiOiJrYmcuYWwucHJAZ21haWwuY29tIiwiaWF0IjoxNzY5NjI4NzI1LCJleHAiOjE3Njk2MjkwMjV9.g5_j_sZvYpZ8wL4K3q07mj5DXkB_Y3KehmMt0VEzFPo"
-                                     }
-                            """)
+                {
+                  "userDTO": {
+                    "id": 21,
+                    "firstName": "John",
+                    "lastName": "Doe",
+                    "mail": "user@example.com",
+                    "password": "$2a$10$hASvFqpTZAgWQNb.nPKVB.9uejUfwitZ99cn/uULT4f678usM6FVy",
+                    "role": "ROLE_LOCATAIRE",
+                    "hasCompleteProfil": true
+                  },
+                  "authResponseDTO": {
+                    "accessToken": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUk9MRV9MT0NBVEFJUkQiLCJzdWIiOiJ1c2VyQGV4YW1wbGUuY29tIiwiaWF0IjoxNzY5NjMxNTYzLCJleHAiOjE3Njk2MzE4NjN9._M4sPiCCxW934w95XEw8_Ix05JsnpOcQlbX1bNHN2GA"
+                  }
+                }
+                """)
                     )
             ),
+
 
             @ApiResponse(
                     responseCode = "400",
