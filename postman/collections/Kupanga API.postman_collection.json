@@ -1,0 +1,223 @@
+{
+  "info": {
+    "name": "Kupanga API",
+    "description": "Postman collection for the Kupanga Spring Boot API - Real estate management platform",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "description": "Authentication endpoints for user registration, login, logout, and password management",
+      "item": [
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"Password123\"\n}"
+            },
+            "url": "{{baseUrl}}/auth/register",
+            "description": "Create a new user account with email and password. Password must contain at least 8 characters, one uppercase, one lowercase, and one digit."
+          }
+        },
+        {
+          "name": "Complete Profile",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"mail\": \"user@example.com\",\n  \"password\": \"Password123\",\n  \"role\": \"ROLE_LOCATAIRE\",\n  \"urlProfile\": null\n}"
+            },
+            "url": "{{baseUrl}}/auth/completeProfile",
+            "description": "Complete user profile with personal information. Role can be: ROLE_PROPRIETAIRE, ROLE_LOCATAIRE, or ROLE_ADMIN."
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"Password123\"\n}"
+            },
+            "url": "{{baseUrl}}/auth/login",
+            "description": "Authenticate user with email and password. Returns access token and sets refresh token in cookie."
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "refreshToken={{refreshToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/refresh",
+            "description": "Refresh the access token using the refresh token stored in cookie. Returns new access token."
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "refreshToken={{refreshToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/logout",
+            "description": "Logout user by invalidating the refresh token and clearing the cookie."
+          }
+        },
+        {
+          "name": "Forgot Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/forgot-password?email=user@example.com",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "forgot-password"],
+              "query": [
+                {
+                  "key": "email",
+                  "value": "user@example.com",
+                  "description": "Email address of the user requesting password reset"
+                }
+              ]
+            },
+            "description": "Request a password reset link. An email with reset token will be sent to the provided email address."
+          }
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/reset-password?token=reset-token-here&newPassword=NewPassword123",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "reset-password"],
+              "query": [
+                {
+                  "key": "token",
+                  "value": "reset-token-here",
+                  "description": "Password reset token received via email"
+                },
+                {
+                  "key": "newPassword",
+                  "value": "NewPassword123",
+                  "description": "New password (min 8 chars, 1 uppercase, 1 lowercase, 1 digit)"
+                }
+              ]
+            },
+            "description": "Reset password using the token received via email. Token is valid for 10 minutes."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Avatar Profile",
+      "description": "Endpoints for managing user profile avatars",
+      "item": [
+        {
+          "name": "Create Avatar Profiles (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "images",
+                  "type": "file",
+                  "description": "Avatar image files to upload (multiple files supported)"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/avatar/admin",
+            "description": "Upload one or more avatar profile images. Requires ADMIN role. Images are stored and URLs are returned."
+          }
+        },
+        {
+          "name": "Search Avatar Profiles",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pageNumber\": 0,\n  \"pageSize\": 10,\n  \"sort\": \"ASC\"\n}"
+            },
+            "url": "{{baseUrl}}/avatar/search",
+            "description": "Search and paginate through avatar profiles. Supports filtering by page number, page size, and sort order."
+          }
+        }
+      ]
+    }
+  ]
+}
