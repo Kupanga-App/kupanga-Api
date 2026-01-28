@@ -101,19 +101,15 @@ public class AuthController {
                             schema = @Schema(implementation = UserDTO.class),
                             examples = @ExampleObject(value = """
                                     {
-                                         "userDTO": {
-                                             "id": 20,
-                                             "firstName": "KAli",
-                                             "lastName": "Linux",
-                                             "mail": "kbg.al.pr@gmail.com",
-                                             "password": "$2a$10$xJU7xkf8VpGw14cDRpImWODUpzCMmBwj0.DOLrDMGou27YdSn0DWu",
-                                             "role": "ROLE_LOCATAIRE",
-                                             "hasCompleteProfil": true
-                                             "urlProfil": null
-                                         },
-                                         "authResponseDTO": {
-                                             "accessToken": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUk9MRV9MT0NBVEFJUkUiLCJzdWIiOiJrYmcuYWwucHJAZ21haWwuY29tIiwiaWF0IjoxNzY5NjI4NzI1LCJleHAiOjE3Njk2MjkwMjV9.g5_j_sZvYpZ8wL4K3q07mj5DXkB_Y3KehmMt0VEzFPo"
-                                         }
+                                         "id": 20,
+                                         "firstName": "KAli",
+                                         "lastName": "Linux",
+                                         "mail": "kbg.al.pr@gmail.com",
+                                         "password": "$2a$10$xJU7xkf8VpGw14cDRpImWODUpzCMmBwj0.DOLrDMGou27YdSn0DWu",
+                                         "role": "ROLE_LOCATAIRE",
+                                         "hasCompleteProfil": true
+                                         "urlProfil": null
+                                         "accessToken": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUk9MRV9MT0NBVEFJUkUiLCJzdWIiOiJrYmcuYWwucHJAZ21haWwuY29tIiwiaWF0IjoxNzY5NjI4NzI1LCJleHAiOjE3Njk2MjkwMjV9.g5_j_sZvYpZ8wL4K3q07mj5DXkB_Y3KehmMt0VEzFPo"
                                      }
                             """)
                     )
@@ -220,7 +216,6 @@ public class AuthController {
                             examples = @ExampleObject(value = """
                                     {
                                         "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-                                        "refreshToken": "d5f4c3b2a1..."
                                     }
                                     """)
                     )
