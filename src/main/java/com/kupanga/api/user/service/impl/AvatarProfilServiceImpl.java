@@ -1,5 +1,6 @@
 package com.kupanga.api.user.service.impl;
 
+import com.kupanga.api.exception.business.KupangaBusinessException;
 import com.kupanga.api.minio.service.MinioService;
 import com.kupanga.api.user.dto.readDTO.AvatarProfilDTO;
 import com.kupanga.api.user.entity.AvatarProfil;
@@ -55,5 +56,9 @@ public class AvatarProfilServiceImpl implements AvatarProfilService {
         return avatarProfilRepository.findAll(avatarProfilSpecification , pageable);
     }
 
+    public AvatarProfil finById( Long avatarId){
 
+        return avatarProfilRepository.findById(avatarId)
+                .orElse(null) ;
+    }
 }
