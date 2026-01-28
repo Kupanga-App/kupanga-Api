@@ -3,7 +3,7 @@ package com.kupanga.api.email.service.impl;
 import com.kupanga.api.email.service.EmailService;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
@@ -12,10 +12,19 @@ import org.springframework.stereotype.Service;
 import static com.kupanga.api.email.constantes.Constante.*;
 
 @Service
-@RequiredArgsConstructor
 public class EmailServiceImpl implements EmailService {
 
     private final JavaMailSender mailSender;
+    private final String reset_link;
+    private final String url_login;
+
+    public EmailServiceImpl(JavaMailSender mailSender,
+                            @Value("${app.reset-link}") String reset_link,
+                            @Value("${app.url-login}") String url_login) {
+        this.mailSender = mailSender;
+        this.reset_link = reset_link;
+        this.url_login = url_login;
+    }
 
     @Override
     @Async
@@ -50,7 +59,8 @@ public class EmailServiceImpl implements EmailService {
 
     @Override
     @Async
-    public void sendPasswordResetMail(String destinataire, String resetLink) {
+    public void sendPasswordResetMail(String destinataire, String resetToken) {
+
 
         try {
             MimeMessage message = mailSender.createMimeMessage();
@@ -61,7 +71,7 @@ public class EmailServiceImpl implements EmailService {
             helper.setSubject(SUJET_MAIL_REINITIALISATION_MOT_DE_PASSE);
 
             String htmlContent =
-                    String.format(CONTENU_MAIL_REINITIALISATION_MOT_DE_PASSE, resetLink);
+                    String.format(CONTENU_MAIL_REINITIALISATION_MOT_DE_PASSE, reset_link + resetToken);
 
             helper.setText(htmlContent, true);
             mailSender.send(message);
@@ -83,7 +93,9 @@ public class EmailServiceImpl implements EmailService {
 
             helper.setTo(destinataire);
             helper.setSubject(SUJET_MAIL_CONFIRMATION_MOT_DE_PASSE);
-            helper.setText(CONTENU_MAIL_CONFIRMATION_MOT_DE_PASSE, true);
+            String htmlContent =
+                    String.format(CONTENU_MAIL_CONFIRMATION_MOT_DE_PASSE, url_login);
+            helper.setText(htmlContent, true);
 
             mailSender.send(message);
 

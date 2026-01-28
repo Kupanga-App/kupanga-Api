@@ -1,11 +1,8 @@
 package com.kupanga.api.email.constantes;
 
-import org.springframework.beans.factory.annotation.Value;
-
 public class Constante {
 
-    //@Value({})
-    //public static String URL_COMPLET_PROFIL ;
+
     public static String SUJET_MAIL_BIENVENUE_PROFIL_COMPLETE =
             "Bienvenue sur KUPANGA, %s !";
 
@@ -83,9 +80,6 @@ public class Constante {
             </html>
             """;
 
-    public static final String RESET_LINK =
-            "https://kupanga.lespacelibellule.com/auth/reset-password/?token=" ;
-
     public static String SUJET_MAIL_CONFIRMATION_MOT_DE_PASSE =
             "Confirmation de mise à jour du mot de passe – KUPANGA";
 
@@ -125,7 +119,7 @@ public class Constante {
                                 immédiatement notre support.
                             </p>
     
-                            <a href="https://kupanga.lespacelibellule.com"
+                            <a href="%s"
                                style="display: inline-block; background-color: #2563eb; color: white;
                                       padding: 12px 25px; text-decoration: none; border-radius: 5px;
                                       font-weight: bold;">

@@ -27,9 +27,8 @@ public interface EmailService {
     /**
      * Email de mise à jour du mot de passe.
      * @param destinataire le destinataire
-     * @param resetLink le lien pour la mise à jour du mot de passe
      */
-    void sendPasswordResetMail(String destinataire, String resetLink);
+    void sendPasswordResetMail(String destinataire,  String resetToken);
 
     /**
      * Email de confirmation de la mise à jour du mot de passe.

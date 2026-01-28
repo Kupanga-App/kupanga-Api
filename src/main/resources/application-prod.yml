@@ -16,4 +16,6 @@ minio:
   bucket: kupanga-prod
 
 app:
-  url :https://kupanga.lespacelibellule.com
+  url : https://kupanga.lespacelibellule.com
+  reset-link: https://kupanga.lespacelibellule.com/auth/reset-password?token=
+  url-login: https://kupanga.lespacelibellule.com/login

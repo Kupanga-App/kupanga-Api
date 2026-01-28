@@ -33,7 +33,6 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import static com.kupanga.api.email.constantes.Constante.RESET_LINK;
 import static com.kupanga.api.authentification.constant.AuthConstant.*;
 
 @Service
@@ -166,7 +165,7 @@ public class AuthServiceImpl implements AuthService {
                 .build();
         passwordResetTokenService.save(passwordResetToken);
 
-        emailService.sendPasswordResetMail(email , RESET_LINK + passwordResetToken.getToken());
+        emailService.sendPasswordResetMail(email , passwordResetToken.getToken());
 
         return passwordResetToken.getToken();
     }

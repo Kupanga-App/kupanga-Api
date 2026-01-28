@@ -13,3 +13,8 @@ minio:
   endpoint: http://localhost:9001
   access-key: minioadmin
   secret-key: minioadmin
+
+app:
+  url: http://localhost:4200/
+  reset-link: http://localhost:4200/auth/reset-password?token=
+  url-login: http://localhost:4200/login

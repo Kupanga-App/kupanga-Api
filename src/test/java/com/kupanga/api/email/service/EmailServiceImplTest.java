@@ -19,7 +19,7 @@ import static org.mockito.Mockito.*;
 class EmailServiceImplTest {
 
     private final JavaMailSender mailSender = mock(JavaMailSender.class);
-    private final EmailServiceImpl emailService = new EmailServiceImpl(mailSender);
+    private final EmailServiceImpl emailService = new EmailServiceImpl(mailSender , "reset_link" , "url_login");
 
     @BeforeEach
     void setUp() {
