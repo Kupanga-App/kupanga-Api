@@ -100,16 +100,21 @@ public class AuthController {
                             mediaType = "application/json",
                             schema = @Schema(implementation = UserDTO.class),
                             examples = @ExampleObject(value = """
-                            {
-                                "id": 123,
-                                "firstName": "John",
-                                "lastName": "Doe",
-                                "email": "john.doe@example.com",
-                                "urlProfil": "https://storage.kupanga.com/avatars/avatar1.png",
-                                "roles": "ROLE_LOCATAIRE",
-                                "hasCompleteProfil" : true
-                                "token" : "fsdqhgjfdjgklfkdjvhsgfjk....."
-                            }
+                                    {
+                                         "userDTO": {
+                                             "id": 20,
+                                             "firstName": "KAli",
+                                             "lastName": "Linux",
+                                             "mail": "kbg.al.pr@gmail.com",
+                                             "password": "$2a$10$xJU7xkf8VpGw14cDRpImWODUpzCMmBwj0.DOLrDMGou27YdSn0DWu",
+                                             "role": "ROLE_LOCATAIRE",
+                                             "hasCompleteProfil": true
+                                             "urlProfil": null
+                                         },
+                                         "authResponseDTO": {
+                                             "accessToken": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUk9MRV9MT0NBVEFJUkUiLCJzdWIiOiJrYmcuYWwucHJAZ21haWwuY29tIiwiaWF0IjoxNzY5NjI4NzI1LCJleHAiOjE3Njk2MjkwMjV9.g5_j_sZvYpZ8wL4K3q07mj5DXkB_Y3KehmMt0VEzFPo"
+                                         }
+                                     }
                             """)
                     )
             ),
