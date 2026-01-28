@@ -1,13 +1,13 @@
 {
   "info": {
     "name": "Kupanga API",
-    "description": "Postman collection for the Kupanga Spring Boot API - Real estate management platform",
+    "description": "Postman collection for the Kupanga Spring Boot API platform",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
     {
       "key": "baseUrl",
-      "value": "http://localhost:8080",
+      "value": "http://localhost:8089",
       "type": "string"
     }
   ],
