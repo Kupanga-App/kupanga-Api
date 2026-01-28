@@ -104,10 +104,72 @@ public class AvatarProfilController {
         return ResponseEntity.ok(avatarProfilService.createAvatarsProfil(images));
     }
 
-    @PostMapping("/search")
-    public ResponseEntity<AvatarProfilPagination> search( @RequestBody AvatarProfileResearchDTO avatarProfileResearchDTO){
+    // =========================================
+    // RECHERCHE AVATAR PROFIL
+    // =========================================
+    @Operation(
+            summary = "Rechercher des avatars de profil",
+            description = "Permet à un utilisateur de rechercher des avatars de profil en fonction de critères " +
+                    "tels que l'url, le type ou d'autres filtres définis dans le DTO de recherche. " +
+                    "Renvoie une pagination des résultats correspondant aux critères."
+    )
+    @ApiResponses(value = {
 
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Résultats de recherche des avatars de profil retournés avec succès",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = AvatarProfilPagination.class),
+                            examples = @ExampleObject(value = """
+                            {
+                                "page": 1,
+                                "size": 10,
+                                "totalElements": 25,
+                                "totalPages": 3,
+                                "content": [
+                                    {
+                                        "id": 1,
+                                        "url": "https://storage.kupanga.com/avatars/avatar1.png",
+                                    },
+                                    {
+                                        "id": 2,
+                                        "url": "https://storage.kupanga.com/avatars/avatar2.png",
+                                    }
+                                ]
+                            }
+                            """)
+                    )
+            ),
+
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Requête invalide : les critères de recherche sont manquants ou incorrects",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                            {
+                                "error": "Critères de recherche invalides ou manquants"
+                            }
+                            """)
+                    )
+            ),
+
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "Accès refusé : l'utilisateur n'a pas les droits suffisants",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                            {
+                                "error": "Accès refusé : utilisateur non autorisé"
+                            }
+                            """)
+                    )
+            )
+    })
+    @PostMapping("/search")
+    public ResponseEntity<AvatarProfilPagination> search(@RequestBody AvatarProfileResearchDTO avatarProfileResearchDTO) {
         return ResponseEntity.ok(avatarProfilResearch.research(avatarProfileResearchDTO));
     }
-
 }

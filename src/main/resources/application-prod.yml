@@ -14,3 +14,6 @@ minio:
   access-key: prodminio
   secret-key: prodminio123
   bucket: kupanga-prod
+
+app:
+  url :https://kupanga.lespacelibellule.com

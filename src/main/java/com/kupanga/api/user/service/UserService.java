@@ -3,8 +3,6 @@ package com.kupanga.api.user.service;
 import com.kupanga.api.exception.business.InvalidRoleException;
 import com.kupanga.api.exception.business.UserAlreadyExistsException;
 import com.kupanga.api.exception.business.UserNotFoundException;
-import com.kupanga.api.user.dto.formDTO.UserFormDTO;
-import com.kupanga.api.user.dto.readDTO.UserDTO;
 import com.kupanga.api.user.entity.Role;
 import com.kupanga.api.user.entity.User;
 
@@ -70,7 +68,4 @@ public interface UserService {
      * @throws IllegalArgumentException si le mot de passe ne correspond pas
      */
     void isCorrectPassword(String passwordLogin, String passwordUser);
-
-    UserDTO completeProfil(UserFormDTO userFormDTO);
-
 }

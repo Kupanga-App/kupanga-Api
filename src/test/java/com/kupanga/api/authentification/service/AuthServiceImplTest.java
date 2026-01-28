@@ -77,33 +77,24 @@ class AuthServiceImplTest {
     // ====================== Tests création compte ======================
 
     @Test
-    @DisplayName("Doit créer un utilisateur avec rôle correct et envoyer email")
+    @DisplayName("Doit créer un utilisateur  et envoyer email")
     void testCreationUtilisateurSuccess() throws UserAlreadyExistsException {
         String email = "test@example.com";
-        Role role = Role.ROLE_LOCATAIRE;
-
-        User user = User.builder()
-                .mail(email)
-                .password("encodedPassword")
-                .role(Role.ROLE_LOCATAIRE)
-                .build();
+        String password = "123456789ABc";
 
         UserDTO userDTO = UserDTO.builder()
                 .mail(email)
-                .role(role)
+                .password(password)
                 .build();
 
         doNothing().when(userService).verifyIfUserExistWithEmail(email);
-        doNothing().when(userService).verifyIfRoleOfUserValid(role);
-        when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
+        when(passwordEncoder.encode("123456789ABc")).thenReturn(password);
         when(userMapper.toDTO(any(User.class))).thenReturn(userDTO);
 
         UserDTO result = loginService.creationUtilisateur(loginDTO);
 
         assertThat(result.mail()).isEqualTo(email);
-        assertThat(result.role()).isEqualTo(role);
         verify(userService).save(any(User.class));
-        verify(emailService).SendWelcomeMessage(eq(email));
     }
 
     @Test
@@ -118,28 +109,6 @@ class AuthServiceImplTest {
                 loginService.creationUtilisateur(loginDTO));
 
         verify(userService, never()).save(any());
-        verify(emailService, never()).SendWelcomeMessage(anyString());
-    }
-
-    @Test
-    @DisplayName("Doit continuer si l'envoi d'email échoue")
-    void testCreationUtilisateurEmailException() throws UserAlreadyExistsException {
-        String email = "test@example.com";
-        String role = "ROLE_LOCATAIRE";
-
-        doNothing().when(userService).verifyIfUserExistWithEmail(email);
-        doNothing().when(userService).verifyIfRoleOfUserValid(Role.valueOf(role));
-        when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
-        when(userMapper.toDTO(any(User.class))).thenReturn(UserDTO.builder().build());
-
-        doThrow(new RuntimeException("Erreur email"))
-                .when(emailService).SendWelcomeMessage(anyString());
-
-        UserDTO result = loginService.creationUtilisateur(loginDTO);
-
-        assertThat(result).isNotNull();
-        verify(userService).save(any(User.class));
-        verify(emailService).SendWelcomeMessage(eq(email));
     }
 
     // ====================== Tests login ======================

@@ -19,28 +19,34 @@ public class EmailServiceImpl implements EmailService {
 
     @Override
     @Async
-    public void SendWelcomeMessage(String destinataire){
+    public void sendWelcomeMessage(String destinataire, String prenom) {
 
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
             helper.setTo(destinataire);
-            helper.setSubject(SUJET_MAIL_CONFIRMATION_CREATION_COMPTE);
-            helper.setText(CONTENU_MAIL_CONFIRMATION_CREATION_COMPTE, true);
 
-        mailSender.send(message);
+            // Sujet avec prénom
+            helper.setSubject(String.format(
+                    SUJET_MAIL_BIENVENUE_PROFIL_COMPLETE,
+                    prenom
+            ));
+
+            // Contenu HTML avec prénom (présent deux fois)
+            helper.setText(String.format(
+                    CONTENU_MAIL_BIENVENUE_PROFIL_COMPLETE,
+                    prenom, // pour le <h2>
+                    prenom  // si tu ajoutes d’autres occurrences plus tard
+            ), true);
+
+            mailSender.send(message);
+
         } catch (MessagingException e) {
-            throw new RuntimeException("Erreur lors de l'envoi de l'email", e);
+            throw new RuntimeException("Erreur lors de l'envoi de l'email de bienvenue", e);
         }
     }
 
-
-    @Override
-    @Async
-    public void sendWelcomeMessage(String destinataire, String nom, String prenom, String email){
-
-    }
 
     @Override
     @Async

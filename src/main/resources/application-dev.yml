@@ -13,3 +13,6 @@ minio:
   endpoint: http://localhost:9001
   access-key: minioadmin
   secret-key: minioadmin
+
+app:
+  url :http://localhost:4200/

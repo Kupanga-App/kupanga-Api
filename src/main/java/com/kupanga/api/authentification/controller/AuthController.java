@@ -4,6 +4,8 @@ import com.kupanga.api.exception.business.UserAlreadyExistsException;
 import com.kupanga.api.authentification.dto.AuthResponseDTO;
 import com.kupanga.api.authentification.dto.LoginDTO;
 import com.kupanga.api.authentification.service.AuthService;
+import com.kupanga.api.user.dto.formDTO.UserFormDTO;
+import com.kupanga.api.authentification.dto.CompleteProfileResponseDTO;
 import com.kupanga.api.user.dto.readDTO.UserDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -79,6 +81,70 @@ public class AuthController {
             throws UserAlreadyExistsException {
         return ResponseEntity.ok(authService.creationUtilisateur(loginDTO));
     }
+
+    // =========================================
+    // COMPLETER LE PROFIL UTILISATEUR
+    // =========================================
+    @Operation(
+            summary = "Compléter le profil utilisateur",
+            description = "Permet à un utilisateur de compléter son profil en fournissant les informations " +
+                    "nécessaires telles que le nom, prénom, email, et autres champs définis dans le DTO. " +
+                    "Retourne le profil utilisateur mis à jour et le reconnecte automatiquement"
+    )
+    @ApiResponses(value = {
+
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Profil utilisateur complété avec succès",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = UserDTO.class),
+                            examples = @ExampleObject(value = """
+                            {
+                                "id": 123,
+                                "firstName": "John",
+                                "lastName": "Doe",
+                                "email": "john.doe@example.com",
+                                "urlProfil": "https://storage.kupanga.com/avatars/avatar1.png",
+                                "roles": "ROLE_LOCATAIRE",
+                                "hasCompleteProfil" : true
+                                "token" : "fsdqhgjfdjgklfkdjvhsgfjk....."
+                            }
+                            """)
+                    )
+            ),
+
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Requête invalide : certains champs du formulaire sont manquants ou incorrects",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                            {
+                                "error": "Champs obligatoires manquants ou invalides"
+                            }
+                            """)
+                    )
+            ),
+
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "Accès refusé : l'utilisateur n'est pas autorisé à compléter ce profil",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                            {
+                                "error": "Accès refusé : utilisateur non autorisé"
+                            }
+                            """)
+                    )
+            )
+    })
+    @PostMapping("/completeProfile")
+    public ResponseEntity<CompleteProfileResponseDTO> completeProfile(@Valid @RequestBody UserFormDTO userFormDTO , HttpServletResponse response) {
+        return ResponseEntity.ok(authService.completeProfil(userFormDTO , response));
+    }
+
 
     // =========================================
     // LOGIN

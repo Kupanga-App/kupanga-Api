@@ -26,6 +26,8 @@ public record UserFormDTO(
         String password ,
 
         @NotNull(message = "Un rôle valide est nécessaire")
-        Role role
+        Role role,
+
+        String urlProfile
 ) {}
 

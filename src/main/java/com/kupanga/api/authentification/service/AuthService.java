@@ -3,6 +3,8 @@ package com.kupanga.api.authentification.service;
 import com.kupanga.api.exception.business.UserAlreadyExistsException;
 import com.kupanga.api.authentification.dto.AuthResponseDTO;
 import com.kupanga.api.authentification.dto.LoginDTO;
+import com.kupanga.api.user.dto.formDTO.UserFormDTO;
+import com.kupanga.api.authentification.dto.CompleteProfileResponseDTO;
 import com.kupanga.api.user.dto.readDTO.UserDTO;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -57,4 +59,13 @@ public interface AuthService {
      * @return un message
      */
     String resetPassword( String token , String newPassword);
+
+
+    /**
+     * Complète le profil de l'utilisateur
+     * @param userFormDTO le formulaire
+     * @param response HttpServletResponse
+     * @return le DTO contenant UserDTO et le token d'authentification
+     */
+    CompleteProfileResponseDTO completeProfil(UserFormDTO userFormDTO , HttpServletResponse response);
 }

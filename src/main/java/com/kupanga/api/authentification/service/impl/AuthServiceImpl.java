@@ -11,6 +11,8 @@ import com.kupanga.api.authentification.service.AuthService;
 import com.kupanga.api.authentification.service.PasswordResetTokenService;
 import com.kupanga.api.authentification.service.RefreshTokenService;
 import com.kupanga.api.authentification.utils.JwtUtils;
+import com.kupanga.api.user.dto.formDTO.UserFormDTO;
+import com.kupanga.api.authentification.dto.CompleteProfileResponseDTO;
 import com.kupanga.api.user.dto.readDTO.UserDTO;
 import com.kupanga.api.user.entity.User;
 import com.kupanga.api.user.mapper.UserMapper;
@@ -62,20 +64,6 @@ public class AuthServiceImpl implements AuthService {
 
         userService.save(utilisateur);
         LOGGER.debug("utilisateur sauvegardé {} " , utilisateur  );
-
-        try {
-
-            emailService.SendWelcomeMessage(loginDTO.email());
-
-            LOGGER.info("Email renvoyé à l'utilisateur à l'adresse {} avec le mot de passe temporaire" , loginDTO.email()                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       );
-
-        } catch (Exception e) {
-
-            LOGGER.warn("Erreur lors de l'envoi  de l'email de mot de passe temporaire à {} " +
-                    "mais l'utilisateur a été crée" , loginDTO.email());
-
-            LOGGER.debug("détail de l'exception : {}" ,e.getMessage());
-        }
 
         LOGGER.info(" Fin du service de création du compte utilisateur ");
         return userMapper.toDTO(utilisateur);
@@ -202,5 +190,34 @@ public class AuthServiceImpl implements AuthService {
         emailService.sendPasswordUpdatedConfirmation(user.getMail());
 
         return MOT_DE_PASSE_A_JOUR ;
+    }
+
+    @Override
+    @Transactional
+    public CompleteProfileResponseDTO completeProfil(UserFormDTO userFormDTO , HttpServletResponse response){
+
+        User user = userService.getUserByEmail(userFormDTO.mail());
+        userService.verifyIfRoleOfUserValid(userFormDTO.role());
+        userService.isCorrectPassword(userFormDTO.password() , user.getPassword());
+        user.setRole(userFormDTO.role());
+        user.setFirstName(userFormDTO.firstName());
+        user.setLastName(userFormDTO.lastName());
+        user.setHasCompleteProfil(true);
+
+        userService.save(user);
+
+        LoginDTO loginDTO = LoginDTO.builder()
+                .email(userFormDTO.mail())
+                .password(userFormDTO.password())
+                .build() ;
+
+        AuthResponseDTO authResponseDTO = login(loginDTO ,response );
+
+        emailService.sendWelcomeMessage(user.getMail() , user.getFirstName());
+
+        return CompleteProfileResponseDTO.builder()
+                .userDTO(userMapper.toDTO(user))
+                .authResponseDTO(authResponseDTO)
+                .build();
     }
 }

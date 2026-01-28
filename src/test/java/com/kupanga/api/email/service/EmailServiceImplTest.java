@@ -34,14 +34,14 @@ class EmailServiceImplTest {
     @DisplayName(" Doit envoyer un email pour la confirmation de création du compte correctement")
     void testSendWelcomeMessage() throws MessagingException {
         String destinataire = "test@example.com";
-        String password = "123456";
+        String prenom = "123456";
 
         // Création d'un faux MimeMessage
         MimeMessage mimeMessage = mock(MimeMessage.class);
         when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
 
         // Appel du service
-        emailService.SendWelcomeMessage(destinataire);
+        emailService.sendWelcomeMessage(destinataire , prenom);
 
         // Vérifie que l'email a été créé et envoyé
         verify(mailSender, times(1)).send(mimeMessage);
@@ -51,7 +51,7 @@ class EmailServiceImplTest {
     @DisplayName("Doit lancer RuntimeException si JavaMailSender.send() échoue")
     void testSendWelcomeMessageRuntimeException() throws MessagingException {
         String destinataire = "test@example.com";
-        String password = "123456";
+        String prenom = "123456";
 
         MimeMessage mimeMessage = mock(MimeMessage.class);
         when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
@@ -61,7 +61,7 @@ class EmailServiceImplTest {
 
         // Vérifie que RuntimeException est levée
         RuntimeException exception = assertThrows(RuntimeException.class, () ->
-                emailService.SendWelcomeMessage(destinataire)
+                emailService.sendWelcomeMessage(destinataire , prenom)
         );
 
         assertThat(exception.getMessage()).contains("Erreur lors de l'envoi de l'email");
@@ -72,7 +72,7 @@ class EmailServiceImplTest {
     @DisplayName(" Vérifie que le destinataire et le contenu sont correctement définis")
     void testContenuEmail() throws MessagingException {
         String destinataire = "user@example.com";
-        String password = "tempPassword";
+        String prenom = "tempPassword";
 
         MimeMessage mimeMessage = mock(MimeMessage.class);
         when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
@@ -80,7 +80,7 @@ class EmailServiceImplTest {
         MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
         EmailServiceImpl emailSpy = spy(emailService);
 
-        emailSpy.SendWelcomeMessage(destinataire);
+        emailSpy.sendWelcomeMessage(destinataire , prenom );
 
         // On peut capturer l'argument envoyé à mailSender.send
         ArgumentCaptor<MimeMessage> captor = ArgumentCaptor.forClass(MimeMessage.class);

@@ -10,16 +10,6 @@ package com.kupanga.api.email.service;
  */
 public interface EmailService {
 
-    /**
-     * Envoie un email de confirmation de création du compte utilisateur.
-     *
-     * <p>
-     * Ce mail est généralement envoyé lors de la création d'un compte
-     * </p>
-     *
-     * @param destinataire l'adresse email du destinataire
-     */
-    void SendWelcomeMessage(String destinataire);
 
     /**
      * Envoie un email de confirmation pour un nouveau compte utilisateur finalisé.
@@ -30,11 +20,9 @@ public interface EmailService {
      * </p>
      *
      * @param destinataire l'adresse email du destinataire
-     * @param nom le nom de l'utilisateur
      * @param prenom le prénom de l'utilisateur
-     * @param email l'adresse email de l'utilisateur pour la connexion
      */
-    void sendWelcomeMessage(String destinataire, String nom, String prenom, String email);
+    void sendWelcomeMessage(String destinataire, String prenom);
 
     /**
      * Email de mise à jour du mot de passe.

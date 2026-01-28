@@ -1,26 +1,46 @@
 package com.kupanga.api.email.constantes;
 
+import org.springframework.beans.factory.annotation.Value;
+
 public class Constante {
 
-    public static String SUJET_MAIL_CONFIRMATION_CREATION_COMPTE =
-            "Bienvenue sur KUPANGA - Confirmation de création de votre compte";
+    //@Value({})
+    //public static String URL_COMPLET_PROFIL ;
+    public static String SUJET_MAIL_BIENVENUE_PROFIL_COMPLETE =
+            "Bienvenue sur KUPANGA, %s !";
 
-    public static String CONTENU_MAIL_CONFIRMATION_CREATION_COMPTE =
+    public static String CONTENU_MAIL_BIENVENUE_PROFIL_COMPLETE =
             """
                 <html>
                     <body style="font-family: Arial, sans-serif;">
                         <div style="background-color: #f8fafc; padding: 20px;">
                             <div style="background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
-                                <h2 style="color: #2563eb;">Bienvenue sur KUPANGA, Votre application de Gestion Immobilière !</h2>
-                                <p>Votre compte a été créé avec succès.</p>
-                                <p>Vous pouvez dès à présent vous connecter à votre espace personnel pour compléter votre profil et commencer à utiliser l’application.</p>
-                                <p>Si vous avez oublié votre mot de passe ou souhaitez en définir un nouveau, vous pouvez utiliser la fonctionnalité <strong>« Mot de passe oublié »</strong> depuis la page de connexion.</p>
-                                <a href="https://kupanga.lespacelibellule.com" style="display: inline-block; background-color: #2563eb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Se connecter</a>
+                                <h2 style="color: #2563eb;">
+                                    Bienvenue sur KUPANGA, %s !
+                                </h2>
+    
+                                <p>Nous sommes ravis de vous compter parmi nous 🎉</p>
+    
+                                <p>
+                                    Votre profil a été complété avec succès.
+                                    Vous pouvez désormais profiter pleinement de KUPANGA,
+                                    votre application de gestion immobilière.
+                                </p>
+    
+                               <p>
+                                       Votre espace personnel est prêt.
+                               </p>
+    
+                                <p style="margin-top: 30px; font-size: 14px; color: #6b7280;">
+                                    À très bientôt sur KUPANGA,<br/>
+                                    L’équipe KUPANGA
+                                </p>
                             </div>
                         </div>
                     </body>
                 </html>
                 """;
+
 
     public static String SUJET_MAIL_REINITIALISATION_MOT_DE_PASSE =
             "Réinitialisation de votre mot de passe – KUPANGA";

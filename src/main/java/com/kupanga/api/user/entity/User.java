@@ -41,6 +41,9 @@ public class User {
     @Column(name = "A_completer_profil")
     private Boolean hasCompleteProfil = false;
 
+    @Column(name = "url_photo_profil")
+    private String urlProfile;
+
     // relations
     @OneToMany(mappedBy = "proprietaire")
     private List<Bien> biensProprietes;
