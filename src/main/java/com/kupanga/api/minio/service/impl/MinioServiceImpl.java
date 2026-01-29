@@ -15,6 +15,7 @@ public class MinioServiceImpl implements MinioService {
     private final MinioClient minioClient;
 
     public MinioServiceImpl(MinioClient minioClient) {
+
         this.minioClient = minioClient;
     }
 
@@ -55,8 +56,10 @@ public class MinioServiceImpl implements MinioService {
         try {
             // Crée le bucket si nécessaire
             createBucketIfNotExists(bucketName, true);
+            String originalName = file.getOriginalFilename();
 
-            String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
+            String fileName = UUID.randomUUID() + "_" + (originalName != null ?
+                    originalName.replaceAll("\\s+", "") : "file");
 
             minioClient.putObject(
                     PutObjectArgs.builder()

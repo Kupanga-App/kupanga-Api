@@ -2,7 +2,6 @@ package com.kupanga.api.authentification.service.impl;
 
 import com.kupanga.api.email.service.EmailService;
 import com.kupanga.api.exception.business.KupangaBusinessException;
-import com.kupanga.api.exception.business.UserAlreadyExistsException;
 import com.kupanga.api.authentification.dto.AuthResponseDTO;
 import com.kupanga.api.authentification.dto.LoginDTO;
 import com.kupanga.api.authentification.entity.PasswordResetToken;
@@ -11,11 +10,12 @@ import com.kupanga.api.authentification.service.AuthService;
 import com.kupanga.api.authentification.service.PasswordResetTokenService;
 import com.kupanga.api.authentification.service.RefreshTokenService;
 import com.kupanga.api.authentification.utils.JwtUtils;
+import com.kupanga.api.minio.service.MinioService;
 import com.kupanga.api.user.dto.formDTO.UserFormDTO;
 import com.kupanga.api.authentification.dto.CompleteProfileResponseDTO;
-import com.kupanga.api.user.dto.readDTO.UserDTO;
 import com.kupanga.api.user.entity.User;
 import com.kupanga.api.user.mapper.UserMapper;
+import com.kupanga.api.user.service.AvatarProfilService;
 import com.kupanga.api.user.service.UserService;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
@@ -27,6 +27,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -34,6 +35,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 import static com.kupanga.api.authentification.constant.AuthConstant.*;
+import static com.kupanga.api.minio.constant.MinioConstant.PHOTO_PROFIL_BUCKET;
 
 @Service
 @RequiredArgsConstructor
@@ -47,26 +49,8 @@ public class AuthServiceImpl implements AuthService {
     private final JwtUtils jwtUtils;
     private final RefreshTokenService refreshTokenService;
     private final PasswordResetTokenService passwordResetTokenService ;
-
-    @Transactional
-    @Override
-    public UserDTO creationUtilisateur(LoginDTO loginDTO) throws UserAlreadyExistsException {
-
-        LOGGER.info("Service pour la création du compte utilisateur démarré");
-
-        userService.verifyIfUserExistWithEmail(loginDTO.email());
-
-        User utilisateur = User.builder()
-                .mail(loginDTO.email())
-                .password(passwordEncoder.encode(loginDTO.password()))
-                .build();
-
-        userService.save(utilisateur);
-        LOGGER.debug("utilisateur sauvegardé {} " , utilisateur  );
-
-        LOGGER.info(" Fin du service de création du compte utilisateur ");
-        return userMapper.toDTO(utilisateur);
-    }
+    private final AvatarProfilService avatarProfilService;
+    private final MinioService minioService;
 
 
     @Override
@@ -193,14 +177,24 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     @Transactional
-    public CompleteProfileResponseDTO completeProfil(UserFormDTO userFormDTO , HttpServletResponse response){
+    public CompleteProfileResponseDTO createAndCompleteUserProfil(UserFormDTO userFormDTO , MultipartFile imageProfil, HttpServletResponse response){
 
-        User user = userService.getUserByEmail(userFormDTO.mail());
+        userService.verifyIfUserExistWithEmail(userFormDTO.mail());
         userService.verifyIfRoleOfUserValid(userFormDTO.role());
-        userService.isCorrectPassword(userFormDTO.password() , user.getPassword());
+
+        User user = new User();
+        user.setMail(userFormDTO.mail());
+        user.setPassword(passwordEncoder.encode(userFormDTO.password()));
         user.setRole(userFormDTO.role());
         user.setFirstName(userFormDTO.firstName());
         user.setLastName(userFormDTO.lastName());
+
+        String url = avatarProfilService.findAndReturnUrl(userFormDTO.urlAvatar());
+        if( url == null && imageProfil != null && !imageProfil.isEmpty()){
+            url = minioService.uploadImage(imageProfil , PHOTO_PROFIL_BUCKET);
+        }
+
+        user.setUrlProfile(url);
         user.setHasCompleteProfil(true);
 
         userService.save(user);

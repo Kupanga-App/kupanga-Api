@@ -19,4 +19,6 @@ public interface AvatarProfilService {
     List<AvatarProfilDTO> createAvatarsProfil(List<MultipartFile> images);
 
     Page<AvatarProfil> finAll(Specification<AvatarProfil> avatarProfilSpecification , Pageable pageable);
+
+    String findAndReturnUrl(String avatarUrl);
 }

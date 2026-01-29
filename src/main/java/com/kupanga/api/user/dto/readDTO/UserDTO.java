@@ -11,6 +11,7 @@ public record UserDTO(
         String mail ,
         String password ,
         Role role,
+        String urlProfile,
         Boolean hasCompleteProfil
 ) {
 }

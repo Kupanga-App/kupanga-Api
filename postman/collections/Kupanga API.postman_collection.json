@@ -11,35 +11,6 @@
       "item": [
         {
           "name": "Register User",
-          "id": "c6a24d0b-cc9d-4bb2-ac1b-239a5e5052a0",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"Password123\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/auth/register",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "auth",
-                "register"
-              ]
-            },
-            "description": "Create a new user account with email and password. Password must contain at least 8 characters, one uppercase, one lowercase, and one digit."
-          },
-          "response": []
-        },
-        {
-          "name": "Complete Profile",
           "id": "dd590710-d3bb-4d6f-80f5-14f9705b731d",
           "request": {
             "method": "POST",
@@ -56,7 +27,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"mail\": \"user@example.com\",\n  \"password\": \"Password123\",\n  \"role\": \"ROLE_LOCATAIRE\",\n  \"urlProfile\": null\n}"
+              "raw": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"mail\": \"user@example.com\",\n  \"password\": \"Password123\",\n  \"role\": \"ROLE_LOCATAIRE\",\n  \"urlAvatar\": null\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/auth/completeProfile",
@@ -225,6 +196,40 @@
               ]
             },
             "description": "Reset password using the token received via email. Token is valid for 10 minutes."
+          },
+          "response": []
+        },
+        {
+          "name": "uploade photo de profil",
+          "id": "65415506-685c-406b-bf47-cdfb015c5286",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "",
+                "value": "",
+                "disabled": true
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"mail\": \"user@example.com\",\n  \"password\": \"Password123\",\n  \"role\": \"ROLE_LOCATAIRE\",\n  \"urlProfile\": null\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/completeProfile",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "completeProfile"
+              ]
+            },
+            "description": "Complete user profile with personal information. Role can be: ROLE_PROPRIETAIRE, ROLE_LOCATAIRE, or ROLE_ADMIN."
           },
           "response": []
         }

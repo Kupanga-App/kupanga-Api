@@ -2,14 +2,11 @@ package com.kupanga.api.authentification.service;
 
 import com.kupanga.api.email.service.EmailService;
 import com.kupanga.api.exception.business.KupangaBusinessException;
-import com.kupanga.api.exception.business.UserAlreadyExistsException;
 import com.kupanga.api.authentification.dto.AuthResponseDTO;
 import com.kupanga.api.authentification.dto.LoginDTO;
 import com.kupanga.api.authentification.entity.PasswordResetToken;
 import com.kupanga.api.authentification.service.impl.AuthServiceImpl;
 import com.kupanga.api.authentification.utils.JwtUtils;
-import com.kupanga.api.user.dto.readDTO.UserDTO;
-import com.kupanga.api.user.entity.Role;
 import com.kupanga.api.user.entity.User;
 import com.kupanga.api.user.mapper.UserMapper;
 import com.kupanga.api.user.service.UserService;
@@ -72,43 +69,6 @@ class AuthServiceImplTest {
                 .password("encodedPassword")
                 .build();
         loginDTO = new LoginDTO("test@example.com" ,"encodedPassword" );
-    }
-
-    // ====================== Tests création compte ======================
-
-    @Test
-    @DisplayName("Doit créer un utilisateur  et envoyer email")
-    void testCreationUtilisateurSuccess() throws UserAlreadyExistsException {
-        String email = "test@example.com";
-        String password = "123456789ABc";
-
-        UserDTO userDTO = UserDTO.builder()
-                .mail(email)
-                .password(password)
-                .build();
-
-        doNothing().when(userService).verifyIfUserExistWithEmail(email);
-        when(passwordEncoder.encode("123456789ABc")).thenReturn(password);
-        when(userMapper.toDTO(any(User.class))).thenReturn(userDTO);
-
-        UserDTO result = loginService.creationUtilisateur(loginDTO);
-
-        assertThat(result.mail()).isEqualTo(email);
-        verify(userService).save(any(User.class));
-    }
-
-    @Test
-    @DisplayName("Doit lancer UserAlreadyExistsException si l'utilisateur existe déjà")
-    void testCreationUtilisateurUserAlreadyExists() throws UserAlreadyExistsException {
-        String email = "test@example.com";
-
-        doThrow(new UserAlreadyExistsException(email))
-                .when(userService).verifyIfUserExistWithEmail(email);
-
-        assertThrows(UserAlreadyExistsException.class, () ->
-                loginService.creationUtilisateur(loginDTO));
-
-        verify(userService, never()).save(any());
     }
 
     // ====================== Tests login ======================

@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -56,9 +57,13 @@ public class AvatarProfilServiceImpl implements AvatarProfilService {
         return avatarProfilRepository.findAll(avatarProfilSpecification , pageable);
     }
 
-    public AvatarProfil finById( Long avatarId){
+    @Override
+    public String findAndReturnUrl(String avatarUrl){
 
-        return avatarProfilRepository.findById(avatarId)
-                .orElse(null) ;
+        return avatarUrl != null ?
+                avatarProfilRepository.findByUrl(avatarUrl).isPresent() ?
+                        avatarProfilRepository.findByUrl(avatarUrl).get().getUrl() : null
+                : null;
+
     }
 }

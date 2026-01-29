@@ -2,14 +2,12 @@ package com.kupanga.api.authentification.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kupanga.api.exception.business.TokenExpiredException;
-import com.kupanga.api.exception.business.UserAlreadyExistsException;
 import com.kupanga.api.exception.business.UserNotFoundException;
 import com.kupanga.api.authentification.dto.AuthResponseDTO;
 import com.kupanga.api.authentification.dto.LoginDTO;
 import com.kupanga.api.authentification.service.AuthService;
 import com.kupanga.api.authentification.service.impl.UserDetailsServiceImpl;
 import com.kupanga.api.authentification.utils.JwtUtils;
-import com.kupanga.api.user.dto.readDTO.UserDTO;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.DisplayName;
@@ -61,62 +59,7 @@ class AuthControllerWebMvcTest {
     @MockBean
     private EntityManagerFactory entityManagerFactory;
 
-    private ObjectMapper objectMapper = new ObjectMapper();
-
-
-
-    // =============================
-    // TEST CREATION UTILISATEUR
-    // =============================
-    @Test
-    @DisplayName("POST /auth/register : succès création utilisateur avec valid email et password")
-    void testCreateUserSuccess() throws Exception {
-        // DTO que le service retournera après création (role est null)
-        UserDTO userDTO = UserDTO.builder()
-                .id(1L)
-                .mail("user.mechant@gmail.com")
-                .role(null) // role à null à la création
-                .build();
-
-        // Mock du service pour renvoyer le UserDTO créé
-        when(authService.creationUtilisateur(any(LoginDTO.class)))
-                .thenReturn(userDTO);
-
-        // DTO envoyé à l'API (doit respecter les validateurs)
-        LoginDTO loginDTO = LoginDTO.builder()
-                .email("user.mechant@gmail.com")
-                .password("Abcd1234") // Mot de passe valide selon le pattern
-                .build();
-
-        mockMvc.perform(post("/auth/register")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(loginDTO)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.mail").value("user.mechant@gmail.com"))
-                .andExpect(jsonPath("$.role").doesNotExist()); // rôle null ne doit pas apparaître
-    }
-
-    // =============================
-    // TEST CREATION UTILISATEUR DEJA EXISTANT
-    // =============================
-    @Test
-    @DisplayName("POST /auth/register : utilisateur déjà existant")
-    void testCreateUserAlreadyExists() throws Exception {
-        // On simule que l'utilisateur existe déjà
-        when(authService.creationUtilisateur(any(LoginDTO.class)))
-                .thenThrow(new UserAlreadyExistsException("user.mechant@gmail.com"));
-
-        // DTO envoyé à l'API (email + mot de passe)
-        LoginDTO loginDTO = LoginDTO.builder()
-                .email("user.mechant@gmail.com")
-                .password("Abcd1234")
-                .build();
-
-        mockMvc.perform(post("/auth/register")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(loginDTO)))
-                .andExpect(status().isConflict()); // 409 Conflict attendu
-    }
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     // =============================
     // TEST LOGIN

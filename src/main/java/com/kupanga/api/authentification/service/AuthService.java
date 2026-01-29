@@ -1,26 +1,14 @@
 package com.kupanga.api.authentification.service;
 
-import com.kupanga.api.exception.business.UserAlreadyExistsException;
 import com.kupanga.api.authentification.dto.AuthResponseDTO;
 import com.kupanga.api.authentification.dto.LoginDTO;
 import com.kupanga.api.user.dto.formDTO.UserFormDTO;
 import com.kupanga.api.authentification.dto.CompleteProfileResponseDTO;
-import com.kupanga.api.user.dto.readDTO.UserDTO;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.web.multipart.MultipartFile;
 
 
 public interface AuthService {
-
-    /**
-     * Crée un nouveau compte utilisateur.
-     *
-     * @param loginDTO contient email et mot de passe.
-     * @return un {@link UserDTO} représentant l'utilisateur créé
-     * @throws UserAlreadyExistsException
-     *         si un utilisateur existe déjà avec l'email fourni
-     */
-    UserDTO creationUtilisateur(LoginDTO loginDTO)
-            throws UserAlreadyExistsException;
 
     /**
      * Permet de se connecter
@@ -64,8 +52,9 @@ public interface AuthService {
     /**
      * Complète le profil de l'utilisateur
      * @param userFormDTO le formulaire
+     * @param imageProfil image
      * @param response HttpServletResponse
      * @return le DTO contenant UserDTO et le token d'authentification
      */
-    CompleteProfileResponseDTO completeProfil(UserFormDTO userFormDTO , HttpServletResponse response);
+    CompleteProfileResponseDTO createAndCompleteUserProfil(UserFormDTO userFormDTO , MultipartFile imageProfil, HttpServletResponse response);
 }

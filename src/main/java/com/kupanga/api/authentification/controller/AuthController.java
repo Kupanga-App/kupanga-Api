@@ -1,13 +1,12 @@
 package com.kupanga.api.authentification.controller;
 
-import com.kupanga.api.exception.business.UserAlreadyExistsException;
 import com.kupanga.api.authentification.dto.AuthResponseDTO;
 import com.kupanga.api.authentification.dto.LoginDTO;
 import com.kupanga.api.authentification.service.AuthService;
 import com.kupanga.api.user.dto.formDTO.UserFormDTO;
 import com.kupanga.api.authentification.dto.CompleteProfileResponseDTO;
-import com.kupanga.api.user.dto.readDTO.UserDTO;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -16,8 +15,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequiredArgsConstructor
@@ -26,73 +27,17 @@ public class AuthController {
 
     private final AuthService authService;
 
-    // =========================================
-    // CREATION UTILISATEUR
-    // =========================================
+    // =============================================================================
+    //  CREATION UTILISATEUR + COMPLETER LE PROFIL UTILISATEUR + AJOUT PHOTO PROFIL
+    // =============================================================================
     @Operation(
-            summary = "Créer un nouvel utilisateur",
-            description = "Crée un utilisateur avec un email et un rôle. Retourne le DTO de l'utilisateur créé."
-    )
-    @ApiResponses(value = {
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "Utilisateur créé avec succès",
-                    content = @Content(
-                            mediaType = "application/json",
-                            schema = @Schema(implementation = UserDTO.class),
-                            examples = @ExampleObject(value = """
-                                    {
-                                        "id": 1,
-                                        "email": "user@example.com",
-                                        "nom": "John",
-                                        "prenom": "Doe",
-                                        "role": "ROLE_LOCATAIRE"
-                                    }
-                                    """)
-                    )
-            ),
-            @ApiResponse(
-                    responseCode = "409",
-                    description = "Un utilisateur avec cet email existe déjà",
-                    content = @Content(
-                            mediaType = "application/json",
-                            examples = @ExampleObject(value = """
-                                    {
-                                        "error": "Utilisateur déjà existant"
-                                    }
-                                    """)
-                    )
-            ),
-            @ApiResponse(
-                    responseCode = "400",
-                    description = "Rôle invalide fourni",
-                    content = @Content(
-                            mediaType = "application/json",
-                            examples = @ExampleObject(value = """
-                                    {
-                                        "error": "Rôle invalide"
-                                    }
-                                    """)
-                    )
-            )
-    })
-    @PostMapping("/register")
-    public ResponseEntity<UserDTO> creationCompte(@Valid @RequestBody LoginDTO loginDTO)
-            throws UserAlreadyExistsException {
-        return ResponseEntity.ok(authService.creationUtilisateur(loginDTO));
-    }
-
-    // =========================================
-    // COMPLETER LE PROFIL UTILISATEUR
-    // =========================================
-    @Operation(
-            summary = "Compléter le profil utilisateur",
+            summary = "Créer un nouvel utilisateur et compléter son profil",
             description = "Permet à un utilisateur de compléter son profil en fournissant les informations " +
-                    "nécessaires telles que le nom, prénom, email, et autres champs définis dans le DTO. " +
-                    "Retourne le profil utilisateur mis à jour et le reconnecte automatiquement"
+                    "nécessaires telles que nom, prénom, email, rôle, mot de passe, et optionnellement une image de profil. " +
+                    "Retourne le profil utilisateur créé et mis à jour, avec photo de profil si fournie, " +
+                    "et reconnecte automatiquement l'utilisateur."
     )
     @ApiResponses(value = {
-
             @ApiResponse(
                     responseCode = "200",
                     description = "Profil utilisateur complété avec succès",
@@ -112,43 +57,58 @@ public class AuthController {
                     "urlProfil": null
                   },
                   "authResponseDTO": {
-                    "accessToken": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUk9MRV9MT0NBVEFJUkQiLCJzdWIiOiJ1c2VyQGV4YW1wbGUuY29tIiwiaWF0IjoxNzY5NjMxNTYzLCJleHAiOjE3Njk2MzE4NjN9._M4sPiCCxW934w95XEw8_Ix05JsnpOcQlbX1bNHN2GA"
+                    "accessToken": "eyJhbGciOiJIUzI1NiJ9..."
                   }
                 }
                 """)
                     )
             ),
-
-
             @ApiResponse(
                     responseCode = "400",
-                    description = "Requête invalide : certains champs du formulaire sont manquants ou incorrects",
+                    description = "Requête invalide : champs manquants ou incorrects",
                     content = @Content(
                             mediaType = "application/json",
                             examples = @ExampleObject(value = """
-                            {
-                                "error": "Champs obligatoires manquants ou invalides"
-                            }
-                            """)
+                        {
+                            "error": "Champs obligatoires manquants ou invalides"
+                        }
+                        """)
                     )
             ),
-
             @ApiResponse(
                     responseCode = "403",
-                    description = "Accès refusé : l'utilisateur n'est pas autorisé à compléter ce profil",
+                    description = "Accès refusé : utilisateur non autorisé",
                     content = @Content(
                             mediaType = "application/json",
                             examples = @ExampleObject(value = """
-                            {
-                                "error": "Accès refusé : utilisateur non autorisé"
-                            }
-                            """)
+                        {
+                            "error": "Accès refusé : utilisateur non autorisé"
+                        }
+                        """)
                     )
             )
     })
-    @PostMapping("/completeProfile")
-    public ResponseEntity<CompleteProfileResponseDTO> completeProfile(@Valid @RequestBody UserFormDTO userFormDTO , HttpServletResponse response) {
-        return ResponseEntity.ok(authService.completeProfil(userFormDTO , response));
+    @PostMapping(
+            value = "/register" ,
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
+
+    public ResponseEntity<CompleteProfileResponseDTO> createUser(
+            @Parameter(
+                    description = "JSON contenant les informations utilisateur obligatoires",
+                    required = true
+            )
+            @RequestPart("userFormDTO") UserFormDTO userFormDTO,
+
+            @Parameter(
+                    description = "Image de profil optionnelle de l'utilisateur (fichier)",
+                    required = false
+            )
+            @RequestPart(value = "imageProfil", required = false) MultipartFile imageProfil,
+
+            HttpServletResponse response
+    ) {
+        return ResponseEntity.ok(authService.createAndCompleteUserProfil(userFormDTO , imageProfil ,response));
     }
 
 

@@ -28,6 +28,6 @@ public record UserFormDTO(
         @NotNull(message = "Un rôle valide est nécessaire")
         Role role,
 
-        String urlProfile
+        String urlAvatar
 ) {}
 
