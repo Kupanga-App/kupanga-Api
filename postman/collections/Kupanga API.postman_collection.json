@@ -26,17 +26,33 @@
               }
             ],
             "body": {
-              "mode": "raw",
-              "raw": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"mail\": \"user@example.com\",\n  \"password\": \"Password123\",\n  \"role\": \"ROLE_LOCATAIRE\",\n  \"urlAvatar\": null\n}"
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "userFormDTO",
+                  "value": "{ \"firstName\": \"John\", \"lastName\": \"Doe\", \"mail\": \"kbg.al.pr@gmail.com\", \"password\": \"Password123\", \"role\": \"ROLE_LOCATAIRE\", \"urlAvatar\": null }",
+                  "type": "text",
+                  "uuid": "592bcefa-5fcd-4ee2-ba9c-37238e05cf42",
+                  "contentType": "application/json"
+                },
+                {
+                  "key": "imageProfil",
+                  "type": "file",
+                  "uuid": "ffe31572-6e38-4c37-a945-88b41fe4b290",
+                  "src": [
+                    "/C:/Users/Leclerc/Workflow/BackEnd/Java/SpringBoot/Kupanga/Kupanga-Documentations/image/immo/avec beaucoup plus d'espace mon grand.jpg"
+                  ]
+                }
+              ]
             },
             "url": {
-              "raw": "{{baseUrl}}/auth/completeProfile",
+              "raw": "{{baseUrl}}/auth/register",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "auth",
-                "completeProfile"
+                "register"
               ]
             },
             "description": "Complete user profile with personal information. Role can be: ROLE_PROPRIETAIRE, ROLE_LOCATAIRE, or ROLE_ADMIN."
@@ -196,40 +212,6 @@
               ]
             },
             "description": "Reset password using the token received via email. Token is valid for 10 minutes."
-          },
-          "response": []
-        },
-        {
-          "name": "uploade photo de profil",
-          "id": "65415506-685c-406b-bf47-cdfb015c5286",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "",
-                "value": "",
-                "disabled": true
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"mail\": \"user@example.com\",\n  \"password\": \"Password123\",\n  \"role\": \"ROLE_LOCATAIRE\",\n  \"urlProfile\": null\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/auth/completeProfile",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "auth",
-                "completeProfile"
-              ]
-            },
-            "description": "Complete user profile with personal information. Role can be: ROLE_PROPRIETAIRE, ROLE_LOCATAIRE, or ROLE_ADMIN."
           },
           "response": []
         }
