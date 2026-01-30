@@ -15,7 +15,6 @@ import com.kupanga.api.user.dto.formDTO.UserFormDTO;
 import com.kupanga.api.user.dto.readDTO.UserDTO;
 import com.kupanga.api.user.entity.User;
 import com.kupanga.api.user.mapper.UserMapper;
-import com.kupanga.api.user.service.AvatarProfilService;
 import com.kupanga.api.user.service.UserService;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
@@ -49,7 +48,6 @@ public class AuthServiceImpl implements AuthService {
     private final JwtUtils jwtUtils;
     private final RefreshTokenService refreshTokenService;
     private final PasswordResetTokenService passwordResetTokenService ;
-    private final AvatarProfilService avatarProfilService;
     private final MinioService minioService;
 
 
@@ -188,9 +186,8 @@ public class AuthServiceImpl implements AuthService {
         user.setRole(userFormDTO.role());
         user.setFirstName(userFormDTO.firstName());
         user.setLastName(userFormDTO.lastName());
-
-        String url = avatarProfilService.findAndReturnUrl(userFormDTO.urlAvatar());
-        if( url == null && imageProfil != null && !imageProfil.isEmpty()){
+        String url = userFormDTO.urlAvatar();
+        if( imageProfil != null && !imageProfil.isEmpty()){
             url = minioService.uploadImage(imageProfil , PHOTO_PROFIL_BUCKET);
         }
 
