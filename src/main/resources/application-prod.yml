@@ -18,5 +18,5 @@ minio:
 app:
   url : https://kupanga.lespacelibellule.com
   reset-link: https://kupanga.lespacelibellule.com/auth/reset-password?token=
-  url-login: https://kupanga.lespacelibellule.com/login
+  url-login: https://kupanga.lespacelibellule.com/auth/login
   url-mino: http://localhost:9001

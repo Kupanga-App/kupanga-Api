@@ -17,5 +17,5 @@ minio:
 app:
   url: http://localhost:4200/
   reset-link: http://localhost:4200/auth/reset-password?token=
-  url-login: http://localhost:4200/login
+  url-login: http://localhost:4200/auth/login
   url-mino: http://localhost:9001
