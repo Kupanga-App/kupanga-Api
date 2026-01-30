@@ -13,7 +13,6 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 
-import static com.kupanga.api.minio.constant.MinioConstant.URL_MINIO;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -26,7 +25,7 @@ class MinioServiceImplTest {
     @BeforeEach
     void setUp() {
         minioClient = mock(MinioClient.class);
-        minioService = new MinioServiceImpl(minioClient);
+        minioService = new MinioServiceImpl(minioClient , "http://localhost:9000");
     }
 
     // =======================
@@ -50,7 +49,7 @@ class MinioServiceImplTest {
         String result = minioService.uploadImage(file, bucket);
 
         assertNotNull(result, "L'URL ne doit pas être null");
-        assertTrue(result.startsWith(URL_MINIO + "/" + bucket + "/"), "L'URL doit contenir le bucket");
+        assertTrue(result.startsWith("http://localhost:9000" + "/" + bucket + "/"), "L'URL doit contenir le bucket");
         assertTrue(result.endsWith("_test.png"), "L'URL doit contenir le nom du fichier original");
 
         verify(minioClient, times(1)).putObject(any(PutObjectArgs.class));
@@ -117,7 +116,7 @@ class MinioServiceImplTest {
         String result = minioService.uploadImage(file, bucket);
 
         assertNotNull(result, "L'URL ne doit pas être null même si le nom du fichier est vide");
-        assertTrue(result.startsWith(URL_MINIO + "/" + bucket + "/"), "L'URL doit contenir le bucket");
+        assertTrue(result.startsWith("http://localhost:9000" + "/" + bucket + "/"), "L'URL doit contenir le bucket");
     }
 
     // =======================

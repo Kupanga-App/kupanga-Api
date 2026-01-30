@@ -2,21 +2,24 @@ package com.kupanga.api.minio.service.impl;
 
 import com.kupanga.api.minio.service.MinioService;
 import io.minio.*;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.UUID;
-
-import static com.kupanga.api.minio.constant.MinioConstant.URL_MINIO;
 
 @Service
 public class MinioServiceImpl implements MinioService {
 
     private final MinioClient minioClient;
 
-    public MinioServiceImpl(MinioClient minioClient) {
+
+    private final String url_minio;
+
+    public MinioServiceImpl(MinioClient minioClient , @Value("${app.url-mino}")String url_minio ) {
 
         this.minioClient = minioClient;
+        this.url_minio = url_minio;
     }
 
     @Override
@@ -70,7 +73,7 @@ public class MinioServiceImpl implements MinioService {
                             .build()
             );
 
-            return URL_MINIO + "/" + bucketName + "/" + fileName;
+            return url_minio + "/" + bucketName + "/" + fileName;
         } catch (Exception e) {
             throw new RuntimeException("Erreur lors de upload vers MinIO", e);
         }

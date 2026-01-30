@@ -5,8 +5,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import static com.kupanga.api.minio.constant.MinioConstant.URL_MINIO;
-
 @Configuration
 public class MinioConfig {
 
@@ -16,6 +14,9 @@ public class MinioConfig {
     @Value("${minio.secret-key}")
     private String secretKey ;
 
+    @Value("${app.url-mino}")
+    private String url_minio;
+
     /**
      * Création du client MinIO avec endpoint et les credentials
      * @return client MinIO
@@ -24,7 +25,7 @@ public class MinioConfig {
     public MinioClient minioClient(){
 
         return MinioClient.builder()
-                .endpoint(URL_MINIO)
+                .endpoint(url_minio)
                 .credentials(accessKey , secretKey)
                 .build();
     }
