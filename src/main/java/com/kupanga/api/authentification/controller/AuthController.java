@@ -4,7 +4,6 @@ import com.kupanga.api.authentification.dto.AuthResponseDTO;
 import com.kupanga.api.authentification.dto.LoginDTO;
 import com.kupanga.api.authentification.service.AuthService;
 import com.kupanga.api.user.dto.formDTO.UserFormDTO;
-import com.kupanga.api.authentification.dto.CompleteProfileResponseDTO;
 import com.kupanga.api.user.dto.readDTO.UserDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -46,26 +45,15 @@ public class AuthController {
                     description = "Profil utilisateur complété avec succès",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = CompleteProfileResponseDTO.class),
+                            schema = @Schema(implementation = AuthResponseDTO.class),
                             examples = @ExampleObject(value = """
                 {
-                  "userDTO": {
-                    "id": 21,
-                    "firstName": "John",
-                    "lastName": "Doe",
-                    "mail": "user@example.com",
-                    "password": "$2a$10$hASvFqpTZAgWQNb.nPKVB.9uejUfwitZ99cn/uULT4f678usM6FVy",
-                    "role": "ROLE_LOCATAIRE",
-                    "hasCompleteProfil": true,
-                    "urlProfil": null
-                  },
-                  "authResponseDTO": {
                     "accessToken": "eyJhbGciOiJIUzI1NiJ9..."
-                  }
                 }
                 """)
                     )
             ),
+
             @ApiResponse(
                     responseCode = "400",
                     description = "Requête invalide : champs manquants ou incorrects",
@@ -96,7 +84,7 @@ public class AuthController {
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE
     )
 
-    public ResponseEntity<CompleteProfileResponseDTO> createUser(
+    public ResponseEntity<AuthResponseDTO> createUser(
             @Parameter(
                     description = "JSON contenant les informations utilisateur obligatoires",
                     required = true
@@ -132,7 +120,6 @@ public class AuthController {
                             examples = @ExampleObject(value = """
                                     {
                                         "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-                                        "refreshToken": "d5f4c3b2a1..."
                                     }
                                     """)
                     )
@@ -183,13 +170,20 @@ public class AuthController {
                             mediaType = "application/json",
                             schema = @Schema(implementation = UserDTO.class),
                             examples = @ExampleObject(value = """
-                                {
-                                    "email": "user@example.com",
-                                    "roles": ["ROLE_USER"]
-                                }
-                                """)
+                {
+                    "id": 25,
+                    "firstName": "John",
+                    "lastName": "Doe",
+                    "mail": "kbg.al.pr@gmail.com",
+                    "password": "$2a$10$vsVhkaAc3xSXEjwWRn1/y.47LEcuQ0SrlL6qlyRtezJVQZauUVVtS",
+                    "role": "ROLE_LOCATAIRE",
+                    "urlProfile": "http://localhost:9000/bucket-photo-profil/e8676ed7-0a81-4a67-bfd0-af07d9ec3e8a_avecbeaucoupplusd'espacemongrand.jpg",
+                    "hasCompleteProfil": true
+                }
+                """)
                     )
             ),
+
             @ApiResponse(
                     responseCode = "401",
                     description = "Utilisateur non authentifié ou token invalide",

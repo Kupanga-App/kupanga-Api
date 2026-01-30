@@ -3,7 +3,6 @@ package com.kupanga.api.authentification.service;
 import com.kupanga.api.authentification.dto.AuthResponseDTO;
 import com.kupanga.api.authentification.dto.LoginDTO;
 import com.kupanga.api.user.dto.formDTO.UserFormDTO;
-import com.kupanga.api.authentification.dto.CompleteProfileResponseDTO;
 import com.kupanga.api.user.dto.readDTO.UserDTO;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.multipart.MultipartFile;
@@ -57,7 +56,7 @@ public interface AuthService {
      * @param response HttpServletResponse
      * @return le DTO contenant UserDTO et le token d'authentification
      */
-    CompleteProfileResponseDTO createAndCompleteUserProfil(UserFormDTO userFormDTO , MultipartFile imageProfil, HttpServletResponse response);
+    AuthResponseDTO createAndCompleteUserProfil(UserFormDTO userFormDTO , MultipartFile imageProfil, HttpServletResponse response);
 
     UserDTO getUserInfos(String email);
 }

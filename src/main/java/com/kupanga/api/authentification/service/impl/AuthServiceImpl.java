@@ -12,7 +12,6 @@ import com.kupanga.api.authentification.service.RefreshTokenService;
 import com.kupanga.api.authentification.utils.JwtUtils;
 import com.kupanga.api.minio.service.MinioService;
 import com.kupanga.api.user.dto.formDTO.UserFormDTO;
-import com.kupanga.api.authentification.dto.CompleteProfileResponseDTO;
 import com.kupanga.api.user.dto.readDTO.UserDTO;
 import com.kupanga.api.user.entity.User;
 import com.kupanga.api.user.mapper.UserMapper;
@@ -178,7 +177,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     @Transactional
-    public CompleteProfileResponseDTO createAndCompleteUserProfil(UserFormDTO userFormDTO , MultipartFile imageProfil, HttpServletResponse response){
+    public AuthResponseDTO createAndCompleteUserProfil(UserFormDTO userFormDTO , MultipartFile imageProfil, HttpServletResponse response){
 
         userService.verifyIfUserExistWithEmail(userFormDTO.mail());
         userService.verifyIfRoleOfUserValid(userFormDTO.role());
@@ -209,10 +208,7 @@ public class AuthServiceImpl implements AuthService {
 
         emailService.sendWelcomeMessage(user.getMail() , user.getFirstName());
 
-        return CompleteProfileResponseDTO.builder()
-                .userDTO(userMapper.toDTO(user))
-                .authResponseDTO(authResponseDTO)
-                .build();
+        return authResponseDTO ;
     }
 
     @Override
