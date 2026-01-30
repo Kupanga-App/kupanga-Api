@@ -8,25 +8,31 @@ import com.kupanga.api.authentification.dto.LoginDTO;
 import com.kupanga.api.authentification.service.AuthService;
 import com.kupanga.api.authentification.service.impl.UserDetailsServiceImpl;
 import com.kupanga.api.authentification.utils.JwtUtils;
+import com.kupanga.api.user.dto.formDTO.UserFormDTO;
+import com.kupanga.api.user.dto.readDTO.UserDTO;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import com.kupanga.api.config.SecurityConfig;
 import org.springframework.context.annotation.Import;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
+import org.springframework.security.test.context.support.WithMockUser;
 /**
  * Correction complète pour éviter l'erreur 'BeanCreationException: ...
  * jpaSharedEM_entityManagerFactory'.
@@ -37,9 +43,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * 2. Exclusions : Bloque l'auto-config de JPA et des Repositories.
  * 3. @MockBean EntityManagerFactory : Satisfait toute dépendance résiduelle.
  */
-@WebMvcTest(controllers = AuthController.class)
+@WebMvcTest(AuthController.class)
 @Import(SecurityConfig.class)
 @ActiveProfiles("test")
+@AutoConfigureMockMvc(addFilters = true)
 @DisplayName("Tests pour LoginController via MockMvc")
 class AuthControllerWebMvcTest {
 
@@ -60,6 +67,102 @@ class AuthControllerWebMvcTest {
     private EntityManagerFactory entityManagerFactory;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
+
+
+    @Test
+    @DisplayName("Doit créer un utilisateur avec une image de profil")
+    void createUser_withImage_shouldReturn200() throws Exception {
+
+        UserFormDTO userFormDTO = UserFormDTO.builder()
+                .mail("test@mail.com")
+                .password("password123")
+                .build();
+
+        MockMultipartFile userFormPart = new MockMultipartFile(
+                "userFormDTO",
+                "",
+                "application/json",
+                objectMapper.writeValueAsBytes(userFormDTO)
+        );
+
+        MockMultipartFile imagePart = new MockMultipartFile(
+                "imageProfil",
+                "photo.png",
+                "image/png",
+                "fake-image-content".getBytes()
+        );
+
+        AuthResponseDTO responseDTO = new AuthResponseDTO("token123");
+
+        when(authService.createAndCompleteUserProfil(any(), any(), any()))
+                .thenReturn(responseDTO);
+
+        mockMvc.perform(multipart("/auth/register")
+                        .file(userFormPart)
+                        .file(imagePart))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.accessToken").value("token123"));
+    }
+
+    @Test
+    @DisplayName("Doit créer un utilisateur sans image de profil")
+    void createUser_withoutImage_shouldReturn200() throws Exception {
+
+        UserFormDTO userFormDTO = UserFormDTO.builder()
+                .mail("test@mail.com")
+                .password("password123")
+                .build();
+
+        MockMultipartFile userFormPart = new MockMultipartFile(
+                "userFormDTO",
+                "",
+                "application/json",
+                objectMapper.writeValueAsBytes(userFormDTO)
+        );
+
+        AuthResponseDTO responseDTO = new AuthResponseDTO("token123");
+
+        when(authService.createAndCompleteUserProfil(any(), isNull(), any()))
+                .thenReturn(responseDTO);
+
+        mockMvc.perform(multipart("/auth/register")
+                        .file(userFormPart))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.accessToken").value("token123"));
+    }
+
+    @Test
+    @DisplayName("Doit retourner 400 si le userFormDTO est absent")
+    void createUser_withoutUserFormDTO_shouldReturn400() throws Exception {
+
+        MockMultipartFile imagePart = new MockMultipartFile(
+                "imageProfil",
+                "photo.png",
+                "image/png",
+                "fake-image-content".getBytes()
+        );
+
+        mockMvc.perform(multipart("/auth/register")
+                        .file(imagePart))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("Doit retourner 400 si le JSON du userFormDTO est invalide")
+    void createUser_withInvalidJson_shouldReturn400() throws Exception {
+
+        MockMultipartFile invalidUserForm = new MockMultipartFile(
+                "userFormDTO",
+                "",
+                "application/json",
+                "{invalid-json}".getBytes()
+        );
+
+        mockMvc.perform(multipart("/auth/register")
+                        .file(invalidUserForm))
+                .andExpect(status().isBadRequest());
+    }
+
 
     // =============================
     // TEST LOGIN
@@ -201,4 +304,38 @@ class AuthControllerWebMvcTest {
                         .param("newPassword", newPassword))
                 .andExpect(status().isBadRequest());
     }
+
+    @Test
+    @DisplayName("Doit retourner les informations de l'utilisateur connecté")
+    @WithMockUser(username = "test@mail.com")
+    void me_authenticatedUser_shouldReturnUserInfos() throws Exception {
+
+        UserDTO userDTO = UserDTO.builder()
+                .mail("test@mail.com")
+                .firstName("John")
+                .lastName("Doe")
+                .build();
+
+        when(authService.getUserInfos("test@mail.com"))
+                .thenReturn(userDTO);
+
+        mockMvc.perform(get("/auth/me"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.mail").value("test@mail.com"))
+                .andExpect(jsonPath("$.firstName").value("John"))
+                .andExpect(jsonPath("$.lastName").value("Doe"));
+    }
+
+    @Test
+    @DisplayName("Doit retourner 404 si l'utilisateur n'existe pas")
+    @WithMockUser(username = "unknown@mail.com")
+    void me_userNotFound_shouldReturn404() throws Exception {
+
+        when(authService.getUserInfos("unknown@mail.com"))
+                .thenThrow(new UserNotFoundException("Utilisateur introuvable"));
+
+        mockMvc.perform(get("/auth/me"))
+                .andExpect(status().isNotFound());
+    }
+
 }

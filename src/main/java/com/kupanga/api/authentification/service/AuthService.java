@@ -58,5 +58,10 @@ public interface AuthService {
      */
     AuthResponseDTO createAndCompleteUserProfil(UserFormDTO userFormDTO , MultipartFile imageProfil, HttpServletResponse response);
 
+    /**
+     * Retourne les infos de l'utilisateur
+     * @param email email utilisateur
+     * @return les infos de l'utilisateur
+     */
     UserDTO getUserInfos(String email);
 }
