@@ -122,25 +122,26 @@ public class AvatarProfilController {
                             mediaType = "application/json",
                             schema = @Schema(implementation = AvatarProfilPagination.class),
                             examples = @ExampleObject(value = """
-                            {
-                                "page": 1,
-                                "size": 10,
-                                "totalElements": 25,
-                                "totalPages": 3,
-                                "content": [
-                                    {
-                                        "id": 1,
-                                        "url": "https://storage.kupanga.com/avatars/avatar1.png",
-                                    },
-                                    {
-                                        "id": 2,
-                                        "url": "https://storage.kupanga.com/avatars/avatar2.png",
-                                    }
-                                ]
-                            }
-                            """)
+                {
+                    "page": 1,
+                    "size": 10,
+                    "totalElements": 25,
+                    "totalPages": 3,
+                    "content": [
+                        {
+                            "id": 1,
+                            "url": "https://storage.kupanga.com/avatars/avatar1.png"
+                        },
+                        {
+                            "id": 2,
+                            "url": "https://storage.kupanga.com/avatars/avatar2.png"
+                        }
+                    ]
+                }
+                """)
                     )
             ),
+
 
             @ApiResponse(
                     responseCode = "400",
