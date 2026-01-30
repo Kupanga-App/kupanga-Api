@@ -214,6 +214,18 @@
             "description": "Reset password using the token received via email. Token is valid for 10 minutes."
           },
           "response": []
+        },
+        {
+          "name": "user info",
+          "id": "722ece9c-ec41-407b-9d6c-a40a4e0c2e3d",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": ""
+            }
+          },
+          "response": []
         }
       ],
       "id": "324a1f38-c213-4717-94eb-3b45d9ee36c5",

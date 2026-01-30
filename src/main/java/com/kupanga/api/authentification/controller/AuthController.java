@@ -5,6 +5,7 @@ import com.kupanga.api.authentification.dto.LoginDTO;
 import com.kupanga.api.authentification.service.AuthService;
 import com.kupanga.api.user.dto.formDTO.UserFormDTO;
 import com.kupanga.api.authentification.dto.CompleteProfileResponseDTO;
+import com.kupanga.api.user.dto.readDTO.UserDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -17,6 +18,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -163,6 +166,65 @@ public class AuthController {
     public ResponseEntity<AuthResponseDTO> login(@Valid @RequestBody LoginDTO loginDTO, HttpServletResponse response) {
         return ResponseEntity.ok(authService.login(loginDTO, response));
     }
+
+    // =========================================
+    // ME (Informations utilisateur connecté)
+    // =========================================
+    @Operation(
+            summary = "Récupération des informations de l'utilisateur connecté",
+            description = "Retourne les informations de l'utilisateur actuellement authentifié, " +
+                    "en se basant sur le token JWT fourni dans la requête."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Informations utilisateur récupérées avec succès",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = UserDTO.class),
+                            examples = @ExampleObject(value = """
+                                {
+                                    "email": "user@example.com",
+                                    "roles": ["ROLE_USER"]
+                                }
+                                """)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Utilisateur non authentifié ou token invalide",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                {
+                                    "error": "Accès non autorisé"
+                                }
+                                """)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Utilisateur introuvable",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                {
+                                    "error": "Utilisateur non trouvé"
+                                }
+                                """)
+                    )
+            )
+    })
+    @GetMapping("/me")
+    public ResponseEntity<UserDTO> me() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        // Récupérer l'email depuis le principal
+        String email = auth.getName();
+
+        return ResponseEntity.ok(authService.getUserInfos(email));
+    }
+
 
     // =========================================
     // REFRESH TOKEN

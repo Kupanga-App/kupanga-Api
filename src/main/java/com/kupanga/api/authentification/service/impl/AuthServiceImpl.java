@@ -13,6 +13,7 @@ import com.kupanga.api.authentification.utils.JwtUtils;
 import com.kupanga.api.minio.service.MinioService;
 import com.kupanga.api.user.dto.formDTO.UserFormDTO;
 import com.kupanga.api.authentification.dto.CompleteProfileResponseDTO;
+import com.kupanga.api.user.dto.readDTO.UserDTO;
 import com.kupanga.api.user.entity.User;
 import com.kupanga.api.user.mapper.UserMapper;
 import com.kupanga.api.user.service.AvatarProfilService;
@@ -212,5 +213,11 @@ public class AuthServiceImpl implements AuthService {
                 .userDTO(userMapper.toDTO(user))
                 .authResponseDTO(authResponseDTO)
                 .build();
+    }
+
+    @Override
+    public UserDTO getUserInfos(String email){
+
+        return userMapper.toDTO(userService.getUserByEmail(email)) ;
     }
 }
