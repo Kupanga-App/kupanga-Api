@@ -94,7 +94,7 @@ public class EmailServiceImpl implements EmailService {
             helper.setTo(destinataire);
             helper.setSubject(SUJET_MAIL_CONFIRMATION_MOT_DE_PASSE);
             String htmlContent =
-                    String.format(CONTENU_MAIL_CONFIRMATION_MOT_DE_PASSE, url_login);
+                    String.format(CONTENU_MAIL_CONFIRMATION_MOT_DE_PASSE, url_login,url_login);
             helper.setText(htmlContent, true);
 
             mailSender.send(message);
