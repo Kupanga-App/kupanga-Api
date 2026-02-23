@@ -1,0 +1,96 @@
+{
+  "info": {
+    "_postman_id": "2e38ec6f-73d5-42cc-b82d-dbecd99f0d03",
+    "name": "Url-Shortner",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "shorten",
+      "id": "5aa42d4b-c29a-40c6-8648-ada4752d1861",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text",
+            "uuid": "f632c48a-dbbd-4ed7-8506-ae58af1208fa"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"url\": \"https://www.google.com\"\r\n}\r\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://127.0.0.1:3000/shorten",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "3000",
+          "path": [
+            "shorten"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "redirect",
+      "id": "0c7df429-12d1-4be0-b8d8-00d3707909fa",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": ""
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "stat",
+      "id": "3b799222-8b9d-4dd8-987a-ee0c3895c7a7",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": ""
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "url",
+      "id": "18aef2d8-59b8-4ac4-ae9d-b7ae44b3f91c",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": ""
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "New Request",
+      "id": "896d896c-07c8-45e8-94a0-6534464810f9",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": ""
+        }
+      },
+      "response": []
+    }
+  ]
+}
