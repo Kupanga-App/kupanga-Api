@@ -19,6 +19,8 @@ public interface UserService {
      */
     User getUserByEmail(String email) throws UserNotFoundException;
 
+    User getUserById(Long id) throws UserNotFoundException;
+
     /**
      * Vérifie si un utilisateur existe déjà pour l'email fourni.
      *
