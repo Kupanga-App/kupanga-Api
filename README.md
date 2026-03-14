@@ -39,17 +39,14 @@ Utilisez Docker Compose pour construire l'image et lancer tous les services (API
 ```bash
 docker compose -f docker-compose-dev.yml up -d
 ```
-
-## 🛠️ Accès et Configuration
-
-Une fois les conteneurs démarrés, vous pouvez accéder aux différents services :
-
-| Service | URL / Commande | Identifiants / Info |
-| :--- | :--- | :--- |
-| **API Backend** | `http://localhost:8089/` | Point d'entrée de l'API |
-| **Swagger UI** | [Accéder à Swagger](http://localhost:8089/swagger-ui/index.html) | Documentation interactive de l'API |
-| **PostgreSQL** | `localhost:5433/kupanga_dev` | **User:** `kupanga`<br>**Password:** `devpassword` |
-| **MinIO Console**| [http://localhost:9001](http://localhost:9001) | **User:** `minioadmin`<br>**Password:** `minioadmin` |
+| Service              | URL / Commande                                                   | Identifiants / Info                                                                                     |
+| :------------------- | :--------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------ |
+| **API Backend**      | `http://localhost:8089/`                                         | Point d'entrée de l'API                                                                                 |
+| **Swagger UI**       | [Accéder à Swagger](http://localhost:8089/swagger-ui/index.html) | Documentation interactive de l'API                                                                      |
+| **PostgreSQL**       | `localhost:5433/kupanga_dev`                                     | **User:** `kupanga`<br>**Password:** `devpassword`                                                      |
+| **MinIO Console**    | [http://localhost:9001](http://localhost:9001)                   | **User:** `minioadmin`<br>**Password:** `minioadmin`                                                    |
+| **Redis Cache**      | via CLI / terminal                                               | `redis-cli -h localhost -p 6379`<br>Exemples : `KEYS *` / `GET geocode::Paris:75001`                    |
+| **RedisInsight GUI** | [http://localhost:8001](http://localhost:8001)                   | Ajouter une DB : <br>**Host:** `localhost`<br>**Port:** `6379`<br>**Password:** (vide si non configuré) |
 
 > **Note :** Pour se connecter à la base de données via un outil externe comme pgAdmin, utilisez le port `5433` exposé par Docker.
 

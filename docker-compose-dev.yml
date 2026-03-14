@@ -2,22 +2,22 @@
 services:
 
   # ------------------------
-  # 1️⃣ Spring Boot App
+  # 1️. Spring Boot App
   # ------------------------
   kupanga:
     build:
       context: .
-      dockerfile: Dockerfile        # Dockerfile léger Java 21 multi-stage
+      dockerfile: Dockerfile
     container_name: panga-dev
     ports:
-      - "8085:8080"                # Port local DEV
+      - "8085:8080"
     env_file:
       - .env.dev
     depends_on:
       - db
       - minio
+      - redis
     restart: always
-    # Limitation des ressources pour DEV
     deploy:
       resources:
         limits:
@@ -25,17 +25,17 @@ services:
           memory: 512M
 
   # ------------------------
-  # 2️⃣ PostgreSQL Database
+  # 2. PostgreSQL Database
   # ------------------------
   db:
-    image: postgis/postgis:15-3.4-alpine       # Version alpine pour plus léger
+    image: postgis/postgis:15-3.4-alpine
     container_name: kupanga-db-dev
     environment:
       POSTGRES_DB: kupanga_dev
       POSTGRES_USER: kupanga
       POSTGRES_PASSWORD: devpassword
     ports:
-      - "5433:5432"                # Port local pour DEV
+      - "5433:5432"
     volumes:
       - db-data-dev:/var/lib/postgresql/data
     restart: always
@@ -46,10 +46,10 @@ services:
           memory: 256M
 
   # ------------------------
-  # 3️⃣ MinIO Storage
+  # 3️. MinIO Storage
   # ------------------------
   minio:
-    image: minio/minio:latest       # Image officielle MinIO
+    image: minio/minio:latest
     container_name: minio-dev
     environment:
       MINIO_ROOT_USER: minioadmin
@@ -67,9 +67,45 @@ services:
           cpus: '0.5'
           memory: 256M
 
+  # ------------------------
+  # 4. Redis Cache
+  # ------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: redis-dev
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data-dev:/data
+    restart: always
+    command: redis-server --appendonly yes
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 128M
+  # ------------------------
+  # 5️. RedisInsight GUI
+  # ------------------------
+  redisinsight:
+    image: redislabs/redisinsight:latest
+    container_name: redisinsight-dev
+    ports:
+      - "8001:8001"       # accès web RedisInsight
+    restart: always
+    depends_on:
+      - redis
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
+
+
 # ------------------------
 # Volumes persistants
 # ------------------------
 volumes:
   db-data-dev:
   minio-data-dev:
+  redis-data-dev:

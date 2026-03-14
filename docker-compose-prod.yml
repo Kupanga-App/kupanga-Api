@@ -16,6 +16,7 @@ services:
     depends_on:
       - db
       - minio
+      - redis
     restart: always
     deploy:
       resources:

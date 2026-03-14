@@ -406,7 +406,10 @@
           "id": "fd0a057e-114f-471b-b79d-bc3e1ac2510f",
           "request": {
             "method": "GET",
-            "header": []
+            "header": [],
+            "url": {
+              "raw": ""
+            }
           },
           "response": []
         },
@@ -607,32 +610,27 @@
           "id": "1fddb7f2-e1c0-43a4-9e59-43614ad56cd2",
           "request": {
             "method": "GET",
-            "header": []
+            "header": [],
+            "url": {
+              "raw": ""
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "New Request",
+          "id": "85e9537a-cd7e-460e-b8d8-0ebc6fd17a99",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": ""
+            }
           },
           "response": []
         }
       ],
       "id": "005c1e57-894d-4cf7-a637-57f953df94f3"
-    }
-  ],
-  "event": [
-    {
-      "listen": "prerequest",
-      "script": {
-        "type": "text/javascript",
-        "exec": [
-          ""
-        ]
-      }
-    },
-    {
-      "listen": "test",
-      "script": {
-        "type": "text/javascript",
-        "exec": [
-          ""
-        ]
-      }
     }
   ],
   "variable": [

@@ -36,7 +36,7 @@ public class User {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "role")
-    private Role role; // PROPRIETAIRE, LOCATAIRE, ADMIN
+    private Role role;
 
     @Column(name = "A_completer_profil")
     private Boolean hasCompleteProfil = false;
@@ -45,15 +45,15 @@ public class User {
     private String urlProfile;
 
     // relations
-    @OneToMany(mappedBy = "proprietaire")
+    @OneToMany(mappedBy = "proprietaire" , fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Bien> biensProprietes;
 
-    @OneToMany(mappedBy = "locataire")
+    @OneToMany(mappedBy = "locataire", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Bien> biensLoues;
 
-    @OneToMany(mappedBy = "destinataire")
+    @OneToMany(mappedBy = "destinataire", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Message> messagesRecus;
 
-    @OneToMany(mappedBy = "expediteur")
+    @OneToMany(mappedBy = "expediteur" ,fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Message> messagesEnvoyes;
 }

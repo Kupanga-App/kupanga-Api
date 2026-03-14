@@ -6,8 +6,12 @@ spring:
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: create-drop
     show-sql: true
+  flyway:
+    enabled: false    # ← désactive Flyway pendant les tests
+  cache:
+    type: simple
 
 minio:
   endpoint: http://localhost:9001

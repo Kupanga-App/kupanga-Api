@@ -1,0 +1,195 @@
+{
+  "info": {
+    "_postman_id": "9baef968-200a-4a69-a9b7-ecb9e6b9423b",
+    "name": "VoiceFaker",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "New Request",
+      "id": "113bf13e-8c2f-486a-882b-5a90b9d9855d",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"text\": \"Bonjour tout le monde\",\r\n  \"lang\": \"fr\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8000/generate",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8000",
+          "path": [
+            "generate"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "New Request",
+      "id": "fc412562-82df-4039-aa30-0bbf7d80be19",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": ""
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "New Request",
+      "id": "7e48da1e-8e05-44dc-985b-11958a407b74",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "http://127.0.0.1:8000/generate-audio/?text=Bonjour tout le monde  monsieur Jonas et Gédeon&lang=fr&voice=dark_vador",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "8000",
+          "path": [
+            "generate-audio",
+            ""
+          ],
+          "query": [
+            {
+              "key": "text",
+              "value": "Bonjour tout le monde  monsieur Jonas et Gédeon",
+              "uuid": "e2373b0d-b058-4858-9dae-aa030279a859"
+            },
+            {
+              "key": "lang",
+              "value": "fr",
+              "uuid": "24be7f8b-c358-49f9-a9d7-f0572a8b3fba"
+            },
+            {
+              "key": "voice",
+              "value": "dark_vador",
+              "uuid": "4f8acab7-f350-47d7-84e4-67fd63d177b6"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "New Request",
+      "id": "0d57690f-a395-4d68-809f-88ac45f8708d",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": ""
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "genere",
+      "id": "9fb592f3-17c7-4ade-a2c1-5c4e51c53f49",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"text\": \"Bonjour tout le monde\",\r\n  \"lang\": \"fr\",\r\n  \"voice\": \"child\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://127.0.0.1:3000/generate",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "3000",
+          "path": [
+            "generate"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "download",
+      "id": "cd6e8e8a-8deb-4c9c-9657-f6787efd6360",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": ""
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "list",
+      "id": "a9c0a120-ec1c-4468-80c1-c5b876920b76",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": ""
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "stat",
+      "id": "3707915b-ec46-49c1-b7a8-59230440e4d6",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": ""
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "lang",
+      "id": "49339908-89f1-42b2-a890-d3f27067f595",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": ""
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "voice",
+      "id": "dab4fae5-b151-4d8e-b7e1-2b76c8b22ceb",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": ""
+        }
+      },
+      "response": []
+    }
+  ]
+}
