@@ -31,14 +31,14 @@ public class User {
     @Column(name = "email")
     private String mail;
 
-    @Column(name = "motDePasse")
+    @Column(name = "mot_de_passe")
     private String password;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "role")
     private Role role;
 
-    @Column(name = "A_completer_profil")
+    @Column(name = "a_completer_profil")
     private Boolean hasCompleteProfil = false;
 
     @Column(name = "url_photo_profil")
