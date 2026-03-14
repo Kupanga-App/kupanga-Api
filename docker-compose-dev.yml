@@ -84,24 +84,31 @@ services:
         limits:
           cpus: '0.25'
           memory: 128M
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
   # ------------------------
   # 5️. RedisInsight GUI
   # ------------------------
   redisinsight:
-    image: redislabs/redisinsight:latest
+    image: redis/redisinsight:latest
     container_name: redisinsight-dev
     ports:
-      - "8001:8001"       # accès web RedisInsight
-    restart: always
+      - "5540:5540"
+    volumes:
+      - redisinsight-data-dev:/data   # ← persist la config RedisInsight
     depends_on:
-      - redis
+      redis:
+        condition: service_healthy    # ← attend que Redis ping réponde
     deploy:
       resources:
         limits:
           cpus: '0.25'
           memory: 256M
-
-
+    restart: always
 # ------------------------
 # Volumes persistants
 # ------------------------
@@ -109,3 +116,4 @@ volumes:
   db-data-dev:
   minio-data-dev:
   redis-data-dev:
+  redisinsight-data-dev:
