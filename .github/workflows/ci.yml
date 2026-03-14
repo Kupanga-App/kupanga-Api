@@ -5,7 +5,12 @@ on:
     branches:
       - main
       - develop
-      - 'feature/*'
+      - 'feature/**'
+  pull_request:
+    branches:
+      - main
+      - develop
+
 
 jobs:
   build-test-static-docker:
