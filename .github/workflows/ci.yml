@@ -100,7 +100,7 @@ jobs:
         run: mvn clean install -DskipTests
 
       - name: Tests
-        run: mvn test
+        run: mvn test -Dspring.profiles.active=test
 
       # -----------------------------
       # Analyse statique
