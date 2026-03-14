@@ -1,16 +1,19 @@
 package com.kupanga.api.exception;
 
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.kupanga.api.exception.business.BusinessException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -90,6 +93,32 @@ public class GlobalExceptionHandler {
 
 
         return ResponseEntity.badRequest().body(response);
+    }
+
+    /**
+     * Gère les erreurs quand le corps de la requête HTTP est invalide.
+     * Si une valeur d'enum est incorrecte, affiche les valeurs possibles.
+     *
+     * @param ex l'exception levée lors de la lecture du corps de la requête
+     * @param request la requête HTTP qui a causé l'erreur
+     * @return une réponse HTTP 400 avec le message d'erreur
+     */
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiErrorResponse> handleNotReadable(
+            HttpMessageNotReadableException ex,
+            HttpServletRequest request
+    ) {
+        String message = "Requête invalide";
+
+        Throwable cause = ex.getMostSpecificCause();
+        if (cause instanceof InvalidFormatException invalidFormat
+                && invalidFormat.getTargetType().isEnum()) {
+            message = "Valeur invalide : '" + invalidFormat.getValue()
+                    + "'. Valeurs acceptées : "
+                    + Arrays.toString(invalidFormat.getTargetType().getEnumConstants());
+        }
+
+        return buildResponse(HttpStatus.BAD_REQUEST, message, request);
     }
 
 
