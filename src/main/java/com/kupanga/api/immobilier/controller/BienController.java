@@ -220,8 +220,115 @@ public class BienController {
         return ResponseEntity.ok(bienService.getBienInfos(auth, bienId));
     }
 
+    @Operation(
+            summary = "Rechercher des biens immobiliers",
+            description = """
+                Permet de rechercher des biens immobiliers avec des filtres dynamiques, un tri et une pagination.
+                
+                **Filtres disponibles :**
+                - Plusieurs villes simultanément
+                - Plusieurs pays simultanément
+                - Plusieurs codes postaux simultanément
+                - Plusieurs types de bien simultanément (`APPARTEMENT`, `MAISON`, `STUDIO`, `VILLA`, `BUREAU`, `COMMERCE`)
+                - Recherche partielle sur le titre (insensible à la casse)
+                
+                **Tri disponible :**
+                Les champs de tri acceptés sont : `id`, `titre`, `ville`, `codePostal`, `typeBien`, `createdAt`.
+                Par défaut le tri est effectué par `id` en ordre croissant (`ASC`).
+                
+                **Pagination :**
+                Par défaut la page est `0` et la taille est `10`.
+                Tous les champs sont optionnels — un body vide retourne tous les biens paginés.
+                """
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Résultats de recherche retournés avec succès",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = BienPageDTO.class),
+                            examples = @ExampleObject(value = """
+                                {
+                                    "contenu": [
+                                        {
+                                            "id": 1,
+                                            "titre": "Appartement lumineux T3",
+                                            "typeBien": "APPARTEMENT",
+                                            "adresse": "12 rue de la Paix",
+                                            "ville": "Nantes",
+                                            "codePostal": "44000",
+                                            "pays": "France",
+                                            "latitude": 47.2184,
+                                            "longitude": -1.5536,
+                                            "images": [
+                                                "https://minio.kupanga.com/biens/photo1.jpg"
+                                            ]
+                                        }
+                                    ],
+                                    "pageActuelle": 0,
+                                    "totalPages": 3,
+                                    "totalElements": 25,
+                                    "dernierePage": false,
+                                    "premierePage": true
+                                }
+                                """)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Corps de la requête invalide",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                {
+                                    "status": 400,
+                                    "message": "Données invalides",
+                                    "erreurs": {
+                                        "sortDirection": "Valeur acceptée : ASC ou DESC"
+                                    },
+                                    "timestamp": "2026-03-15T10:00:00"
+                                }
+                                """)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Utilisateur non authentifié ou token invalide",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                {
+                                    "error": "Accès non autorisé"
+                                }
+                                """)
+                    )
+            )
+    })
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            description = "Critères de recherche, tri et pagination. Tous les champs sont optionnels.",
+            required = true,
+            content = @Content(
+                    mediaType = "application/json",
+                    examples = @ExampleObject(
+                            name = "Exemple de recherche",
+                            value = """
+                                {
+                                    "villes":        ["Nantes", "Angers"],
+                                    "pays":          ["France"],
+                                    "codesPostaux":  ["44000", "49100"],
+                                    "typesBien":     ["APPARTEMENT", "MAISON"],
+                                    "titre":         "lumineux",
+                                    "page":          0,
+                                    "size":          10,
+                                    "sortBy":        "ville",
+                                    "sortDirection": "ASC"
+                                }
+                                """
+                    )
+            )
+    )
     @PostMapping("/search")
-    @Operation(summary = "Rechercher des biens avec filtres, tri et pagination")
     public ResponseEntity<BienPageDTO> rechercher(
             @RequestBody BienSearchDTO dto
     ) {
