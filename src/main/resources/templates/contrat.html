@@ -1,0 +1,82 @@
+<!-- src/main/resources/templates/contrat.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <style>
+        body        { font-family: Arial, sans-serif; font-size: 12px; margin: 40px; }
+        h1          { text-align: center; font-size: 18px; text-transform: uppercase; }
+        .section    { margin-top: 30px; }
+        .label      { font-weight: bold; }
+        .signature  { margin-top: 40px; display: flex; justify-content: space-between; }
+        .sig-box    { width: 45%; border-top: 1px solid black; text-align: center; padding-top: 8px; }
+        img.sig-img { width: 200px; height: 80px; }
+    </style>
+</head>
+<body>
+
+<h1>Contrat de location</h1>
+
+<!-- Parties -->
+<div class="section">
+    <p class="label">Entre les soussignés :</p>
+    <p>
+        <strong>Le propriétaire :</strong>
+        <span th:text="${proprietaire.firstName + ' ' + proprietaire.lastName}"></span>,
+        email : <span th:text="${proprietaire.mail}"></span>
+    </p>
+    <p>
+        <strong>Le locataire :</strong>
+        <span th:text="${locataire.firstName + ' ' + locataire.lastName}"></span>,
+        email : <span th:text="${locataire.mail}"></span>
+    </p>
+</div>
+
+<!-- Bien -->
+<div class="section">
+    <p class="label">Concernant le bien situé à :</p>
+    <p th:text="${contrat.adresseBien}"></p>
+</div>
+
+<!-- Conditions financières -->
+<div class="section">
+    <p class="label">Conditions financières :</p>
+    <p>Loyer mensuel : <span th:text="${contrat.loyerMensuel}"></span> €</p>
+    <p>Charges mensuelles : <span th:text="${contrat.chargesMensuelles}"></span> €</p>
+    <p>Dépôt de garantie : <span th:text="${contrat.depotGarantie}"></span> €</p>
+</div>
+
+<!-- Durée -->
+<div class="section">
+    <p class="label">Durée du bail :</p>
+    <p>
+        Du <span th:text="${#temporals.format(contrat.dateDebut, 'dd/MM/yyyy')}"></span>
+        <span th:if="${contrat.dateFin != null}">
+            au <span th:text="${#temporals.format(contrat.dateFin, 'dd/MM/yyyy')}"></span>
+        </span>
+        (<span th:text="${contrat.dureeBailMois}"></span> mois)
+    </p>
+</div>
+
+<!-- Signatures -->
+<div class="signature">
+    <div class="sig-box">
+        <p>Signature du propriétaire</p>
+        <img th:if="${contrat.signatureProprietaire != null}"
+             th:src="'data:image/png;base64,' + ${contrat.signatureProprietaire}"
+             class="sig-img"/>
+        <p th:if="${contrat.dateSignatureProprietaire != null}"
+           th:text="${#temporals.format(contrat.dateSignatureProprietaire, 'dd/MM/yyyy HH:mm')}"></p>
+    </div>
+    <div class="sig-box">
+        <p>Signature du locataire</p>
+        <img th:if="${contrat.signatureLocataire != null}"
+             th:src="'data:image/png;base64,' + ${contrat.signatureLocataire}"
+             class="sig-img"/>
+        <p th:if="${contrat.dateSignatureLocataire != null}"
+           th:text="${#temporals.format(contrat.dateSignatureLocataire, 'dd/MM/yyyy HH:mm')}"></p>
+    </div>
+</div>
+
+</body>
+</html>

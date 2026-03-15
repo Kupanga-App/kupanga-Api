@@ -92,4 +92,13 @@ public class BienServiceImpl implements BienService {
         return bienMapper.toDTO(bien);
 
     }
+
+    @Override
+    public Bien findWithAllProperties(Long id){
+
+        return bienRepository.findWithAllProperties(id)
+                .orElseThrow(
+                        () -> new KupangaBusinessException("Le bien n'existe pas" , HttpStatus.NOT_FOUND)
+                );
+    }
 }

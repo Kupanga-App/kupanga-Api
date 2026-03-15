@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayInputStream;
 import java.util.UUID;
 
 @Service
@@ -76,6 +77,38 @@ public class MinioServiceImpl implements MinioService {
             return url_minio + "/" + bucketName + "/" + fileName;
         } catch (Exception e) {
             throw new RuntimeException("Erreur lors de upload vers MinIO", e);
+        }
+    }
+
+    @Override
+    public String uploadPdf(byte[] pdf, String originalName ,String bucketName ) {
+
+        try {
+
+            // Crée le bucket si nécessaire
+            createBucketIfNotExists(bucketName, true);
+
+            String fileName = UUID.randomUUID() + "_" + (originalName != null ?
+                    originalName.replaceAll("\\s+", "") : "file");
+
+            // Envoie le PDF sur le serveur MinIO
+            minioClient.putObject(
+                    PutObjectArgs.builder()
+                            .bucket(bucketName)          // Nom du bucket où le fichier sera stocké
+                            .object(fileName)               // Nom du fichier dans le bucket
+                            .stream(
+                                    new ByteArrayInputStream(pdf), // Convertit le tableau d'octets en InputStream
+                                    pdf.length,                     // Taille du PDF
+                                    -1                               // Taille inconnue du stream (-1 si connue)
+                            )
+                            .contentType("application/pdf")  // Définit le type MIME du fichier
+                            .build()
+            );
+
+            return url_minio + "/" + bucketName + "/" + fileName;
+
+        } catch (Exception e) {
+            throw new RuntimeException("Erreur upload PDF MinIO", e);
         }
     }
 }

@@ -134,4 +134,124 @@ public class Constante {
                 </body>
             </html>
             """;
+
+
+    public static String SUJET_MAIL_INVITATION_SIGNATURE =
+            "KUPANGA — Vous avez un contrat à signer";
+
+    public static String SUJET_MAIL_CONTRAT_SIGNE =
+            "KUPANGA — Votre contrat a été signé par les deux parties";
+
+
+    public static String CONTENU_MAIL_INVITATION_SIGNATURE =
+            """
+                <html>
+                    <body style="font-family: Arial, sans-serif;">
+                        <div style="background-color: #f8fafc; padding: 20px;">
+                            <div style="background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+    
+                                <h2 style="color: #2563eb;">
+                                    Bonjour %s,
+                                </h2>
+    
+                                <p>
+                                    <strong>%s</strong>, propriétaire du bien situé au
+                                    <strong>%s</strong>, vous invite à signer votre contrat de location.
+                                </p>
+    
+                                <p>
+                                    <strong>Récapitulatif du contrat :</strong>
+                                </p>
+                                <ul style="color: #374151;">
+                                    <li>Loyer mensuel : <strong>%s €</strong></li>
+                                    <li>Charges mensuelles : <strong>%s €</strong></li>
+                                    <li>Dépôt de garantie : <strong>%s €</strong></li>
+                                    <li>Date de début : <strong>%s</strong></li>
+                                    <li>Durée du bail : <strong>%s mois</strong></li>
+                                </ul>
+    
+                                <p>Pour signer votre contrat, cliquez sur le bouton ci-dessous :</p>
+    
+                                <div style="text-align: center; margin: 30px 0;">
+                                    <a href="%s"
+                                       style="background-color: #2563eb;
+                                              color: white;
+                                              padding: 14px 28px;
+                                              border-radius: 8px;
+                                              text-decoration: none;
+                                              font-weight: bold;
+                                              font-size: 16px;">
+                                        Signer le contrat
+                                    </a>
+                                </div>
+    
+                                <p style="color: #ef4444; font-size: 13px;">
+                                    ⚠️ Ce lien est valable <strong>72 heures</strong>.
+                                    Passé ce délai, vous devrez contacter le propriétaire
+                                    pour obtenir un nouveau lien.
+                                </p>
+    
+                                <p style="margin-top: 30px; font-size: 14px; color: #6b7280;">
+                                    À très bientôt sur KUPANGA,<br/>
+                                    L'équipe KUPANGA
+                                </p>
+                            </div>
+                        </div>
+                    </body>
+                </html>
+                """;
+
+    public static String CONTENU_MAIL_CONTRAT_SIGNE =
+            """
+                <html>
+                    <body style="font-family: Arial, sans-serif;">
+                        <div style="background-color: #f8fafc; padding: 20px;">
+                            <div style="background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+    
+                                <h2 style="color: #16a34a;">
+                                    ✅ Contrat signé avec succès !
+                                </h2>
+    
+                                <p>Bonjour <strong>%s</strong>,</p>
+    
+                                <p>
+                                    Votre contrat de location concernant le bien situé au
+                                    <strong>%s</strong> a été signé par les deux parties.
+                                </p>
+    
+                                <p>
+                                    <strong>Récapitulatif du contrat :</strong>
+                                </p>
+                                <ul style="color: #374151;">
+                                    <li>Loyer mensuel : <strong>%s €</strong></li>
+                                    <li>Charges mensuelles : <strong>%s €</strong></li>
+                                    <li>Dépôt de garantie : <strong>%s €</strong></li>
+                                    <li>Date de début : <strong>%s</strong></li>
+                                    <li>Durée du bail : <strong>%s mois</strong></li>
+                                </ul>
+    
+                                <p>
+                                    Le contrat signé est disponible en pièce jointe de cet email.
+                                    Conservez-le précieusement.
+                                </p>
+    
+                                <div style="background-color: #f0fdf4;
+                                            border-left: 4px solid #16a34a;
+                                            padding: 12px 16px;
+                                            border-radius: 4px;
+                                            margin: 20px 0;">
+                                    <p style="margin: 0; color: #15803d;">
+                                        Ce contrat a valeur de document officiel entre les deux parties.
+                                    </p>
+                                </div>
+    
+                                <p style="margin-top: 30px; font-size: 14px; color: #6b7280;">
+                                    À très bientôt sur KUPANGA,<br/>
+                                    L'équipe KUPANGA
+                                </p>
+                            </div>
+                        </div>
+                    </body>
+                </html>
+                """;
 }

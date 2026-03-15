@@ -18,4 +18,13 @@ public interface MinioService {
      * @return Url de l'image dans minio.
      */
     String uploadImage(MultipartFile file, String bucketName);
+
+    /**
+     * Uploader un pdf
+     * @param pdf le pdf
+     * @param originalName nom du pdf
+     * @param bucketName nom du bucket
+     * @return url du pdf
+     */
+    String uploadPdf(byte[] pdf, String originalName , String bucketName);
 }

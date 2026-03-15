@@ -232,82 +232,6 @@
       "description": "Authentication endpoints for user registration, login, logout, and password management"
     },
     {
-      "name": "Avatar Profile",
-      "item": [
-        {
-          "name": "Create Avatar Profiles (Admin)",
-          "id": "31ace099-2d45-44ff-b0d9-f13dcd2a3dd5",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{accessToken}}"
-              }
-            ],
-            "body": {
-              "mode": "formdata",
-              "formdata": [
-                {
-                  "key": "images",
-                  "type": "file",
-                  "description": "Avatar image files to upload (multiple files supported)",
-                  "src": []
-                }
-              ]
-            },
-            "url": {
-              "raw": "{{baseUrl}}/avatar/admin",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "avatar",
-                "admin"
-              ]
-            },
-            "description": "Upload one or more avatar profile images. Requires ADMIN role. Images are stored and URLs are returned."
-          },
-          "response": []
-        },
-        {
-          "name": "Search Avatar Profiles",
-          "id": "c22a081d-5f64-45bc-acda-6e2b138ca563",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{accessToken}}"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"pageNumber\": 0,\n  \"pageSize\": 10,\n  \"sort\": \"url\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/avatar/search",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "avatar",
-                "search"
-              ]
-            },
-            "description": "Search and paginate through avatar profiles. Supports filtering by page number, page size, and sort order."
-          },
-          "response": []
-        }
-      ],
-      "id": "b72bdc6b-e660-4ce6-b09a-59ac014f14ba",
-      "description": "Endpoints for managing user profile avatars"
-    },
-    {
       "name": "Bien",
       "item": [
         {
@@ -410,6 +334,109 @@
         }
       ],
       "id": "4b2a611e-7daa-4587-ad4c-57ef3018d2b4"
+    },
+    {
+      "name": "Contrat",
+      "item": [
+        {
+          "name": "create",
+          "id": "7a1a29ac-41ac-4003-adc8-986ed06662a5",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"bienId\": 1,\r\n    \"emailLocataire\": \"moiseaganze76@gmail.com\",\r\n    \"dateDebut\": \"2026-04-01\",\r\n    \"dateFin\": \"2027-04-01\",\r\n    \"dureeBailMois\": 12,\r\n    \"loyerMensuel\": 850.00,\r\n    \"chargesMensuelles\": 50.00,\r\n    \"depotGarantie\": 1700.00\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/contrats",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "contrats"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Signature proprietaire",
+          "id": "387b0358-af50-451c-8bb2-4bfcdb1101d0",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"signatureBase64\": \"iVBORw0KGgoAAAANSUhEUgAAASwAAAEsCAYAAAB5fY51AAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAALEgAACxIB0t1+/AAAABx0RVh0U29mdHdhcmUAQWRvYmUgRmlyZXdvcmtzIENTNXG14zYAAAAWdEVYdENyZWF0aW9uIFRpbWUAMDkvMjMvMTNJ0x8TAAAB\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/contrats/{id}/signer-proprio",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "contrats",
+                "{id}",
+                "signer-proprio"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "visualise contrat",
+          "id": "f8249e22-811b-4d85-a60d-9d15d1c0a3bf",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": ""
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Signer Locataire",
+          "id": "323d38b5-1b72-4f5a-8ce1-bfa62ebfa3f7",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"signatureBase64\": \"iVBORw0KGgoAAAANSUhEUgAAASwAAAEsCAYAAAB5fY51AAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAALEgAACxIB0t1+/AAAABx0RVh0U29mdHdhcmUAQWRvYmUgRmlyZXdvcmtzIENTNXG14zYAAAAWdEVYdENyZWF0aW9uIFRpbWUAMDkvMjMvMTNJ0GGGGGGGGGGGGx8TAAAB\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/contrats/signer/{token}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "contrats",
+                "signer",
+                "{token}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "id": "c295021e-7bfc-4f4c-b509-3f6b59a40a93"
     }
   ],
   "variable": [

@@ -2,6 +2,7 @@ package com.kupanga.api.immobilier.service;
 
 import com.kupanga.api.immobilier.dto.formDTO.BienFormDTO;
 import com.kupanga.api.immobilier.dto.readDTO.BienDTO;
+import com.kupanga.api.immobilier.entity.Bien;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -24,4 +25,11 @@ public interface BienService {
      * @return le bien avec toutes ses infos.
      */
     BienDTO getBienInfos( Authentication auth , Long id);
+
+    /**
+     * Retourne un bien avec toutes ses propriétés.
+     * @param id id du bien
+     * @return Bien .
+     */
+    Bien findWithAllProperties(Long id);
 }

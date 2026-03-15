@@ -1,5 +1,7 @@
 package com.kupanga.api.email.service;
 
+import com.kupanga.api.immobilier.entity.Contrat;
+
 /**
  * Service pour l'envoi d'emails liés aux utilisateurs.
  *
@@ -35,4 +37,19 @@ public interface EmailService {
      * @param destinataire le destinataire
      */
     void sendPasswordUpdatedConfirmation(String destinataire);
+
+    /**
+     * Envoi email d'invitation à signé
+     * @param contrat le Contrat
+     * @param token le token
+     */
+    void envoyerInvitationSignature(Contrat contrat, String token);
+
+    /**
+     * Envoie email de confirmation de la signature.
+     * @param contrat le contrat.
+     */
+    void envoyerConfirmationContratSigne(Contrat contrat);
+
+
 }
