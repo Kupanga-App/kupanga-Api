@@ -62,4 +62,7 @@ public class Bien {
 
     @OneToMany(mappedBy = "bien", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Document> documents;
+
+    @OneToMany(mappedBy = "bien", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<BienImage> images;
 }
