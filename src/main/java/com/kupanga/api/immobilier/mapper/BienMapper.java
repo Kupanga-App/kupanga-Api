@@ -1,5 +1,6 @@
 package com.kupanga.api.immobilier.mapper;
 
+import com.kupanga.api.immobilier.dto.formDTO.BienFormDTO;
 import com.kupanga.api.immobilier.dto.readDTO.BienDTO;
 import com.kupanga.api.immobilier.entity.*;
 import com.kupanga.api.user.mapper.UserMapper;
@@ -11,6 +12,7 @@ import java.util.List;
 
 @Mapper(componentModel = "spring" , uses = {UserMapper.class})
 public interface BienMapper {
+
 
     @Mapping(target = "latitude",     expression = "java(bien.getLocalisation() != null ? bien.getLocalisation().getY() : null)")
     @Mapping(target = "longitude",    expression = "java(bien.getLocalisation() != null ? bien.getLocalisation().getX() : null)")

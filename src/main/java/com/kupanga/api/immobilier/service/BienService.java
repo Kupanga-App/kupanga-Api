@@ -1,0 +1,18 @@
+package com.kupanga.api.immobilier.service;
+
+import com.kupanga.api.immobilier.dto.formDTO.BienFormDTO;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
+
+public interface BienService {
+
+    /**
+     * Création d'un bien immobilier.
+     * @param auth pour récupérer le rôle de l'utilisateur
+     * @param bienFormDTO formulaire de bien
+     * @param files les photos du bien.
+     */
+    void createBien(Authentication auth , BienFormDTO bienFormDTO , List<MultipartFile> files);
+}
