@@ -6,10 +6,7 @@ import com.kupanga.api.immobilier.entity.PoiType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.locationtech.jts.geom.Point;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.time.Duration;
@@ -17,7 +14,6 @@ import java.util.EnumMap;
 import java.util.Locale;
 import java.util.Map;
 
-import static com.kupanga.api.immobilier.constant.Constant.OVERPASS_URL;
 import static com.kupanga.api.immobilier.constant.Constant.RAYON_DEFAUT;
 
 @Service
@@ -71,7 +67,7 @@ public class PoiSearchService {
     }
 
     /**
-     * Envoie la requête Overpass QL via POST avec encodage correct du body.
+     * Envoie la requête Overpass QL via GET avec encodage correct du body.
      *
      * @param query la requête Overpass QL
      * @return la réponse JSON brute
