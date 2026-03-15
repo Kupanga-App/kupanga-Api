@@ -231,6 +231,16 @@ public class BienController {
                 - Plusieurs codes postaux simultanément
                 - Plusieurs types de bien simultanément (`APPARTEMENT`, `MAISON`, `STUDIO`, `VILLA`, `BUREAU`, `COMMERCE`)
                 - Recherche partielle sur le titre (insensible à la casse)
+                - Filtrage par points d'intérêt (POI) à moins de 5km du bien
+                
+                **Points d'intérêt disponibles :**
+                - `SCHOOL` — École
+                - `HOSPITAL` — Hôpital
+                - `PHARMACY` — Pharmacie
+                - `KINDERGARTEN` — Garderie d'enfants
+                
+                Plusieurs POI peuvent être combinés — seuls les biens ayant **tous** les POI demandés à proximité seront retournés.
+                Les données POI sont précalculées à la création du bien — le filtre ne génère aucun appel externe.
                 
                 **Tri disponible :**
                 Les champs de tri acceptés sont : `id`, `titre`, `ville`, `codePostal`, `typeBien`, `createdAt`.
@@ -263,6 +273,10 @@ public class BienController {
                                             "longitude": -1.5536,
                                             "images": [
                                                 "https://minio.kupanga.com/biens/photo1.jpg"
+                                            ],
+                                            "poisProches": [
+                                                { "type": "SCHOOL",    "labelFr": "École",     "nombreTrouve": 2 },
+                                                { "type": "PHARMACY",  "labelFr": "Pharmacie", "nombreTrouve": 1 }
                                             ]
                                         }
                                     ],
@@ -285,7 +299,8 @@ public class BienController {
                                     "status": 400,
                                     "message": "Données invalides",
                                     "erreurs": {
-                                        "sortDirection": "Valeur acceptée : ASC ou DESC"
+                                        "sortDirection": "Valeur acceptée : ASC ou DESC",
+                                        "poisRequis": "Valeurs acceptées : SCHOOL, HOSPITAL, PHARMACY, KINDERGARTEN"
                                     },
                                     "timestamp": "2026-03-15T10:00:00"
                                 }
@@ -310,22 +325,45 @@ public class BienController {
             required = true,
             content = @Content(
                     mediaType = "application/json",
-                    examples = @ExampleObject(
-                            name = "Exemple de recherche",
-                            value = """
-                                {
-                                    "villes":        ["Nantes", "Angers"],
-                                    "pays":          ["France"],
-                                    "codesPostaux":  ["44000", "49100"],
-                                    "typesBien":     ["APPARTEMENT", "MAISON"],
-                                    "titre":         "lumineux",
-                                    "page":          0,
-                                    "size":          10,
-                                    "sortBy":        "ville",
-                                    "sortDirection": "ASC"
-                                }
-                                """
-                    )
+                    examples = {
+                            @ExampleObject(
+                                    name = "Recherche simple",
+                                    value = """
+                                        {
+                                            "villes":        ["Nantes", "Angers"],
+                                            "pays":          ["France"],
+                                            "codesPostaux":  ["44000", "49100"],
+                                            "typesBien":     ["APPARTEMENT", "MAISON"],
+                                            "titre":         "lumineux",
+                                            "page":          0,
+                                            "size":          10,
+                                            "sortBy":        "ville",
+                                            "sortDirection": "ASC"
+                                        }
+                                        """
+                            ),
+                            @ExampleObject(
+                                    name = "Recherche avec POI",
+                                    description = "Retourne uniquement les biens ayant une école ET une pharmacie à moins de 5km",
+                                    value = """
+                                        {
+                                            "villes":        ["Angers"],
+                                            "typesBien":     ["APPARTEMENT"],
+                                            "poisRequis":    ["SCHOOL", "PHARMACY"],
+                                            "page":          0,
+                                            "size":          10,
+                                            "sortBy":        "createdAt",
+                                            "sortDirection": "DESC"
+                                        }
+                                        """
+                            ),
+                            @ExampleObject(
+                                    name = "Body vide — tous les biens",
+                                    value = """
+                                        {}
+                                        """
+                            )
+                    }
             )
     )
     @PostMapping("/search")
