@@ -22,7 +22,7 @@ public class BienImageServiceImpl implements BienImageService {
 
         List<BienImage> images = files.stream()
                 .map(file -> BienImage.builder()
-                        .url(minioService.uploadImage(file, bucketName) + bien.getTitre())
+                        .url( minioService.uploadImage(file, bucketName))
                         .bien(bien)
                         .build())
                 .toList();
