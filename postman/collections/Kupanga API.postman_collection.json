@@ -319,7 +319,7 @@
               "bearer": [
                 {
                   "key": "token",
-                  "value": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUk9MRV9QUk9QUklFVEFJUkUiLCJzdWIiOiJrYmcuYWwucHJAZ21haWwuY29tIiwiaWF0IjoxNzczNTQ4NjIzLCJleHAiOjE3NzM1NDg5MjN9.0XOjFVkCTIpgOYTbrIfo9sPnFvTVYmpJigMbJJOAsDg",
+                  "value": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUk9MRV9QUk9QUklFVEFJUkUiLCJzdWIiOiJrYmcuYWwucHJAZ21haWwuY29tIiwiaWF0IjoxNzczNTk5ODUwLCJleHAiOjE3NzM2MDAxNTB9.TzUJ7HlBbGj65kpqae0OC72SI9tmUNljyTU1djgWY3w",
                   "type": "string"
                 }
               ]
@@ -331,7 +331,7 @@
               "formdata": [
                 {
                   "key": "bienFormDTO",
-                  "value": "{\n  \"titre\": \"Appartement lumineux 3 pièces\",\n  \"typeBien\": \"APPARTEMENT\",\n  \"description\": \"Bel appartement situé au centre-ville, proche des commerces et des transports et des universités\",\n  \"adresse\": \"15 Rue Saint-Laud\",\n  \"ville\": \"Angers\",\n  \"codePostal\": \"49100\",\n  \"pays\": \"France\"\n}",
+                  "value": "{\n  \"titre\": \"Appartement lumineux 3 pièces\",\n  \"typeBien\": \"APPARTEMENT\",\n  \"description\": \"Bel appartement situé au centre-ville, proche des commerces et des transports et des universités\",\n  \"adresse\": \"75 Boulevard Jules Verne\",\n  \"ville\": \"Nantes\",\n  \"codePostal\": \"44300\",\n  \"pays\": \"France\"\n}",
                   "type": "text",
                   "uuid": "d74468ea-b83d-462b-9802-c6d58d5486fb",
                   "contentType": "application/json"
