@@ -2,6 +2,9 @@ package com.kupanga.api.immobilier.controller;
 
 import com.kupanga.api.immobilier.dto.formDTO.BienFormDTO;
 import com.kupanga.api.immobilier.dto.readDTO.BienDTO;
+import com.kupanga.api.immobilier.research.BienSearchService;
+import com.kupanga.api.immobilier.research.dto.BienPageDTO;
+import com.kupanga.api.immobilier.research.dto.BienSearchDTO;
 import com.kupanga.api.immobilier.service.BienService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -28,6 +31,7 @@ import java.util.List;
 public class BienController {
 
     private final BienService bienService;
+    private final BienSearchService bienSearchService;
 
     // =========================================
     // CRÉER UN BIEN
@@ -214,5 +218,13 @@ public class BienController {
     ) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         return ResponseEntity.ok(bienService.getBienInfos(auth, bienId));
+    }
+
+    @PostMapping("/search")
+    @Operation(summary = "Rechercher des biens avec filtres, tri et pagination")
+    public ResponseEntity<BienPageDTO> rechercher(
+            @RequestBody BienSearchDTO dto
+    ) {
+        return ResponseEntity.ok(bienSearchService.rechercher(dto));
     }
 }

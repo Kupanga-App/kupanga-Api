@@ -364,6 +364,34 @@
             }
           },
           "response": []
+        },
+        {
+          "name": "search",
+          "id": "7364f722-57b9-4578-8946-56c38aed0fa4",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"villes\": [],\r\n  \"pays\": [],\r\n  \"codesPostaux\": [],\r\n  \"typesBien\": [],\r\n  \"titre\": null,\r\n  \"page\": null,\r\n  \"size\": null,\r\n  \"sortBy\": null,\r\n  \"sortDirection\": null\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/biens/search",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "biens",
+                "search"
+              ]
+            }
+          },
+          "response": []
         }
       ],
       "id": "4b2a611e-7daa-4587-ad4c-57ef3018d2b4"

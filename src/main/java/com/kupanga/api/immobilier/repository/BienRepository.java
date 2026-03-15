@@ -2,11 +2,12 @@ package com.kupanga.api.immobilier.repository;
 
 import com.kupanga.api.immobilier.entity.Bien;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.Optional;
 
-public interface BienRepository extends JpaRepository<Bien, Long> {
+public interface BienRepository extends JpaRepository<Bien, Long>, JpaSpecificationExecutor<Bien> {
 
     @Query(
             """
