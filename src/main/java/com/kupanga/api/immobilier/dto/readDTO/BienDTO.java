@@ -14,8 +14,6 @@ public record BienDTO(
         String           ville,
         String           codePostal,
         String           pays,
-        Double           latitude,
-        Double           longitude,
         TypeBien typeBien,
         String           description,
         LocalDateTime createdAt,

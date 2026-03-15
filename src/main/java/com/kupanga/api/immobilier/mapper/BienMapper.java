@@ -2,6 +2,8 @@ package com.kupanga.api.immobilier.mapper;
 
 import com.kupanga.api.immobilier.dto.readDTO.BienDTO;
 import com.kupanga.api.immobilier.entity.*;
+import com.kupanga.api.user.dto.readDTO.UserDTO;
+import com.kupanga.api.user.entity.User;
 import com.kupanga.api.user.mapper.UserMapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -14,10 +16,8 @@ import java.util.Set;
 public interface BienMapper {
 
 
-    @Mapping(target = "latitude",     expression = "java(bien.getLocalisation() != null ? bien.getLocalisation().getY() : null)")
-    @Mapping(target = "longitude",    expression = "java(bien.getLocalisation() != null ? bien.getLocalisation().getX() : null)")
-    @Mapping(target = "proprietaire", source = "proprietaire")
-    @Mapping(target = "locataire",    source = "locataire")
+    @Mapping(target = "proprietaire", source = "proprietaire",qualifiedByName = "mapUserSansInfosSensibles")
+    @Mapping(target = "locataire",    source = "locataire" , qualifiedByName = "mapUserSansInfosSensibles")
     @Mapping(target = "contrats",     source = "contrats",   qualifiedByName = "contratUrls")
     @Mapping(target = "quittances",   source = "quittances", qualifiedByName = "quittanceUrls")
     @Mapping(target = "documents",    source = "documents",  qualifiedByName = "documentUrls")
@@ -25,6 +25,11 @@ public interface BienMapper {
     BienDTO toDTO(Bien bien);
 
     // ─── Méthodes nommées ─────────────────────────────────────────────────────
+
+    // ─── User sans id ni password ─────────────────────────────────────────────────
+    @Named("mapUserSansInfosSensibles")
+    @Mapping(target = "password", ignore = true)
+    UserDTO mapUserSansInfosSensibles(User user);
 
     @Named("contratUrls")
     default List<String> mapContrats(Set<Contrat> contrats) {
