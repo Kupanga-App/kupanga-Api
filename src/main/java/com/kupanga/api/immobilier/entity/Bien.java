@@ -8,7 +8,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import org.locationtech.jts.geom.Point;
 
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "biens")
@@ -52,17 +52,17 @@ public class Bien {
     private User locataire;
 
     @OneToMany(mappedBy = "bien", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private List<Contrat> contrats;
+    private Set<Contrat> contrats;
 
     @OneToMany(mappedBy = "bien", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private List<Quittance> quittances;
+    private Set<Quittance> quittances;
 
     @OneToMany(mappedBy = "bien", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private List<EtatDesLieux> etatsDesLieux;
+    private Set<EtatDesLieux> etatsDesLieux;
 
     @OneToMany(mappedBy = "bien", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private List<Document> documents;
+    private Set<Document> documents;
 
     @OneToMany(mappedBy = "bien", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private List<BienImage> images;
+    private Set<BienImage> images;
 }

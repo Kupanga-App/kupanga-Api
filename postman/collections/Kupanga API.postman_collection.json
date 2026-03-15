@@ -345,6 +345,25 @@
             }
           },
           "response": []
+        },
+        {
+          "name": "bien",
+          "id": "0717f8b2-1e57-4d83-971b-d97ce8109b71",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/biens/13",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "biens",
+                "13"
+              ]
+            }
+          },
+          "response": []
         }
       ],
       "id": "4b2a611e-7daa-4587-ad4c-57ef3018d2b4"

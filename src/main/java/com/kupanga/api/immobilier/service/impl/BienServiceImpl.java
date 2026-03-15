@@ -2,6 +2,7 @@ package com.kupanga.api.immobilier.service.impl;
 
 import com.kupanga.api.exception.business.KupangaBusinessException;
 import com.kupanga.api.immobilier.dto.formDTO.BienFormDTO;
+import com.kupanga.api.immobilier.dto.readDTO.BienDTO;
 import com.kupanga.api.immobilier.entity.Bien;
 import com.kupanga.api.immobilier.mapper.BienMapper;
 import com.kupanga.api.immobilier.repository.BienRepository;
@@ -69,6 +70,22 @@ public class BienServiceImpl implements BienService {
         bienRepository.save(bien);
 
         bienImageService.uploadImagesImo(files , PHOTO_IMO_BUCKET , bien);
+
+    }
+
+    @Override
+    public BienDTO getBienInfos( Authentication auth , Long id){
+
+        User user = userService.getUserByEmail(auth.getName());
+        Role role = user.getRole();
+        userService.verifyIfUserIsOwner(role);
+
+        Bien bien = bienRepository.findWithAllProperties(id)
+                .orElseThrow(
+                        () -> new KupangaBusinessException("Le bien n'existe pas" , HttpStatus.NOT_FOUND)
+                );
+
+        return bienMapper.toDTO(bien);
 
     }
 }

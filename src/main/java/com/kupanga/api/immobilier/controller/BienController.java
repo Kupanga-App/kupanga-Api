@@ -1,6 +1,7 @@
 package com.kupanga.api.immobilier.controller;
 
 import com.kupanga.api.immobilier.dto.formDTO.BienFormDTO;
+import com.kupanga.api.immobilier.dto.readDTO.BienDTO;
 import com.kupanga.api.immobilier.service.BienService;
 import com.kupanga.api.user.dto.formDTO.UserFormDTO;
 import com.kupanga.api.user.entity.Role;
@@ -9,10 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -25,7 +23,7 @@ public class BienController {
     private final BienService bienService;
 
     @PostMapping
-    ResponseEntity<Void> createBien(
+    public ResponseEntity<Void> createBien(
             @Parameter(
                     description = "JSON contenant les informations obligatoires du bien immobilier.",
                     required = true
@@ -33,9 +31,10 @@ public class BienController {
             @RequestPart("bienFormDTO") BienFormDTO bienFormDTO,
 
             @Parameter(
-                    description = "Images d'annonce obligatoire."
+                    description = "Images d'annonce obligatoire.",
+                    required = false
             )
-            @RequestPart("files") List<MultipartFile> files
+            @RequestPart(value = "files" , required = false) List<MultipartFile> files
             )
     {
 
@@ -45,5 +44,12 @@ public class BienController {
 
         return ResponseEntity.noContent().build();
 
+    }
+
+    @GetMapping("/{bienId}")
+    public ResponseEntity<BienDTO> getBienInfos(@PathVariable Long bienId){
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return ResponseEntity.ok(bienService.getBienInfos( auth , bienId));
     }
 }

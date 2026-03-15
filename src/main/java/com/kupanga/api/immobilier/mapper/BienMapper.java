@@ -1,6 +1,5 @@
 package com.kupanga.api.immobilier.mapper;
 
-import com.kupanga.api.immobilier.dto.formDTO.BienFormDTO;
 import com.kupanga.api.immobilier.dto.readDTO.BienDTO;
 import com.kupanga.api.immobilier.entity.*;
 import com.kupanga.api.user.mapper.UserMapper;
@@ -9,6 +8,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
 import java.util.List;
+import java.util.Set;
 
 @Mapper(componentModel = "spring" , uses = {UserMapper.class})
 public interface BienMapper {
@@ -27,25 +27,25 @@ public interface BienMapper {
     // ─── Méthodes nommées ─────────────────────────────────────────────────────
 
     @Named("contratUrls")
-    default List<String> mapContrats(List<Contrat> contrats) {
+    default List<String> mapContrats(Set<Contrat> contrats) {
         if (contrats == null) return List.of();
         return contrats.stream().map(Contrat::getUrlPdf).toList();
     }
 
     @Named("quittanceUrls")
-    default List<String> mapQuittances(List<Quittance> quittances) {
+    default List<String> mapQuittances(Set<Quittance> quittances) {
         if (quittances == null) return List.of();
         return quittances.stream().map(Quittance::getUrlPdf).toList();
     }
 
     @Named("documentUrls")
-    default List<String> mapDocuments(List<Document> documents) {
+    default List<String> mapDocuments(Set<Document> documents) {
         if (documents == null) return List.of();
         return documents.stream().map(Document::getUrl).toList();
     }
 
     @Named("imageUrls")
-    default List<String> mapImages(List<BienImage> images) {
+    default List<String> mapImages(Set<BienImage> images) {
         if (images == null) return List.of();
         return images.stream().map(BienImage::getUrl).toList();
     }
