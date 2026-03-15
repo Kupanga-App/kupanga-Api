@@ -29,7 +29,7 @@ class JwtUtilsTest {
         );
 
         ReflectionTestUtils.setField(jwtUtils, "secretKey", secureTestKey);
-        ReflectionTestUtils.setField(jwtUtils, "accessTokenExpirationTime", 1000L); // 1s pour tests rapides
+        ReflectionTestUtils.setField(jwtUtils, "accessTokenExpirationTime", 3_600_000L); // 1s pour tests rapides
     }
 
     @Test

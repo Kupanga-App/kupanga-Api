@@ -1,0 +1,2 @@
+-- Baseline : schéma existant avant introduction de Flyway
+-- Les tables existantes ne sont pas recréées ici

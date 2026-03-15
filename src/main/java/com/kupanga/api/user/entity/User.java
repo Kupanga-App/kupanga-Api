@@ -31,29 +31,29 @@ public class User {
     @Column(name = "email")
     private String mail;
 
-    @Column(name = "motDePasse")
+    @Column(name = "mot_de_passe")
     private String password;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "role")
-    private Role role; // PROPRIETAIRE, LOCATAIRE, ADMIN
+    private Role role;
 
-    @Column(name = "A_completer_profil")
+    @Column(name = "a_completer_profil")
     private Boolean hasCompleteProfil = false;
 
     @Column(name = "url_photo_profil")
     private String urlProfile;
 
     // relations
-    @OneToMany(mappedBy = "proprietaire")
+    @OneToMany(mappedBy = "proprietaire" , fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Bien> biensProprietes;
 
-    @OneToMany(mappedBy = "locataire")
+    @OneToMany(mappedBy = "locataire", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Bien> biensLoues;
 
-    @OneToMany(mappedBy = "destinataire")
+    @OneToMany(mappedBy = "destinataire", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Message> messagesRecus;
 
-    @OneToMany(mappedBy = "expediteur")
+    @OneToMany(mappedBy = "expediteur" ,fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Message> messagesEnvoyes;
 }

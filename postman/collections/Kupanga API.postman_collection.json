@@ -306,6 +306,67 @@
       ],
       "id": "b72bdc6b-e660-4ce6-b09a-59ac014f14ba",
       "description": "Endpoints for managing user profile avatars"
+    },
+    {
+      "name": "Bien",
+      "item": [
+        {
+          "name": "created",
+          "id": "d806c553-f6c3-4792-ba85-ee27cc448cdc",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "bienFormDTO",
+                  "value": "{\n  \"titre\": \"Appartement lumineux 3 pièces\",\n  \"typeBien\": \"APPARTEMENT\",\n  \"description\": \"Bel appartement situé au centre-ville, proche des commerces et des transports.\",\n  \"adresse\": \"12 Rue de la Paix\",\n  \"ville\": \"Paris\",\n  \"codePostal\": \"75002\",\n  \"pays\": \"France\"\n}\n",
+                  "type": "text",
+                  "uuid": "d74468ea-b83d-462b-9802-c6d58d5486fb",
+                  "contentType": "application/json"
+                },
+                {
+                  "key": "files",
+                  "value": "",
+                  "type": "text",
+                  "uuid": "7dd59d95-c9c9-4522-adc6-afa77915a55b"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/biens",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "biens"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "bien",
+          "id": "0717f8b2-1e57-4d83-971b-d97ce8109b71",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/biens/13",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "biens",
+                "13"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "id": "4b2a611e-7daa-4587-ad4c-57ef3018d2b4"
     }
   ],
   "variable": [

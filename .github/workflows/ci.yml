@@ -5,7 +5,11 @@ on:
     branches:
       - main
       - develop
-      - 'feature/*'
+      - 'feature/**'
+  pull_request:
+    branches:
+      - main
+      - develop
 
 jobs:
   build-test-static-docker:
@@ -46,6 +50,33 @@ jobs:
           exit 1
 
       # -----------------------------
+      # Flyway — migration avant les tests
+      # -----------------------------
+      - name: Run Flyway migrations
+        run: |
+          docker run --rm \
+            --network host \
+            -v ${{ github.workspace }}/src/main/resources/db/migration:/flyway/sql \
+            flyway/flyway:10 \
+            -url=jdbc:postgresql://localhost:5432/kupanga_dev \
+            -user=kupanga \
+            -password=devpassword \
+            -baselineOnMigrate=true \
+            -validateOnMigrate=false \
+            migrate
+
+      - name: Vérifier les migrations Flyway
+        run: |
+          docker run --rm \
+            --network host \
+            -v ${{ github.workspace }}/src/main/resources/db/migration:/flyway/sql \
+            flyway/flyway:10 \
+            -url=jdbc:postgresql://localhost:5432/kupanga_dev \
+            -user=kupanga \
+            -password=devpassword \
+            info
+
+      # -----------------------------
       # MinIO
       # -----------------------------
       - name: Start MinIO manually
@@ -80,13 +111,16 @@ jobs:
           distribution: 'temurin'
 
       # -----------------------------
-      # Variables DB
+      # Variables DB + Flyway désactivé côté Spring
+      # (Flyway a déjà tourné via Docker ci-dessus)
       # -----------------------------
-      - name: Set DB env
+      - name: Set env vars
         run: |
           echo "SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/kupanga_dev" >> $GITHUB_ENV
-          echo "SPRING_DATASOURCE_USERNAME=kupanga" >> $GITHUB_ENV
-          echo "SPRING_DATASOURCE_PASSWORD=devpassword" >> $GITHUB_ENV
+          echo "SPRING_DATASOURCE_USERNAME=kupanga"                                 >> $GITHUB_ENV
+          echo "SPRING_DATASOURCE_PASSWORD=devpassword"                             >> $GITHUB_ENV
+          echo "SPRING_FLYWAY_ENABLED=false"                                        >> $GITHUB_ENV
+          echo "SPRING_JPA_HIBERNATE_DDL_AUTO=validate"                             >> $GITHUB_ENV
 
       # -----------------------------
       # Build & tests
@@ -95,7 +129,7 @@ jobs:
         run: mvn clean install -DskipTests
 
       - name: Tests
-        run: mvn test
+        run: mvn test -Dspring.profiles.active=test
 
       # -----------------------------
       # Analyse statique

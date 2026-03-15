@@ -2,17 +2,21 @@ package com.kupanga.api.immobilier.entity;
 
 import com.kupanga.api.user.entity.User;
 import jakarta.persistence.*;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+import org.locationtech.jts.geom.Point;
 
-import java.util.List;
+import java.time.LocalDateTime;
+import java.util.Set;
 
 @Entity
 @Table(name = "biens")
 @Getter
 @Setter
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Bien {
 
     @Id
@@ -23,27 +27,42 @@ public class Bien {
     private String adresse;
     private String ville;
     private String codePostal;
-    private Double latitude;
-    private Double longitude;
+    private String pays;
+
+    @Column(columnDefinition = "geometry(Point, 4326)")
+    private Point localisation;
+
+    @Enumerated(EnumType.STRING)
+    private TypeBien typeBien;
+
     private String description;
 
-    @ManyToOne
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "proprietaire_id")
     private User proprietaire;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "locataire_id")
     private User locataire;
 
-    @OneToMany(mappedBy = "bien")
-    private List<Contrat> contrats;
+    @OneToMany(mappedBy = "bien", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private Set<Contrat> contrats;
 
-    @OneToMany(mappedBy = "bien")
-    private List<Quittance> quittances;
+    @OneToMany(mappedBy = "bien", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private Set<Quittance> quittances;
 
-    @OneToMany(mappedBy = "bien")
-    private List<EtatDesLieux> etatsDesLieux;
+    @OneToMany(mappedBy = "bien", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private Set<EtatDesLieux> etatsDesLieux;
 
-    @OneToMany(mappedBy = "bien")
-    private List<Document> documents;
+    @OneToMany(mappedBy = "bien", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private Set<Document> documents;
+
+    @OneToMany(mappedBy = "bien", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private Set<BienImage> images;
 }
