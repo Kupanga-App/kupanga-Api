@@ -1,6 +1,7 @@
 package com.kupanga.api.immobilier.research.dto;
 
 
+import com.kupanga.api.immobilier.entity.PoiType;
 import com.kupanga.api.immobilier.entity.TypeBien;
 import com.kupanga.api.immobilier.research.sort.BienSortEnum;
 import org.springframework.data.domain.Sort;
@@ -15,6 +16,8 @@ public record BienSearchDTO(
         List<String>   pays,
         List<String>   codesPostaux,
         List<TypeBien> typesBien,
+        // Filtres POI
+        List<PoiType>  poisRequis,
         String         titre,
 
         // Pagination + tri

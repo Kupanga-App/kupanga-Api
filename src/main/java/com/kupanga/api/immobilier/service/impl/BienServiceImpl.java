@@ -7,6 +7,7 @@ import com.kupanga.api.immobilier.entity.Bien;
 import com.kupanga.api.immobilier.mapper.BienMapper;
 import com.kupanga.api.immobilier.repository.BienRepository;
 import com.kupanga.api.immobilier.service.BienImageService;
+import com.kupanga.api.immobilier.service.BienPoiService;
 import com.kupanga.api.immobilier.service.BienService;
 import com.kupanga.api.immobilier.service.GeocodingService;
 import com.kupanga.api.user.entity.Role;
@@ -33,6 +34,7 @@ public class BienServiceImpl implements BienService {
     private final GeocodingService geocodingService;
     private final BienRepository bienRepository;
     private final BienMapper bienMapper;
+    private final BienPoiService bienPoiService;
 
     public void createBien(Authentication auth , BienFormDTO bienFormDTO , List<MultipartFile> files){
 
@@ -68,6 +70,8 @@ public class BienServiceImpl implements BienService {
                                 }
                         );
         bienRepository.save(bien);
+
+        bienPoiService.calculerEtSauvegarderPoi(bien);
 
         bienImageService.uploadImagesImo(files , PHOTO_IMO_BUCKET , bien);
 

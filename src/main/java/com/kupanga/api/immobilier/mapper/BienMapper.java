@@ -26,7 +26,6 @@ public interface BienMapper {
 
     // ─── Méthodes nommées ─────────────────────────────────────────────────────
 
-    // ─── User sans id ni password ─────────────────────────────────────────────────
     @Named("mapUserSansInfosSensibles")
     @Mapping(target = "password", ignore = true)
     UserDTO mapUserSansInfosSensibles(User user);

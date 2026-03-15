@@ -1,6 +1,8 @@
 package com.kupanga.api.immobilier.research.specification;
 
 import com.kupanga.api.immobilier.entity.Bien;
+import com.kupanga.api.immobilier.entity.BienPoi;
+import com.kupanga.api.immobilier.entity.PoiType;
 import com.kupanga.api.immobilier.entity.TypeBien;
 import com.kupanga.api.immobilier.research.dto.BienSearchDTO;
 import jakarta.persistence.criteria.Expression;
@@ -24,7 +26,8 @@ public class BienSpecification {
                 .and(parPays(dto.pays()))
                 .and(parCodesPostaux(dto.codesPostaux()))
                 .and(parTypesBien(dto.typesBien()))
-                .and(parTitre(dto.titre()));
+                .and(parTitre(dto.titre()))
+                .and(parPois(dto.poisRequis()));
     }
 
     /**
@@ -103,6 +106,38 @@ public class BienSpecification {
                     cb.lower(root.get("titre")),
                     "%" + titre.toLowerCase() + "%"
             );
+        };
+    }
+
+    /**
+     * Filtre les biens proche des POI
+     * @param poisRequis pois requis pour la recherche
+     * @return la spécification correspondante ou null si aucun filtre
+     */
+    private Specification<Bien> parPois(List<PoiType> poisRequis) {
+        return (root, query, cb) -> {
+            if (poisRequis == null || poisRequis.isEmpty()) return null;
+
+            // Subquery : le bien doit avoir un BienPoi present=true pour chaque POI demandé
+            var subquery = query.subquery(Long.class);
+            var bienPoi  = subquery.from(BienPoi.class);
+
+            subquery.select(bienPoi.get("bien").get("id"))
+                    .where(
+                            cb.and(
+                                    bienPoi.get("poiType").in(poisRequis),
+                                    cb.isTrue(bienPoi.get("present"))
+                            )
+                    )
+                    .groupBy(bienPoi.get("bien").get("id"))
+                    .having(
+                            cb.equal(
+                                    cb.countDistinct(bienPoi.get("poiType")),
+                                    (long) poisRequis.size()  // TOUS les POI demandés doivent être présents
+                            )
+                    );
+
+            return root.get("id").in(subquery);
         };
     }
 }

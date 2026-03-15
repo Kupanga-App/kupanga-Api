@@ -314,6 +314,16 @@
           "name": "created",
           "id": "d806c553-f6c3-4792-ba85-ee27cc448cdc",
           "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUk9MRV9QUk9QUklFVEFJUkUiLCJzdWIiOiJrYmcuYWwucHJAZ21haWwuY29tIiwiaWF0IjoxNzczNTQ4NjIzLCJleHAiOjE3NzM1NDg5MjN9.0XOjFVkCTIpgOYTbrIfo9sPnFvTVYmpJigMbJJOAsDg",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "POST",
             "header": [],
             "body": {
@@ -321,16 +331,21 @@
               "formdata": [
                 {
                   "key": "bienFormDTO",
-                  "value": "{\n  \"titre\": \"Appartement lumineux 3 pièces\",\n  \"typeBien\": \"APPARTEMENT\",\n  \"description\": \"Bel appartement situé au centre-ville, proche des commerces et des transports.\",\n  \"adresse\": \"12 Rue de la Paix\",\n  \"ville\": \"Paris\",\n  \"codePostal\": \"75002\",\n  \"pays\": \"France\"\n}\n",
+                  "value": "{\n  \"titre\": \"Appartement lumineux 3 pièces\",\n  \"typeBien\": \"APPARTEMENT\",\n  \"description\": \"Bel appartement situé au centre-ville, proche des commerces et des transports et des universités\",\n  \"adresse\": \"15 Rue Saint-Laud\",\n  \"ville\": \"Angers\",\n  \"codePostal\": \"49100\",\n  \"pays\": \"France\"\n}",
                   "type": "text",
                   "uuid": "d74468ea-b83d-462b-9802-c6d58d5486fb",
                   "contentType": "application/json"
                 },
                 {
                   "key": "files",
-                  "value": "",
-                  "type": "text",
-                  "uuid": "7dd59d95-c9c9-4522-adc6-afa77915a55b"
+                  "type": "file",
+                  "uuid": "7dd59d95-c9c9-4522-adc6-afa77915a55b",
+                  "src": [
+                    "/C:/Users/Leclerc/Workflow/BackEnd/Java/SpringBoot/Kupanga/Kupanga-Documentations/image/immo/64b565bfca9a139b28f747b3_agences_immobilieres_de_luxe_3.jpeg",
+                    "/C:/Users/Leclerc/Workflow/BackEnd/Java/SpringBoot/Kupanga/Kupanga-Documentations/image/immo/aef41bf24933e3a6ad1e6adbffbc53c6_898d93b5e6_1920-original.webp",
+                    "/C:/Users/Leclerc/Workflow/BackEnd/Java/SpringBoot/Kupanga/Kupanga-Documentations/image/immo/d.jpg",
+                    "/C:/Users/Leclerc/Workflow/BackEnd/Java/SpringBoot/Kupanga/Kupanga-Documentations/image/immo/CP Coeur de Vie.webp"
+                  ]
                 }
               ]
             },
@@ -373,7 +388,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"villes\": [],\r\n  \"pays\": [],\r\n  \"codesPostaux\": [],\r\n  \"typesBien\": [],\r\n  \"titre\": null,\r\n  \"page\": null,\r\n  \"size\": null,\r\n  \"sortBy\": null,\r\n  \"sortDirection\": null\r\n}",
+              "raw": "{\r\n  \"villes\":       [],\r\n  \"pays\":         [\"France\"],\r\n  \"codesPostaux\": [],\r\n  \"typesBien\":    [\"APPARTEMENT\", \"MAISON\"],\r\n  \"poisRequis\": [\"SCHOOL\", \"PHARMACY\"],\r\n  \"titre\":        null,\r\n  \"page\":         null,\r\n  \"size\":         null,\r\n  \"sortBy\":       null,\r\n  \"sortDirection\": \"ASC\"\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
