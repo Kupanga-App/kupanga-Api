@@ -21,8 +21,6 @@ public class ContratPdfService {
     private final TemplateEngine templateEngine;
     private final MinioService minioService;
 
-    private static final String BUCKET = "bucket-contrats";
-
     /**
      * Génère le PDF depuis le template Thymeleaf et l'upload sur MinIO.
      * Retourne l'URL MinIO du PDF généré.
