@@ -1,81 +1,353 @@
-<!-- src/main/resources/templates/contrat.html -->
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8"/>
     <style>
-        body        { font-family: Arial, sans-serif; font-size: 12px; margin: 40px; }
-        h1          { text-align: center; font-size: 18px; text-transform: uppercase; }
-        .section    { margin-top: 30px; }
-        .label      { font-weight: bold; }
-        .signature  { margin-top: 40px; display: flex; justify-content: space-between; }
-        .sig-box    { width: 45%; border-top: 1px solid black; text-align: center; padding-top: 8px; }
-        img.sig-img { width: 200px; height: 80px; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            color: #1a1a2e;
+            margin: 40px;
+            line-height: 1.6;
+        }
+
+        /* ── En-tête ── */
+        .header {
+            border: 2px solid #1a3a6b;
+            border-radius: 4px;
+            text-align: center;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            font-size: 22px;
+            font-weight: bold;
+            color: #1a3a6b;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        .header h2 {
+            font-size: 16px;
+            font-weight: normal;
+            color: #1a3a6b;
+            margin-top: 6px;
+        }
+        .header .sous-titre {
+            font-size: 11px;
+            color: #4a6fa5;
+            margin-top: 8px;
+            font-style: italic;
+        }
+
+        /* ── Titres de section ── */
+        .section-title {
+            font-size: 13px;
+            font-weight: bold;
+            color: #1a3a6b;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 2px solid #1a3a6b;
+            padding-bottom: 4px;
+            margin: 28px 0 16px 0;
+        }
+
+        /* ── Carte partie (Bailleur / Locataire) ── */
+        .partie-card {
+            border: 1px solid #c5d3e8;
+            border-radius: 8px;
+            padding: 16px 20px;
+            margin-bottom: 14px;
+        }
+        .partie-card .partie-label {
+            font-size: 13px;
+            font-weight: bold;
+            color: #1a3a6b;
+            margin-bottom: 12px;
+        }
+
+        /* ── Ligne de champ ── */
+        .field-row {
+            display: flex;
+            align-items: baseline;
+            margin-bottom: 8px;
+            border-bottom: 1px dotted #c5d3e8;
+            padding-bottom: 4px;
+        }
+        .field-row:last-child {
+            border-bottom: none;
+        }
+        .field-label {
+            font-weight: bold;
+            color: #333;
+            min-width: 160px;
+            flex-shrink: 0;
+        }
+        .field-value {
+            color: #1a6fbf;
+            font-weight: bold;
+        }
+
+        /* ── Deux colonnes ── */
+        .two-col {
+            display: flex;
+            gap: 20px;
+        }
+        .two-col .field-row {
+            flex: 1;
+        }
+
+        /* ── Tableau financier ── */
+        table.financier {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 8px;
+        }
+        table.financier th {
+            background-color: #1a3a6b;
+            color: white;
+            padding: 8px 12px;
+            text-align: left;
+            font-size: 11px;
+        }
+        table.financier td {
+            padding: 8px 12px;
+            border-bottom: 1px solid #e0e8f5;
+        }
+        table.financier tr:nth-child(even) td {
+            background-color: #f0f5fc;
+        }
+        table.financier td.montant {
+            color: #1a6fbf;
+            font-weight: bold;
+            text-align: right;
+        }
+
+        /* ── Bloc durée ── */
+        .duree-bloc {
+            background-color: #f0f5fc;
+            border-left: 4px solid #1a3a6b;
+            border-radius: 4px;
+            padding: 12px 16px;
+            margin-top: 8px;
+        }
+        .duree-bloc p {
+            margin-bottom: 4px;
+        }
+
+        /* ── Signatures ── */
+        .signatures {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 40px;
+            gap: 20px;
+        }
+        .sig-box {
+            flex: 1;
+            border: 1px solid #c5d3e8;
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+        }
+        .sig-box .sig-title {
+            font-weight: bold;
+            color: #1a3a6b;
+            margin-bottom: 12px;
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+        .sig-box img {
+            width: 200px;
+            height: 80px;
+            border: 1px dashed #c5d3e8;
+            border-radius: 4px;
+            display: block;
+            margin: 0 auto 8px auto;
+        }
+        .sig-box .sig-date {
+            font-size: 10px;
+            color: #4a6fa5;
+            margin-top: 6px;
+        }
+        .sig-placeholder {
+            width: 200px;
+            height: 80px;
+            border: 1px dashed #c5d3e8;
+            border-radius: 4px;
+            margin: 0 auto 8px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #aab8cc;
+            font-size: 10px;
+        }
+
+        /* ── Pied de page ── */
+        .footer {
+            margin-top: 40px;
+            border-top: 1px solid #c5d3e8;
+            padding-top: 10px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            color: #888;
+        }
     </style>
 </head>
 <body>
 
-<h1>Contrat de location</h1>
+<!-- ── En-tête ── -->
+<div class="header">
+    <h1>Contrat de location</h1>
+    <h2>Logement à usage de résidence principale</h2>
+    <p class="sous-titre">Soumis au titre Ier de la loi du 6 juillet 1989</p>
+</div>
 
-<!-- Parties -->
-<div class="section">
-    <p class="label">Entre les soussignés :</p>
+<!-- ── Désignation des parties ── -->
+<div class="section-title">Désignation des parties</div>
+<p style="margin-bottom: 14px; color: #555;">Le présent contrat est conclu entre les soussignés :</p>
+
+<!-- Bailleur -->
+<div class="partie-card">
+    <div class="partie-label">Bailleur (propriétaire)</div>
+
+    <div class="field-row">
+        <span class="field-label">Prénom(s), Nom(s) :</span>
+        <span class="field-value"
+              th:text="${proprietaire.firstName + ' ' + proprietaire.lastName}"></span>
+    </div>
+    <div class="field-row">
+        <span class="field-label">Email :</span>
+        <span class="field-value" th:text="${proprietaire.mail}"></span>
+    </div>
+</div>
+
+<!-- Locataire -->
+<div class="partie-card">
+    <div class="partie-label">Locataire(s)</div>
+
+    <div class="field-row">
+        <span class="field-label">Prénom(s), Nom(s) :</span>
+        <span class="field-value"
+              th:text="${locataire.firstName + ' ' + locataire.lastName}"></span>
+    </div>
+    <div class="field-row">
+        <span class="field-label">Email :</span>
+        <span class="field-value" th:text="${locataire.mail}"></span>
+    </div>
+</div>
+
+<!-- ── Désignation du bien ── -->
+<div class="section-title">Désignation du bien loué</div>
+
+<div class="partie-card">
+    <div class="field-row">
+        <span class="field-label">Adresse du bien :</span>
+        <span class="field-value" th:text="${contrat.adresseBien}"></span>
+    </div>
+</div>
+
+<!-- ── Conditions financières ── -->
+<div class="section-title">Conditions financières</div>
+
+<table class="financier">
+    <thead>
+    <tr>
+        <th>Désignation</th>
+        <th style="text-align: right;">Montant</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td>Loyer mensuel hors charges</td>
+        <td class="montant">
+            <span th:text="${contrat.loyerMensuel}"></span> €
+        </td>
+    </tr>
+    <tr>
+        <td>Charges mensuelles</td>
+        <td class="montant">
+            <span th:text="${contrat.chargesMensuelles}"></span> €
+        </td>
+    </tr>
+    <tr>
+        <td><strong>Total mensuel</strong></td>
+        <td class="montant">
+            <strong>
+                <span th:text="${contrat.loyerMensuel + contrat.chargesMensuelles}"></span> €
+            </strong>
+        </td>
+    </tr>
+    <tr>
+        <td>Dépôt de garantie</td>
+        <td class="montant">
+            <span th:text="${contrat.depotGarantie}"></span> €
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+<!-- ── Durée du bail ── -->
+<div class="section-title">Durée du bail</div>
+
+<div class="duree-bloc">
     <p>
-        <strong>Le propriétaire :</strong>
-        <span th:text="${proprietaire.firstName + ' ' + proprietaire.lastName}"></span>,
-        email : <span th:text="${proprietaire.mail}"></span>
+        <strong>Date de début :</strong>
+        <span class="field-value"
+              th:text="${#temporals.format(contrat.dateDebut, 'dd/MM/yyyy')}"></span>
+    </p>
+    <p th:if="${contrat.dateFin != null}">
+        <strong>Date de fin :</strong>
+        <span class="field-value"
+              th:text="${#temporals.format(contrat.dateFin, 'dd/MM/yyyy')}"></span>
     </p>
     <p>
-        <strong>Le locataire :</strong>
-        <span th:text="${locataire.firstName + ' ' + locataire.lastName}"></span>,
-        email : <span th:text="${locataire.mail}"></span>
+        <strong>Durée :</strong>
+        <span class="field-value" th:text="${contrat.dureeBailMois}"></span>
+        <span class="field-value"> mois</span>
     </p>
 </div>
 
-<!-- Bien -->
-<div class="section">
-    <p class="label">Concernant le bien situé à :</p>
-    <p th:text="${contrat.adresseBien}"></p>
-</div>
+<!-- ── Signatures ── -->
+<div class="section-title">Signatures des parties</div>
 
-<!-- Conditions financières -->
-<div class="section">
-    <p class="label">Conditions financières :</p>
-    <p>Loyer mensuel : <span th:text="${contrat.loyerMensuel}"></span> €</p>
-    <p>Charges mensuelles : <span th:text="${contrat.chargesMensuelles}"></span> €</p>
-    <p>Dépôt de garantie : <span th:text="${contrat.depotGarantie}"></span> €</p>
-</div>
+<div class="signatures">
 
-<!-- Durée -->
-<div class="section">
-    <p class="label">Durée du bail :</p>
-    <p>
-        Du <span th:text="${#temporals.format(contrat.dateDebut, 'dd/MM/yyyy')}"></span>
-        <span th:if="${contrat.dateFin != null}">
-            au <span th:text="${#temporals.format(contrat.dateFin, 'dd/MM/yyyy')}"></span>
-        </span>
-        (<span th:text="${contrat.dureeBailMois}"></span> mois)
-    </p>
-</div>
-
-<!-- Signatures -->
-<div class="signature">
     <div class="sig-box">
-        <p>Signature du propriétaire</p>
+        <div class="sig-title">Signature du bailleur</div>
         <img th:if="${contrat.signatureProprietaire != null}"
              th:src="'data:image/png;base64,' + ${contrat.signatureProprietaire}"
-             class="sig-img"/>
+             alt="Signature propriétaire"/>
+        <div th:if="${contrat.signatureProprietaire == null}"
+             class="sig-placeholder">En attente de signature</div>
         <p th:if="${contrat.dateSignatureProprietaire != null}"
-           th:text="${#temporals.format(contrat.dateSignatureProprietaire, 'dd/MM/yyyy HH:mm')}"></p>
+           class="sig-date"
+           th:text="'Signé le ' + ${#temporals.format(contrat.dateSignatureProprietaire, 'dd/MM/yyyy à HH:mm')}"></p>
+        <p style="margin-top: 8px; color: #555;"
+           th:text="${proprietaire.firstName + ' ' + proprietaire.lastName}"></p>
     </div>
+
     <div class="sig-box">
-        <p>Signature du locataire</p>
+        <div class="sig-title">Signature du locataire</div>
         <img th:if="${contrat.signatureLocataire != null}"
              th:src="'data:image/png;base64,' + ${contrat.signatureLocataire}"
-             class="sig-img"/>
+             alt="Signature locataire"/>
+        <div th:if="${contrat.signatureLocataire == null}"
+             class="sig-placeholder">En attente de signature</div>
         <p th:if="${contrat.dateSignatureLocataire != null}"
-           th:text="${#temporals.format(contrat.dateSignatureLocataire, 'dd/MM/yyyy HH:mm')}"></p>
+           class="sig-date"
+           th:text="'Signé le ' + ${#temporals.format(contrat.dateSignatureLocataire, 'dd/MM/yyyy à HH:mm')}"></p>
+        <p style="margin-top: 8px; color: #555;"
+           th:text="${locataire.firstName + ' ' + locataire.lastName}"></p>
     </div>
+
+</div>
+
+<!-- ── Pied de page ── -->
+<div class="footer">
+    <span>Kupanga — Gestion immobilière</span>
+    <span>Page 1 sur 1</span>
 </div>
 
 </body>
