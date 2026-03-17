@@ -46,6 +46,34 @@ services:
           memory: 256M
 
   # ------------------------
+  # 2b. PostgreSQL TEST Database
+  # ------------------------
+  db-test:
+    image: postgis/postgis:15-3.4-alpine
+    container_name: kupanga-db-test
+    environment:
+      POSTGRES_DB: kupanga_test
+      POSTGRES_USER: kupanga
+      POSTGRES_PASSWORD: testpassword
+    ports:
+      - "5434:5432"       # ← port différent pour éviter le conflit
+    tmpfs:
+      - /var/lib/postgresql/data   # ← stockage en RAM, pas de volume persistant
+    restart: "no"         # ← inutile de redémarrer un container de test
+    profiles:
+      - test              # ← démarré UNIQUEMENT avec --profile test
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U kupanga -d kupanga_test" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # ------------------------
   # 3️. MinIO Storage
   # ------------------------
   minio:

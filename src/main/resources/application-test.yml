@@ -1,20 +1,23 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5433/kupanga_dev
+    url: jdbc:postgresql://localhost:5434/kupanga_test
     username: kupanga
-    password: devpassword
+    password: testpassword
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: create-drop
     show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
   flyway:
-    enabled: true
+    enabled: false
   cache:
-    type: simple
+    type: none
 
 minio:
-  endpoint: http://localhost:9001
+  endpoint: http://localhost:9000
   access-key: minioadmin
   secret-key: minioadmin
 
