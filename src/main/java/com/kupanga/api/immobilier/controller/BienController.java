@@ -30,7 +30,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class BienController {
 
-    private final BienService bienService;
+    private final BienService       bienService;
     private final BienSearchService bienSearchService;
 
     // =========================================
@@ -38,9 +38,20 @@ public class BienController {
     // =========================================
     @Operation(
             summary = "Créer un nouveau bien immobilier",
-            description = "Permet à un utilisateur authentifié ayant le rôle PROPRIETAIRE d'enregistrer " +
-                    "un nouveau bien immobilier. La localisation géographique est calculée automatiquement " +
-                    "à partir de l'adresse fournie. Au moins une photo est obligatoire."
+            description = """
+                    Permet à un utilisateur authentifié ayant le rôle `PROPRIETAIRE` d'enregistrer
+                    un nouveau bien immobilier. La localisation géographique est calculée automatiquement
+                    à partir de l'adresse fournie via Nominatim (OpenStreetMap).
+                    Les points d'intérêt (POI) sont calculés de façon asynchrone après la création.
+                    Au moins une photo est obligatoire.
+
+                    **Champs obligatoires :** titre, typeBien, adresse, ville, codePostal, pays,
+                    surfaceHabitable, nombrePieces, loyerMensuel, chargesMensuelles, depotGarantie,
+                    meuble, colocation, disponibleDe, images.
+
+                    **Champs optionnels :** description, nombreChambres, etage, ascenseur,
+                    anneeConstruction, modeChauffage, classeEnergie, classeGes.
+                    """
     )
     @ApiResponses(value = {
             @ApiResponse(
@@ -53,17 +64,18 @@ public class BienController {
                     content = @Content(
                             mediaType = "application/json",
                             examples = @ExampleObject(value = """
-                                {
-                                    "status": 400,
-                                    "message": "Données invalides",
-                                    "erreurs": {
-                                        "titre": "Le titre est obligatoire",
-                                        "ville": "Lettres, espaces, tirets ou apostrophes uniquement",
-                                        "codePostal": "Code postal invalide"
-                                    },
-                                    "timestamp": "2026-03-15T10:00:00"
-                                }
-                                """)
+                                    {
+                                        "status": 400,
+                                        "message": "Données invalides",
+                                        "erreurs": {
+                                            "titre":            "Le titre est obligatoire",
+                                            "surfaceHabitable": "La surface habitable est obligatoire",
+                                            "loyerMensuel":     "Le loyer mensuel est obligatoire",
+                                            "disponibleDe":     "La date de disponibilité est obligatoire"
+                                        },
+                                        "timestamp": "2026-03-16T10:00:00"
+                                    }
+                                    """)
                     )
             ),
             @ApiResponse(
@@ -72,10 +84,8 @@ public class BienController {
                     content = @Content(
                             mediaType = "application/json",
                             examples = @ExampleObject(value = """
-                                {
-                                    "error": "Accès non autorisé"
-                                }
-                                """)
+                                    { "error": "Accès non autorisé" }
+                                    """)
                     )
             ),
             @ApiResponse(
@@ -84,30 +94,61 @@ public class BienController {
                     content = @Content(
                             mediaType = "application/json",
                             examples = @ExampleObject(value = """
-                                {
-                                    "error": "Accès refusé : rôle PROPRIETAIRE requis"
-                                }
-                                """)
+                                    { "error": "Accès refusé : rôle PROPRIETAIRE requis" }
+                                    """)
                     )
             ),
             @ApiResponse(
-                    responseCode = "422",
+                    responseCode = "404",
                     description = "Géocodage échoué : adresse introuvable sur la carte",
                     content = @Content(
                             mediaType = "application/json",
                             examples = @ExampleObject(value = """
-                                {
-                                    "error": "Impossible de localiser l'adresse fournie"
-                                }
-                                """)
+                                    { "error": "Nous n'avons pas pu géolocaliser votre bien" }
+                                    """)
                     )
             )
     })
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            description = "Informations complètes du bien immobilier à créer",
+            required = true,
+            content = @Content(
+                    mediaType = "application/json",
+                    examples = @ExampleObject(
+                            name = "Exemple complet",
+                            value = """
+                                    {
+                                        "titre":              "Appartement lumineux 3 pièces",
+                                        "typeBien":           "APPARTEMENT",
+                                        "description":        "Bel appartement situé au centre-ville",
+                                        "adresse":            "75 Boulevard Jules Verne",
+                                        "ville":              "Nantes",
+                                        "codePostal":         "44300",
+                                        "pays":               "France",
+                                        "surfaceHabitable":   65.5,
+                                        "nombrePieces":       3,
+                                        "nombreChambres":     2,
+                                        "etage":              2,
+                                        "ascenseur":          true,
+                                        "anneeConstruction":  1998,
+                                        "modeChauffage":      "ELECTRIQUE",
+                                        "classeEnergie":      "C",
+                                        "classeGes":          "B",
+                                        "loyerMensuel":       850.00,
+                                        "chargesMensuelles":  50.00,
+                                        "depotGarantie":      1700.00,
+                                        "meuble":             false,
+                                        "colocation":         false,
+                                        "disponibleDe":       "2026-04-01"
+                                    }
+                                    """
+                    )
+            )
+    )
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Void> createBien(
             @Parameter(
-                    description = "JSON contenant les informations obligatoires du bien immobilier : " +
-                            "titre, typeBien, adresse, ville, codePostal, pays et optionnellement description.",
+                    description = "JSON contenant les informations du bien immobilier",
                     required = true
             )
             @RequestPart("bienFormDTO") BienFormDTO bienFormDTO,
@@ -131,9 +172,14 @@ public class BienController {
     // =========================================
     @Operation(
             summary = "Consulter le détail d'un bien immobilier",
-            description = "Retourne les informations complètes d'un bien immobilier. " +
-                    "Seuls le propriétaire du bien et son locataire peuvent accéder à cette ressource. " +
-                    "Tout autre utilisateur, même authentifié, se verra refuser l'accès."
+            description = """
+                    Retourne les informations complètes d'un bien immobilier.
+                    Seuls le propriétaire du bien et son locataire peuvent accéder à cette ressource.
+                    Tout autre utilisateur, même authentifié, se verra refuser l'accès.
+
+                    **Informations retournées :** caractéristiques physiques, conditions de location,
+                    diagnostic énergétique, POI à proximité, documents, images, parties du contrat.
+                    """
     )
     @ApiResponses(value = {
             @ApiResponse(
@@ -143,35 +189,49 @@ public class BienController {
                             mediaType = "application/json",
                             schema = @Schema(implementation = BienDTO.class),
                             examples = @ExampleObject(value = """
-                                {
-                                    "id": 1,
-                                    "titre": "Appartement T3 - Nantes Centre",
-                                    "typeBien": "APPARTEMENT",
-                                    "description": "Beau T3 lumineux avec vue dégagée",
-                                    "adresse": "12 rue de la Paix",
-                                    "ville": "Nantes",
-                                    "codePostal": "44000",
-                                    "pays": "France",
-                                    "latitude": 47.2184,
-                                    "longitude": -1.5536,
-                                    "createdAt": "2026-03-15T10:00:00",
-                                    "updatedAt": "2026-03-15T10:00:00",
-                                    "proprietaire": {
-                                        "id": 5,
-                                        "nom": "Dupont",
-                                        "prenom": "Jean",
-                                        "email": "jean.dupont@email.com"
-                                    },
-                                    "locataire": null,
-                                    "contrats": [],
-                                    "quittances": [],
-                                    "documents": [],
-                                    "images": [
-                                        "https://minio.kupanga.com/biens/photo1.jpg",
-                                        "https://minio.kupanga.com/biens/photo2.jpg"
-                                    ]
-                                }
-                                """)
+                                    {
+                                        "id": 1,
+                                        "titre": "Appartement lumineux 3 pièces",
+                                        "typeBien": "APPARTEMENT",
+                                        "description": "Beau T3 lumineux avec vue dégagée",
+                                        "adresse": "75 Boulevard Jules Verne",
+                                        "ville": "Nantes",
+                                        "codePostal": "44300",
+                                        "pays": "France",
+                                        "latitude": 47.2184,
+                                        "longitude": -1.5536,
+                                        "surfaceHabitable": 65.5,
+                                        "nombrePieces": 3,
+                                        "nombreChambres": 2,
+                                        "etage": 2,
+                                        "ascenseur": true,
+                                        "anneeConstruction": 1998,
+                                        "modeChauffage": "ELECTRIQUE",
+                                        "classeEnergie": "C",
+                                        "classeGes": "B",
+                                        "loyerMensuel": 850.00,
+                                        "chargesMensuelles": 50.00,
+                                        "depotGarantie": 1700.00,
+                                        "meuble": false,
+                                        "colocation": false,
+                                        "disponibleDe": "2026-04-01",
+                                        "proprietaire": {
+                                            "firstName": "Jean",
+                                            "lastName": "Dupont"
+                                        },
+                                        "locataire": null,
+                                        "contrats":   ["https://minio.kupanga.com/contrats/contrat_1.pdf"],
+                                        "quittances": [],
+                                        "documents":  [],
+                                        "images": [
+                                            "https://minio.kupanga.com/biens/photo1.jpg",
+                                            "https://minio.kupanga.com/biens/photo2.jpg"
+                                        ],
+                                        "pois": ["École", "Pharmacie", "Hôpital"],
+                                        "createdAt": "2026-03-16T10:00:00",
+                                        "updatedAt": "2026-03-16T10:00:00"
+                                    }
+                                    """)
                     )
             ),
             @ApiResponse(
@@ -180,10 +240,8 @@ public class BienController {
                     content = @Content(
                             mediaType = "application/json",
                             examples = @ExampleObject(value = """
-                                {
-                                    "error": "Accès non autorisé"
-                                }
-                                """)
+                                    { "error": "Accès non autorisé" }
+                                    """)
                     )
             ),
             @ApiResponse(
@@ -192,10 +250,8 @@ public class BienController {
                     content = @Content(
                             mediaType = "application/json",
                             examples = @ExampleObject(value = """
-                                {
-                                    "error": "Accès refusé au bien 1"
-                                }
-                                """)
+                                    { "error": "Accès refusé au bien 1" }
+                                    """)
                     )
             ),
             @ApiResponse(
@@ -204,10 +260,8 @@ public class BienController {
                     content = @Content(
                             mediaType = "application/json",
                             examples = @ExampleObject(value = """
-                                {
-                                    "error": "Bien introuvable : 1"
-                                }
-                                """)
+                                    { "error": "Bien introuvable : 1" }
+                                    """)
                     )
             )
     })
@@ -219,36 +273,49 @@ public class BienController {
         return ResponseEntity.ok(bienService.getBienInfos(bienId));
     }
 
+
+    // =========================================
+    // RECHERCHER DES BIENS
+    // =========================================
     @Operation(
             summary = "Rechercher des biens immobiliers",
             description = """
-                Permet de rechercher des biens immobiliers avec des filtres dynamiques, un tri et une pagination.
-                
-                **Filtres disponibles :**
-                - Plusieurs villes simultanément
-                - Plusieurs pays simultanément
-                - Plusieurs codes postaux simultanément
-                - Plusieurs types de bien simultanément (`APPARTEMENT`, `MAISON`, `STUDIO`, `VILLA`, `BUREAU`, `COMMERCE`)
-                - Recherche partielle sur le titre (insensible à la casse)
-                - Filtrage par points d'intérêt (POI) à moins de 5km du bien
-                
-                **Points d'intérêt disponibles :**
-                - `SCHOOL` — École
-                - `HOSPITAL` — Hôpital
-                - `PHARMACY` — Pharmacie
-                - `KINDERGARTEN` — Garderie d'enfants
-                
-                Plusieurs POI peuvent être combinés — seuls les biens ayant **tous** les POI demandés à proximité seront retournés.
-                Les données POI sont précalculées à la création du bien — le filtre ne génère aucun appel externe.
-                
-                **Tri disponible :**
-                Les champs de tri acceptés sont : `id`, `titre`, `ville`, `codePostal`, `typeBien`, `createdAt`.
-                Par défaut le tri est effectué par `id` en ordre croissant (`ASC`).
-                
-                **Pagination :**
-                Par défaut la page est `0` et la taille est `10`.
-                Tous les champs sont optionnels — un body vide retourne tous les biens paginés.
-                """
+                    Permet de rechercher des biens immobiliers avec des filtres dynamiques, un tri et une pagination.
+                    Tous les champs sont optionnels — un body vide retourne tous les biens paginés.
+
+                    **Filtres de localisation :**
+                    Plusieurs villes, pays et codes postaux simultanément.
+
+                    **Filtres de type :**
+                    `APPARTEMENT`, `MAISON`, `STUDIO`, `VILLA`, `BUREAU`, `COMMERCE`.
+                    Recherche partielle sur le titre (insensible à la casse).
+
+                    **Filtres financiers :**
+                    Loyer min/max (en €).
+
+                    **Filtres de caractéristiques :**
+                    Surface min/max (en m²), nombre de pièces minimum, étage min/max,
+                    avec ou sans ascenseur, meublé ou non, colocation autorisée ou non,
+                    disponible avant une date donnée.
+
+                    **Filtres énergétiques :**
+                    Classe énergie (`A` à `G`), classe GES (`A` à `G`).
+
+                    **Filtres de chauffage :**
+                    `ELECTRIQUE`, `GAZ`, `FIOUL`, `BOIS`, `POMPE_A_CHALEUR`, `POELE`, `COLLECTIF`, `SANS_CHAUFFAGE`.
+
+                    **Filtres POI (points d'intérêt à moins de 5km) :**
+                    `SCHOOL` — École, `HOSPITAL` — Hôpital, `PHARMACY` — Pharmacie, `KINDERGARTEN` — Garderie.
+                    Plusieurs POI combinables — seuls les biens ayant **tous** les POI demandés sont retournés.
+                    Données précalculées à la création — aucun appel externe lors de la recherche.
+
+                    **Tri disponible :**
+                    `id`, `titre`, `ville`, `codePostal`, `typeBien`, `loyerMensuel`, `surfaceHabitable`,
+                    `disponibleDe`, `createdAt`. Défaut : `id ASC`.
+
+                    **Pagination :**
+                    Défaut : page `0`, taille `10`.
+                    """
     )
     @ApiResponses(value = {
             @ApiResponse(
@@ -258,34 +325,43 @@ public class BienController {
                             mediaType = "application/json",
                             schema = @Schema(implementation = BienPageDTO.class),
                             examples = @ExampleObject(value = """
-                                {
-                                    "contenu": [
-                                        {
-                                            "id": 1,
-                                            "titre": "Appartement lumineux T3",
-                                            "typeBien": "APPARTEMENT",
-                                            "adresse": "12 rue de la Paix",
-                                            "ville": "Nantes",
-                                            "codePostal": "44000",
-                                            "pays": "France",
-                                            "latitude": 47.2184,
-                                            "longitude": -1.5536,
-                                            "images": [
-                                                "https://minio.kupanga.com/biens/photo1.jpg"
-                                            ],
-                                            "poisProches": [
-                                                { "type": "SCHOOL",    "labelFr": "École",     "nombreTrouve": 2 },
-                                                { "type": "PHARMACY",  "labelFr": "Pharmacie", "nombreTrouve": 1 }
-                                            ]
-                                        }
-                                    ],
-                                    "pageActuelle": 0,
-                                    "totalPages": 3,
-                                    "totalElements": 25,
-                                    "dernierePage": false,
-                                    "premierePage": true
-                                }
-                                """)
+                                    {
+                                        "contenu": [
+                                            {
+                                                "id": 1,
+                                                "titre": "Appartement lumineux 3 pièces",
+                                                "typeBien": "APPARTEMENT",
+                                                "adresse": "75 Boulevard Jules Verne",
+                                                "ville": "Nantes",
+                                                "codePostal": "44300",
+                                                "pays": "France",
+                                                "latitude": 47.2184,
+                                                "longitude": -1.5536,
+                                                "surfaceHabitable": 65.5,
+                                                "nombrePieces": 3,
+                                                "etage": 2,
+                                                "ascenseur": true,
+                                                "modeChauffage": "ELECTRIQUE",
+                                                "classeEnergie": "C",
+                                                "classeGes": "B",
+                                                "loyerMensuel": 850.00,
+                                                "chargesMensuelles": 50.00,
+                                                "meuble": false,
+                                                "colocation": false,
+                                                "disponibleDe": "2026-04-01",
+                                                "images": [
+                                                    "https://minio.kupanga.com/biens/photo1.jpg"
+                                                ],
+                                                "pois": ["École", "Pharmacie"]
+                                            }
+                                        ],
+                                        "pageActuelle": 0,
+                                        "totalPages": 3,
+                                        "totalElements": 25,
+                                        "dernierePage": false,
+                                        "premierePage": true
+                                    }
+                                    """)
                     )
             ),
             @ApiResponse(
@@ -294,16 +370,17 @@ public class BienController {
                     content = @Content(
                             mediaType = "application/json",
                             examples = @ExampleObject(value = """
-                                {
-                                    "status": 400,
-                                    "message": "Données invalides",
-                                    "erreurs": {
-                                        "sortDirection": "Valeur acceptée : ASC ou DESC",
-                                        "poisRequis": "Valeurs acceptées : SCHOOL, HOSPITAL, PHARMACY, KINDERGARTEN"
-                                    },
-                                    "timestamp": "2026-03-15T10:00:00"
-                                }
-                                """)
+                                    {
+                                        "status": 400,
+                                        "message": "Données invalides",
+                                        "erreurs": {
+                                            "sortDirection":  "Valeur acceptée : ASC ou DESC",
+                                            "poisRequis":     "Valeurs acceptées : SCHOOL, HOSPITAL, PHARMACY, KINDERGARTEN",
+                                            "classesEnergie": "Valeurs acceptées : A, B, C, D, E, F, G"
+                                        },
+                                        "timestamp": "2026-03-16T10:00:00"
+                                    }
+                                    """)
                     )
             ),
             @ApiResponse(
@@ -312,10 +389,8 @@ public class BienController {
                     content = @Content(
                             mediaType = "application/json",
                             examples = @ExampleObject(value = """
-                                {
-                                    "error": "Accès non autorisé"
-                                }
-                                """)
+                                    { "error": "Accès non autorisé" }
+                                    """)
                     )
             )
     })
@@ -328,39 +403,49 @@ public class BienController {
                             @ExampleObject(
                                     name = "Recherche simple",
                                     value = """
-                                        {
-                                            "villes":        ["Nantes", "Angers"],
-                                            "pays":          ["France"],
-                                            "codesPostaux":  ["44000", "49100"],
-                                            "typesBien":     ["APPARTEMENT", "MAISON"],
-                                            "titre":         "lumineux",
-                                            "page":          0,
-                                            "size":          10,
-                                            "sortBy":        "ville",
-                                            "sortDirection": "ASC"
-                                        }
-                                        """
+                                            {
+                                                "villes":        ["Nantes", "Angers"],
+                                                "typesBien":     ["APPARTEMENT", "MAISON"],
+                                                "loyerMax":      1000,
+                                                "surfaceMin":    40,
+                                                "page":          0,
+                                                "size":          10,
+                                                "sortBy":        "loyerMensuel",
+                                                "sortDirection": "ASC"
+                                            }
+                                            """
                             ),
                             @ExampleObject(
-                                    name = "Recherche avec POI",
-                                    description = "Retourne uniquement les biens ayant une école ET une pharmacie à moins de 5km",
+                                    name = "Recherche avec tous les filtres",
                                     value = """
-                                        {
-                                            "villes":        ["Angers"],
-                                            "typesBien":     ["APPARTEMENT"],
-                                            "poisRequis":    ["SCHOOL", "PHARMACY"],
-                                            "page":          0,
-                                            "size":          10,
-                                            "sortBy":        "createdAt",
-                                            "sortDirection": "DESC"
-                                        }
-                                        """
+                                            {
+                                                "villes":          ["Nantes"],
+                                                "typesBien":       ["APPARTEMENT"],
+                                                "loyerMin":        500,
+                                                "loyerMax":        1000,
+                                                "surfaceMin":      40,
+                                                "surfaceMax":      100,
+                                                "piecesMin":       2,
+                                                "ascenseur":       true,
+                                                "etageMin":        1,
+                                                "etageMax":        5,
+                                                "meuble":          false,
+                                                "colocation":      false,
+                                                "disponibleAvant": "2026-06-01",
+                                                "classesEnergie":  ["A", "B", "C"],
+                                                "classesGes":      ["A", "B"],
+                                                "modesChauffage":  ["ELECTRIQUE", "GAZ"],
+                                                "poisRequis":      ["SCHOOL", "PHARMACY"],
+                                                "page":            0,
+                                                "size":            10,
+                                                "sortBy":          "loyerMensuel",
+                                                "sortDirection":   "ASC"
+                                            }
+                                            """
                             ),
                             @ExampleObject(
                                     name = "Body vide — tous les biens",
-                                    value = """
-                                        {}
-                                        """
+                                    value = "{}"
                             )
                     }
             )
