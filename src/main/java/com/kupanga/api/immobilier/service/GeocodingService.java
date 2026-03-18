@@ -2,6 +2,7 @@ package com.kupanga.api.immobilier.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.locationtech.jts.geom.Coordinate;
@@ -43,28 +44,29 @@ public class GeocodingService {
      * @param codePostal Code postal
      * @return Optional<Point> contenant la position GPS si disponible
      */
-    @Cacheable(value = "geocode", key = "#ville + ':' + #codePostal")
-    public Optional<Point> geocode(String adresse, String ville, String codePostal , String pays) {
+    // Cache le Point directement — plus simple à sérialiser pour Redis
+    @Cacheable(
+            value  = "geocode",
+            key    = "#ville + ':' + #codePostal",
+            unless = "#result == null"
+    )
+    @Nullable
+    public Point geocode(String adresse, String ville, String codePostal, String pays) {
         try {
-            // Construction de l'URL sécurisée pour l'API Nominatim
-            String url = buildUrl(adresse, ville, codePostal, pays);
-
-            // Requête HTTP GET synchronisée avec timeout de 5 secondes
+            String url      = buildUrl(adresse, ville, codePostal, pays);
             String response = webClient.get()
                     .uri(url)
-                    .header("User-Agent", "KupangaImmobilier/1.0") // Nominatim exige un User-Agent
+                    .header("User-Agent", "KupangaImmobilier/1.0")
                     .retrieve()
                     .bodyToMono(String.class)
                     .timeout(Duration.ofSeconds(5))
                     .block();
 
-            // Conversion de la réponse JSON en Point
-            return parseResponse(response);
+            return parseResponse(response).orElse(null);
 
         } catch (Exception e) {
-            // Log de l'erreur sans interrompre le programme
-            log.warn("Échec géocodage pour {} {}: {}", ville, codePostal, e.getMessage());
-            return Optional.empty();
+            log.warn("Échec géocodage pour {} {} : {}", ville, codePostal, e.getMessage());
+            return null;
         }
     }
 

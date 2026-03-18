@@ -10,11 +10,11 @@ import com.kupanga.api.immobilier.service.BienImageService;
 import com.kupanga.api.immobilier.service.BienPoiService;
 import com.kupanga.api.immobilier.service.BienService;
 import com.kupanga.api.immobilier.service.GeocodingService;
-import com.kupanga.api.user.entity.Role;
 import com.kupanga.api.user.entity.User;
 import com.kupanga.api.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.locationtech.jts.geom.Point;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -84,19 +84,18 @@ public class BienServiceImpl implements BienService {
 
                 .build();
 
-        geocodingService.geocode(bien.getAdresse(), bien.getVille(), bien.getCodePostal(), bien.getPays())
-                .ifPresentOrElse(
-                        point -> {
-                            bien.setLocalisation(point);
-                            log.info("Géocodage réussi -> {}", point);
-                        },
-                        () -> {
-                            throw new KupangaBusinessException(
-                                    "Nous n'avons pas pu géolocaliser votre bien",
-                                    HttpStatus.NOT_FOUND
-                            );
-                        }
-                );
+        Point point = geocodingService.geocode(dto.getAdresse(), dto.getVille(),
+                dto.getCodePostal(), dto.getPays());
+
+        if (point == null) {
+            throw new KupangaBusinessException(
+                    "Nous n'avons pas pu géolocaliser votre bien",
+                    HttpStatus.NOT_FOUND
+            );
+        }
+
+        bien.setLocalisation(point);
+        log.info("Géocodage réussi -> {}", point);
 
         bienRepository.save(bien);
 
