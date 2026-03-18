@@ -216,8 +216,7 @@ public class BienController {
             @Parameter(description = "Identifiant unique du bien immobilier", required = true)
             @PathVariable Long bienId
     ) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        return ResponseEntity.ok(bienService.getBienInfos(auth, bienId));
+        return ResponseEntity.ok(bienService.getBienInfos(bienId));
     }
 
     @Operation(

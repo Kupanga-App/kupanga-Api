@@ -21,10 +21,9 @@ public interface BienService {
     /**
      * Récupère les infos du bien immobilier.
      * @param id id du bien.
-     * @param auth pour récupérer les crédentials.
      * @return le bien avec toutes ses infos.
      */
-    BienDTO getBienInfos( Authentication auth , Long id);
+    BienDTO getBienInfos(Long id);
 
     /**
      * Retourne un bien avec toutes ses propriétés.

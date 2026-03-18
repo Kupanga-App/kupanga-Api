@@ -78,11 +78,7 @@ public class BienServiceImpl implements BienService {
     }
 
     @Override
-    public BienDTO getBienInfos( Authentication auth , Long id){
-
-        User user = userService.getUserByEmail(auth.getName());
-        Role role = user.getRole();
-        userService.verifyIfUserIsOwner(role);
+    public BienDTO getBienInfos(Long id){
 
         Bien bien = bienRepository.findWithAllProperties(id)
                 .orElseThrow(

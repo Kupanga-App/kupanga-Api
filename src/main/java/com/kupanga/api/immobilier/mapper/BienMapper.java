@@ -17,17 +17,18 @@ public interface BienMapper {
 
 
     @Mapping(target = "proprietaire", source = "proprietaire",qualifiedByName = "mapUserSansInfosSensibles")
-    @Mapping(target = "locataire",    source = "locataire" , qualifiedByName = "mapUserSansInfosSensibles")
-    @Mapping(target = "contrats",     source = "contrats",   qualifiedByName = "contratUrls")
-    @Mapping(target = "quittances",   source = "quittances", qualifiedByName = "quittanceUrls")
-    @Mapping(target = "documents",    source = "documents",  qualifiedByName = "documentUrls")
-    @Mapping(target = "images",       source = "images",     qualifiedByName = "imageUrls")
+    @Mapping(target = "locataire",    ignore = true)
+    @Mapping(target = "contrats",     ignore = true)
+    @Mapping(target = "quittances",   ignore = true)
+    @Mapping(target = "documents",    ignore = true)
+    @Mapping(target = "images",       ignore = true)
     BienDTO toDTO(Bien bien);
 
     // ─── Méthodes nommées ─────────────────────────────────────────────────────
 
     @Named("mapUserSansInfosSensibles")
     @Mapping(target = "password", ignore = true)
+    @Mapping(target = "mail", ignore = true)
     UserDTO mapUserSansInfosSensibles(User user);
 
     @Named("contratUrls")
