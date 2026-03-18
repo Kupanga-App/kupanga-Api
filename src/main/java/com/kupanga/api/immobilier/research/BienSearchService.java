@@ -33,7 +33,7 @@ public class BienSearchService {
 
         Page<BienDTO> page = bienRepository
                 .findAll(bienSpecification.build(dto), pageable)
-                .map(bienMapper::toDTO);
+                .map(bienMapper::toPublicDTO);
 
         return BienPageDTO.from(page);
     }

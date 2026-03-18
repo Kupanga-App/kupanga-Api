@@ -12,25 +12,40 @@ import org.mapstruct.Named;
 import java.util.List;
 import java.util.Set;
 
-@Mapper(componentModel = "spring" , uses = {UserMapper.class})
+@Mapper(componentModel = "spring", uses = {UserMapper.class})
 public interface BienMapper {
 
+    @Mapping(target = "latitude",         expression = "java(bien.getLocalisation() != null ? bien.getLocalisation().getY() : null)")
+    @Mapping(target = "longitude",        expression = "java(bien.getLocalisation() != null ? bien.getLocalisation().getX() : null)")
+    @Mapping(target = "proprietaire",     source = "proprietaire", qualifiedByName = "mapProprietairePublic")
+    @Mapping(target = "images",           source = "images",       qualifiedByName = "imageUrls")
+    @Mapping(target = "pois",         source = "pois",         qualifiedByName = "mapPoisFr")
+    // ─── Champs privés — jamais exposés publiquement ──────────────────────────
+    @Mapping(target = "locataire",        ignore = true)
+    @Mapping(target = "contrats",         ignore = true)
+    @Mapping(target = "quittances",       ignore = true)
+    @Mapping(target = "documents",        ignore = true)
+    @Mapping(target = "createdAt",        ignore = true)
+    @Mapping(target = "updatedAt",        ignore = true)
+    BienDTO toPublicDTO(Bien bien);
 
-    @Mapping(target = "proprietaire", source = "proprietaire",qualifiedByName = "mapUserSansInfosSensibles")
-    @Mapping(target = "locataire",    ignore = true)
-    @Mapping(target = "contrats",     ignore = true)
-    @Mapping(target = "quittances",   ignore = true)
-    @Mapping(target = "documents",    ignore = true)
-    @Mapping(target = "images",       ignore = true)
-    BienDTO toDTO(Bien bien);
+    // ─── Propriétaire public : prénom + nom uniquement ────────────────────────
+    @Named("mapProprietairePublic")
+    @Mapping(target = "id",           ignore = true)
+    @Mapping(target = "password",     ignore = true)
+    @Mapping(target = "mail",         ignore = true)
+    @Mapping(target = "role",         ignore = true)
+    @Mapping(target = "hasCompleteProfil", ignore = true)
+    UserDTO mapProprietairePublic(User user);
 
-    // ─── Méthodes nommées ─────────────────────────────────────────────────────
+    // ─── Images ───────────────────────────────────────────────────────────────
+    @Named("imageUrls")
+    default List<String> mapImages(Set<BienImage> images) {
+        if (images == null) return List.of();
+        return images.stream().map(BienImage::getUrl).toList();
+    }
 
-    @Named("mapUserSansInfosSensibles")
-    @Mapping(target = "password", ignore = true)
-    @Mapping(target = "mail", ignore = true)
-    UserDTO mapUserSansInfosSensibles(User user);
-
+    // ─── Méthodes conservées pour le mapper privé (BienPriveMapper) ──────────
     @Named("contratUrls")
     default List<String> mapContrats(Set<Contrat> contrats) {
         if (contrats == null) return List.of();
@@ -49,9 +64,14 @@ public interface BienMapper {
         return documents.stream().map(Document::getUrl).toList();
     }
 
-    @Named("imageUrls")
-    default List<String> mapImages(Set<BienImage> images) {
-        if (images == null) return List.of();
-        return images.stream().map(BienImage::getUrl).toList();
+    // ─── POI → labels français ────────────────────────────────────────────────
+    @Named("mapPoisFr")
+    default List<String> mapPoisFr(Set<BienPoi> pois) {
+        if (pois == null) return List.of();
+        return pois.stream()
+                .filter(p -> Boolean.TRUE.equals(p.getPresent()))  // seulement les POI trouvés
+                .map(p -> p.getPoiType().getLabelFr())             // "École", "Pharmacie"...
+                .sorted()                                           // ordre alphabétique
+                .toList();
     }
 }

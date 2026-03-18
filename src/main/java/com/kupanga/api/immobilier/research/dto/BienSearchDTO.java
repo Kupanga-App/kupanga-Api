@@ -1,34 +1,55 @@
 package com.kupanga.api.immobilier.research.dto;
 
-
-import com.kupanga.api.immobilier.entity.PoiType;
-import com.kupanga.api.immobilier.entity.TypeBien;
+import com.kupanga.api.immobilier.entity.*;
 import com.kupanga.api.immobilier.research.sort.BienSortEnum;
 import org.springframework.data.domain.Sort;
 
+import java.time.LocalDate;
 import java.util.List;
 
 public record BienSearchDTO(
 
-        // Critères de recherche
+        // ─── Localisation ─────────────────────────────────────────────────────
+        List<String>        villes,
+        List<String>        pays,
+        List<String>        codesPostaux,
 
-        List<String>   villes,
-        List<String>   pays,
-        List<String>   codesPostaux,
-        List<TypeBien> typesBien,
-        // Filtres POI
-        List<PoiType>  poisRequis,
-        String         titre,
+        // ─── Type de bien ─────────────────────────────────────────────────────
+        List<TypeBien>      typesBien,
+        String              titre,
 
-        // Pagination + tri
+        // ─── Conditions de location ───────────────────────────────────────────
+        Double              loyerMin,
+        Double              loyerMax,
+        Boolean             meuble,
+        Boolean             colocation,
+        LocalDate           disponibleAvant,
 
-        Integer        page,
-        Integer        size,
-        String         sortBy,
-        Sort.Direction sortDirection
+        // ─── Caractéristiques physiques ───────────────────────────────────────
+        Double              surfaceMin,
+        Double              surfaceMax,
+        Integer             piecesMin,
+        Boolean             ascenseur,
+        Integer             etageMin,
+        Integer             etageMax,
+
+        // ─── Diagnostic énergétique ───────────────────────────────────────────
+        List<ClasseEnergie> classesEnergie,
+        List<ClasseGes>     classesGes,
+
+        // ─── Chauffage ────────────────────────────────────────────────────────
+        List<ModeChauffage> modesChauffage,
+
+        // ─── POI ──────────────────────────────────────────────────────────────
+        List<PoiType>       poisRequis,
+
+        // ─── Pagination + tri ─────────────────────────────────────────────────
+        Integer             page,
+        Integer             size,
+        String              sortBy,
+        Sort.Direction      sortDirection
 
 ) {
-    // Valeurs par défaut via compact constructor
     public BienSearchDTO {
         page          = page          != null ? page          : 0;
         size          = size          != null ? size          : 10;
@@ -36,7 +57,6 @@ public record BienSearchDTO(
         sortDirection = sortDirection != null ? sortDirection : Sort.Direction.ASC;
     }
 
-    // Convertit en objet Pagination
     public Pagination toPagination() {
         return Pagination.builder()
                 .page(page)

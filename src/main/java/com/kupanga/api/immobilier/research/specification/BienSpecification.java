@@ -1,14 +1,12 @@
 package com.kupanga.api.immobilier.research.specification;
 
-import com.kupanga.api.immobilier.entity.Bien;
-import com.kupanga.api.immobilier.entity.BienPoi;
-import com.kupanga.api.immobilier.entity.PoiType;
-import com.kupanga.api.immobilier.entity.TypeBien;
+import com.kupanga.api.immobilier.entity.*;
 import com.kupanga.api.immobilier.research.dto.BienSearchDTO;
 import jakarta.persistence.criteria.Expression;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Component
@@ -27,7 +25,26 @@ public class BienSpecification {
                 .and(parCodesPostaux(dto.codesPostaux()))
                 .and(parTypesBien(dto.typesBien()))
                 .and(parTitre(dto.titre()))
-                .and(parPois(dto.poisRequis()));
+                .and(parPois(dto.poisRequis()))
+                // ─── Conditions de location ───────────────────────────────────
+                .and(loyerMin(dto.loyerMin()))
+                .and(loyerMax(dto.loyerMax()))
+                .and(parMeuble(dto.meuble()))
+                .and(parColocation(dto.colocation()))
+                .and(disponibleAvant(dto.disponibleAvant()))
+
+                // ─── Caractéristiques physiques ───────────────────────────────
+                .and(surfaceMin(dto.surfaceMin()))
+                .and(surfaceMax(dto.surfaceMax()))
+                .and(piecesMin(dto.piecesMin()))
+                .and(avecAscenseur(dto.ascenseur()))
+                .and(etageMin(dto.etageMin()))
+                .and(etageMax(dto.etageMax()))
+
+                // ─── Diagnostic énergétique ───────────────────────────────────
+                .and(parClassesEnergie(dto.classesEnergie()))
+                .and(parModesChauffage(dto.modesChauffage()))
+                .and(parClassesGes(dto.classesGes()));
     }
 
     /**
@@ -138,6 +155,113 @@ public class BienSpecification {
                     );
 
             return root.get("id").in(subquery);
+        };
+    }
+
+    // ─── Conditions de location ───────────────────────────────────────────────────
+
+    private Specification<Bien> loyerMin(Double loyerMin) {
+        return (root, query, cb) -> {
+            if (loyerMin == null) return null;
+            return cb.greaterThanOrEqualTo(root.get("loyerMensuel"), loyerMin);
+        };
+    }
+
+    private Specification<Bien> loyerMax(Double loyerMax) {
+        return (root, query, cb) -> {
+            if (loyerMax == null) return null;
+            return cb.lessThanOrEqualTo(root.get("loyerMensuel"), loyerMax);
+        };
+    }
+
+    private Specification<Bien> parMeuble(Boolean meuble) {
+        return (root, query, cb) -> {
+            if (meuble == null) return null;
+            return cb.equal(root.get("meuble"), meuble);
+        };
+    }
+
+    private Specification<Bien> parColocation(Boolean colocation) {
+        return (root, query, cb) -> {
+            if (colocation == null) return null;
+            return cb.equal(root.get("colocation"), colocation);
+        };
+    }
+
+    private Specification<Bien> disponibleAvant(LocalDate disponibleAvant) {
+        return (root, query, cb) -> {
+            if (disponibleAvant == null) return null;
+            // biens disponibles à partir d'une date <= la date demandée
+            return cb.lessThanOrEqualTo(root.get("disponibleDe"), disponibleAvant);
+        };
+    }
+
+    // ─── Caractéristiques physiques ───────────────────────────────────────────────
+
+    private Specification<Bien> surfaceMin(Double surfaceMin) {
+        return (root, query, cb) -> {
+            if (surfaceMin == null) return null;
+            return cb.greaterThanOrEqualTo(root.get("surfaceHabitable"), surfaceMin);
+        };
+    }
+
+    private Specification<Bien> surfaceMax(Double surfaceMax) {
+        return (root, query, cb) -> {
+            if (surfaceMax == null) return null;
+            return cb.lessThanOrEqualTo(root.get("surfaceHabitable"), surfaceMax);
+        };
+    }
+
+    private Specification<Bien> piecesMin(Integer piecesMin) {
+        return (root, query, cb) -> {
+            if (piecesMin == null) return null;
+            return cb.greaterThanOrEqualTo(root.get("nombrePieces"), piecesMin);
+        };
+    }
+
+    private Specification<Bien> avecAscenseur(Boolean ascenseur) {
+        return (root, query, cb) -> {
+            if (ascenseur == null) return null;
+            return cb.equal(root.get("ascenseur"), ascenseur);
+        };
+    }
+
+    private Specification<Bien> etageMin(Integer etageMin) {
+        return (root, query, cb) -> {
+            if (etageMin == null) return null;
+            return cb.greaterThanOrEqualTo(root.get("etage"), etageMin);
+        };
+    }
+
+    private Specification<Bien> etageMax(Integer etageMax) {
+        return (root, query, cb) -> {
+            if (etageMax == null) return null;
+            return cb.lessThanOrEqualTo(root.get("etage"), etageMax);
+        };
+    }
+
+    // ─── Diagnostic énergétique ───────────────────────────────────────────────────
+
+    private Specification<Bien> parClassesEnergie(List<ClasseEnergie> classesEnergie) {
+        return (root, query, cb) -> {
+            if (classesEnergie == null || classesEnergie.isEmpty()) return null;
+            return root.get("classeEnergie").in(classesEnergie);
+        };
+    }
+
+    // ─── Mode de chauffage ────────────────────────────────────────────────────────
+    private Specification<Bien> parModesChauffage(List<ModeChauffage> modesChauffage) {
+        return (root, query, cb) -> {
+            if (modesChauffage == null || modesChauffage.isEmpty()) return null;
+            return root.get("modeChauffage").in(modesChauffage);
+        };
+    }
+
+    // ─── Classe GES ───────────────────────────────────────────────────────────────
+    private Specification<Bien> parClassesGes(List<ClasseGes> classesGes) {
+        return (root, query, cb) -> {
+            if (classesGes == null || classesGes.isEmpty()) return null;
+            return root.get("classeGes").in(classesGes);
         };
     }
 }

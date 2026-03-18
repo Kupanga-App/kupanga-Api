@@ -243,7 +243,7 @@
               "bearer": [
                 {
                   "key": "token",
-                  "value": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUk9MRV9QUk9QUklFVEFJUkUiLCJzdWIiOiJrYmcuYWwucHJAZ21haWwuY29tIiwiaWF0IjoxNzczNTk5ODUwLCJleHAiOjE3NzM2MDAxNTB9.TzUJ7HlBbGj65kpqae0OC72SI9tmUNljyTU1djgWY3w",
+                  "value": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUk9MRV9QUk9QUklFVEFJUkUiLCJzdWIiOiJrYmcuYWwucHJAZ21haWwuY29tIiwiaWF0IjoxNzczNjIwNDc2LCJleHAiOjE3NzM2MjA3NzZ9.PYvUC6F-8cZk4iUSIOkTafLZvAWinJ3AF7NR4bc7ORw",
                   "type": "string"
                 }
               ]
@@ -255,7 +255,7 @@
               "formdata": [
                 {
                   "key": "bienFormDTO",
-                  "value": "{\n  \"titre\": \"Appartement lumineux 3 pièces\",\n  \"typeBien\": \"APPARTEMENT\",\n  \"description\": \"Bel appartement situé au centre-ville, proche des commerces et des transports et des universités\",\n  \"adresse\": \"75 Boulevard Jules Verne\",\n  \"ville\": \"Nantes\",\n  \"codePostal\": \"44300\",\n  \"pays\": \"France\"\n}",
+                  "value": "{\n    \"titre\": \"Appartement lumineux 3 pièces\",\n    \"typeBien\": \"APPARTEMENT\",\n    \"description\": \"Bel appartement situé au centre-ville\",\n    \"adresse\": \"75 Boulevard Jules Verne\",\n    \"ville\": \"Nantes\",\n    \"codePostal\": \"44300\",\n    \"pays\": \"France\",\n    \"surfaceHabitable\": 65.5,\n    \"nombrePieces\": 3,\n    \"nombreChambres\": 2,\n    \"etage\": 2,\n    \"ascenseur\": true,\n    \"anneeConstruction\": 1998,\n    \"modeChauffage\": \"ELECTRIQUE\",\n    \"classeEnergie\": \"C\",\n    \"classeGes\": \"B\",\n    \"loyerMensuel\": 850.00,\n    \"chargesMensuelles\": 50.00,\n    \"depotGarantie\": 1700.00,\n    \"meuble\": false,\n    \"colocation\": false,\n    \"disponibleDe\": \"2026-04-01\"\n}",
                   "type": "text",
                   "uuid": "d74468ea-b83d-462b-9802-c6d58d5486fb",
                   "contentType": "application/json"
@@ -268,6 +268,7 @@
                     "/C:/Users/Leclerc/Workflow/BackEnd/Java/SpringBoot/Kupanga/Kupanga-Documentations/image/immo/64b565bfca9a139b28f747b3_agences_immobilieres_de_luxe_3.jpeg",
                     "/C:/Users/Leclerc/Workflow/BackEnd/Java/SpringBoot/Kupanga/Kupanga-Documentations/image/immo/aef41bf24933e3a6ad1e6adbffbc53c6_898d93b5e6_1920-original.webp",
                     "/C:/Users/Leclerc/Workflow/BackEnd/Java/SpringBoot/Kupanga/Kupanga-Documentations/image/immo/d.jpg",
+                    "/C:/Users/Leclerc/Workflow/BackEnd/Java/SpringBoot/Kupanga/Kupanga-Documentations/image/immo/CP Coeur de Vie.webp",
                     "/C:/Users/Leclerc/Workflow/BackEnd/Java/SpringBoot/Kupanga/Kupanga-Documentations/image/immo/CP Coeur de Vie.webp"
                   ]
                 }
@@ -312,7 +313,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"villes\":       [],\r\n  \"pays\":         [\"France\"],\r\n  \"codesPostaux\": [],\r\n  \"typesBien\":    [\"APPARTEMENT\", \"MAISON\"],\r\n  \"poisRequis\": [\"SCHOOL\", \"PHARMACY\"],\r\n  \"titre\":        null,\r\n  \"page\":         null,\r\n  \"size\":         null,\r\n  \"sortBy\":       null,\r\n  \"sortDirection\": \"ASC\"\r\n}",
+              "raw": "{\r\n    \"villes\":          [\"Nantes\", \"Angers\"],\r\n    \"pays\":            [\"France\"],\r\n    \"codesPostaux\":    [\"44000\", \"44300\"],\r\n    \"typesBien\":       [\"APPARTEMENT\", \"MAISON\"],\r\n    \"titre\":           \"lumineux\",\r\n    \"loyerMin\":        500,\r\n    \"loyerMax\":        1200,\r\n    \"meuble\":          false,\r\n    \"colocation\":      false,\r\n    \"disponibleAvant\": \"2026-06-01\",\r\n    \"surfaceMin\":      40,\r\n    \"surfaceMax\":      120,\r\n    \"piecesMin\":       2,\r\n    \"ascenseur\":       true,\r\n    \"etageMin\":        1,\r\n    \"etageMax\":        5,\r\n    \"classesEnergie\":  [\"A\", \"B\", \"C\"],\r\n    \"classesGes\":      [\"A\", \"B\"],\r\n    \"modesChauffage\":  [\"ELECTRIQUE\", \"GAZ\"],\r\n    \"poisRequis\":      [\"SCHOOL\", \"PHARMACY\"],\r\n    \"page\":            0,\r\n    \"size\":            10,\r\n    \"sortBy\":          \"loyerMensuel\",\r\n    \"sortDirection\":   \"ASC\"\r\n}",
               "options": {
                 "raw": {
                   "language": "json"

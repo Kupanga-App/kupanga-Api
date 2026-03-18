@@ -14,6 +14,9 @@ public enum BienSortEnum {
     VILLE("ville"),
     CODE_POSTAL("codePostal"),
     TYPE_BIEN("typeBien"),
+    LOYER(        "loyerMensuel"),
+    SURFACE(      "surfaceHabitable"),
+    DISPONIBLE_DE("disponibleDe"),
     CREATED_AT("createdAt");
 
     private final String fieldName;

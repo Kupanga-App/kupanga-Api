@@ -36,45 +36,73 @@ public class BienServiceImpl implements BienService {
     private final BienMapper bienMapper;
     private final BienPoiService bienPoiService;
 
-    public void createBien(Authentication auth , BienFormDTO bienFormDTO , List<MultipartFile> files){
+    public void createBien(Authentication auth, BienFormDTO dto, List<MultipartFile> files) {
 
         User user = userService.getUserByEmail(auth.getName());
-        Role role = user.getRole();
-        userService.verifyIfUserIsOwner(role);
-        if(files.isEmpty()){
-            throw new KupangaBusinessException("Les photos pour le bien publié sont obligatoires sur nôtre site"
-                    , HttpStatus.BAD_REQUEST);
+        userService.verifyIfUserIsOwner(user.getRole());
+
+        if (files == null || files.isEmpty()) {
+            throw new KupangaBusinessException(
+                    "Les photos pour le bien publié sont obligatoires sur notre site",
+                    HttpStatus.BAD_REQUEST
+            );
         }
 
         Bien bien = Bien.builder()
-                .titre(bienFormDTO.getTitre())
-                .typeBien(bienFormDTO.getTypeBien())
-                .description(bienFormDTO.getDescription())
-                .adresse(bienFormDTO.getAdresse())
-                .ville(bienFormDTO.getVille())
-                .codePostal(bienFormDTO.getCodePostal())
-                .pays(bienFormDTO.getPays())
+                // ─── Informations générales ───────────────────────────────────
+                .titre(dto.getTitre())
+                .typeBien(dto.getTypeBien())
+                .description(dto.getDescription())
                 .proprietaire(user)
+
+                // ─── Adresse ──────────────────────────────────────────────────
+                .adresse(dto.getAdresse())
+                .ville(dto.getVille())
+                .codePostal(dto.getCodePostal())
+                .pays(dto.getPays())
+
+                // ─── Caractéristiques physiques ───────────────────────────────
+                .surfaceHabitable(dto.getSurfaceHabitable())
+                .nombrePieces(dto.getNombrePieces())
+                .nombreChambres(dto.getNombreChambres())
+                .etage(dto.getEtage())
+                .ascenseur(dto.getAscenseur())
+                .anneeConstruction(dto.getAnneeConstruction())
+                .modeChauffage(dto.getModeChauffage())
+
+                // ─── Diagnostic énergétique ───────────────────────────────────
+                .classeEnergie(dto.getClasseEnergie())
+                .classeGes(dto.getClasseGes())
+
+                // ─── Conditions de location ───────────────────────────────────
+                .loyerMensuel(dto.getLoyerMensuel())
+                .chargesMensuelles(dto.getChargesMensuelles())
+                .depotGarantie(dto.getDepotGarantie())
+                .meuble(dto.getMeuble())
+                .colocation(dto.getColocation())
+                .disponibleDe(dto.getDisponibleDe())
+
                 .build();
 
-        geocodingService.geocode(bien.getAdresse() , bien.getVille() , bien.getCodePostal() , bien.getPays())
-                        .ifPresentOrElse(
-                                point -> {
-                                    bien.setLocalisation(point);
-                                    log.info("Géocodage réussi ->{} ", point);
-                                },
-                                () -> {
-                                    throw new KupangaBusinessException("Nous n'avons pas pu géolocalisé votre bien "
-                                            , HttpStatus.NOT_FOUND
-                                    );
-                                }
-                        );
+        geocodingService.geocode(bien.getAdresse(), bien.getVille(), bien.getCodePostal(), bien.getPays())
+                .ifPresentOrElse(
+                        point -> {
+                            bien.setLocalisation(point);
+                            log.info("Géocodage réussi -> {}", point);
+                        },
+                        () -> {
+                            throw new KupangaBusinessException(
+                                    "Nous n'avons pas pu géolocaliser votre bien",
+                                    HttpStatus.NOT_FOUND
+                            );
+                        }
+                );
+
         bienRepository.save(bien);
 
         bienPoiService.calculerEtSauvegarderPoi(bien);
 
-        bienImageService.uploadImagesImo(files , PHOTO_IMO_BUCKET , bien);
-
+        bienImageService.uploadImagesImo(files, PHOTO_IMO_BUCKET, bien);
     }
 
     @Override
@@ -85,7 +113,7 @@ public class BienServiceImpl implements BienService {
                         () -> new KupangaBusinessException("Le bien n'existe pas" , HttpStatus.NOT_FOUND)
                 );
 
-        return bienMapper.toDTO(bien);
+        return bienMapper.toPublicDTO(bien);
 
     }
 
