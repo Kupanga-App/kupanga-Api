@@ -343,11 +343,21 @@
           "name": "create",
           "id": "7a1a29ac-41ac-4003-adc8-986ed06662a5",
           "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUk9MRV9QUk9QUklFVEFJUkUiLCJzdWIiOiJrYmcuYWwucHJAZ21haWwuY29tIiwiaWF0IjoxNzczOTA3NjQ4LCJleHAiOjE3NzM5MDc5NDh9.u2FBT9ZSCJ91kYHUTGkJ54s7FJ-Lzk6PLAdTw9Lco3Q",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "POST",
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"bienId\": 1,\r\n    \"emailLocataire\": \"moiseaganze76@gmail.com\",\r\n    \"dateDebut\": \"2026-04-01\",\r\n    \"dateFin\": \"2027-04-01\",\r\n    \"dureeBailMois\": 12,\r\n    \"loyerMensuel\": 850.00,\r\n    \"chargesMensuelles\": 50.00,\r\n    \"depotGarantie\": 1700.00\r\n}",
+              "raw": "{\r\n    \"bienId\": 2,\r\n    \"emailLocataire\": \"test@gmail.com\",\r\n    \"dateDebut\": \"2026-04-01\",\r\n    \"dateFin\": \"2027-04-01\",\r\n    \"dureeBailMois\": 12,\r\n    \"loyerMensuel\": 850.00,\r\n    \"chargesMensuelles\": 50.00,\r\n    \"depotGarantie\": 1700.00\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -438,6 +448,109 @@
         }
       ],
       "id": "c295021e-7bfc-4f4c-b509-3f6b59a40a93"
+    },
+    {
+      "name": "Etats des lieux",
+      "item": [
+        {
+          "name": "created",
+          "id": "b67d43c9-5334-4dfe-a42d-8e07f39260c6",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUk9MRV9QUk9QUklFVEFJUkUiLCJzdWIiOiJrYmcuYWwucHJAZ21haWwuY29tIiwiaWF0IjoxNzczOTEzNjI4LCJleHAiOjE3NzM5MTM5Mjh9.HzhMPPNM61EO-iE3JaeB6Zew73jfz5RMrulQGm_VKrM",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"bienId\": 1,\r\n  \"emailLocataire\": \"test@gmail.com\",\r\n  \"type\": \"SORTIE\",\r\n  \"dateRealisation\": \"2026-09-19\",\r\n  \"heureRealisation\": \"10:00\",\r\n  \"observations\": \"État général correct. Quelques dégradations constatées par rapport à l'état des lieux d'entrée.\",\r\n\r\n  \"compteurs\": [\r\n    {\r\n      \"typeCompteur\": \"ELECTRICITE_HP\",\r\n      \"numeroCompteur\": \"PDL-123456789\",\r\n      \"index\": 5847.0,\r\n      \"unite\": \"kWh\"\r\n    },\r\n    {\r\n      \"typeCompteur\": \"ELECTRICITE_HC\",\r\n      \"numeroCompteur\": \"PDL-123456789\",\r\n      \"index\": 2891.5,\r\n      \"unite\": \"kWh\"\r\n    },\r\n    {\r\n      \"typeCompteur\": \"EAU_FROIDE\",\r\n      \"numeroCompteur\": \"CPT-EAU-001\",\r\n      \"index\": 241.7,\r\n      \"unite\": \"m³\"\r\n    }\r\n  ],\r\n\r\n  \"cles\": [\r\n    { \"typeCle\": \"Porte d'entrée\",    \"quantite\": 2 },\r\n    { \"typeCle\": \"Boîte aux lettres\", \"quantite\": 1 },\r\n    { \"typeCle\": \"Interphone\",        \"quantite\": 1 }\r\n  ],\r\n\r\n  \"pieces\": [\r\n    {\r\n      \"nomPiece\": \"Entrée\",\r\n      \"ordre\": 1,\r\n      \"observations\": null,\r\n      \"elements\": [\r\n        { \"typeElement\": \"SOL\",      \"etatElement\": \"BON\",          \"description\": \"Carrelage beige\",  \"observation\": null },\r\n        { \"typeElement\": \"MUR\",      \"etatElement\": \"BON\",          \"description\": \"Peinture blanche\", \"observation\": null },\r\n        { \"typeElement\": \"PLAFOND\",  \"etatElement\": \"BON\",          \"description\": \"Peinture blanche\", \"observation\": null },\r\n        { \"typeElement\": \"PORTE\",    \"etatElement\": \"USAGE_NORMAL\", \"description\": \"Porte blindée\",    \"observation\": \"Légères rayures sur la poignée\" },\r\n        { \"typeElement\": \"LUMINAIRE\",\"etatElement\": \"BON\",          \"description\": \"Plafonnier LED\",   \"observation\": null }\r\n      ]\r\n    },\r\n    {\r\n      \"nomPiece\": \"Salon\",\r\n      \"ordre\": 2,\r\n      \"observations\": \"Trou dans le mur côté TV, non présent à l'entrée.\",\r\n      \"elements\": [\r\n        { \"typeElement\": \"SOL\",      \"etatElement\": \"USAGE_NORMAL\", \"description\": \"Parquet chêne\",              \"observation\": \"Plusieurs griffures légères côté canapé\" },\r\n        { \"typeElement\": \"MUR\",      \"etatElement\": \"MAUVAIS\",      \"description\": \"Peinture blanche\",           \"observation\": \"Trou ~2 cm côté TV + marques de fixation\" },\r\n        { \"typeElement\": \"PLAFOND\",  \"etatElement\": \"BON\",          \"description\": \"Peinture blanche\",           \"observation\": null },\r\n        { \"typeElement\": \"FENETRE\",  \"etatElement\": \"BON\",          \"description\": \"Double vitrage PVC\",         \"observation\": null },\r\n        { \"typeElement\": \"VOLET\",    \"etatElement\": \"HORS_SERVICE\", \"description\": \"Volet roulant électrique\",   \"observation\": \"Moteur en panne — ne remonte plus\" },\r\n        { \"typeElement\": \"RADIATEUR\",\"etatElement\": \"BON\",          \"description\": \"Radiateur électrique inertie\",\"observation\": null },\r\n        { \"typeElement\": \"PRISE\",    \"etatElement\": \"BON\",          \"description\": \"4 prises + 1 TV\",            \"observation\": null },\r\n        { \"typeElement\": \"LUMINAIRE\",\"etatElement\": \"BON\",          \"description\": \"Plafonnier + applique\",      \"observation\": null }\r\n      ]\r\n    },\r\n    {\r\n      \"nomPiece\": \"Chambre 1\",\r\n      \"ordre\": 3,\r\n      \"observations\": null,\r\n      \"elements\": [\r\n        { \"typeElement\": \"SOL\",      \"etatElement\": \"BON\",          \"description\": \"Parquet chêne\",        \"observation\": null },\r\n        { \"typeElement\": \"MUR\",      \"etatElement\": \"MAUVAIS\",      \"description\": \"Peinture blanche\",     \"observation\": \"Papier peint posé sans autorisation — à déposer\" },\r\n        { \"typeElement\": \"PLAFOND\",  \"etatElement\": \"BON\",          \"description\": \"Peinture blanche\",     \"observation\": null },\r\n        { \"typeElement\": \"FENETRE\",  \"etatElement\": \"BON\",          \"description\": \"Double vitrage PVC\",   \"observation\": null },\r\n        { \"typeElement\": \"VOLET\",    \"etatElement\": \"BON\",          \"description\": \"Volet roulant manuel\", \"observation\": null },\r\n        { \"typeElement\": \"RADIATEUR\",\"etatElement\": \"BON\",          \"description\": \"Radiateur électrique\", \"observation\": null },\r\n        { \"typeElement\": \"PRISE\",    \"etatElement\": \"BON\",          \"description\": \"3 prises\",             \"observation\": null }\r\n      ]\r\n    },\r\n    {\r\n      \"nomPiece\": \"Cuisine\",\r\n      \"ordre\": 4,\r\n      \"observations\": \"Plaque induction avec fissure constatée.\",\r\n      \"elements\": [\r\n        { \"typeElement\": \"SOL\",       \"etatElement\": \"USAGE_NORMAL\",\"description\": \"Carrelage blanc\",        \"observation\": \"Joint décollé entre 2 carreaux\" },\r\n        { \"typeElement\": \"MUR\",       \"etatElement\": \"BON\",         \"description\": \"Faïence + peinture\",     \"observation\": null },\r\n        { \"typeElement\": \"PLAFOND\",   \"etatElement\": \"BON\",         \"description\": \"Peinture blanche\",       \"observation\": null },\r\n        { \"typeElement\": \"EQUIPEMENT\",\"etatElement\": \"MAUVAIS\",     \"description\": \"Plaque induction 4 feux\",\"observation\": \"Fissure sur la vitre — non présente à l'entrée\" },\r\n        { \"typeElement\": \"EQUIPEMENT\",\"etatElement\": \"BON\",         \"description\": \"Four encastrable\",       \"observation\": null },\r\n        { \"typeElement\": \"EQUIPEMENT\",\"etatElement\": \"USAGE_NORMAL\",\"description\": \"Hotte aspirante\",        \"observation\": \"Filtre non changé depuis l'entrée\" },\r\n        { \"typeElement\": \"EQUIPEMENT\",\"etatElement\": \"BON\",         \"description\": \"Réfrigérateur combiné\",  \"observation\": null },\r\n        { \"typeElement\": \"LUMINAIRE\", \"etatElement\": \"BON\",         \"description\": \"Spots encastrés LED\",    \"observation\": null }\r\n      ]\r\n    },\r\n    {\r\n      \"nomPiece\": \"Salle de bain\",\r\n      \"ordre\": 5,\r\n      \"observations\": null,\r\n      \"elements\": [\r\n        { \"typeElement\": \"SOL\",       \"etatElement\": \"BON\",         \"description\": \"Carrelage gris\",                  \"observation\": null },\r\n        { \"typeElement\": \"MUR\",       \"etatElement\": \"USAGE_NORMAL\",\"description\": \"Faïence blanche\",                 \"observation\": \"Traces de calcaire sur 2 carreaux\" },\r\n        { \"typeElement\": \"PLAFOND\",   \"etatElement\": \"BON\",         \"description\": \"Peinture hydrofuge\",              \"observation\": null },\r\n        { \"typeElement\": \"EQUIPEMENT\",\"etatElement\": \"BON\",         \"description\": \"Douche italienne\",                \"observation\": null },\r\n        { \"typeElement\": \"EQUIPEMENT\",\"etatElement\": \"BON\",         \"description\": \"Vasque + meuble\",                 \"observation\": null },\r\n        { \"typeElement\": \"EQUIPEMENT\",\"etatElement\": \"HORS_SERVICE\",\"description\": \"Sèche-serviettes électrique\",     \"observation\": \"Ne fonctionne plus — panne électrique\" },\r\n        { \"typeElement\": \"LUMINAIRE\", \"etatElement\": \"BON\",         \"description\": \"Plafonnier IP44\",                 \"observation\": null }\r\n      ]\r\n    },\r\n    {\r\n      \"nomPiece\": \"WC\",\r\n      \"ordre\": 6,\r\n      \"observations\": \"Chasse d'eau réparée entre l'entrée et la sortie — OK.\",\r\n      \"elements\": [\r\n        { \"typeElement\": \"SOL\",       \"etatElement\": \"BON\",         \"description\": \"Carrelage gris\",   \"observation\": null },\r\n        { \"typeElement\": \"MUR\",       \"etatElement\": \"BON\",         \"description\": \"Peinture blanche\", \"observation\": null },\r\n        { \"typeElement\": \"EQUIPEMENT\",\"etatElement\": \"BON\",         \"description\": \"WC suspendu\",      \"observation\": \"Chasse d'eau réparée — conforme\" },\r\n        { \"typeElement\": \"LUMINAIRE\", \"etatElement\": \"BON\",         \"description\": \"Plafonnier\",       \"observation\": null }\r\n      ]\r\n    }\r\n  ]\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/etats-des-lieux",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "etats-des-lieux"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "signer proprietaire",
+          "id": "d7ceaae5-faf6-4362-9ce5-4b8b342d7960",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/etats-des-lieux/{id}/signer-proprietaire",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "etats-des-lieux",
+                "{id}",
+                "signer-proprietaire"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "consulter etat de lieux avant de signer",
+          "id": "18f2e129-d77a-4629-acc7-5eedd4ecb892",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/etats-des-lieux/signer/{token}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "etats-des-lieux",
+                "signer",
+                "{token}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Signer Locataire",
+          "id": "c766c728-304b-4c97-9edb-db5919ca64b5",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/etats-des-lieux/signer/{token}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "etats-des-lieux",
+                "signer",
+                "{token}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "id": "a1126d88-59a9-4490-841f-cc3429dd9a51"
     }
   ],
   "variable": [

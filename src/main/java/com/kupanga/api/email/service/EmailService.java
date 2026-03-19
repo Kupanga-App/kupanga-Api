@@ -1,6 +1,7 @@
 package com.kupanga.api.email.service;
 
 import com.kupanga.api.immobilier.entity.Contrat;
+import com.kupanga.api.immobilier.entity.EtatDesLieux;
 
 /**
  * Service pour l'envoi d'emails liés aux utilisateurs.
@@ -50,6 +51,22 @@ public interface EmailService {
      * @param contrat le contrat.
      */
     void envoyerConfirmationContratSigne(Contrat contrat);
+
+    /**
+     * Envoie un email d'invitation au locataire pour signer l'état des lieux.
+     *
+     * @param edl   l'état des lieux
+     * @param token le token de signature (unique, 72h)
+     */
+    void envoyerInvitationSignature(EtatDesLieux edl, String token);
+
+    /**
+     * Envoie un email de confirmation aux deux parties une fois l'EDL signé,
+     * avec le PDF en pièce jointe.
+     *
+     * @param edl l'état des lieux signé
+     */
+    void envoyerConfirmationEdlSigne(EtatDesLieux edl);
 
 
 }
