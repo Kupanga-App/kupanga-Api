@@ -559,8 +559,27 @@
           "name": "create",
           "id": "e5ce4442-3dfe-461b-a00f-cc382e64aa92",
           "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUk9MRV9QUk9QUklFVEFJUkUiLCJzdWIiOiJrYmcuYWwucHJAZ21haWwuY29tIiwiaWF0IjoxNzczOTE5NTc1LCJleHAiOjE3NzM5MTk4NzV9.B3MxHzhRzFdQhsb_No-6mpAUpdkF0q3WMmOpX4nQf2w",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "POST",
             "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"bienId\": 2,\r\n  \"emailLocataire\": \"Test@gmail.com\",\r\n  \"contratId\": 1,\r\n  \"mois\": 3,\r\n  \"annee\": 2026,\r\n  \"dateEcheance\": \"2026-03-05\",\r\n  \"datePaiement\": \"2026-03-03\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
             "url": {
               "raw": "{{baseUrl}}/quittances",
               "host": [
