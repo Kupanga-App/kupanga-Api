@@ -382,4 +382,70 @@ public class Constante {
                 </body>
             </html>
             """;
+
+    // ─── Quittance ────────────────────────────────────────────────────────────
+    // Paramètres : %1$s = prénom/nom locataire
+    //              %2$s = mois label + année (ex : "Mars 2026")
+    //              %3$s = adresse du bien
+    //              %4$s = loyer HC
+    //              %5$s = charges
+    //              %6$s = total
+    //              %7$s = date de paiement
+
+    public static final String SUJET_MAIL_QUITTANCE =
+            "KUPANGA — Votre quittance de loyer est disponible";
+
+    public static final String CONTENU_MAIL_QUITTANCE =
+            """
+            <html>
+                <body style="font-family: Arial, sans-serif;">
+                    <div style="background-color: #f8fafc; padding: 20px;">
+                        <div style="background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+ 
+                            <h2 style="color: #2563eb;">
+                                🧾 Votre quittance de loyer
+                            </h2>
+ 
+                            <p>Bonjour <strong>%1$s</strong>,</p>
+ 
+                            <p>
+                                Votre propriétaire vous adresse la quittance de loyer
+                                pour le mois de <strong>%2$s</strong>
+                                concernant le logement situé au <strong>%3$s</strong>.
+                            </p>
+ 
+                            <p><strong>Récapitulatif :</strong></p>
+                            <ul style="color: #374151;">
+                                <li>Loyer mensuel hors charges : <strong>%4$s €</strong></li>
+                                <li>Charges mensuelles : <strong>%5$s €</strong></li>
+                                <li>Total encaissé : <strong>%6$s €</strong></li>
+                                <li>Date de paiement : <strong>%7$s</strong></li>
+                            </ul>
+ 
+                            <p>
+                                La quittance est disponible en pièce jointe de cet email.
+                                Conservez-la précieusement — elle constitue la preuve
+                                de votre paiement.
+                            </p>
+ 
+                            <div style="background-color: #eff6ff;
+                                        border-left: 4px solid #2563eb;
+                                        padding: 12px 16px;
+                                        border-radius: 4px;
+                                        margin: 20px 0;">
+                                <p style="margin: 0; color: #1d4ed8;">
+                                    Cette quittance a valeur de reçu officiel conformément
+                                    à l'article 21 de la loi du 6 juillet 1989.
+                                </p>
+                            </div>
+ 
+                            <p style="margin-top: 30px; font-size: 14px; color: #6b7280;">
+                                À très bientôt sur KUPANGA,<br/>
+                                L'équipe KUPANGA
+                            </p>
+                        </div>
+                    </div>
+                </body>
+            </html>
+            """;
 }

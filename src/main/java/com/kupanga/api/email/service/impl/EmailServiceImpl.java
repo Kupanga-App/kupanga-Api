@@ -3,6 +3,7 @@ package com.kupanga.api.email.service.impl;
 import com.kupanga.api.email.service.EmailService;
 import com.kupanga.api.immobilier.entity.Contrat;
 import com.kupanga.api.immobilier.entity.EtatDesLieux;
+import com.kupanga.api.immobilier.entity.Quittance;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 import java.net.MalformedURLException;
 
 import static com.kupanga.api.email.constantes.Constante.*;
+import static com.kupanga.api.immobilier.pdf.QuittancePdfService.MOIS_LABELS;
 
 @Service
 @Slf4j
@@ -299,6 +301,56 @@ public class EmailServiceImpl implements EmailService {
                     edl.getId(), e.getMessage());
             throw new RuntimeException(
                     "Erreur lors de l'envoi des emails de confirmation EDL signé", e);
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Quittance
+    // ─────────────────────────────────────────────────────────────────────────
+
+    @Override
+    @Async
+    public void envoyerQuittance(Quittance quittance) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            String moisLabel = MOIS_LABELS.getOrDefault(quittance.getMois(), "—")
+                    + " " + quittance.getAnnee();
+            String adresse   = quittance.getBien().getAdresse() + ", "
+                    + quittance.getBien().getCodePostal() + " "
+                    + quittance.getBien().getVille();
+
+            helper.setTo(quittance.getLocataire().getMail());
+            helper.setSubject(SUJET_MAIL_QUITTANCE);
+            helper.setText(String.format(
+                    CONTENU_MAIL_QUITTANCE,
+                    fullName(quittance.getLocataire().getFirstName(),    // %1$s
+                            quittance.getLocataire().getLastName()),
+                    moisLabel,                                            // %2$s
+                    adresse,                                              // %3$s
+                    quittance.getLoyerMensuel(),                         // %4$s
+                    quittance.getChargesMensuelles(),                    // %5$s
+                    quittance.getMontantTotal(),                         // %6$s
+                    quittance.getDatePaiement() != null                  // %7$s
+                            ? quittance.getDatePaiement().toString()
+                            : "—"
+            ), true);
+
+            // ─── Pièce jointe — PDF de la quittance ──────────────────────────
+            if (quittance.getUrlPdf() != null) {
+                String nomFichier = String.format("Quittance_%d_%d_%02d.pdf",
+                        quittance.getId(), quittance.getAnnee(), quittance.getMois());
+                helper.addAttachment(nomFichier, new UrlResource(quittance.getUrlPdf()));
+            }
+
+            mailSender.send(message);
+            log.info("Email quittance {} envoyé à {}",
+                    quittance.getId(), quittance.getLocataire().getMail());
+
+        } catch (MessagingException | MalformedURLException e) {
+            log.error("Erreur envoi email quittance {} : {}", quittance.getId(), e.getMessage());
+            throw new RuntimeException("Erreur lors de l'envoi de l'email de quittance", e);
         }
     }
 

@@ -551,6 +551,59 @@
         }
       ],
       "id": "a1126d88-59a9-4490-841f-cc3429dd9a51"
+    },
+    {
+      "name": "Quittance",
+      "item": [
+        {
+          "name": "create",
+          "id": "e5ce4442-3dfe-461b-a00f-cc382e64aa92",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/quittances",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "quittances"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "MarquerPayer",
+          "id": "fde16854-8220-4c29-aa98-a79740ad0885",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"bienId\": 1,\r\n  \"emailLocataire\": \"moiseaganze76@gmail.com\",\r\n  \"contratId\": 1,\r\n  \"mois\": 3,\r\n  \"annee\": 2026,\r\n  \"dateEcheance\": \"2026-03-05\",\r\n  \"datePaiement\": \"2026-03-03\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/quittances/{id}/marquer-payee",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "quittances",
+                "{id}",
+                "marquer-payee"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "id": "f1c09988-cb0e-4f0c-986d-3c17eadd08a2"
     }
   ],
   "variable": [
