@@ -254,4 +254,132 @@ public class Constante {
                     </body>
                 </html>
                 """;
+
+    // ─── Sujets ───────────────────────────────────────────────────────────────
+
+    public static final String SUJET_MAIL_INVITATION_SIGNATURE_EDL =
+            "KUPANGA — Vous avez un état des lieux à signer";
+
+    public static final String SUJET_MAIL_EDL_SIGNE =
+            "KUPANGA — Votre état des lieux a été signé par les deux parties";
+
+    // ─── Contenu — Invitation à signer ────────────────────────────────────────
+    // Paramètres : %1$s = prénom/nom locataire
+    //              %2$s = prénom/nom propriétaire
+    //              %3$s = adresse du bien
+    //              %4$s = type EDL (Entrée / Sortie)
+    //              %5$s = date de réalisation
+    //              %6$s = lien de signature
+
+    public static final String CONTENU_MAIL_INVITATION_SIGNATURE_EDL =
+            """
+            <html>
+                <body style="font-family: Arial, sans-serif;">
+                    <div style="background-color: #f8fafc; padding: 20px;">
+                        <div style="background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+ 
+                            <h2 style="color: #2563eb;">
+                                Bonjour %1$s,
+                            </h2>
+ 
+                            <p>
+                                <strong>%2$s</strong>, propriétaire du bien situé au
+                                <strong>%3$s</strong>, vous invite à signer l'état des lieux
+                                établi contradictoirement entre vous.
+                            </p>
+ 
+                            <p><strong>Récapitulatif :</strong></p>
+                            <ul style="color: #374151;">
+                                <li>Type d'état des lieux : <strong>%4$s</strong></li>
+                                <li>Date de réalisation : <strong>%5$s</strong></li>
+                                <li>Adresse du bien : <strong>%3$s</strong></li>
+                            </ul>
+ 
+                            <p>Pour signer l'état des lieux, cliquez sur le bouton ci-dessous :</p>
+ 
+                            <div style="text-align: center; margin: 30px 0;">
+                                <a href="%6$s"
+                                   style="background-color: #2563eb;
+                                          color: white;
+                                          padding: 14px 28px;
+                                          border-radius: 8px;
+                                          text-decoration: none;
+                                          font-weight: bold;
+                                          font-size: 16px;">
+                                    Signer l'état des lieux
+                                </a>
+                            </div>
+ 
+                            <p style="color: #ef4444; font-size: 13px;">
+                                ⚠️ Ce lien est valable <strong>72 heures</strong>.
+                                Passé ce délai, vous devrez contacter le propriétaire
+                                pour obtenir un nouveau lien.
+                            </p>
+ 
+                            <p style="margin-top: 30px; font-size: 14px; color: #6b7280;">
+                                À très bientôt sur KUPANGA,<br/>
+                                L'équipe KUPANGA
+                            </p>
+                        </div>
+                    </div>
+                </body>
+            </html>
+            """;
+
+    // ─── Contenu — Confirmation EDL signé ─────────────────────────────────────
+    // Paramètres : %1$s = prénom/nom destinataire
+    //              %2$s = adresse du bien
+    //              %3$s = type EDL (Entrée / Sortie)
+    //              %4$s = date de réalisation
+
+    public static final String CONTENU_MAIL_EDL_SIGNE =
+            """
+            <html>
+                <body style="font-family: Arial, sans-serif;">
+                    <div style="background-color: #f8fafc; padding: 20px;">
+                        <div style="background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+ 
+                            <h2 style="color: #16a34a;">
+                                ✅ État des lieux signé avec succès !
+                            </h2>
+ 
+                            <p>Bonjour <strong>%1$s</strong>,</p>
+ 
+                            <p>
+                                L'état des lieux concernant le bien situé au
+                                <strong>%2$s</strong> a été signé par les deux parties.
+                            </p>
+ 
+                            <p><strong>Récapitulatif :</strong></p>
+                            <ul style="color: #374151;">
+                                <li>Type d'état des lieux : <strong>%3$s</strong></li>
+                                <li>Date de réalisation : <strong>%4$s</strong></li>
+                                <li>Adresse du bien : <strong>%2$s</strong></li>
+                            </ul>
+ 
+                            <p>
+                                L'état des lieux signé est disponible en pièce jointe de cet email.
+                                Conservez-le précieusement — il constitue la référence en cas de litige
+                                à la fin de la location.
+                            </p>
+ 
+                            <div style="background-color: #f0fdf4;
+                                        border-left: 4px solid #16a34a;
+                                        padding: 12px 16px;
+                                        border-radius: 4px;
+                                        margin: 20px 0;">
+                                <p style="margin: 0; color: #15803d;">
+                                    Ce document a valeur de preuve contradictoire entre les deux parties.
+                                </p>
+                            </div>
+ 
+                            <p style="margin-top: 30px; font-size: 14px; color: #6b7280;">
+                                À très bientôt sur KUPANGA,<br/>
+                                L'équipe KUPANGA
+                            </p>
+                        </div>
+                    </div>
+                </body>
+            </html>
+            """;
 }
