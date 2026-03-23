@@ -596,11 +596,21 @@
           "name": "MarquerPayer",
           "id": "fde16854-8220-4c29-aa98-a79740ad0885",
           "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUk9MRV9QUk9QUklFVEFJUkUiLCJzdWIiOiJrYmcuYWwucHJAZ21haWwuY29tIiwiaWF0IjoxNzczOTIwODcxLCJleHAiOjE3NzM5MjExNzF9.5jNT53R5ch467NZp-A_5JMVBrXDrT5nY5MrUUIbnR4k",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "POST",
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"bienId\": 1,\r\n  \"emailLocataire\": \"moiseaganze76@gmail.com\",\r\n  \"contratId\": 1,\r\n  \"mois\": 3,\r\n  \"annee\": 2026,\r\n  \"dateEcheance\": \"2026-03-05\",\r\n  \"datePaiement\": \"2026-03-03\"\r\n}",
+              "raw": "{\r\n    \"signatureBase64\": \"iVBORw0KGgoAAAANSUhEUgAAASwAAAEsCAYAAAB5fY51AAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAALEgAACxIB0t1+/AAAABx0RVh0U29mdHdhcmUAQWRvYmUgRmlyZXdvcmtzIENTNXG14zYAAAAWdEVYdENyZWF0aW9uIFRpbWUAMDkvMjMvMTNJ0x8TAAAB\"\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -608,13 +618,13 @@
               }
             },
             "url": {
-              "raw": "{{baseUrl}}/quittances/{id}/marquer-payee",
+              "raw": "{{baseUrl}}/quittances/6/marquer-payee",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "quittances",
-                "{id}",
+                "6",
                 "marquer-payee"
               ]
             }

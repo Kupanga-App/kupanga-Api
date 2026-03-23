@@ -1,6 +1,7 @@
 package com.kupanga.api.immobilier.controller;
 
 import com.kupanga.api.immobilier.dto.formDTO.QuittanceFormDTO;
+import com.kupanga.api.immobilier.dto.formDTO.SignatureDTO;
 import com.kupanga.api.immobilier.dto.readDTO.QuittanceDTO;
 import com.kupanga.api.immobilier.service.QuittanceService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -143,10 +144,11 @@ public class QuittanceController {
     @PostMapping("/{id}/marquer-payee")
     public ResponseEntity<Void> marquerPayee(
             @Parameter(description = "Identifiant de la quittance", required = true)
-            @PathVariable Long id
+            @PathVariable Long id,
+            @Valid @RequestBody SignatureDTO dto
     ) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        quittanceService.marquerPayee(id, auth.getName());
+        quittanceService.marquerPayee(id, dto.signatureBase64(), auth.getName());
         return ResponseEntity.noContent().build();
     }
 

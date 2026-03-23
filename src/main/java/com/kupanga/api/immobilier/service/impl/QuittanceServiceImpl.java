@@ -20,6 +20,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -107,7 +108,7 @@ public class QuittanceServiceImpl implements QuittanceService {
     // ─────────────────────────────────────────────────────────────────────────
 
     @Override
-    public void marquerPayee(Long quittanceId, String emailProprietaire) {
+    public void marquerPayee(Long quittanceId, String signatureBase64, String emailProprietaire) {
 
         Quittance quittance = findAndVerifyProprietaire(quittanceId, emailProprietaire);
 
@@ -119,15 +120,19 @@ public class QuittanceServiceImpl implements QuittanceService {
         quittance.setStatut(StatutQuittance.PAYEE);
         quittance.setDatePaiement(LocalDate.now());
 
-        // Régénère le PDF avec la date de paiement
+        // ─── Signature propriétaire ───────────────────────────────────────────────
+        quittance.setSignatureProprietaire(signatureBase64);
+        quittance.setDateSignatureProprietaire(LocalDateTime.now());
+
+        // ─── Régénère le PDF avec signature + date de paiement ───────────────────
         String urlPdf = quittancePdfService.genererEtUploaderPdf(quittance);
         quittance.setUrlPdf(urlPdf);
         quittanceRepository.save(quittance);
 
-        // Envoie la quittance par email au locataire
+        // ─── Envoie la quittance signée par email au locataire ────────────────────
         emailService.envoyerQuittance(quittance);
 
-        log.info("Quittance {} marquée payée — email envoyé à {}",
+        log.info("Quittance {} marquée payée et signée — email envoyé à {}",
                 quittanceId, quittance.getLocataire().getMail());
     }
 

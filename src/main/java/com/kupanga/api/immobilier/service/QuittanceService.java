@@ -17,13 +17,14 @@ public interface QuittanceService {
     void creerQuittance(QuittanceFormDTO dto, String emailProprietaire);
 
     /**
-     * Marque la quittance comme payée, enregistre la date de paiement,
+     * Marque la quittance comme payée, enregistre la signature et la date de paiement,
      * régénère le PDF et envoie la quittance par email au locataire.
      *
      * @param quittanceId       id de la quittance
+     * @param signatureBase64   signature du propriétaire en base64
      * @param emailProprietaire email du propriétaire connecté
      */
-    void marquerPayee(Long quittanceId, String emailProprietaire);
+    void marquerPayee(Long quittanceId, String signatureBase64, String emailProprietaire);
 
     /**
      * Récupère toutes les quittances d'un bien.

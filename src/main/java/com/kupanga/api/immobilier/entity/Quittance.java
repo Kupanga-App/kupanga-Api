@@ -40,6 +40,12 @@ public class Quittance {
     @Column(nullable = false)
     private StatutQuittance statut;
 
+    // ─── Signature propriétaire ───────────────────────────────────────────────
+    @Column(columnDefinition = "TEXT")
+    private String signatureProprietaire;
+
+    private LocalDateTime dateSignatureProprietaire;
+
     // ─── PDF ──────────────────────────────────────────────────────────────────
     @Column(length = 500)
     private String urlPdf;
