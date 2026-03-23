@@ -14,7 +14,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -38,15 +37,15 @@ public class QuittanceController {
             description = """
                     Permet à un propriétaire authentifié de créer une quittance pour un mois donné.
                     Si un `contratId` est fourni, le loyer et les charges sont récupérés
-                    automatiquement depuis le contrat — sinon ils sont obligatoires dans le body.
+                    automatiquement depuis le contrat — sinon `loyerMensuel` et `chargesMensuelles`
+                    sont obligatoires dans le body.
                     Le PDF est généré automatiquement et stocké sur MinIO.
-                    Si une `datePaiement` est fournie, la quittance est directement créée
-                    au statut `PAYEE` et envoyée par email au locataire.
-                    Sinon elle passe au statut `EN_ATTENTE`.
+                    La quittance est créée au statut `EN_ATTENTE` — elle passera à `PAYEE`
+                    uniquement via l'endpoint `/marquer-payee` avec la signature du propriétaire.
                     """
     )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Quittance créée avec succès"),
+            @ApiResponse(responseCode = "204", description = "Quittance créée avec succès"),
             @ApiResponse(
                     responseCode = "409",
                     description = "Une quittance existe déjà pour ce bien / mois / année",
@@ -74,7 +73,7 @@ public class QuittanceController {
                     examples = {
                             @ExampleObject(
                                     name = "Avec contrat (loyer automatique)",
-                                    summary = "Quittance liée à un contrat existant",
+                                    summary = "Quittance liée à un contrat existant — loyer et charges récupérés automatiquement",
                                     value = """
                                             {
                                               "bienId": 1,
@@ -82,8 +81,7 @@ public class QuittanceController {
                                               "contratId": 1,
                                               "mois": 3,
                                               "annee": 2026,
-                                              "dateEcheance": "2026-03-05",
-                                              "datePaiement": "2026-03-03"
+                                              "dateEcheance": "2026-03-05"
                                             }
                                             """
                             ),
@@ -98,8 +96,7 @@ public class QuittanceController {
                                               "annee": 2026,
                                               "loyerMensuel": 850.00,
                                               "chargesMensuelles": 50.00,
-                                              "dateEcheance": "2026-03-05",
-                                              "datePaiement": null
+                                              "dateEcheance": "2026-03-05"
                                             }
                                             """
                             )
@@ -117,30 +114,64 @@ public class QuittanceController {
 
 
     // =========================================
-    // MARQUER PAYÉE
+    // MARQUER PAYÉE + SIGNATURE
     // =========================================
     @Operation(
-            summary = "Marquer une quittance comme payée",
+            summary = "Marquer une quittance comme payée — avec signature",
             description = """
-                    Permet au propriétaire d'enregistrer le paiement d'une quittance.
-                    La date de paiement est automatiquement fixée à aujourd'hui.
-                    Le PDF est régénéré avec la date de paiement et envoyé par email au locataire.
-                    La quittance passe au statut `PAYEE`.
+                    Permet au propriétaire d'enregistrer le paiement d'une quittance
+                    et d'y apposer sa signature manuscrite (capturée depuis un canvas en base64).
+                    
+                    À la réception :
+                    - La date de paiement est automatiquement fixée à aujourd'hui
+                    - La signature est stockée et intégrée au PDF
+                    - Le PDF est régénéré avec la signature et la date de paiement
+                    - Un email est envoyé au locataire avec le PDF en pièce jointe
+                    - La quittance passe au statut `PAYEE`
                     """
     )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Quittance marquée payée — email envoyé au locataire"),
+            @ApiResponse(
+                    responseCode = "204",
+                    description = "Quittance signée et marquée payée — email envoyé au locataire avec le PDF"
+            ),
             @ApiResponse(
                     responseCode = "400",
-                    description = "Quittance déjà marquée comme payée",
+                    description = "Quittance déjà payée ou signature invalide",
                     content = @Content(mediaType = "application/json",
                             examples = @ExampleObject(value = """
                                     { "error": "Cette quittance est déjà marquée comme payée" }
                                     """))
             ),
-            @ApiResponse(responseCode = "401", description = "Non authentifié ou non propriétaire"),
-            @ApiResponse(responseCode = "404", description = "Quittance introuvable")
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Non authentifié ou utilisateur non propriétaire de cette quittance",
+                    content = @Content(mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    { "error": "Accès non autorisé" }
+                                    """))
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Quittance introuvable",
+                    content = @Content(mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    { "error": "Quittance introuvable : 1" }
+                                    """))
+            )
     })
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            description = "Signature du propriétaire en base64 (image PNG capturée depuis le canvas)",
+            required = true,
+            content = @Content(
+                    mediaType = "application/json",
+                    examples = @ExampleObject(value = """
+                            {
+                                "signatureBase64": "iVBORw0KGgoAAAANSUhEUgAA..."
+                            }
+                            """)
+            )
+    )
     @PostMapping("/{id}/marquer-payee")
     public ResponseEntity<Void> marquerPayee(
             @Parameter(description = "Identifiant de la quittance", required = true)
@@ -177,7 +208,7 @@ public class QuittanceController {
                                         "chargesMensuelles": 50.00,
                                         "montantTotal": 900.00,
                                         "dateEcheance": "2026-03-05",
-                                        "datePaiement": "2026-03-03",
+                                        "datePaiement": "2026-03-19",
                                         "statut": "PAYEE",
                                         "nomLocataire": "Moise Aganze",
                                         "adresseBien": "75 Boulevard Jules Verne, 44000 Nantes"
