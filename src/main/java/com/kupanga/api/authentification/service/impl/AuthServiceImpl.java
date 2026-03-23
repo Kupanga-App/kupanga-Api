@@ -76,7 +76,7 @@ public class AuthServiceImpl implements AuthService {
         ResponseCookie refreshCookie = ResponseCookie.from(REFRESHTOKEN, refreshToken)
                 .httpOnly(true)
                 .secure(false)                // true en production HTTPS
-                .sameSite("Lax")
+                .sameSite("None")
                 .path("/auth/refresh")
                 .maxAge(Duration.ofDays(14)) // expiration
                 .build();
@@ -125,6 +125,7 @@ public class AuthServiceImpl implements AuthService {
             ResponseCookie deleteCookie = ResponseCookie.from(REFRESHTOKEN, "")
                     .httpOnly(true)
                     .secure(false)                // true en prod HTTPS
+                    .sameSite("None")
                     .path("/auth/refresh")
                     .maxAge(0)                   // supprime le cookie
                     .build();

@@ -633,6 +633,31 @@
         }
       ],
       "id": "f1c09988-cb0e-4f0c-986d-3c17eadd08a2"
+    },
+    {
+      "name": "Utilisateur",
+      "item": [
+        {
+          "name": "Lister les biens du propriétaire",
+          "id": "5335898a-d5d1-4b18-afa6-b5d8d0f04933",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/biens",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "biens"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "id": "a0779785-22a8-4c1f-980e-429b3cf00b0b"
     }
   ],
   "variable": [
