@@ -31,4 +31,11 @@ public interface BienService {
      * @return Bien .
      */
     Bien findWithAllProperties(Long id);
+
+    /**
+     * Rétourne tous les biens d'un utilisateur
+     * @param email email de l'utilisateur
+     * @return liste des biens du propriétaire
+     */
+    List<BienDTO> findAllPropertiesAssociateToUser(String email);
 }

@@ -3,13 +3,14 @@ package com.kupanga.api.immobilier.service.impl;
 import com.kupanga.api.exception.business.KupangaBusinessException;
 import com.kupanga.api.immobilier.dto.formDTO.BienFormDTO;
 import com.kupanga.api.immobilier.dto.readDTO.BienDTO;
-import com.kupanga.api.immobilier.entity.Bien;
+import com.kupanga.api.immobilier.entity.*;
 import com.kupanga.api.immobilier.mapper.BienMapper;
 import com.kupanga.api.immobilier.repository.BienRepository;
 import com.kupanga.api.immobilier.service.BienImageService;
 import com.kupanga.api.immobilier.service.BienPoiService;
 import com.kupanga.api.immobilier.service.BienService;
 import com.kupanga.api.immobilier.service.GeocodingService;
+import com.kupanga.api.user.dto.readDTO.UserDTO;
 import com.kupanga.api.user.entity.User;
 import com.kupanga.api.user.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Objects;
 
 import static com.kupanga.api.minio.constant.MinioConstant.PHOTO_IMO_BUCKET;
 
@@ -123,5 +125,111 @@ public class BienServiceImpl implements BienService {
                 .orElseThrow(
                         () -> new KupangaBusinessException("Le bien n'existe pas" , HttpStatus.NOT_FOUND)
                 );
+    }
+
+    @Override
+    public List<BienDTO> findAllPropertiesAssociateToUser(String email){
+
+        User user = userService.getUserByEmail(email);
+        userService.verifyIfUserIsOwner(user.getRole());
+
+        return bienRepository.findAllPropertiesAssociateToUser(user.getId())
+                .stream()
+                .map(bien -> BienDTO.builder()
+                        // ─── Informations générales ───────────────────────────────
+                        .id(bien.getId())
+                        .titre(bien.getTitre())
+                        .typeBien(bien.getTypeBien())
+                        .description(bien.getDescription())
+
+                        // ─── Adresse ──────────────────────────────────────────────
+                        .adresse(bien.getAdresse())
+                        .ville(bien.getVille())
+                        .codePostal(bien.getCodePostal())
+                        .pays(bien.getPays())
+                        .latitude(bien.getLocalisation() != null
+                                ? bien.getLocalisation().getY()
+                                : null)
+                        .longitude(bien.getLocalisation() != null
+                                ? bien.getLocalisation().getX()
+                                : null)
+
+                        // ─── Caractéristiques physiques ───────────────────────────
+                        .surfaceHabitable(bien.getSurfaceHabitable())
+                        .nombrePieces(bien.getNombrePieces())
+                        .nombreChambres(bien.getNombreChambres())
+                        .etage(bien.getEtage())
+                        .ascenseur(bien.getAscenseur())
+                        .anneeConstruction(bien.getAnneeConstruction())
+                        .modeChauffage(bien.getModeChauffage())
+
+                        // ─── Diagnostic énergétique ───────────────────────────────
+                        .classeEnergie(bien.getClasseEnergie())
+                        .classeGes(bien.getClasseGes())
+
+                        // ─── Conditions de location ───────────────────────────────
+                        .loyerMensuel(bien.getLoyerMensuel())
+                        .chargesMensuelles(bien.getChargesMensuelles())
+                        .depotGarantie(bien.getDepotGarantie())
+                        .meuble(bien.getMeuble())
+                        .colocation(bien.getColocation())
+                        .disponibleDe(bien.getDisponibleDe())
+
+                        // ─── Parties ──────────────────────────────────────────────
+                        .proprietaire(bien.getProprietaire() != null
+                                ? UserDTO.builder()
+                                .id(bien.getProprietaire().getId())
+                                .firstName(bien.getProprietaire().getFirstName())
+                                .lastName(bien.getProprietaire().getLastName())
+                                .mail(bien.getProprietaire().getMail())
+                                .build()
+                                : null)
+                        .locataire(bien.getLocataire() != null
+                                ? UserDTO.builder()
+                                .id(bien.getLocataire().getId())
+                                .firstName(bien.getLocataire().getFirstName())
+                                .lastName(bien.getLocataire().getLastName())
+                                .mail(bien.getLocataire().getMail())
+                                .build()
+                                : null)
+
+                        // ─── Documents & médias ───────────────────────────────────
+                        .contrats(bien.getContrats() != null
+                                ? bien.getContrats().stream()
+                                .map(Contrat::getUrlPdf)
+                                .filter(Objects::nonNull)
+                                .toList()
+                                : List.of())
+                        .quittances(bien.getQuittances() != null
+                                ? bien.getQuittances().stream()
+                                .map(Quittance::getUrlPdf)
+                                .filter(Objects::nonNull)
+                                .toList()
+                                : List.of())
+                        .documents(bien.getDocuments() != null
+                                ? bien.getDocuments().stream()
+                                .map(Document::getUrl)
+                                .filter(Objects::nonNull)
+                                .toList()
+                                : List.of())
+                        .images(bien.getImages() != null
+                                ? bien.getImages().stream()
+                                .map(BienImage::getUrl)
+                                .filter(Objects::nonNull)
+                                .toList()
+                                : List.of())
+                        .pois(bien.getPois() != null
+                                ? bien.getPois().stream()
+                                .map(p -> p.getPoiType().getLabelFr())
+                                .filter(Objects::nonNull)
+                                .toList()
+                                : List.of())
+
+                        // ─── Audit ────────────────────────────────────────────────
+                        .createdAt(bien.getCreatedAt())
+                        .updatedAt(bien.getUpdatedAt())
+
+                        .build())
+                .toList();
     }
 }

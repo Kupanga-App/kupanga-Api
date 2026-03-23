@@ -2,12 +2,13 @@ package com.kupanga.api.immobilier.dto.readDTO;
 
 import com.kupanga.api.immobilier.entity.*;
 import com.kupanga.api.user.dto.readDTO.UserDTO;
+import lombok.Builder;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Set;
 
+@Builder
 public record BienDTO(
 
         Long          id,

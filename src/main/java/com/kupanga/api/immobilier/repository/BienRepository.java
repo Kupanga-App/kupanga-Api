@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface BienRepository extends JpaRepository<Bien, Long>, JpaSpecificationExecutor<Bien> {
@@ -24,4 +25,14 @@ public interface BienRepository extends JpaRepository<Bien, Long>, JpaSpecificat
             """
     )
     Optional<Bien> findWithAllProperties(Long id);
+
+    @Query(
+            """
+            select b
+            from Bien b
+            inner join b.proprietaire p
+            where p.id = :userId
+            """
+    )
+    List<Bien> findAllPropertiesAssociateToUser(Long userId);
 }

@@ -75,7 +75,7 @@ public class AuthServiceImpl implements AuthService {
         // 5️. Envoyer le refresh token dans un cookie httpOnly sécurisé
         ResponseCookie refreshCookie = ResponseCookie.from(REFRESHTOKEN, refreshToken)
                 .httpOnly(true)
-                .secure(true)                // true en production HTTPS
+                .secure(false)                // true en production HTTPS
                 .sameSite("Lax")
                 .path("/auth/refresh")
                 .maxAge(Duration.ofDays(14)) // expiration
@@ -124,7 +124,7 @@ public class AuthServiceImpl implements AuthService {
             // 2. Supprimer le cookie du navigateur
             ResponseCookie deleteCookie = ResponseCookie.from(REFRESHTOKEN, "")
                     .httpOnly(true)
-                    .secure(true)                // true en prod HTTPS
+                    .secure(false)                // true en prod HTTPS
                     .path("/auth/refresh")
                     .maxAge(0)                   // supprime le cookie
                     .build();
