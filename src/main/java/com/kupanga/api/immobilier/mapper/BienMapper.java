@@ -25,8 +25,6 @@ public interface BienMapper {
     @Mapping(target = "contrats",         ignore = true)
     @Mapping(target = "quittances",       ignore = true)
     @Mapping(target = "documents",        ignore = true)
-    @Mapping(target = "createdAt",        ignore = true)
-    @Mapping(target = "updatedAt",        ignore = true)
     BienDTO toPublicDTO(Bien bien);
 
     // ─── Propriétaire public : prénom + nom uniquement ────────────────────────

@@ -482,37 +482,40 @@
 <!-- ════════════════════════════════════════════════════════════════ -->
 <div class="section-title">Signatures des parties</div>
 
-<div class="signatures">
-
-    <div class="sig-box">
-        <div class="sig-title">Signature du bailleur</div>
-        <img th:if="${edl.signatureProprietaire != null}"
-             th:src="'data:image/png;base64,' + ${edl.signatureProprietaire}"
-             alt="Signature bailleur"/>
-        <div th:if="${edl.signatureProprietaire == null}"
-             class="sig-placeholder">En attente de signature</div>
-        <p th:if="${edl.dateSignatureProprietaire != null}"
-           class="sig-date"
-           th:text="'Signé le ' + ${#temporals.format(edl.dateSignatureProprietaire, 'dd/MM/yyyy à HH:mm')}"></p>
-        <p style="margin-top: 8px; color: #555;"
-           th:text="${proprietaire.firstName + ' ' + proprietaire.lastName}"></p>
-    </div>
-
-    <div class="sig-box">
-        <div class="sig-title">Signature du locataire</div>
-        <img th:if="${edl.signatureLocataire != null}"
-             th:src="'data:image/png;base64,' + ${edl.signatureLocataire}"
-             alt="Signature locataire"/>
-        <div th:if="${edl.signatureLocataire == null}"
-             class="sig-placeholder">En attente de signature</div>
-        <p th:if="${edl.dateSignatureLocataire != null}"
-           class="sig-date"
-           th:text="'Signé le ' + ${#temporals.format(edl.dateSignatureLocataire, 'dd/MM/yyyy à HH:mm')}"></p>
-        <p style="margin-top: 8px; color: #555;"
-           th:text="${locataire.firstName + ' ' + locataire.lastName}"></p>
-    </div>
-
-</div>
+<table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+    <tr>
+        <td style="width: 50%; padding-right: 10px; vertical-align: top;">
+            <div class="sig-box">
+                <div class="sig-title">Signature du bailleur</div>
+                <img th:if="${edl.signatureProprietaire != null}"
+                     th:src="'data:image/png;base64,' + ${edl.signatureProprietaire}"
+                     alt="Signature bailleur"/>
+                <div th:if="${edl.signatureProprietaire == null}"
+                     class="sig-placeholder">En attente de signature</div>
+                <p th:if="${edl.dateSignatureProprietaire != null}"
+                   class="sig-date"
+                   th:text="'Signé le ' + ${#temporals.format(edl.dateSignatureProprietaire, 'dd/MM/yyyy à HH:mm')}"></p>
+                <p style="margin-top: 8px; color: #555;"
+                   th:text="${proprietaire.firstName + ' ' + proprietaire.lastName}"></p>
+            </div>
+        </td>
+        <td style="width: 50%; padding-left: 10px; vertical-align: top;">
+            <div class="sig-box">
+                <div class="sig-title">Signature du locataire</div>
+                <img th:if="${edl.signatureLocataire != null}"
+                     th:src="'data:image/png;base64,' + ${edl.signatureLocataire}"
+                     alt="Signature locataire"/>
+                <div th:if="${edl.signatureLocataire == null}"
+                     class="sig-placeholder">En attente de signature</div>
+                <p th:if="${edl.dateSignatureLocataire != null}"
+                   class="sig-date"
+                   th:text="'Signé le ' + ${#temporals.format(edl.dateSignatureLocataire, 'dd/MM/yyyy à HH:mm')}"></p>
+                <p style="margin-top: 8px; color: #555;"
+                   th:text="${locataire.firstName + ' ' + locataire.lastName}"></p>
+            </div>
+        </td>
+    </tr>
+</table>
 
 <!-- ── Pied de page ── -->
 <div class="footer">

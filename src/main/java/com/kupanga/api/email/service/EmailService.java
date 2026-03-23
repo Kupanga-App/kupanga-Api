@@ -2,6 +2,7 @@ package com.kupanga.api.email.service;
 
 import com.kupanga.api.immobilier.entity.Contrat;
 import com.kupanga.api.immobilier.entity.EtatDesLieux;
+import com.kupanga.api.immobilier.entity.Quittance;
 
 /**
  * Service pour l'envoi d'emails liés aux utilisateurs.
@@ -68,5 +69,13 @@ public interface EmailService {
      */
     void envoyerConfirmationEdlSigne(EtatDesLieux edl);
 
+
+    /**
+     * Envoie la quittance de loyer au locataire avec le PDF en pièce jointe.
+     * Appelé automatiquement lors du marquage d'une quittance comme payée.
+     *
+     * @param quittance la quittance payée
+     */
+    void envoyerQuittance(Quittance quittance);
 
 }

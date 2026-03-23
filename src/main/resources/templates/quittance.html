@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <style>
+
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            color: #1a1a2e;
+            margin: 30px;
+        }
+
+        /* Layout principal */
+        .container {
+            border: 2px solid #1a3a6b;
+            padding: 20px;
+        }
+
+        /* Top boxes */
+        .top {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .box {
+            border: 1px solid #1a3a6b;
+            padding: 10px;
+            width: 45%;
+            font-size: 11px;
+        }
+
+        /* Titre centré */
+        .title {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .title h1 {
+            font-size: 20px;
+            color: #1a3a6b;
+        }
+
+        .title h2 {
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        /* Bloc principal */
+        .content {
+            border: 1px solid #c5d3e8;
+            padding: 15px;
+        }
+
+        /* Texte */
+        .line {
+            margin-bottom: 8px;
+        }
+
+        .bold {
+            font-weight: bold;
+        }
+
+        .blue {
+            color: #1a6fbf;
+            font-weight: bold;
+        }
+
+        /* Détail */
+        .detail {
+            margin-top: 15px;
+            font-size: 11px;
+        }
+
+        /* Signature */
+        .signature-bloc {
+            margin-top: 24px;
+            border-top: 1px solid #c5d3e8;
+            padding-top: 14px;
+        }
+
+        .sig-label {
+            font-size: 10px;
+            font-weight: bold;
+            color: #1a3a6b;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 6px;
+        }
+
+        .sig-img {
+            width: 200px;
+            height: 70px;
+            border: 1px dashed #c5d3e8;
+            border-radius: 4px;
+            display: block;
+        }
+
+        .sig-placeholder {
+            width: 200px;
+            height: 70px;
+            border: 1px dashed #c5d3e8;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #aab8cc;
+            font-size: 10px;
+            font-style: italic;
+        }
+
+        .sig-date {
+            font-size: 10px;
+            color: #4a6fa5;
+            margin-top: 4px;
+        }
+
+        .sig-name {
+            font-weight: bold;
+            color: #1a1a2e;
+            margin-top: 4px;
+            font-size: 11px;
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 20px;
+            font-size: 10px;
+            color: #666;
+        }
+
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <!-- ── Top : Bailleur / Locataire ── -->
+    <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+        <tr>
+            <td style="width: 48%; border: 1px solid #1a3a6b; padding: 10px; font-size: 11px; vertical-align: top;">
+                <div class="bold">Bailleur</div>
+                <div th:text="${proprietaire.firstName + ' ' + proprietaire.lastName}"></div>
+                <div th:text="${proprietaire.mail}"></div>
+            </td>
+            <td style="width: 4%;"></td>
+            <td style="width: 48%; border: 1px solid #1a3a6b; padding: 10px; font-size: 11px; vertical-align: top;">
+                <div class="bold">Locataire</div>
+                <div th:text="${locataire.firstName + ' ' + locataire.lastName}"></div>
+                <div th:text="${locataire.mail}"></div>
+            </td>
+        </tr>
+    </table>
+
+    <!-- ── Titre ── -->
+    <div class="title">
+        <h1>Quittance de loyer</h1>
+        <h2 th:text="'Loyer ' + ${moisLabel} + ' ' + ${quittance.annee}"></h2>
+    </div>
+
+    <!-- ── Contenu ── -->
+    <div class="content">
+
+        <div class="line">
+            Reçu de : <span class="bold"
+                            th:text="${locataire.firstName + ' ' + locataire.lastName}"></span>
+        </div>
+
+        <div class="line">
+            La somme de : <span class="blue"
+                                th:text="${quittance.montantTotal} + ' €'"></span>
+        </div>
+
+        <div class="line">
+            Le : <span th:text="${#temporals.format(quittance.datePaiement, 'dd/MM/yyyy')}"></span>
+        </div>
+
+        <div class="line">
+            pour loyer et accessoires des locaux sis :
+            <span class="bold"
+                  th:text="${quittance.bien.adresse + ', ' + quittance.bien.codePostal + ' ' + quittance.bien.ville}"></span>
+        </div>
+
+        <div class="line">
+            en paiement du terme du
+            <span th:text="${#temporals.format(quittance.dateEcheance, 'dd/MM/yyyy')}"></span>
+        </div>
+
+        <!-- ── Détail financier ── -->
+        <div class="detail">
+            <div>Détail :</div>
+            <div>- Loyer : <span th:text="${quittance.loyerMensuel} + ' €'"></span></div>
+            <div>- Charges : <span th:text="${quittance.chargesMensuelles} + ' €'"></span></div>
+            <div class="bold">
+                Total : <span th:text="${quittance.montantTotal} + ' €'"></span>
+            </div>
+        </div>
+
+        <!-- ── Signature bailleur ── -->
+        <div class="signature-bloc">
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                    <td style="vertical-align: top;">
+                        <div class="sig-label">Signature du bailleur</div>
+
+                        <!-- Signature présente -->
+                        <img th:if="${quittance.signatureProprietaire != null}"
+                             class="sig-img"
+                             th:src="'data:image/png;base64,' + ${quittance.signatureProprietaire}"
+                             alt="Signature bailleur"/>
+
+                        <!-- Signature absente -->
+                        <div th:if="${quittance.signatureProprietaire == null}"
+                             class="sig-placeholder">En attente de signature</div>
+
+                        <!-- Date de signature -->
+                        <p th:if="${quittance.dateSignatureProprietaire != null}"
+                           class="sig-date"
+                           th:text="'Signé le ' + ${#temporals.format(quittance.dateSignatureProprietaire, 'dd/MM/yyyy à HH:mm')}"></p>
+
+                        <div class="sig-name"
+                             th:text="${proprietaire.firstName + ' ' + proprietaire.lastName}"></div>
+                    </td>
+                    <td style="text-align: right; vertical-align: bottom; font-size: 11px; color: #555;">
+                        Fait le
+                        <span th:text="${#temporals.format(quittance.createdAt, 'dd/MM/yyyy')}"></span>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+    </div>
+
+    <!-- ── Footer ── -->
+    <div class="footer">
+        Kupanga — Quittance n°
+        <span th:text="${quittance.id}"></span>
+    </div>
+
+</div>
+
+</body>
+</html>

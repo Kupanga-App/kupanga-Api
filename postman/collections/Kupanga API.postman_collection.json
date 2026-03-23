@@ -551,6 +551,88 @@
         }
       ],
       "id": "a1126d88-59a9-4490-841f-cc3429dd9a51"
+    },
+    {
+      "name": "Quittance",
+      "item": [
+        {
+          "name": "create",
+          "id": "e5ce4442-3dfe-461b-a00f-cc382e64aa92",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUk9MRV9QUk9QUklFVEFJUkUiLCJzdWIiOiJrYmcuYWwucHJAZ21haWwuY29tIiwiaWF0IjoxNzczOTIwODcxLCJleHAiOjE3NzM5MjExNzF9.5jNT53R5ch467NZp-A_5JMVBrXDrT5nY5MrUUIbnR4k",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"bienId\": 3,\r\n  \"emailLocataire\": \"test@gmail.com\",\r\n  \"mois\": 3,\r\n  \"annee\": 2026,\r\n  \"loyerMensuel\": 850.00,\r\n  \"chargesMensuelles\": 50.00,\r\n  \"dateEcheance\": \"2026-03-05\",\r\n  \"datePaiement\": null\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/quittances",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "quittances"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "MarquerPayer",
+          "id": "fde16854-8220-4c29-aa98-a79740ad0885",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUk9MRV9QUk9QUklFVEFJUkUiLCJzdWIiOiJrYmcuYWwucHJAZ21haWwuY29tIiwiaWF0IjoxNzczOTIwODcxLCJleHAiOjE3NzM5MjExNzF9.5jNT53R5ch467NZp-A_5JMVBrXDrT5nY5MrUUIbnR4k",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"signatureBase64\": \"iVBORw0KGgoAAAANSUhEUgAAASwAAAEsCAYAAAB5fY51AAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAALEgAACxIB0t1+/AAAABx0RVh0U29mdHdhcmUAQWRvYmUgRmlyZXdvcmtzIENTNXG14zYAAAAWdEVYdENyZWF0aW9uIFRpbWUAMDkvMjMvMTNJ0x8TAAAB\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/quittances/6/marquer-payee",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "quittances",
+                "6",
+                "marquer-payee"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "id": "f1c09988-cb0e-4f0c-986d-3c17eadd08a2"
     }
   ],
   "variable": [
