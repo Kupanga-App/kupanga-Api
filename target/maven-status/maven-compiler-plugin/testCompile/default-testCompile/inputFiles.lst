@@ -1,0 +1,17 @@
+C:\Users\Leclerc\Workflow\BackEnd\Java\SpringBoot\Kupanga\kupanga-Api\src\test\java\com\kupanga\api\authentification\service\AuthServiceImplTest.java
+C:\Users\Leclerc\Workflow\BackEnd\Java\SpringBoot\Kupanga\kupanga-Api\src\test\java\com\kupanga\api\authentification\service\RefreshTokenServiceImplTest.java
+C:\Users\Leclerc\Workflow\BackEnd\Java\SpringBoot\Kupanga\kupanga-Api\src\test\java\com\kupanga\api\authentification\utils\JwtUtilsTest.java
+C:\Users\Leclerc\Workflow\BackEnd\Java\SpringBoot\Kupanga\kupanga-Api\src\test\java\com\kupanga\api\exception\business\InvalidRoleExceptionTest.java
+C:\Users\Leclerc\Workflow\BackEnd\Java\SpringBoot\Kupanga\kupanga-Api\src\test\java\com\kupanga\api\minio\config\MinioConfigTest.java
+C:\Users\Leclerc\Workflow\BackEnd\Java\SpringBoot\Kupanga\kupanga-Api\src\test\java\com\kupanga\api\authentification\filter\JwtFilterTest.java
+C:\Users\Leclerc\Workflow\BackEnd\Java\SpringBoot\Kupanga\kupanga-Api\src\test\java\com\kupanga\api\authentification\controller\AuthControllerWebMvcTest.java
+C:\Users\Leclerc\Workflow\BackEnd\Java\SpringBoot\Kupanga\kupanga-Api\src\test\java\com\kupanga\api\minio\service\MinioServiceImplTest.java
+C:\Users\Leclerc\Workflow\BackEnd\Java\SpringBoot\Kupanga\kupanga-Api\src\test\java\com\kupanga\api\exception\GlobalExceptionHandlerTest.java
+C:\Users\Leclerc\Workflow\BackEnd\Java\SpringBoot\Kupanga\kupanga-Api\src\test\java\com\kupanga\api\user\service\UserServiceImplTest.java
+C:\Users\Leclerc\Workflow\BackEnd\Java\SpringBoot\Kupanga\kupanga-Api\src\test\java\com\kupanga\api\config\SecurityConfigTest.java
+C:\Users\Leclerc\Workflow\BackEnd\Java\SpringBoot\Kupanga\kupanga-Api\src\test\java\com\kupanga\api\exception\business\UserAlreadyExistsExceptionTes.java
+C:\Users\Leclerc\Workflow\BackEnd\Java\SpringBoot\Kupanga\kupanga-Api\src\test\java\com\kupanga\api\authentification\service\UserDetailsServiceImplTest.java
+C:\Users\Leclerc\Workflow\BackEnd\Java\SpringBoot\Kupanga\kupanga-Api\src\test\java\com\kupanga\api\exception\business\UserNotFoundExceptionTest.java
+C:\Users\Leclerc\Workflow\BackEnd\Java\SpringBoot\Kupanga\kupanga-Api\src\test\java\com\kupanga\api\ApiApplicationTests.java
+C:\Users\Leclerc\Workflow\BackEnd\Java\SpringBoot\Kupanga\kupanga-Api\src\test\java\com\kupanga\api\authentification\service\PasswordResetTokenServiceImplTest.java
+C:\Users\Leclerc\Workflow\BackEnd\Java\SpringBoot\Kupanga\kupanga-Api\src\test\java\com\kupanga\api\email\service\EmailServiceImplTest.java

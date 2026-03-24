@@ -1,0 +1,643 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="com.kupanga.api.ApiApplicationTests" time="12.724" tests="1" errors="0" skipped="0" failures="0">
+  <properties>
+    <property name="java.specification.version" value="21"/>
+    <property name="sun.cpu.isalist" value="amd64"/>
+    <property name="sun.jnu.encoding" value="Cp1252"/>
+    <property name="java.class.path" value="C:\Users\Leclerc\Workflow\BackEnd\Java\SpringBoot\Kupanga\kupanga-Api\target\test-classes;C:\Users\Leclerc\Workflow\BackEnd\Java\SpringBoot\Kupanga\kupanga-Api\target\classes;C:\Users\Leclerc\.m2\repository\org\springframework\boot\spring-boot-starter-web\3.2.2\spring-boot-starter-web-3.2.2.jar;C:\Users\Leclerc\.m2\repository\org\springframework\boot\spring-boot-starter\3.2.2\spring-boot-starter-3.2.2.jar;C:\Users\Leclerc\.m2\repository\org\springframework\boot\spring-boot\3.2.2\spring-boot-3.2.2.jar;C:\Users\Leclerc\.m2\repository\org\springframework\boot\spring-boot-autoconfigure\3.2.2\spring-boot-autoconfigure-3.2.2.jar;C:\Users\Leclerc\.m2\repository\org\springframework\boot\spring-boot-starter-logging\3.2.2\spring-boot-starter-logging-3.2.2.jar;C:\Users\Leclerc\.m2\repository\ch\qos\logback\logback-classic\1.4.14\logback-classic-1.4.14.jar;C:\Users\Leclerc\.m2\repository\ch\qos\logback\logback-core\1.4.14\logback-core-1.4.14.jar;C:\Users\Leclerc\.m2\repository\org\apache\logging\log4j\log4j-to-slf4j\2.21.1\log4j-to-slf4j-2.21.1.jar;C:\Users\Leclerc\.m2\repository\org\apache\logging\log4j\log4j-api\2.21.1\log4j-api-2.21.1.jar;C:\Users\Leclerc\.m2\repository\org\slf4j\jul-to-slf4j\2.0.11\jul-to-slf4j-2.0.11.jar;C:\Users\Leclerc\.m2\repository\jakarta\annotation\jakarta.annotation-api\2.1.1\jakarta.annotation-api-2.1.1.jar;C:\Users\Leclerc\.m2\repository\org\yaml\snakeyaml\2.2\snakeyaml-2.2.jar;C:\Users\Leclerc\.m2\repository\org\springframework\boot\spring-boot-starter-json\3.2.2\spring-boot-starter-json-3.2.2.jar;C:\Users\Leclerc\.m2\repository\com\fasterxml\jackson\datatype\jackson-datatype-jdk8\2.15.3\jackson-datatype-jdk8-2.15.3.jar;C:\Users\Leclerc\.m2\repository\com\fasterxml\jackson\datatype\jackson-datatype-jsr310\2.15.3\jackson-datatype-jsr310-2.15.3.jar;C:\Users\Leclerc\.m2\repository\com\fasterxml\jackson\module\jackson-module-parameter-names\2.15.3\jackson-module-parameter-names-2.15.3.jar;C:\Users\Leclerc\.m2\repository\org\springframework\boot\spring-boot-starter-tomcat\3.2.2\spring-boot-starter-tomcat-3.2.2.jar;C:\Users\Leclerc\.m2\repository\org\apache\tomcat\embed\tomcat-embed-core\10.1.18\tomcat-embed-core-10.1.18.jar;C:\Users\Leclerc\.m2\repository\org\apache\tomcat\embed\tomcat-embed-websocket\10.1.18\tomcat-embed-websocket-10.1.18.jar;C:\Users\Leclerc\.m2\repository\org\springframework\spring-web\6.1.3\spring-web-6.1.3.jar;C:\Users\Leclerc\.m2\repository\org\springframework\spring-beans\6.1.3\spring-beans-6.1.3.jar;C:\Users\Leclerc\.m2\repository\io\micrometer\micrometer-observation\1.12.2\micrometer-observation-1.12.2.jar;C:\Users\Leclerc\.m2\repository\io\micrometer\micrometer-commons\1.12.2\micrometer-commons-1.12.2.jar;C:\Users\Leclerc\.m2\repository\org\springframework\spring-webmvc\6.1.3\spring-webmvc-6.1.3.jar;C:\Users\Leclerc\.m2\repository\org\springframework\spring-context\6.1.3\spring-context-6.1.3.jar;C:\Users\Leclerc\.m2\repository\org\springframework\spring-expression\6.1.3\spring-expression-6.1.3.jar;C:\Users\Leclerc\.m2\repository\org\springframework\boot\spring-boot-starter-data-jpa\3.2.2\spring-boot-starter-data-jpa-3.2.2.jar;C:\Users\Leclerc\.m2\repository\org\springframework\boot\spring-boot-starter-aop\3.2.2\spring-boot-starter-aop-3.2.2.jar;C:\Users\Leclerc\.m2\repository\org\aspectj\aspectjweaver\1.9.21\aspectjweaver-1.9.21.jar;C:\Users\Leclerc\.m2\repository\org\springframework\boot\spring-boot-starter-jdbc\3.2.2\spring-boot-starter-jdbc-3.2.2.jar;C:\Users\Leclerc\.m2\repository\com\zaxxer\HikariCP\5.0.1\HikariCP-5.0.1.jar;C:\Users\Leclerc\.m2\repository\org\springframework\spring-jdbc\6.1.3\spring-jdbc-6.1.3.jar;C:\Users\Leclerc\.m2\repository\org\hibernate\orm\hibernate-core\6.4.1.Final\hibernate-core-6.4.1.Final.jar;C:\Users\Leclerc\.m2\repository\jakarta\persistence\jakarta.persistence-api\3.1.0\jakarta.persistence-api-3.1.0.jar;C:\Users\Leclerc\.m2\repository\jakarta\transaction\jakarta.transaction-api\2.0.1\jakarta.transaction-api-2.0.1.jar;C:\Users\Leclerc\.m2\repository\org\hibernate\common\hibernate-commons-annotations\6.0.6.Final\hibernate-commons-annotations-6.0.6.Final.jar;C:\Users\Leclerc\.m2\repository\io\smallrye\jandex\3.1.2\jandex-3.1.2.jar;C:\Users\Leclerc\.m2\repository\com\fasterxml\classmate\1.6.0\classmate-1.6.0.jar;C:\Users\Leclerc\.m2\repository\net\bytebuddy\byte-buddy\1.14.11\byte-buddy-1.14.11.jar;C:\Users\Leclerc\.m2\repository\org\glassfish\jaxb\jaxb-runtime\4.0.4\jaxb-runtime-4.0.4.jar;C:\Users\Leclerc\.m2\repository\org\glassfish\jaxb\jaxb-core\4.0.4\jaxb-core-4.0.4.jar;C:\Users\Leclerc\.m2\repository\org\glassfish\jaxb\txw2\4.0.4\txw2-4.0.4.jar;C:\Users\Leclerc\.m2\repository\com\sun\istack\istack-commons-runtime\4.1.2\istack-commons-runtime-4.1.2.jar;C:\Users\Leclerc\.m2\repository\jakarta\inject\jakarta.inject-api\2.0.1\jakarta.inject-api-2.0.1.jar;C:\Users\Leclerc\.m2\repository\org\antlr\antlr4-runtime\4.13.0\antlr4-runtime-4.13.0.jar;C:\Users\Leclerc\.m2\repository\org\springframework\data\spring-data-jpa\3.2.2\spring-data-jpa-3.2.2.jar;C:\Users\Leclerc\.m2\repository\org\springframework\data\spring-data-commons\3.2.2\spring-data-commons-3.2.2.jar;C:\Users\Leclerc\.m2\repository\org\springframework\spring-orm\6.1.3\spring-orm-6.1.3.jar;C:\Users\Leclerc\.m2\repository\org\springframework\spring-tx\6.1.3\spring-tx-6.1.3.jar;C:\Users\Leclerc\.m2\repository\org\slf4j\slf4j-api\2.0.11\slf4j-api-2.0.11.jar;C:\Users\Leclerc\.m2\repository\org\springframework\spring-aspects\6.1.3\spring-aspects-6.1.3.jar;C:\Users\Leclerc\.m2\repository\org\postgresql\postgresql\42.6.0\postgresql-42.6.0.jar;C:\Users\Leclerc\.m2\repository\org\checkerframework\checker-qual\3.31.0\checker-qual-3.31.0.jar;C:\Users\Leclerc\.m2\repository\org\springframework\boot\spring-boot-starter-security\3.2.2\spring-boot-starter-security-3.2.2.jar;C:\Users\Leclerc\.m2\repository\org\springframework\spring-aop\6.1.3\spring-aop-6.1.3.jar;C:\Users\Leclerc\.m2\repository\org\springframework\security\spring-security-config\6.2.1\spring-security-config-6.2.1.jar;C:\Users\Leclerc\.m2\repository\org\springframework\security\spring-security-web\6.2.1\spring-security-web-6.2.1.jar;C:\Users\Leclerc\.m2\repository\org\springframework\boot\spring-boot-starter-validation\3.2.2\spring-boot-starter-validation-3.2.2.jar;C:\Users\Leclerc\.m2\repository\org\apache\tomcat\embed\tomcat-embed-el\10.1.18\tomcat-embed-el-10.1.18.jar;C:\Users\Leclerc\.m2\repository\org\hibernate\validator\hibernate-validator\8.0.1.Final\hibernate-validator-8.0.1.Final.jar;C:\Users\Leclerc\.m2\repository\jakarta\validation\jakarta.validation-api\3.0.2\jakarta.validation-api-3.0.2.jar;C:\Users\Leclerc\.m2\repository\org\springframework\boot\spring-boot-starter-mail\3.2.2\spring-boot-starter-mail-3.2.2.jar;C:\Users\Leclerc\.m2\repository\org\springframework\spring-context-support\6.1.3\spring-context-support-6.1.3.jar;C:\Users\Leclerc\.m2\repository\org\eclipse\angus\jakarta.mail\2.0.2\jakarta.mail-2.0.2.jar;C:\Users\Leclerc\.m2\repository\jakarta\activation\jakarta.activation-api\2.1.2\jakarta.activation-api-2.1.2.jar;C:\Users\Leclerc\.m2\repository\org\eclipse\angus\angus-activation\2.0.1\angus-activation-2.0.1.jar;C:\Users\Leclerc\.m2\repository\io\minio\minio\8.5.4\minio-8.5.4.jar;C:\Users\Leclerc\.m2\repository\com\carrotsearch\thirdparty\simple-xml-safe\2.7.1\simple-xml-safe-2.7.1.jar;C:\Users\Leclerc\.m2\repository\com\google\guava\guava\32.0.0-jre\guava-32.0.0-jre.jar;C:\Users\Leclerc\.m2\repository\com\google\guava\failureaccess\1.0.1\failureaccess-1.0.1.jar;C:\Users\Leclerc\.m2\repository\com\google\guava\listenablefuture\9999.0-empty-to-avoid-conflict-with-guava\listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar;C:\Users\Leclerc\.m2\repository\com\google\code\findbugs\jsr305\3.0.2\jsr305-3.0.2.jar;C:\Users\Leclerc\.m2\repository\com\google\errorprone\error_prone_annotations\2.18.0\error_prone_annotations-2.18.0.jar;C:\Users\Leclerc\.m2\repository\com\google\j2objc\j2objc-annotations\2.8\j2objc-annotations-2.8.jar;C:\Users\Leclerc\.m2\repository\com\squareup\okhttp3\okhttp\4.12.0\okhttp-4.12.0.jar;C:\Users\Leclerc\.m2\repository\com\squareup\okio\okio\3.6.0\okio-3.6.0.jar;C:\Users\Leclerc\.m2\repository\com\squareup\okio\okio-jvm\3.6.0\okio-jvm-3.6.0.jar;C:\Users\Leclerc\.m2\repository\org\jetbrains\kotlin\kotlin-stdlib-common\1.9.22\kotlin-stdlib-common-1.9.22.jar;C:\Users\Leclerc\.m2\repository\org\jetbrains\kotlin\kotlin-stdlib-jdk8\1.9.22\kotlin-stdlib-jdk8-1.9.22.jar;C:\Users\Leclerc\.m2\repository\org\jetbrains\kotlin\kotlin-stdlib\1.9.22\kotlin-stdlib-1.9.22.jar;C:\Users\Leclerc\.m2\repository\org\jetbrains\annotations\13.0\annotations-13.0.jar;C:\Users\Leclerc\.m2\repository\org\jetbrains\kotlin\kotlin-stdlib-jdk7\1.9.22\kotlin-stdlib-jdk7-1.9.22.jar;C:\Users\Leclerc\.m2\repository\com\fasterxml\jackson\core\jackson-annotations\2.15.3\jackson-annotations-2.15.3.jar;C:\Users\Leclerc\.m2\repository\com\fasterxml\jackson\core\jackson-core\2.15.3\jackson-core-2.15.3.jar;C:\Users\Leclerc\.m2\repository\com\fasterxml\jackson\core\jackson-databind\2.15.3\jackson-databind-2.15.3.jar;C:\Users\Leclerc\.m2\repository\org\bouncycastle\bcprov-jdk15on\1.70\bcprov-jdk15on-1.70.jar;C:\Users\Leclerc\.m2\repository\org\apache\commons\commons-compress\1.23.0\commons-compress-1.23.0.jar;C:\Users\Leclerc\.m2\repository\org\xerial\snappy\snappy-java\1.1.10.1\snappy-java-1.1.10.1.jar;C:\Users\Leclerc\.m2\repository\org\springdoc\springdoc-openapi-starter-webmvc-ui\2.2.0\springdoc-openapi-starter-webmvc-ui-2.2.0.jar;C:\Users\Leclerc\.m2\repository\org\springdoc\springdoc-openapi-starter-webmvc-api\2.2.0\springdoc-openapi-starter-webmvc-api-2.2.0.jar;C:\Users\Leclerc\.m2\repository\org\springdoc\springdoc-openapi-starter-common\2.2.0\springdoc-openapi-starter-common-2.2.0.jar;C:\Users\Leclerc\.m2\repository\io\swagger\core\v3\swagger-core-jakarta\2.2.15\swagger-core-jakarta-2.2.15.jar;C:\Users\Leclerc\.m2\repository\org\apache\commons\commons-lang3\3.13.0\commons-lang3-3.13.0.jar;C:\Users\Leclerc\.m2\repository\io\swagger\core\v3\swagger-annotations-jakarta\2.2.15\swagger-annotations-jakarta-2.2.15.jar;C:\Users\Leclerc\.m2\repository\io\swagger\core\v3\swagger-models-jakarta\2.2.15\swagger-models-jakarta-2.2.15.jar;C:\Users\Leclerc\.m2\repository\com\fasterxml\jackson\dataformat\jackson-dataformat-yaml\2.15.3\jackson-dataformat-yaml-2.15.3.jar;C:\Users\Leclerc\.m2\repository\org\webjars\swagger-ui\5.2.0\swagger-ui-5.2.0.jar;C:\Users\Leclerc\.m2\repository\org\mapstruct\mapstruct\1.5.5.Final\mapstruct-1.5.5.Final.jar;C:\Users\Leclerc\.m2\repository\org\projectlombok\lombok\1.18.30\lombok-1.18.30.jar;C:\Users\Leclerc\.m2\repository\io\jsonwebtoken\jjwt-api\0.11.5\jjwt-api-0.11.5.jar;C:\Users\Leclerc\.m2\repository\io\jsonwebtoken\jjwt-impl\0.11.5\jjwt-impl-0.11.5.jar;C:\Users\Leclerc\.m2\repository\io\jsonwebtoken\jjwt-jackson\0.11.5\jjwt-jackson-0.11.5.jar;C:\Users\Leclerc\.m2\repository\org\hibernate\orm\hibernate-spatial\6.4.1.Final\hibernate-spatial-6.4.1.Final.jar;C:\Users\Leclerc\.m2\repository\org\geolatte\geolatte-geom\1.8.2\geolatte-geom-1.8.2.jar;C:\Users\Leclerc\.m2\repository\org\locationtech\jts\jts-core\1.18.2\jts-core-1.18.2.jar;C:\Users\Leclerc\.m2\repository\org\jboss\logging\jboss-logging\3.5.3.Final\jboss-logging-3.5.3.Final.jar;C:\Users\Leclerc\.m2\repository\org\springframework\boot\spring-boot-starter-data-redis\3.2.2\spring-boot-starter-data-redis-3.2.2.jar;C:\Users\Leclerc\.m2\repository\io\lettuce\lettuce-core\6.3.1.RELEASE\lettuce-core-6.3.1.RELEASE.jar;C:\Users\Leclerc\.m2\repository\io\netty\netty-common\4.1.105.Final\netty-common-4.1.105.Final.jar;C:\Users\Leclerc\.m2\repository\io\netty\netty-handler\4.1.105.Final\netty-handler-4.1.105.Final.jar;C:\Users\Leclerc\.m2\repository\io\netty\netty-resolver\4.1.105.Final\netty-resolver-4.1.105.Final.jar;C:\Users\Leclerc\.m2\repository\io\netty\netty-buffer\4.1.105.Final\netty-buffer-4.1.105.Final.jar;C:\Users\Leclerc\.m2\repository\io\netty\netty-transport-native-unix-common\4.1.105.Final\netty-transport-native-unix-common-4.1.105.Final.jar;C:\Users\Leclerc\.m2\repository\io\netty\netty-codec\4.1.105.Final\netty-codec-4.1.105.Final.jar;C:\Users\Leclerc\.m2\repository\io\netty\netty-transport\4.1.105.Final\netty-transport-4.1.105.Final.jar;C:\Users\Leclerc\.m2\repository\io\projectreactor\reactor-core\3.6.2\reactor-core-3.6.2.jar;C:\Users\Leclerc\.m2\repository\org\reactivestreams\reactive-streams\1.0.4\reactive-streams-1.0.4.jar;C:\Users\Leclerc\.m2\repository\org\springframework\data\spring-data-redis\3.2.2\spring-data-redis-3.2.2.jar;C:\Users\Leclerc\.m2\repository\org\springframework\data\spring-data-keyvalue\3.2.2\spring-data-keyvalue-3.2.2.jar;C:\Users\Leclerc\.m2\repository\org\springframework\spring-oxm\6.1.3\spring-oxm-6.1.3.jar;C:\Users\Leclerc\.m2\repository\org\springframework\boot\spring-boot-starter-cache\3.2.2\spring-boot-starter-cache-3.2.2.jar;C:\Users\Leclerc\.m2\repository\org\springframework\boot\spring-boot-starter-webflux\3.2.2\spring-boot-starter-webflux-3.2.2.jar;C:\Users\Leclerc\.m2\repository\org\springframework\boot\spring-boot-starter-reactor-netty\3.2.2\spring-boot-starter-reactor-netty-3.2.2.jar;C:\Users\Leclerc\.m2\repository\io\projectreactor\netty\reactor-netty-http\1.1.15\reactor-netty-http-1.1.15.jar;C:\Users\Leclerc\.m2\repository\io\netty\netty-codec-http\4.1.105.Final\netty-codec-http-4.1.105.Final.jar;C:\Users\Leclerc\.m2\repository\io\netty\netty-codec-http2\4.1.105.Final\netty-codec-http2-4.1.105.Final.jar;C:\Users\Leclerc\.m2\repository\io\netty\netty-resolver-dns\4.1.105.Final\netty-resolver-dns-4.1.105.Final.jar;C:\Users\Leclerc\.m2\repository\io\netty\netty-codec-dns\4.1.105.Final\netty-codec-dns-4.1.105.Final.jar;C:\Users\Leclerc\.m2\repository\io\netty\netty-resolver-dns-native-macos\4.1.105.Final\netty-resolver-dns-native-macos-4.1.105.Final-osx-x86_64.jar;C:\Users\Leclerc\.m2\repository\io\netty\netty-resolver-dns-classes-macos\4.1.105.Final\netty-resolver-dns-classes-macos-4.1.105.Final.jar;C:\Users\Leclerc\.m2\repository\io\netty\netty-transport-native-epoll\4.1.105.Final\netty-transport-native-epoll-4.1.105.Final-linux-x86_64.jar;C:\Users\Leclerc\.m2\repository\io\netty\netty-transport-classes-epoll\4.1.105.Final\netty-transport-classes-epoll-4.1.105.Final.jar;C:\Users\Leclerc\.m2\repository\io\projectreactor\netty\reactor-netty-core\1.1.15\reactor-netty-core-1.1.15.jar;C:\Users\Leclerc\.m2\repository\io\netty\netty-handler-proxy\4.1.105.Final\netty-handler-proxy-4.1.105.Final.jar;C:\Users\Leclerc\.m2\repository\io\netty\netty-codec-socks\4.1.105.Final\netty-codec-socks-4.1.105.Final.jar;C:\Users\Leclerc\.m2\repository\org\springframework\spring-webflux\6.1.3\spring-webflux-6.1.3.jar;C:\Users\Leclerc\.m2\repository\org\springframework\boot\spring-boot-starter-test\3.2.2\spring-boot-starter-test-3.2.2.jar;C:\Users\Leclerc\.m2\repository\org\springframework\boot\spring-boot-test\3.2.2\spring-boot-test-3.2.2.jar;C:\Users\Leclerc\.m2\repository\org\springframework\boot\spring-boot-test-autoconfigure\3.2.2\spring-boot-test-autoconfigure-3.2.2.jar;C:\Users\Leclerc\.m2\repository\com\jayway\jsonpath\json-path\2.8.0\json-path-2.8.0.jar;C:\Users\Leclerc\.m2\repository\jakarta\xml\bind\jakarta.xml.bind-api\4.0.1\jakarta.xml.bind-api-4.0.1.jar;C:\Users\Leclerc\.m2\repository\net\minidev\json-smart\2.5.0\json-smart-2.5.0.jar;C:\Users\Leclerc\.m2\repository\net\minidev\accessors-smart\2.5.0\accessors-smart-2.5.0.jar;C:\Users\Leclerc\.m2\repository\org\ow2\asm\asm\9.3\asm-9.3.jar;C:\Users\Leclerc\.m2\repository\org\assertj\assertj-core\3.24.2\assertj-core-3.24.2.jar;C:\Users\Leclerc\.m2\repository\org\awaitility\awaitility\4.2.0\awaitility-4.2.0.jar;C:\Users\Leclerc\.m2\repository\org\hamcrest\hamcrest\2.2\hamcrest-2.2.jar;C:\Users\Leclerc\.m2\repository\org\junit\jupiter\junit-jupiter\5.10.1\junit-jupiter-5.10.1.jar;C:\Users\Leclerc\.m2\repository\org\junit\jupiter\junit-jupiter-api\5.10.1\junit-jupiter-api-5.10.1.jar;C:\Users\Leclerc\.m2\repository\org\opentest4j\opentest4j\1.3.0\opentest4j-1.3.0.jar;C:\Users\Leclerc\.m2\repository\org\junit\platform\junit-platform-commons\1.10.1\junit-platform-commons-1.10.1.jar;C:\Users\Leclerc\.m2\repository\org\apiguardian\apiguardian-api\1.1.2\apiguardian-api-1.1.2.jar;C:\Users\Leclerc\.m2\repository\org\junit\jupiter\junit-jupiter-params\5.10.1\junit-jupiter-params-5.10.1.jar;C:\Users\Leclerc\.m2\repository\org\junit\jupiter\junit-jupiter-engine\5.10.1\junit-jupiter-engine-5.10.1.jar;C:\Users\Leclerc\.m2\repository\org\junit\platform\junit-platform-engine\1.10.1\junit-platform-engine-1.10.1.jar;C:\Users\Leclerc\.m2\repository\org\mockito\mockito-core\5.7.0\mockito-core-5.7.0.jar;C:\Users\Leclerc\.m2\repository\net\bytebuddy\byte-buddy-agent\1.14.11\byte-buddy-agent-1.14.11.jar;C:\Users\Leclerc\.m2\repository\org\objenesis\objenesis\3.3\objenesis-3.3.jar;C:\Users\Leclerc\.m2\repository\org\mockito\mockito-junit-jupiter\5.7.0\mockito-junit-jupiter-5.7.0.jar;C:\Users\Leclerc\.m2\repository\org\skyscreamer\jsonassert\1.5.1\jsonassert-1.5.1.jar;C:\Users\Leclerc\.m2\repository\com\vaadin\external\google\android-json\0.0.20131108.vaadin1\android-json-0.0.20131108.vaadin1.jar;C:\Users\Leclerc\.m2\repository\org\springframework\spring-core\6.1.3\spring-core-6.1.3.jar;C:\Users\Leclerc\.m2\repository\org\springframework\spring-jcl\6.1.3\spring-jcl-6.1.3.jar;C:\Users\Leclerc\.m2\repository\org\springframework\spring-test\6.1.3\spring-test-6.1.3.jar;C:\Users\Leclerc\.m2\repository\org\xmlunit\xmlunit-core\2.9.1\xmlunit-core-2.9.1.jar;C:\Users\Leclerc\.m2\repository\org\springframework\security\spring-security-test\6.2.1\spring-security-test-6.2.1.jar;C:\Users\Leclerc\.m2\repository\org\springframework\security\spring-security-core\6.2.1\spring-security-core-6.2.1.jar;C:\Users\Leclerc\.m2\repository\org\springframework\security\spring-security-crypto\6.2.1\spring-security-crypto-6.2.1.jar;C:\Users\Leclerc\.m2\repository\org\flywaydb\flyway-core\10.10.0\flyway-core-10.10.0.jar;C:\Users\Leclerc\.m2\repository\com\fasterxml\jackson\dataformat\jackson-dataformat-toml\2.15.3\jackson-dataformat-toml-2.15.3.jar;C:\Users\Leclerc\.m2\repository\com\google\code\gson\gson\2.10.1\gson-2.10.1.jar;C:\Users\Leclerc\.m2\repository\org\flywaydb\flyway-database-postgresql\10.10.0\flyway-database-postgresql-10.10.0.jar;C:\Users\Leclerc\.m2\repository\org\xhtmlrenderer\flying-saucer-pdf\9.1.22\flying-saucer-pdf-9.1.22.jar;C:\Users\Leclerc\.m2\repository\com\lowagie\itext\2.1.7\itext-2.1.7.jar;C:\Users\Leclerc\.m2\repository\org\bouncycastle\bcmail-jdk14\1.64\bcmail-jdk14-1.64.jar;C:\Users\Leclerc\.m2\repository\org\bouncycastle\bcpkix-jdk14\1.64\bcpkix-jdk14-1.64.jar;C:\Users\Leclerc\.m2\repository\org\bouncycastle\bctsp-jdk14\1.46\bctsp-jdk14-1.46.jar;C:\Users\Leclerc\.m2\repository\org\bouncycastle\bcprov-jdk14\1.64\bcprov-jdk14-1.64.jar;C:\Users\Leclerc\.m2\repository\org\xhtmlrenderer\flying-saucer-core\9.1.22\flying-saucer-core-9.1.22.jar;C:\Users\Leclerc\.m2\repository\org\springframework\boot\spring-boot-starter-thymeleaf\3.2.2\spring-boot-starter-thymeleaf-3.2.2.jar;C:\Users\Leclerc\.m2\repository\org\thymeleaf\thymeleaf-spring6\3.1.2.RELEASE\thymeleaf-spring6-3.1.2.RELEASE.jar;C:\Users\Leclerc\.m2\repository\org\thymeleaf\thymeleaf\3.1.2.RELEASE\thymeleaf-3.1.2.RELEASE.jar;C:\Users\Leclerc\.m2\repository\org\attoparser\attoparser\2.0.7.RELEASE\attoparser-2.0.7.RELEASE.jar;C:\Users\Leclerc\.m2\repository\org\unbescape\unbescape\1.1.6.RELEASE\unbescape-1.1.6.RELEASE.jar;"/>
+    <property name="java.vm.vendor" value="Microsoft"/>
+    <property name="sun.arch.data.model" value="64"/>
+    <property name="user.variant" value=""/>
+    <property name="java.vendor.url" value="https://www.microsoft.com"/>
+    <property name="user.timezone" value="Europe/Paris"/>
+    <property name="org.jboss.logging.provider" value="slf4j"/>
+    <property name="os.name" value="Windows 11"/>
+    <property name="java.vm.specification.version" value="21"/>
+    <property name="user.country" value="FR"/>
+    <property name="sun.java.launcher" value="SUN_STANDARD"/>
+    <property name="sun.boot.library.path" value="C:\Users\Leclerc\.jdks\ms-21.0.8\bin"/>
+    <property name="sun.java.command" value="C:\Users\Leclerc\AppData\Local\Temp\surefire10081830628646472973\surefirebooter-20260324010800125_3.jar C:\Users\Leclerc\AppData\Local\Temp\surefire10081830628646472973 2026-03-24T01-07-59_994-jvmRun1 surefire-20260324010800125_1tmp surefire_0-20260324010800125_2tmp"/>
+    <property name="jdk.debug" value="release"/>
+    <property name="surefire.test.class.path" value="C:\Users\Leclerc\Workflow\BackEnd\Java\SpringBoot\Kupanga\kupanga-Api\target\test-classes;C:\Users\Leclerc\Workflow\BackEnd\Java\SpringBoot\Kupanga\kupanga-Api\target\classes;C:\Users\Leclerc\.m2\repository\org\springframework\boot\spring-boot-starter-web\3.2.2\spring-boot-starter-web-3.2.2.jar;C:\Users\Leclerc\.m2\repository\org\springframework\boot\spring-boot-starter\3.2.2\spring-boot-starter-3.2.2.jar;C:\Users\Leclerc\.m2\repository\org\springframework\boot\spring-boot\3.2.2\spring-boot-3.2.2.jar;C:\Users\Leclerc\.m2\repository\org\springframework\boot\spring-boot-autoconfigure\3.2.2\spring-boot-autoconfigure-3.2.2.jar;C:\Users\Leclerc\.m2\repository\org\springframework\boot\spring-boot-starter-logging\3.2.2\spring-boot-starter-logging-3.2.2.jar;C:\Users\Leclerc\.m2\repository\ch\qos\logback\logback-classic\1.4.14\logback-classic-1.4.14.jar;C:\Users\Leclerc\.m2\repository\ch\qos\logback\logback-core\1.4.14\logback-core-1.4.14.jar;C:\Users\Leclerc\.m2\repository\org\apache\logging\log4j\log4j-to-slf4j\2.21.1\log4j-to-slf4j-2.21.1.jar;C:\Users\Leclerc\.m2\repository\org\apache\logging\log4j\log4j-api\2.21.1\log4j-api-2.21.1.jar;C:\Users\Leclerc\.m2\repository\org\slf4j\jul-to-slf4j\2.0.11\jul-to-slf4j-2.0.11.jar;C:\Users\Leclerc\.m2\repository\jakarta\annotation\jakarta.annotation-api\2.1.1\jakarta.annotation-api-2.1.1.jar;C:\Users\Leclerc\.m2\repository\org\yaml\snakeyaml\2.2\snakeyaml-2.2.jar;C:\Users\Leclerc\.m2\repository\org\springframework\boot\spring-boot-starter-json\3.2.2\spring-boot-starter-json-3.2.2.jar;C:\Users\Leclerc\.m2\repository\com\fasterxml\jackson\datatype\jackson-datatype-jdk8\2.15.3\jackson-datatype-jdk8-2.15.3.jar;C:\Users\Leclerc\.m2\repository\com\fasterxml\jackson\datatype\jackson-datatype-jsr310\2.15.3\jackson-datatype-jsr310-2.15.3.jar;C:\Users\Leclerc\.m2\repository\com\fasterxml\jackson\module\jackson-module-parameter-names\2.15.3\jackson-module-parameter-names-2.15.3.jar;C:\Users\Leclerc\.m2\repository\org\springframework\boot\spring-boot-starter-tomcat\3.2.2\spring-boot-starter-tomcat-3.2.2.jar;C:\Users\Leclerc\.m2\repository\org\apache\tomcat\embed\tomcat-embed-core\10.1.18\tomcat-embed-core-10.1.18.jar;C:\Users\Leclerc\.m2\repository\org\apache\tomcat\embed\tomcat-embed-websocket\10.1.18\tomcat-embed-websocket-10.1.18.jar;C:\Users\Leclerc\.m2\repository\org\springframework\spring-web\6.1.3\spring-web-6.1.3.jar;C:\Users\Leclerc\.m2\repository\org\springframework\spring-beans\6.1.3\spring-beans-6.1.3.jar;C:\Users\Leclerc\.m2\repository\io\micrometer\micrometer-observation\1.12.2\micrometer-observation-1.12.2.jar;C:\Users\Leclerc\.m2\repository\io\micrometer\micrometer-commons\1.12.2\micrometer-commons-1.12.2.jar;C:\Users\Leclerc\.m2\repository\org\springframework\spring-webmvc\6.1.3\spring-webmvc-6.1.3.jar;C:\Users\Leclerc\.m2\repository\org\springframework\spring-context\6.1.3\spring-context-6.1.3.jar;C:\Users\Leclerc\.m2\repository\org\springframework\spring-expression\6.1.3\spring-expression-6.1.3.jar;C:\Users\Leclerc\.m2\repository\org\springframework\boot\spring-boot-starter-data-jpa\3.2.2\spring-boot-starter-data-jpa-3.2.2.jar;C:\Users\Leclerc\.m2\repository\org\springframework\boot\spring-boot-starter-aop\3.2.2\spring-boot-starter-aop-3.2.2.jar;C:\Users\Leclerc\.m2\repository\org\aspectj\aspectjweaver\1.9.21\aspectjweaver-1.9.21.jar;C:\Users\Leclerc\.m2\repository\org\springframework\boot\spring-boot-starter-jdbc\3.2.2\spring-boot-starter-jdbc-3.2.2.jar;C:\Users\Leclerc\.m2\repository\com\zaxxer\HikariCP\5.0.1\HikariCP-5.0.1.jar;C:\Users\Leclerc\.m2\repository\org\springframework\spring-jdbc\6.1.3\spring-jdbc-6.1.3.jar;C:\Users\Leclerc\.m2\repository\org\hibernate\orm\hibernate-core\6.4.1.Final\hibernate-core-6.4.1.Final.jar;C:\Users\Leclerc\.m2\repository\jakarta\persistence\jakarta.persistence-api\3.1.0\jakarta.persistence-api-3.1.0.jar;C:\Users\Leclerc\.m2\repository\jakarta\transaction\jakarta.transaction-api\2.0.1\jakarta.transaction-api-2.0.1.jar;C:\Users\Leclerc\.m2\repository\org\hibernate\common\hibernate-commons-annotations\6.0.6.Final\hibernate-commons-annotations-6.0.6.Final.jar;C:\Users\Leclerc\.m2\repository\io\smallrye\jandex\3.1.2\jandex-3.1.2.jar;C:\Users\Leclerc\.m2\repository\com\fasterxml\classmate\1.6.0\classmate-1.6.0.jar;C:\Users\Leclerc\.m2\repository\net\bytebuddy\byte-buddy\1.14.11\byte-buddy-1.14.11.jar;C:\Users\Leclerc\.m2\repository\org\glassfish\jaxb\jaxb-runtime\4.0.4\jaxb-runtime-4.0.4.jar;C:\Users\Leclerc\.m2\repository\org\glassfish\jaxb\jaxb-core\4.0.4\jaxb-core-4.0.4.jar;C:\Users\Leclerc\.m2\repository\org\glassfish\jaxb\txw2\4.0.4\txw2-4.0.4.jar;C:\Users\Leclerc\.m2\repository\com\sun\istack\istack-commons-runtime\4.1.2\istack-commons-runtime-4.1.2.jar;C:\Users\Leclerc\.m2\repository\jakarta\inject\jakarta.inject-api\2.0.1\jakarta.inject-api-2.0.1.jar;C:\Users\Leclerc\.m2\repository\org\antlr\antlr4-runtime\4.13.0\antlr4-runtime-4.13.0.jar;C:\Users\Leclerc\.m2\repository\org\springframework\data\spring-data-jpa\3.2.2\spring-data-jpa-3.2.2.jar;C:\Users\Leclerc\.m2\repository\org\springframework\data\spring-data-commons\3.2.2\spring-data-commons-3.2.2.jar;C:\Users\Leclerc\.m2\repository\org\springframework\spring-orm\6.1.3\spring-orm-6.1.3.jar;C:\Users\Leclerc\.m2\repository\org\springframework\spring-tx\6.1.3\spring-tx-6.1.3.jar;C:\Users\Leclerc\.m2\repository\org\slf4j\slf4j-api\2.0.11\slf4j-api-2.0.11.jar;C:\Users\Leclerc\.m2\repository\org\springframework\spring-aspects\6.1.3\spring-aspects-6.1.3.jar;C:\Users\Leclerc\.m2\repository\org\postgresql\postgresql\42.6.0\postgresql-42.6.0.jar;C:\Users\Leclerc\.m2\repository\org\checkerframework\checker-qual\3.31.0\checker-qual-3.31.0.jar;C:\Users\Leclerc\.m2\repository\org\springframework\boot\spring-boot-starter-security\3.2.2\spring-boot-starter-security-3.2.2.jar;C:\Users\Leclerc\.m2\repository\org\springframework\spring-aop\6.1.3\spring-aop-6.1.3.jar;C:\Users\Leclerc\.m2\repository\org\springframework\security\spring-security-config\6.2.1\spring-security-config-6.2.1.jar;C:\Users\Leclerc\.m2\repository\org\springframework\security\spring-security-web\6.2.1\spring-security-web-6.2.1.jar;C:\Users\Leclerc\.m2\repository\org\springframework\boot\spring-boot-starter-validation\3.2.2\spring-boot-starter-validation-3.2.2.jar;C:\Users\Leclerc\.m2\repository\org\apache\tomcat\embed\tomcat-embed-el\10.1.18\tomcat-embed-el-10.1.18.jar;C:\Users\Leclerc\.m2\repository\org\hibernate\validator\hibernate-validator\8.0.1.Final\hibernate-validator-8.0.1.Final.jar;C:\Users\Leclerc\.m2\repository\jakarta\validation\jakarta.validation-api\3.0.2\jakarta.validation-api-3.0.2.jar;C:\Users\Leclerc\.m2\repository\org\springframework\boot\spring-boot-starter-mail\3.2.2\spring-boot-starter-mail-3.2.2.jar;C:\Users\Leclerc\.m2\repository\org\springframework\spring-context-support\6.1.3\spring-context-support-6.1.3.jar;C:\Users\Leclerc\.m2\repository\org\eclipse\angus\jakarta.mail\2.0.2\jakarta.mail-2.0.2.jar;C:\Users\Leclerc\.m2\repository\jakarta\activation\jakarta.activation-api\2.1.2\jakarta.activation-api-2.1.2.jar;C:\Users\Leclerc\.m2\repository\org\eclipse\angus\angus-activation\2.0.1\angus-activation-2.0.1.jar;C:\Users\Leclerc\.m2\repository\io\minio\minio\8.5.4\minio-8.5.4.jar;C:\Users\Leclerc\.m2\repository\com\carrotsearch\thirdparty\simple-xml-safe\2.7.1\simple-xml-safe-2.7.1.jar;C:\Users\Leclerc\.m2\repository\com\google\guava\guava\32.0.0-jre\guava-32.0.0-jre.jar;C:\Users\Leclerc\.m2\repository\com\google\guava\failureaccess\1.0.1\failureaccess-1.0.1.jar;C:\Users\Leclerc\.m2\repository\com\google\guava\listenablefuture\9999.0-empty-to-avoid-conflict-with-guava\listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar;C:\Users\Leclerc\.m2\repository\com\google\code\findbugs\jsr305\3.0.2\jsr305-3.0.2.jar;C:\Users\Leclerc\.m2\repository\com\google\errorprone\error_prone_annotations\2.18.0\error_prone_annotations-2.18.0.jar;C:\Users\Leclerc\.m2\repository\com\google\j2objc\j2objc-annotations\2.8\j2objc-annotations-2.8.jar;C:\Users\Leclerc\.m2\repository\com\squareup\okhttp3\okhttp\4.12.0\okhttp-4.12.0.jar;C:\Users\Leclerc\.m2\repository\com\squareup\okio\okio\3.6.0\okio-3.6.0.jar;C:\Users\Leclerc\.m2\repository\com\squareup\okio\okio-jvm\3.6.0\okio-jvm-3.6.0.jar;C:\Users\Leclerc\.m2\repository\org\jetbrains\kotlin\kotlin-stdlib-common\1.9.22\kotlin-stdlib-common-1.9.22.jar;C:\Users\Leclerc\.m2\repository\org\jetbrains\kotlin\kotlin-stdlib-jdk8\1.9.22\kotlin-stdlib-jdk8-1.9.22.jar;C:\Users\Leclerc\.m2\repository\org\jetbrains\kotlin\kotlin-stdlib\1.9.22\kotlin-stdlib-1.9.22.jar;C:\Users\Leclerc\.m2\repository\org\jetbrains\annotations\13.0\annotations-13.0.jar;C:\Users\Leclerc\.m2\repository\org\jetbrains\kotlin\kotlin-stdlib-jdk7\1.9.22\kotlin-stdlib-jdk7-1.9.22.jar;C:\Users\Leclerc\.m2\repository\com\fasterxml\jackson\core\jackson-annotations\2.15.3\jackson-annotations-2.15.3.jar;C:\Users\Leclerc\.m2\repository\com\fasterxml\jackson\core\jackson-core\2.15.3\jackson-core-2.15.3.jar;C:\Users\Leclerc\.m2\repository\com\fasterxml\jackson\core\jackson-databind\2.15.3\jackson-databind-2.15.3.jar;C:\Users\Leclerc\.m2\repository\org\bouncycastle\bcprov-jdk15on\1.70\bcprov-jdk15on-1.70.jar;C:\Users\Leclerc\.m2\repository\org\apache\commons\commons-compress\1.23.0\commons-compress-1.23.0.jar;C:\Users\Leclerc\.m2\repository\org\xerial\snappy\snappy-java\1.1.10.1\snappy-java-1.1.10.1.jar;C:\Users\Leclerc\.m2\repository\org\springdoc\springdoc-openapi-starter-webmvc-ui\2.2.0\springdoc-openapi-starter-webmvc-ui-2.2.0.jar;C:\Users\Leclerc\.m2\repository\org\springdoc\springdoc-openapi-starter-webmvc-api\2.2.0\springdoc-openapi-starter-webmvc-api-2.2.0.jar;C:\Users\Leclerc\.m2\repository\org\springdoc\springdoc-openapi-starter-common\2.2.0\springdoc-openapi-starter-common-2.2.0.jar;C:\Users\Leclerc\.m2\repository\io\swagger\core\v3\swagger-core-jakarta\2.2.15\swagger-core-jakarta-2.2.15.jar;C:\Users\Leclerc\.m2\repository\org\apache\commons\commons-lang3\3.13.0\commons-lang3-3.13.0.jar;C:\Users\Leclerc\.m2\repository\io\swagger\core\v3\swagger-annotations-jakarta\2.2.15\swagger-annotations-jakarta-2.2.15.jar;C:\Users\Leclerc\.m2\repository\io\swagger\core\v3\swagger-models-jakarta\2.2.15\swagger-models-jakarta-2.2.15.jar;C:\Users\Leclerc\.m2\repository\com\fasterxml\jackson\dataformat\jackson-dataformat-yaml\2.15.3\jackson-dataformat-yaml-2.15.3.jar;C:\Users\Leclerc\.m2\repository\org\webjars\swagger-ui\5.2.0\swagger-ui-5.2.0.jar;C:\Users\Leclerc\.m2\repository\org\mapstruct\mapstruct\1.5.5.Final\mapstruct-1.5.5.Final.jar;C:\Users\Leclerc\.m2\repository\org\projectlombok\lombok\1.18.30\lombok-1.18.30.jar;C:\Users\Leclerc\.m2\repository\io\jsonwebtoken\jjwt-api\0.11.5\jjwt-api-0.11.5.jar;C:\Users\Leclerc\.m2\repository\io\jsonwebtoken\jjwt-impl\0.11.5\jjwt-impl-0.11.5.jar;C:\Users\Leclerc\.m2\repository\io\jsonwebtoken\jjwt-jackson\0.11.5\jjwt-jackson-0.11.5.jar;C:\Users\Leclerc\.m2\repository\org\hibernate\orm\hibernate-spatial\6.4.1.Final\hibernate-spatial-6.4.1.Final.jar;C:\Users\Leclerc\.m2\repository\org\geolatte\geolatte-geom\1.8.2\geolatte-geom-1.8.2.jar;C:\Users\Leclerc\.m2\repository\org\locationtech\jts\jts-core\1.18.2\jts-core-1.18.2.jar;C:\Users\Leclerc\.m2\repository\org\jboss\logging\jboss-logging\3.5.3.Final\jboss-logging-3.5.3.Final.jar;C:\Users\Leclerc\.m2\repository\org\springframework\boot\spring-boot-starter-data-redis\3.2.2\spring-boot-starter-data-redis-3.2.2.jar;C:\Users\Leclerc\.m2\repository\io\lettuce\lettuce-core\6.3.1.RELEASE\lettuce-core-6.3.1.RELEASE.jar;C:\Users\Leclerc\.m2\repository\io\netty\netty-common\4.1.105.Final\netty-common-4.1.105.Final.jar;C:\Users\Leclerc\.m2\repository\io\netty\netty-handler\4.1.105.Final\netty-handler-4.1.105.Final.jar;C:\Users\Leclerc\.m2\repository\io\netty\netty-resolver\4.1.105.Final\netty-resolver-4.1.105.Final.jar;C:\Users\Leclerc\.m2\repository\io\netty\netty-buffer\4.1.105.Final\netty-buffer-4.1.105.Final.jar;C:\Users\Leclerc\.m2\repository\io\netty\netty-transport-native-unix-common\4.1.105.Final\netty-transport-native-unix-common-4.1.105.Final.jar;C:\Users\Leclerc\.m2\repository\io\netty\netty-codec\4.1.105.Final\netty-codec-4.1.105.Final.jar;C:\Users\Leclerc\.m2\repository\io\netty\netty-transport\4.1.105.Final\netty-transport-4.1.105.Final.jar;C:\Users\Leclerc\.m2\repository\io\projectreactor\reactor-core\3.6.2\reactor-core-3.6.2.jar;C:\Users\Leclerc\.m2\repository\org\reactivestreams\reactive-streams\1.0.4\reactive-streams-1.0.4.jar;C:\Users\Leclerc\.m2\repository\org\springframework\data\spring-data-redis\3.2.2\spring-data-redis-3.2.2.jar;C:\Users\Leclerc\.m2\repository\org\springframework\data\spring-data-keyvalue\3.2.2\spring-data-keyvalue-3.2.2.jar;C:\Users\Leclerc\.m2\repository\org\springframework\spring-oxm\6.1.3\spring-oxm-6.1.3.jar;C:\Users\Leclerc\.m2\repository\org\springframework\boot\spring-boot-starter-cache\3.2.2\spring-boot-starter-cache-3.2.2.jar;C:\Users\Leclerc\.m2\repository\org\springframework\boot\spring-boot-starter-webflux\3.2.2\spring-boot-starter-webflux-3.2.2.jar;C:\Users\Leclerc\.m2\repository\org\springframework\boot\spring-boot-starter-reactor-netty\3.2.2\spring-boot-starter-reactor-netty-3.2.2.jar;C:\Users\Leclerc\.m2\repository\io\projectreactor\netty\reactor-netty-http\1.1.15\reactor-netty-http-1.1.15.jar;C:\Users\Leclerc\.m2\repository\io\netty\netty-codec-http\4.1.105.Final\netty-codec-http-4.1.105.Final.jar;C:\Users\Leclerc\.m2\repository\io\netty\netty-codec-http2\4.1.105.Final\netty-codec-http2-4.1.105.Final.jar;C:\Users\Leclerc\.m2\repository\io\netty\netty-resolver-dns\4.1.105.Final\netty-resolver-dns-4.1.105.Final.jar;C:\Users\Leclerc\.m2\repository\io\netty\netty-codec-dns\4.1.105.Final\netty-codec-dns-4.1.105.Final.jar;C:\Users\Leclerc\.m2\repository\io\netty\netty-resolver-dns-native-macos\4.1.105.Final\netty-resolver-dns-native-macos-4.1.105.Final-osx-x86_64.jar;C:\Users\Leclerc\.m2\repository\io\netty\netty-resolver-dns-classes-macos\4.1.105.Final\netty-resolver-dns-classes-macos-4.1.105.Final.jar;C:\Users\Leclerc\.m2\repository\io\netty\netty-transport-native-epoll\4.1.105.Final\netty-transport-native-epoll-4.1.105.Final-linux-x86_64.jar;C:\Users\Leclerc\.m2\repository\io\netty\netty-transport-classes-epoll\4.1.105.Final\netty-transport-classes-epoll-4.1.105.Final.jar;C:\Users\Leclerc\.m2\repository\io\projectreactor\netty\reactor-netty-core\1.1.15\reactor-netty-core-1.1.15.jar;C:\Users\Leclerc\.m2\repository\io\netty\netty-handler-proxy\4.1.105.Final\netty-handler-proxy-4.1.105.Final.jar;C:\Users\Leclerc\.m2\repository\io\netty\netty-codec-socks\4.1.105.Final\netty-codec-socks-4.1.105.Final.jar;C:\Users\Leclerc\.m2\repository\org\springframework\spring-webflux\6.1.3\spring-webflux-6.1.3.jar;C:\Users\Leclerc\.m2\repository\org\springframework\boot\spring-boot-starter-test\3.2.2\spring-boot-starter-test-3.2.2.jar;C:\Users\Leclerc\.m2\repository\org\springframework\boot\spring-boot-test\3.2.2\spring-boot-test-3.2.2.jar;C:\Users\Leclerc\.m2\repository\org\springframework\boot\spring-boot-test-autoconfigure\3.2.2\spring-boot-test-autoconfigure-3.2.2.jar;C:\Users\Leclerc\.m2\repository\com\jayway\jsonpath\json-path\2.8.0\json-path-2.8.0.jar;C:\Users\Leclerc\.m2\repository\jakarta\xml\bind\jakarta.xml.bind-api\4.0.1\jakarta.xml.bind-api-4.0.1.jar;C:\Users\Leclerc\.m2\repository\net\minidev\json-smart\2.5.0\json-smart-2.5.0.jar;C:\Users\Leclerc\.m2\repository\net\minidev\accessors-smart\2.5.0\accessors-smart-2.5.0.jar;C:\Users\Leclerc\.m2\repository\org\ow2\asm\asm\9.3\asm-9.3.jar;C:\Users\Leclerc\.m2\repository\org\assertj\assertj-core\3.24.2\assertj-core-3.24.2.jar;C:\Users\Leclerc\.m2\repository\org\awaitility\awaitility\4.2.0\awaitility-4.2.0.jar;C:\Users\Leclerc\.m2\repository\org\hamcrest\hamcrest\2.2\hamcrest-2.2.jar;C:\Users\Leclerc\.m2\repository\org\junit\jupiter\junit-jupiter\5.10.1\junit-jupiter-5.10.1.jar;C:\Users\Leclerc\.m2\repository\org\junit\jupiter\junit-jupiter-api\5.10.1\junit-jupiter-api-5.10.1.jar;C:\Users\Leclerc\.m2\repository\org\opentest4j\opentest4j\1.3.0\opentest4j-1.3.0.jar;C:\Users\Leclerc\.m2\repository\org\junit\platform\junit-platform-commons\1.10.1\junit-platform-commons-1.10.1.jar;C:\Users\Leclerc\.m2\repository\org\apiguardian\apiguardian-api\1.1.2\apiguardian-api-1.1.2.jar;C:\Users\Leclerc\.m2\repository\org\junit\jupiter\junit-jupiter-params\5.10.1\junit-jupiter-params-5.10.1.jar;C:\Users\Leclerc\.m2\repository\org\junit\jupiter\junit-jupiter-engine\5.10.1\junit-jupiter-engine-5.10.1.jar;C:\Users\Leclerc\.m2\repository\org\junit\platform\junit-platform-engine\1.10.1\junit-platform-engine-1.10.1.jar;C:\Users\Leclerc\.m2\repository\org\mockito\mockito-core\5.7.0\mockito-core-5.7.0.jar;C:\Users\Leclerc\.m2\repository\net\bytebuddy\byte-buddy-agent\1.14.11\byte-buddy-agent-1.14.11.jar;C:\Users\Leclerc\.m2\repository\org\objenesis\objenesis\3.3\objenesis-3.3.jar;C:\Users\Leclerc\.m2\repository\org\mockito\mockito-junit-jupiter\5.7.0\mockito-junit-jupiter-5.7.0.jar;C:\Users\Leclerc\.m2\repository\org\skyscreamer\jsonassert\1.5.1\jsonassert-1.5.1.jar;C:\Users\Leclerc\.m2\repository\com\vaadin\external\google\android-json\0.0.20131108.vaadin1\android-json-0.0.20131108.vaadin1.jar;C:\Users\Leclerc\.m2\repository\org\springframework\spring-core\6.1.3\spring-core-6.1.3.jar;C:\Users\Leclerc\.m2\repository\org\springframework\spring-jcl\6.1.3\spring-jcl-6.1.3.jar;C:\Users\Leclerc\.m2\repository\org\springframework\spring-test\6.1.3\spring-test-6.1.3.jar;C:\Users\Leclerc\.m2\repository\org\xmlunit\xmlunit-core\2.9.1\xmlunit-core-2.9.1.jar;C:\Users\Leclerc\.m2\repository\org\springframework\security\spring-security-test\6.2.1\spring-security-test-6.2.1.jar;C:\Users\Leclerc\.m2\repository\org\springframework\security\spring-security-core\6.2.1\spring-security-core-6.2.1.jar;C:\Users\Leclerc\.m2\repository\org\springframework\security\spring-security-crypto\6.2.1\spring-security-crypto-6.2.1.jar;C:\Users\Leclerc\.m2\repository\org\flywaydb\flyway-core\10.10.0\flyway-core-10.10.0.jar;C:\Users\Leclerc\.m2\repository\com\fasterxml\jackson\dataformat\jackson-dataformat-toml\2.15.3\jackson-dataformat-toml-2.15.3.jar;C:\Users\Leclerc\.m2\repository\com\google\code\gson\gson\2.10.1\gson-2.10.1.jar;C:\Users\Leclerc\.m2\repository\org\flywaydb\flyway-database-postgresql\10.10.0\flyway-database-postgresql-10.10.0.jar;C:\Users\Leclerc\.m2\repository\org\xhtmlrenderer\flying-saucer-pdf\9.1.22\flying-saucer-pdf-9.1.22.jar;C:\Users\Leclerc\.m2\repository\com\lowagie\itext\2.1.7\itext-2.1.7.jar;C:\Users\Leclerc\.m2\repository\org\bouncycastle\bcmail-jdk14\1.64\bcmail-jdk14-1.64.jar;C:\Users\Leclerc\.m2\repository\org\bouncycastle\bcpkix-jdk14\1.64\bcpkix-jdk14-1.64.jar;C:\Users\Leclerc\.m2\repository\org\bouncycastle\bctsp-jdk14\1.46\bctsp-jdk14-1.46.jar;C:\Users\Leclerc\.m2\repository\org\bouncycastle\bcprov-jdk14\1.64\bcprov-jdk14-1.64.jar;C:\Users\Leclerc\.m2\repository\org\xhtmlrenderer\flying-saucer-core\9.1.22\flying-saucer-core-9.1.22.jar;C:\Users\Leclerc\.m2\repository\org\springframework\boot\spring-boot-starter-thymeleaf\3.2.2\spring-boot-starter-thymeleaf-3.2.2.jar;C:\Users\Leclerc\.m2\repository\org\thymeleaf\thymeleaf-spring6\3.1.2.RELEASE\thymeleaf-spring6-3.1.2.RELEASE.jar;C:\Users\Leclerc\.m2\repository\org\thymeleaf\thymeleaf\3.1.2.RELEASE\thymeleaf-3.1.2.RELEASE.jar;C:\Users\Leclerc\.m2\repository\org\attoparser\attoparser\2.0.7.RELEASE\attoparser-2.0.7.RELEASE.jar;C:\Users\Leclerc\.m2\repository\org\unbescape\unbescape\1.1.6.RELEASE\unbescape-1.1.6.RELEASE.jar;"/>
+    <property name="sun.cpu.endian" value="little"/>
+    <property name="user.home" value="C:\Users\Leclerc"/>
+    <property name="user.language" value="fr"/>
+    <property name="java.specification.vendor" value="Oracle Corporation"/>
+    <property name="java.version.date" value="2025-07-15"/>
+    <property name="java.home" value="C:\Users\Leclerc\.jdks\ms-21.0.8"/>
+    <property name="file.separator" value="\"/>
+    <property name="basedir" value="C:\Users\Leclerc\Workflow\BackEnd\Java\SpringBoot\Kupanga\kupanga-Api"/>
+    <property name="style.color" value="always"/>
+    <property name="java.vm.compressedOopsMode" value="Zero based"/>
+    <property name="line.separator" value="&#10;"/>
+    <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
+    <property name="java.specification.name" value="Java Platform API Specification"/>
+    <property name="FILE_LOG_CHARSET" value="UTF-8"/>
+    <property name="java.awt.headless" value="true"/>
+    <property name="surefire.real.class.path" value="C:\Users\Leclerc\AppData\Local\Temp\surefire10081830628646472973\surefirebooter-20260324010800125_3.jar"/>
+    <property name="user.script" value=""/>
+    <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
+    <property name="java.runtime.version" value="21.0.8+9-LTS"/>
+    <property name="user.name" value="Leclerc"/>
+    <property name="stdout.encoding" value="Cp1252"/>
+    <property name="path.separator" value=";"/>
+    <property name="os.version" value="10.0"/>
+    <property name="java.runtime.name" value="OpenJDK Runtime Environment"/>
+    <property name="file.encoding" value="UTF-8"/>
+    <property name="java.vm.name" value="OpenJDK 64-Bit Server VM"/>
+    <property name="java.vendor.version" value="Microsoft-11933218"/>
+    <property name="maven.ext.class.path" value="C:\Program Files\JetBrains\IntelliJ IDEA Community Edition 2025.2.4\plugins\maven\lib\maven-event-listener.jar"/>
+    <property name="localRepository" value="C:\Users\Leclerc\.m2\repository"/>
+    <property name="java.vendor.url.bug" value="https://github.com/microsoft/openjdk/issues"/>
+    <property name="java.io.tmpdir" value="C:\Users\Leclerc\AppData\Local\Temp\"/>
+    <property name="idea.version" value="2025.2.4"/>
+    <property name="com.zaxxer.hikari.pool_number" value="1"/>
+    <property name="java.version" value="21.0.8"/>
+    <property name="user.dir" value="C:\Users\Leclerc\Workflow\BackEnd\Java\SpringBoot\Kupanga\kupanga-Api"/>
+    <property name="os.arch" value="amd64"/>
+    <property name="jansi.passthrough" value="true"/>
+    <property name="java.vm.specification.name" value="Java Virtual Machine Specification"/>
+    <property name="PID" value="27160"/>
+    <property name="sun.os.patch.level" value=""/>
+    <property name="CONSOLE_LOG_CHARSET" value="UTF-8"/>
+    <property name="native.encoding" value="Cp1252"/>
+    <property name="java.library.path" value="C:\Users\Leclerc\.jdks\ms-21.0.8\bin;C:\Windows\Sun\Java\bin;C:\Windows\system32;C:\Windows;C:\Program Files\Eclipse Adoptium\jdk-21.0.9.10-hotspot\bin;C:\Python314\Scripts\;C:\Python314\;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Program Files\Git\cmd;C:\Program Files\PostgreSQL\16\bin;;C:\Program Files\Docker\Docker\resources\bin;C:\Program Files\nodejs\;C:\ProgramData\chocolatey\bin;C:\Program Files\Amazon\AWSCLIV2\;C:\Program Files\Amazon\AWSSAMCLI\bin\;C:\Program Files\Amazon\AWSSAMCLI\runtime\Scripts;C:\Program Files\JetBrains\IntelliJ IDEA Community Edition 2025.2.4\bin;C:\Users\Leclerc\AppData\Local\Programs\Microsoft VS Code\bin;C:\Program Files\PostgreSQL\16\bin;C:\Users\Leclerc\AppData\Roaming\npm;C:\Users\Leclerc\AppData\Local\Programs\Ollama;C:\Users\Leclerc\AppData\Local\Programs\Antigravity\bin;C:\Users\Leclerc\AppData\Local\Pandoc\;C:\Users\Leclerc\AppData\Local\Programs\MiKTeX\miktex\bin\x64\;C:\Users\Leclerc\AppData\Local\Programs\Python\Python311\;C:\Users\Leclerc\AppData\Local\Programs\Python\Python311\Scripts\;C:\Users\Leclerc\Workflow\BackEnd\serverless\VoiceFAKER-Serverless\ffmpeg-8.0.1-full_build\bin;;."/>
+    <property name="java.vm.info" value="mixed mode, sharing"/>
+    <property name="stderr.encoding" value="Cp1252"/>
+    <property name="java.vendor" value="Microsoft"/>
+    <property name="java.vm.version" value="21.0.8+9-LTS"/>
+    <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
+    <property name="maven.repo.local" value="C:\Users\Leclerc\.m2\repository"/>
+    <property name="java.class.version" value="65.0"/>
+    <property name="LOGGED_APPLICATION_NAME" value="[kupanga] "/>
+  </properties>
+  <testcase name="contextLoads" classname="com.kupanga.api.ApiApplicationTests" time="0.054">
+    <system-out><![CDATA[01:08:01.320 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.kupanga.api.ApiApplicationTests]: ApiApplicationTests does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+01:08:01.458 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.kupanga.api.ApiApplication for test class com.kupanga.api.ApiApplicationTests
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::                (v3.2.2)
+
+2026-03-24T01:08:02.011+01:00  INFO 27160 --- [kupanga] [           main] com.kupanga.api.ApiApplicationTests      : Starting ApiApplicationTests using Java 21.0.8 with PID 27160 (started by Leclerc in C:\Users\Leclerc\Workflow\BackEnd\Java\SpringBoot\Kupanga\kupanga-Api)
+2026-03-24T01:08:02.013+01:00  INFO 27160 --- [kupanga] [           main] com.kupanga.api.ApiApplicationTests      : The following 1 profile is active: "test"
+2026-03-24T01:08:03.243+01:00  INFO 27160 --- [kupanga] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
+2026-03-24T01:08:03.245+01:00  INFO 27160 --- [kupanga] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-03-24T01:08:03.469+01:00  INFO 27160 --- [kupanga] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 213 ms. Found 9 JPA repository interfaces.
+2026-03-24T01:08:03.493+01:00  INFO 27160 --- [kupanga] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
+2026-03-24T01:08:03.495+01:00  INFO 27160 --- [kupanga] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data Redis repositories in DEFAULT mode.
+2026-03-24T01:08:03.522+01:00  INFO 27160 --- [kupanga] [           main] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.kupanga.api.authentification.repository.PasswordResetTokenRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-03-24T01:08:03.523+01:00  INFO 27160 --- [kupanga] [           main] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.kupanga.api.authentification.repository.RefreshTokenRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-03-24T01:08:03.523+01:00  INFO 27160 --- [kupanga] [           main] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.kupanga.api.immobilier.repository.BienImageRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-03-24T01:08:03.524+01:00  INFO 27160 --- [kupanga] [           main] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.kupanga.api.immobilier.repository.BienPoiRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-03-24T01:08:03.524+01:00  INFO 27160 --- [kupanga] [           main] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.kupanga.api.immobilier.repository.BienRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-03-24T01:08:03.524+01:00  INFO 27160 --- [kupanga] [           main] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.kupanga.api.immobilier.repository.ContratRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-03-24T01:08:03.524+01:00  INFO 27160 --- [kupanga] [           main] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.kupanga.api.immobilier.repository.EtatDesLieuxRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-03-24T01:08:03.526+01:00  INFO 27160 --- [kupanga] [           main] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.kupanga.api.immobilier.repository.QuittanceRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-03-24T01:08:03.526+01:00  INFO 27160 --- [kupanga] [           main] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.kupanga.api.user.repository.UserRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-03-24T01:08:03.526+01:00  INFO 27160 --- [kupanga] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 18 ms. Found 0 Redis repository interfaces.
+2026-03-24T01:08:06.359+01:00  INFO 27160 --- [kupanga] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-03-24T01:08:06.600+01:00  INFO 27160 --- [kupanga] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.4.1.Final
+2026-03-24T01:08:06.630+01:00  INFO 27160 --- [kupanga] [           main] o.h.spatial.integration.SpatialService   : HHH80000001: hibernate-spatial integration enabled : true
+2026-03-24T01:08:06.702+01:00  INFO 27160 --- [kupanga] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-03-24T01:08:06.898+01:00  INFO 27160 --- [kupanga] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-03-24T01:08:07.103+01:00  INFO 27160 --- [kupanga] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@129e45eb
+2026-03-24T01:08:07.105+01:00  INFO 27160 --- [kupanga] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-03-24T01:08:07.217+01:00  INFO 27160 --- [kupanga] [           main] org.hibernate.spatial                    : HHH80000003: hibernate-spatial adding type contributions from : org.hibernate.spatial.dialect.postgis.PostgisDialectContributor
+2026-03-24T01:08:07.309+01:00  INFO 27160 --- [kupanga] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-03-24T01:08:07.400+01:00  INFO 27160 --- [kupanga] [           main] org.hibernate.spatial                    : HHH80000003: hibernate-spatial adding type contributions from : org.hibernate.spatial.dialect.postgis.PostgisDialectContributor
+2026-03-24T01:08:08.246+01:00  INFO 27160 --- [kupanga] [           main] org.hibernate.spatial                    : HHH80000004: hibernate-spatial adding function contributions from : org.hibernate.spatial.dialect.postgis.PostgisDialectContributor
+2026-03-24T01:08:08.518+01:00  INFO 27160 --- [kupanga] [           main] o.h.m.i.EntityInstantiatorPojoStandard   : HHH000182: No default (no-argument) constructor for class: com.kupanga.api.chat.entity.Message (class must be instantiated by Interceptor)
+2026-03-24T01:08:08.622+01:00  INFO 27160 --- [kupanga] [           main] o.h.m.i.EntityInstantiatorPojoStandard   : HHH000182: No default (no-argument) constructor for class: com.kupanga.api.immobilier.entity.Document (class must be instantiated by Interceptor)
+2026-03-24T01:08:09.150+01:00  INFO 27160 --- [kupanga] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+Hibernate: 
+    alter table if exists bien_images 
+       drop constraint if exists FKhaxr2hjukupcdht5a27320hgi
+2026-03-24T01:08:09.175+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-03-24T01:08:09.176+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : relation "bien_images" does not exist, skipping
+Hibernate: 
+    alter table if exists bien_poi 
+       drop constraint if exists FKr924er807qeohvvm4jryae5sm
+2026-03-24T01:08:09.178+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-03-24T01:08:09.178+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : relation "bien_poi" does not exist, skipping
+Hibernate: 
+    alter table if exists biens 
+       drop constraint if exists FKlly8wemw4gnbhpnd8t403exp3
+2026-03-24T01:08:09.179+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-03-24T01:08:09.179+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : relation "biens" does not exist, skipping
+Hibernate: 
+    alter table if exists biens 
+       drop constraint if exists FKp8fdbptm8o7csqey8bl3mb03a
+2026-03-24T01:08:09.181+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-03-24T01:08:09.181+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : relation "biens" does not exist, skipping
+Hibernate: 
+    alter table if exists cles_remises 
+       drop constraint if exists FK6r3w4bgnmcgkka8j8hf3vftdq
+2026-03-24T01:08:09.182+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-03-24T01:08:09.183+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : relation "cles_remises" does not exist, skipping
+Hibernate: 
+    alter table if exists compteur_releves 
+       drop constraint if exists FKdpspxdr02aip0c8dbvpfmjlf3
+2026-03-24T01:08:09.184+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-03-24T01:08:09.184+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : relation "compteur_releves" does not exist, skipping
+Hibernate: 
+    alter table if exists contrats 
+       drop constraint if exists FKr3wq5o6q237xsjrro4lfj0o7x
+2026-03-24T01:08:09.185+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-03-24T01:08:09.185+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : relation "contrats" does not exist, skipping
+Hibernate: 
+    alter table if exists contrats 
+       drop constraint if exists FK9cm5nfrvspby93mtp0x7ooxdl
+2026-03-24T01:08:09.187+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-03-24T01:08:09.187+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : relation "contrats" does not exist, skipping
+Hibernate: 
+    alter table if exists contrats 
+       drop constraint if exists FKjhpw8o6nc94qjk77n0wkurt48
+2026-03-24T01:08:09.188+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-03-24T01:08:09.189+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : relation "contrats" does not exist, skipping
+Hibernate: 
+    alter table if exists documents 
+       drop constraint if exists FKle09nbo7r3xb9ukpya3u1n1ms
+2026-03-24T01:08:09.190+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-03-24T01:08:09.190+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : relation "documents" does not exist, skipping
+Hibernate: 
+    alter table if exists elements_edl 
+       drop constraint if exists FKnnxdbfru20wx6m0bfqe9w7v98
+2026-03-24T01:08:09.192+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-03-24T01:08:09.193+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : relation "elements_edl" does not exist, skipping
+Hibernate: 
+    alter table if exists etats_des_lieux 
+       drop constraint if exists FKl3ijkk7d99spobjscvr5o4kdq
+2026-03-24T01:08:09.194+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-03-24T01:08:09.194+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : relation "etats_des_lieux" does not exist, skipping
+Hibernate: 
+    alter table if exists etats_des_lieux 
+       drop constraint if exists FKdps22jyo3r45gm9v4t17jmyqe
+2026-03-24T01:08:09.195+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-03-24T01:08:09.195+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : relation "etats_des_lieux" does not exist, skipping
+Hibernate: 
+    alter table if exists etats_des_lieux 
+       drop constraint if exists FK6xudhiepooktq40aw16ej5lcu
+2026-03-24T01:08:09.196+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-03-24T01:08:09.197+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : relation "etats_des_lieux" does not exist, skipping
+Hibernate: 
+    alter table if exists messages 
+       drop constraint if exists FKooutxf2y1rb88xeu60skema3k
+2026-03-24T01:08:09.198+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-03-24T01:08:09.198+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : relation "messages" does not exist, skipping
+Hibernate: 
+    alter table if exists messages 
+       drop constraint if exists FK5l9s42yu58fqoub9h813gcyhg
+2026-03-24T01:08:09.199+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-03-24T01:08:09.199+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : relation "messages" does not exist, skipping
+Hibernate: 
+    alter table if exists messages 
+       drop constraint if exists FKbelx2r98ik8po0o4hb2x7cdn9
+2026-03-24T01:08:09.200+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-03-24T01:08:09.201+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : relation "messages" does not exist, skipping
+Hibernate: 
+    alter table if exists password_reset_token 
+       drop constraint if exists FK5j044vcnlsd5h3qvh1272t0qd
+2026-03-24T01:08:09.203+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-03-24T01:08:09.203+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : relation "password_reset_token" does not exist, skipping
+Hibernate: 
+    alter table if exists pieces_edl 
+       drop constraint if exists FKn5t2q8gg5aw2dgjphha9u8w0c
+2026-03-24T01:08:09.204+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-03-24T01:08:09.204+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : relation "pieces_edl" does not exist, skipping
+Hibernate: 
+    alter table if exists quittances 
+       drop constraint if exists FKbj9p4dh245awh7qr1t23olwtd
+2026-03-24T01:08:09.206+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-03-24T01:08:09.206+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : relation "quittances" does not exist, skipping
+Hibernate: 
+    alter table if exists quittances 
+       drop constraint if exists FK7w5cxardpd19hu5nj4t52cv2q
+2026-03-24T01:08:09.207+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-03-24T01:08:09.207+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : relation "quittances" does not exist, skipping
+Hibernate: 
+    alter table if exists quittances 
+       drop constraint if exists FKbnwv9j7w15evpiobxh3jpr70c
+2026-03-24T01:08:09.209+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-03-24T01:08:09.209+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : relation "quittances" does not exist, skipping
+Hibernate: 
+    alter table if exists quittances 
+       drop constraint if exists FK1gh45lm15mc47cdwqthsa5qaa
+2026-03-24T01:08:09.210+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-03-24T01:08:09.210+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : relation "quittances" does not exist, skipping
+Hibernate: 
+    alter table if exists refresh_token 
+       drop constraint if exists FK8k11b29kqjsa4lpaj9vvheq7o
+2026-03-24T01:08:09.211+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-03-24T01:08:09.211+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : relation "refresh_token" does not exist, skipping
+Hibernate: 
+    drop table if exists bien_images cascade
+2026-03-24T01:08:09.213+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-03-24T01:08:09.213+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : table "bien_images" does not exist, skipping
+Hibernate: 
+    drop table if exists bien_poi cascade
+2026-03-24T01:08:09.214+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-03-24T01:08:09.214+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : table "bien_poi" does not exist, skipping
+Hibernate: 
+    drop table if exists biens cascade
+2026-03-24T01:08:09.215+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-03-24T01:08:09.215+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : table "biens" does not exist, skipping
+Hibernate: 
+    drop table if exists cles_remises cascade
+2026-03-24T01:08:09.216+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-03-24T01:08:09.216+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : table "cles_remises" does not exist, skipping
+Hibernate: 
+    drop table if exists compteur_releves cascade
+2026-03-24T01:08:09.217+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-03-24T01:08:09.217+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : table "compteur_releves" does not exist, skipping
+Hibernate: 
+    drop table if exists contrats cascade
+2026-03-24T01:08:09.218+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-03-24T01:08:09.218+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : table "contrats" does not exist, skipping
+Hibernate: 
+    drop table if exists documents cascade
+2026-03-24T01:08:09.219+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-03-24T01:08:09.219+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : table "documents" does not exist, skipping
+Hibernate: 
+    drop table if exists elements_edl cascade
+2026-03-24T01:08:09.221+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-03-24T01:08:09.221+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : table "elements_edl" does not exist, skipping
+Hibernate: 
+    drop table if exists etats_des_lieux cascade
+2026-03-24T01:08:09.222+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-03-24T01:08:09.222+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : table "etats_des_lieux" does not exist, skipping
+Hibernate: 
+    drop table if exists messages cascade
+2026-03-24T01:08:09.223+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-03-24T01:08:09.224+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : table "messages" does not exist, skipping
+Hibernate: 
+    drop table if exists password_reset_token cascade
+2026-03-24T01:08:09.225+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-03-24T01:08:09.225+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : table "password_reset_token" does not exist, skipping
+Hibernate: 
+    drop table if exists pieces_edl cascade
+2026-03-24T01:08:09.226+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-03-24T01:08:09.226+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : table "pieces_edl" does not exist, skipping
+Hibernate: 
+    drop table if exists quittances cascade
+2026-03-24T01:08:09.227+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-03-24T01:08:09.227+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : table "quittances" does not exist, skipping
+Hibernate: 
+    drop table if exists refresh_token cascade
+2026-03-24T01:08:09.228+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-03-24T01:08:09.228+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : table "refresh_token" does not exist, skipping
+Hibernate: 
+    drop table if exists utilisateurs cascade
+2026-03-24T01:08:09.230+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 00000
+2026-03-24T01:08:09.230+01:00  WARN 27160 --- [kupanga] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : table "utilisateurs" does not exist, skipping
+Hibernate: 
+    create table bien_images (
+        bien_id bigint not null,
+        id bigserial not null,
+        url varchar(500) not null,
+        primary key (id)
+    )
+Hibernate: 
+    create table bien_poi (
+        nombre_trouve integer not null,
+        present boolean not null,
+        rayon_metres float(53) not null,
+        bien_id bigint not null,
+        calcule_le timestamp(6),
+        id bigserial not null,
+        poi_type varchar(255) not null check (poi_type in ('SCHOOL','HOSPITAL','PHARMACY','KINDERGARTEN')),
+        primary key (id)
+    )
+Hibernate: 
+    create table biens (
+        annee_construction integer,
+        ascenseur boolean,
+        charges_mensuelles float(53),
+        colocation boolean,
+        depot_garantie float(53),
+        disponible_de date,
+        etage integer,
+        loyer_mensuel float(53),
+        meuble boolean,
+        nombre_chambres integer,
+        nombre_pieces integer,
+        surface_habitable float(53),
+        created_at timestamp(6),
+        id bigserial not null,
+        locataire_id bigint,
+        proprietaire_id bigint,
+        updated_at timestamp(6),
+        adresse varchar(255),
+        classe_energie varchar(255) check (classe_energie in ('A','B','C','D','E','F','G')),
+        classe_ges varchar(255) check (classe_ges in ('A','B','C','D','E','F','G')),
+        code_postal varchar(255),
+        description varchar(255),
+        mode_chauffage varchar(255) check (mode_chauffage in ('ELECTRIQUE','GAZ','FIOUL','BOIS','POMPE_A_CHALEUR','POELE','COLLECTIF','SANS_CHAUFFAGE')),
+        pays varchar(255),
+        titre varchar(255),
+        type_bien varchar(255) check (type_bien in ('APPARTEMENT','MAISON','STUDIO')),
+        ville varchar(255),
+        localisation geometry(Point, 4326),
+        primary key (id)
+    )
+Hibernate: 
+    create table cles_remises (
+        quantite integer not null,
+        etat_des_lieux_id bigint not null,
+        id bigserial not null,
+        type_cle varchar(255) not null,
+        primary key (id)
+    )
+Hibernate: 
+    create table compteur_releves (
+        index float(53) not null,
+        etat_des_lieux_id bigint not null,
+        id bigserial not null,
+        numero_compteur varchar(255),
+        type_compteur varchar(255) not null check (type_compteur in ('EAU_FROIDE','EAU_CHAUDE','ELECTRICITE_HP','ELECTRICITE_HC','GAZ')),
+        unite varchar(255),
+        primary key (id)
+    )
+Hibernate: 
+    create table contrats (
+        charges_mensuelles float(53),
+        date_debut date,
+        date_fin date,
+        depot_garantie float(53),
+        duree_bail_mois integer,
+        loyer_mensuel float(53),
+        bien_id bigint not null,
+        created_at timestamp(6),
+        date_signature_locataire timestamp(6),
+        date_signature_proprietaire timestamp(6),
+        id bigserial not null,
+        locataire_id bigint not null,
+        proprietaire_id bigint not null,
+        token_expiration timestamp(6),
+        updated_at timestamp(6),
+        url_pdf varchar(500),
+        adresse_bien varchar(255),
+        signature_locataire TEXT,
+        signature_proprietaire TEXT,
+        statut varchar(255) not null check (statut in ('BROUILLON','EN_ATTENTE_SIGNATURE_PROPRIO','EN_ATTENTE_SIGNATURE_LOCATAIRE','SIGNE','EXPIRE','ANNULE')),
+        token_signature varchar(255) unique,
+        primary key (id)
+    )
+Hibernate: 
+    create table documents (
+        date_ajout date,
+        bien_id bigint,
+        id bigserial not null,
+        nom varchar(255),
+        url varchar(255),
+        primary key (id)
+    )
+Hibernate: 
+    create table elements_edl (
+        id bigserial not null,
+        piece_id bigint not null,
+        description varchar(255),
+        etat_element varchar(255) not null check (etat_element in ('BON','USAGE_NORMAL','MAUVAIS','HORS_SERVICE')),
+        observation TEXT,
+        type_element varchar(255) not null check (type_element in ('MUR','PLAFOND','SOL','FENETRE','PORTE','VOLET','PRISE','LUMINAIRE','RADIATEUR','EQUIPEMENT','AUTRE')),
+        primary key (id)
+    )
+Hibernate: 
+    create table etats_des_lieux (
+        date_realisation date not null,
+        heure_realisation time(6),
+        bien_id bigint not null,
+        created_at timestamp(6),
+        date_signature_locataire timestamp(6),
+        date_signature_proprietaire timestamp(6),
+        id bigserial not null,
+        locataire_id bigint not null,
+        proprietaire_id bigint not null,
+        token_expiration timestamp(6),
+        updated_at timestamp(6),
+        url_pdf varchar(500),
+        observations TEXT,
+        signature_locataire TEXT,
+        signature_proprietaire TEXT,
+        statut varchar(255) not null check (statut in ('BROUILLON','EN_ATTENTE_SIGNATURE_PROPRIO','EN_ATTENTE_SIGNATURE_LOCATAIRE','SIGNE','EXPIRE')),
+        token_signature varchar(255) unique,
+        type varchar(255) not null check (type in ('ENTREE','SORTIE')),
+        primary key (id)
+    )
+Hibernate: 
+    create table messages (
+        lu boolean,
+        bien_id bigint,
+        date_envoi timestamp(6),
+        destinataire_id bigint,
+        expediteur_id bigint,
+        id bigserial not null,
+        contenu varchar(255),
+        primary key (id)
+    )
+Hibernate: 
+    create table password_reset_token (
+        expiration_date timestamp(6),
+        id bigserial not null,
+        user_id bigint unique,
+        token varchar(255) unique,
+        primary key (id)
+    )
+Hibernate: 
+    create table pieces_edl (
+        ordre integer,
+        etat_des_lieux_id bigint not null,
+        id bigserial not null,
+        nom_piece varchar(255) not null,
+        observations TEXT,
+        primary key (id)
+    )
+Hibernate: 
+    create table quittances (
+        annee integer,
+        charges_mensuelles float(53),
+        date_echeance date,
+        date_paiement date,
+        loyer_mensuel float(53),
+        montant_total float(53),
+        bien_id bigint not null,
+        contrat_id bigint,
+        created_at timestamp(6),
+        date_signature_proprietaire timestamp(6),
+        id bigserial not null,
+        locataire_id bigint not null,
+        proprietaire_id bigint not null,
+        updated_at timestamp(6),
+        url_pdf varchar(500),
+        mois varchar(255),
+        signature_proprietaire TEXT,
+        statut varchar(255) not null check (statut in ('EN_ATTENTE','PAYEE','EN_RETARD','IMPAYEE')),
+        primary key (id)
+    )
+Hibernate: 
+    create table refresh_token (
+        revoked boolean,
+        expiration timestamp(6) with time zone,
+        id bigserial not null,
+        user_id bigint not null unique,
+        token varchar(255),
+        primary key (id)
+    )
+Hibernate: 
+    create table utilisateurs (
+        a_completer_profil boolean,
+        id bigserial not null,
+        email varchar(255),
+        mot_de_passe varchar(255),
+        nom varchar(255),
+        prenom varchar(255),
+        role varchar(255) check (role in ('ROLE_PROPRIETAIRE','ROLE_LOCATAIRE','ROLE_ADMIN')),
+        url_photo_profil varchar(255),
+        primary key (id)
+    )
+Hibernate: 
+    create index idx_bien_poi_bien_id 
+       on bien_poi (bien_id)
+Hibernate: 
+    create index idx_bien_poi_type 
+       on bien_poi (poi_type)
+Hibernate: 
+    create index idx_bien_poi_present 
+       on bien_poi (bien_id, poi_type, present)
+Hibernate: 
+    alter table if exists bien_images 
+       add constraint FKhaxr2hjukupcdht5a27320hgi 
+       foreign key (bien_id) 
+       references biens
+Hibernate: 
+    alter table if exists bien_poi 
+       add constraint FKr924er807qeohvvm4jryae5sm 
+       foreign key (bien_id) 
+       references biens
+Hibernate: 
+    alter table if exists biens 
+       add constraint FKlly8wemw4gnbhpnd8t403exp3 
+       foreign key (locataire_id) 
+       references utilisateurs
+Hibernate: 
+    alter table if exists biens 
+       add constraint FKp8fdbptm8o7csqey8bl3mb03a 
+       foreign key (proprietaire_id) 
+       references utilisateurs
+Hibernate: 
+    alter table if exists cles_remises 
+       add constraint FK6r3w4bgnmcgkka8j8hf3vftdq 
+       foreign key (etat_des_lieux_id) 
+       references etats_des_lieux
+Hibernate: 
+    alter table if exists compteur_releves 
+       add constraint FKdpspxdr02aip0c8dbvpfmjlf3 
+       foreign key (etat_des_lieux_id) 
+       references etats_des_lieux
+Hibernate: 
+    alter table if exists contrats 
+       add constraint FKr3wq5o6q237xsjrro4lfj0o7x 
+       foreign key (bien_id) 
+       references biens
+Hibernate: 
+    alter table if exists contrats 
+       add constraint FK9cm5nfrvspby93mtp0x7ooxdl 
+       foreign key (locataire_id) 
+       references utilisateurs
+Hibernate: 
+    alter table if exists contrats 
+       add constraint FKjhpw8o6nc94qjk77n0wkurt48 
+       foreign key (proprietaire_id) 
+       references utilisateurs
+Hibernate: 
+    alter table if exists documents 
+       add constraint FKle09nbo7r3xb9ukpya3u1n1ms 
+       foreign key (bien_id) 
+       references biens
+Hibernate: 
+    alter table if exists elements_edl 
+       add constraint FKnnxdbfru20wx6m0bfqe9w7v98 
+       foreign key (piece_id) 
+       references pieces_edl
+Hibernate: 
+    alter table if exists etats_des_lieux 
+       add constraint FKl3ijkk7d99spobjscvr5o4kdq 
+       foreign key (bien_id) 
+       references biens
+Hibernate: 
+    alter table if exists etats_des_lieux 
+       add constraint FKdps22jyo3r45gm9v4t17jmyqe 
+       foreign key (locataire_id) 
+       references utilisateurs
+Hibernate: 
+    alter table if exists etats_des_lieux 
+       add constraint FK6xudhiepooktq40aw16ej5lcu 
+       foreign key (proprietaire_id) 
+       references utilisateurs
+Hibernate: 
+    alter table if exists messages 
+       add constraint FKooutxf2y1rb88xeu60skema3k 
+       foreign key (bien_id) 
+       references biens
+Hibernate: 
+    alter table if exists messages 
+       add constraint FK5l9s42yu58fqoub9h813gcyhg 
+       foreign key (destinataire_id) 
+       references utilisateurs
+Hibernate: 
+    alter table if exists messages 
+       add constraint FKbelx2r98ik8po0o4hb2x7cdn9 
+       foreign key (expediteur_id) 
+       references utilisateurs
+Hibernate: 
+    alter table if exists password_reset_token 
+       add constraint FK5j044vcnlsd5h3qvh1272t0qd 
+       foreign key (user_id) 
+       references utilisateurs
+Hibernate: 
+    alter table if exists pieces_edl 
+       add constraint FKn5t2q8gg5aw2dgjphha9u8w0c 
+       foreign key (etat_des_lieux_id) 
+       references etats_des_lieux
+Hibernate: 
+    alter table if exists quittances 
+       add constraint FKbj9p4dh245awh7qr1t23olwtd 
+       foreign key (bien_id) 
+       references biens
+Hibernate: 
+    alter table if exists quittances 
+       add constraint FK7w5cxardpd19hu5nj4t52cv2q 
+       foreign key (contrat_id) 
+       references contrats
+Hibernate: 
+    alter table if exists quittances 
+       add constraint FKbnwv9j7w15evpiobxh3jpr70c 
+       foreign key (locataire_id) 
+       references utilisateurs
+Hibernate: 
+    alter table if exists quittances 
+       add constraint FK1gh45lm15mc47cdwqthsa5qaa 
+       foreign key (proprietaire_id) 
+       references utilisateurs
+Hibernate: 
+    alter table if exists refresh_token 
+       add constraint FK8k11b29kqjsa4lpaj9vvheq7o 
+       foreign key (user_id) 
+       references utilisateurs
+2026-03-24T01:08:09.509+01:00  INFO 27160 --- [kupanga] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-03-24T01:08:10.270+01:00  INFO 27160 --- [kupanga] [           main] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-03-24T01:08:12.097+01:00  WARN 27160 --- [kupanga] [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-03-24T01:08:12.570+01:00  INFO 27160 --- [kupanga] [           main] o.s.s.web.DefaultSecurityFilterChain     : Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@25b665ca, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@45ec7633, org.springframework.security.web.context.SecurityContextHolderFilter@3065a6ee, org.springframework.security.web.header.HeaderWriterFilter@52c3f893, org.springframework.web.filter.CorsFilter@12c338fe, org.springframework.security.web.authentication.logout.LogoutFilter@6f7a6cc9, com.kupanga.api.authentification.filter.JwtFilter@27e4aacc, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@a741f59, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@232fc6a6, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@316a03cf, org.springframework.security.web.access.ExceptionTranslationFilter@1bee92f9, org.springframework.security.web.access.intercept.AuthorizationFilter@50a4e4e]
+2026-03-24T01:08:13.743+01:00  INFO 27160 --- [kupanga] [           main] com.kupanga.api.ApiApplicationTests      : Started ApiApplicationTests in 12.109 seconds (process running for 13.471)
+]]></system-out>
+    <system-err><![CDATA[WARNING: A Java agent has been loaded dynamically (C:\Users\Leclerc\.m2\repository\net\bytebuddy\byte-buddy-agent\1.14.11\byte-buddy-agent-1.14.11.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+]]></system-err>
+  </testcase>
+</testsuite>

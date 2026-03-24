@@ -2,61 +2,49 @@ package com.kupanga.api.immobilier.mapper;
 
 import com.kupanga.api.immobilier.dto.readDTO.QuittanceDTO;
 import com.kupanga.api.immobilier.entity.Quittance;
-import org.springframework.stereotype.Component;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 
-import java.util.Map;
+@Mapper(componentModel = "spring")
+public interface QuittanceMapper {
 
-@Component
-public class QuittanceMapper {
+    @Mapping(target = "moisLabel", source = ".", qualifiedByName = "buildMoisLabel")
+    @Mapping(target = "nomProprietaire", source = ".", qualifiedByName = "buildNomProprietaire")
+    @Mapping(target = "emailProprietaire", source = "proprietaire.mail")
+    @Mapping(target = "nomLocataire", source = ".", qualifiedByName = "buildNomLocataire")
+    @Mapping(target = "emailLocataire", source = "locataire.mail")
+    @Mapping(target = "adresseBien", source = "bien", qualifiedByName = "buildAdresseBien")
+    @Mapping(target = "typeBien", source = "bien", qualifiedByName = "buildTypeBien")
+    QuittanceDTO toDTO(Quittance q);
 
-    private static final Map<Integer, String> MOIS_LABELS = Map.ofEntries(
-            Map.entry(1,  "Janvier"),
-            Map.entry(2,  "Février"),
-            Map.entry(3,  "Mars"),
-            Map.entry(4,  "Avril"),
-            Map.entry(5,  "Mai"),
-            Map.entry(6,  "Juin"),
-            Map.entry(7,  "Juillet"),
-            Map.entry(8,  "Août"),
-            Map.entry(9,  "Septembre"),
-            Map.entry(10, "Octobre"),
-            Map.entry(11, "Novembre"),
-            Map.entry(12, "Décembre")
-    );
+    // -------------------------
+    // Méthodes custom propres
+    // -------------------------
 
-    public QuittanceDTO toDTO(Quittance q) {
-        QuittanceDTO dto = new QuittanceDTO();
+    @Named("buildMoisLabel")
+    default String buildMoisLabel(Quittance q) {
+        if (q.getMois() == null || q.getAnnee() == null) return "—";
+        return q.getMois() + " " + q.getAnnee();
+    }
 
-        dto.setId(q.getId());
-        dto.setMois(q.getMois());
-        dto.setAnnee(q.getAnnee());
-        dto.setMoisLabel(MOIS_LABELS.getOrDefault(q.getMois(), "—") + " " + q.getAnnee());
+    @Named("buildNomProprietaire")
+    default String buildNomProprietaire(Quittance q) {
+        return q.getProprietaire().getFirstName() + " " + q.getProprietaire().getLastName();
+    }
 
-        dto.setLoyerMensuel(q.getLoyerMensuel());
-        dto.setChargesMensuelles(q.getChargesMensuelles());
-        dto.setMontantTotal(q.getMontantTotal());
+    @Named("buildNomLocataire")
+    default String buildNomLocataire(Quittance q) {
+        return q.getLocataire().getFirstName() + " " + q.getLocataire().getLastName();
+    }
 
-        dto.setDateEcheance(q.getDateEcheance());
-        dto.setDatePaiement(q.getDatePaiement());
-        dto.setStatut(q.getStatut());
-        dto.setUrlPdf(q.getUrlPdf());
+    @Named("buildAdresseBien")
+    default String buildAdresseBien(com.kupanga.api.immobilier.entity.Bien bien) {
+        return bien.getAdresse() + ", " + bien.getCodePostal() + " " + bien.getVille();
+    }
 
-        dto.setNomProprietaire(q.getProprietaire().getFirstName()
-                + " " + q.getProprietaire().getLastName());
-        dto.setEmailProprietaire(q.getProprietaire().getMail());
-        dto.setNomLocataire(q.getLocataire().getFirstName()
-                + " " + q.getLocataire().getLastName());
-        dto.setEmailLocataire(q.getLocataire().getMail());
-
-        dto.setAdresseBien(q.getBien().getAdresse() + ", "
-                + q.getBien().getCodePostal() + " " + q.getBien().getVille());
-        dto.setTypeBien(q.getBien().getTypeBien() != null
-                ? q.getBien().getTypeBien().name() : null);
-        dto.setSurfaceHabitable(q.getBien().getSurfaceHabitable());
-
-        dto.setCreatedAt(q.getCreatedAt());
-        dto.setUpdatedAt(q.getUpdatedAt());
-
-        return dto;
+    @Named("buildTypeBien")
+    default String buildTypeBien(com.kupanga.api.immobilier.entity.Bien bien) {
+        return bien.getTypeBien() != null ? bien.getTypeBien().name() : null;
     }
 }

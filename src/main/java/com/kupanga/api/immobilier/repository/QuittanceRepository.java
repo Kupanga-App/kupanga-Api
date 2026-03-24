@@ -26,10 +26,18 @@ public interface QuittanceRepository extends JpaRepository<Quittance, Long> {
      */
     List<Quittance> findByProprietaireId(Long proprietaireId);
 
-    /**
-     * Quittance unique pour un bien, un mois et une année donnés.
-     */
-    Optional<Quittance> findByBienIdAndMoisAndAnnee(Long bienId, Integer mois, Integer annee);
+    @Query("""
+            SELECT q
+            FROM Quittance q
+            WHERE q.bien.id = :bienId
+              AND q.mois = :mois
+              AND q.annee = :annee
+    """)
+    Optional<Quittance> findByBienIdAndMoisAndAnnee(
+            @Param("bienId") Long bienId,
+            @Param("mois") String mois,
+            @Param("annee") Integer annee
+    );
 
     /**
      * Quittances en attente ou en retard pour un bien — utile pour les relances.

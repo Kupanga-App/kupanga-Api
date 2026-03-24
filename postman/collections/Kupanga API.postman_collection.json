@@ -564,7 +564,7 @@
               "bearer": [
                 {
                   "key": "token",
-                  "value": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUk9MRV9QUk9QUklFVEFJUkUiLCJzdWIiOiJrYmcuYWwucHJAZ21haWwuY29tIiwiaWF0IjoxNzczOTIwODcxLCJleHAiOjE3NzM5MjExNzF9.5jNT53R5ch467NZp-A_5JMVBrXDrT5nY5MrUUIbnR4k",
+                  "value": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUk9MRV9QUk9QUklFVEFJUkUiLCJzdWIiOiJrYmcuYWwucHJAZ21haWwuY29tIiwiaWF0IjoxNzc0MjU5NzI0LCJleHAiOjE3NzQyNjAwMjR9.fSK1ekK2qPp5JHkeC_cACbB8FeKoo8oPyNrztOzVgic",
                   "type": "string"
                 }
               ]
@@ -573,7 +573,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"bienId\": 3,\r\n  \"emailLocataire\": \"test@gmail.com\",\r\n  \"mois\": 3,\r\n  \"annee\": 2026,\r\n  \"loyerMensuel\": 850.00,\r\n  \"chargesMensuelles\": 50.00,\r\n  \"dateEcheance\": \"2026-03-05\",\r\n  \"datePaiement\": null\r\n}",
+              "raw": "{\r\n  \"bienId\": 1,\r\n  \"emailLocataire\": \"moiseaganze76@gmail.com\",\r\n  \"mois\": \"mars\",\r\n  \"annee\": 2026,\r\n  \"loyerMensuel\": 850.00,\r\n  \"chargesMensuelles\": 50.00,\r\n  \"dateEcheance\": \"2026-03-05\",\r\n  \"datePaiement\": null\r\n}",
               "options": {
                 "raw": {
                   "language": "json"

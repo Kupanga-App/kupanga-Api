@@ -23,7 +23,7 @@ public class Quittance {
     private Long id;
 
     // ─── Période concernée ────────────────────────────────────────────────────
-    private Integer mois;               // 1 = janvier … 12 = décembre
+    private String mois;
     private Integer annee;
 
     // ─── Détail financier ─────────────────────────────────────────────────────

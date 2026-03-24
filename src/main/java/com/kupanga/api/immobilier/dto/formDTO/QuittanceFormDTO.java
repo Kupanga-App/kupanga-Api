@@ -19,9 +19,8 @@ public class QuittanceFormDTO {
     // Contrat optionnel — si renseigné, loyer et charges sont récupérés automatiquement
     private Long contratId;
 
-    @NotNull
-    @Min(1) @Max(12)
-    private Integer mois;
+    @NotEmpty
+    private String mois;
 
     @NotNull
     @Min(2000)
