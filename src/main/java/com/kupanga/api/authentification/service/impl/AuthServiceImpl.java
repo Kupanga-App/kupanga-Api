@@ -28,7 +28,7 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
+import org.springframework.web.bind.annotation.CookieValue;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -83,7 +83,7 @@ public class AuthServiceImpl implements AuthService {
                 .httpOnly(true)
                 .secure(cookieSecure)       // false en local, true en prod
                 .sameSite(cookieSameSite)   // "Lax" en local, "None" en prod
-                .path("/auth/refresh")
+                .path("/")
                 .maxAge(Duration.ofDays(14))
                 .build();
 
@@ -98,7 +98,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public AuthResponseDTO refresh(String token){
+    public AuthResponseDTO refresh(@CookieValue(name = REFRESHTOKEN, required = false) String token){
 
         RefreshToken refreshToken = refreshTokenService.getByToken(token);
 
@@ -132,7 +132,7 @@ public class AuthServiceImpl implements AuthService {
                     .httpOnly(true)
                     .secure(cookieSecure)       // false en local, true en prod
                     .sameSite(cookieSameSite)   // "Lax" en local, "None" en prod
-                    .path("/auth/refresh")
+                    .path("/")
                     .maxAge(0)                  // supprime le cookie
                     .build();
             response.addHeader(HttpHeaders.SET_COOKIE, deleteCookie.toString());
