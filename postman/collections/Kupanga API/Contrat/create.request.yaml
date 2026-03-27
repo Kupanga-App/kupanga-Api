@@ -1,0 +1,29 @@
+$kind: http-request
+url: "{{baseUrl}}/contrats"
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \    \"bienId\": 2,\r
+
+    \    \"emailLocataire\": \"test@gmail.com\",\r
+
+    \    \"dateDebut\": \"2026-04-01\",\r
+
+    \    \"dateFin\": \"2027-04-01\",\r
+
+    \    \"dureeBailMois\": 12,\r
+
+    \    \"loyerMensuel\": 850.00,\r
+
+    \    \"chargesMensuelles\": 50.00,\r
+
+    \    \"depotGarantie\": 1700.00\r
+
+    }"
+auth:
+  type: bearer
+  credentials:
+    token: eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUk9MRV9QUk9QUklFVEFJUkUiLCJzdWIiOiJrYmcuYWwucHJAZ21haWwuY29tIiwiaWF0IjoxNzczOTA3NjQ4LCJleHAiOjE3NzM5MDc5NDh9.u2FBT9ZSCJ91kYHUTGkJ54s7FJ-Lzk6PLAdTw9Lco3Q
+order: 1000

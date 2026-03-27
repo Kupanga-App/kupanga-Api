@@ -3,9 +3,8 @@ package com.kupanga.api.chat.entity;
 import com.kupanga.api.immobilier.entity.Bien;
 import com.kupanga.api.user.entity.User;
 import jakarta.persistence.*;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -14,25 +13,36 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Message {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // ─── Contenu ──────────────────────────────────────────────────────────────
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String contenu;
-    private LocalDateTime dateEnvoi;
-    private Boolean lu;
 
-    @ManyToOne
-    @JoinColumn(name = "expediteur_id")
+    // ─── Statut lecture ───────────────────────────────────────────────────────
+    @Column(nullable = false)
+    private Boolean lu = false;
+
+    // ─── Audit ────────────────────────────────────────────────────────────────
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+
+    // ─── Relations ────────────────────────────────────────────────────────────
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "expediteur_id", nullable = false)
     private User expediteur;
 
-    @ManyToOne
-    @JoinColumn(name = "destinataire_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "destinataire_id", nullable = false)
     private User destinataire;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "bien_id")
-    private Bien bien;
+    private Bien bien;                  // contexte optionnel : proprio ↔ locataire sur un bien
 }

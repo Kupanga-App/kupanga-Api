@@ -1,0 +1,57 @@
+$kind: http-request
+url: "{{baseUrl}}/biens/search"
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \    \"villes\":          [\"Nantes\", \"Angers\"],\r
+
+    \    \"pays\":            [\"France\"],\r
+
+    \    \"codesPostaux\":    [\"44000\", \"44300\"],\r
+
+    \    \"typesBien\":       [\"APPARTEMENT\", \"MAISON\"],\r
+
+    \    \"titre\":           \"lumineux\",\r
+
+    \    \"loyerMin\":        500,\r
+
+    \    \"loyerMax\":        1200,\r
+
+    \    \"meuble\":          false,\r
+
+    \    \"colocation\":      false,\r
+
+    \    \"disponibleAvant\": \"2026-06-01\",\r
+
+    \    \"surfaceMin\":      40,\r
+
+    \    \"surfaceMax\":      120,\r
+
+    \    \"piecesMin\":       2,\r
+
+    \    \"ascenseur\":       true,\r
+
+    \    \"etageMin\":        1,\r
+
+    \    \"etageMax\":        5,\r
+
+    \    \"classesEnergie\":  [\"A\", \"B\", \"C\"],\r
+
+    \    \"classesGes\":      [\"A\", \"B\"],\r
+
+    \    \"modesChauffage\":  [\"ELECTRIQUE\", \"GAZ\"],\r
+
+    \    \"poisRequis\":      [\"SCHOOL\", \"PHARMACY\"],\r
+
+    \    \"page\":            0,\r
+
+    \    \"size\":            10,\r
+
+    \    \"sortBy\":          \"loyerMensuel\",\r
+
+    \    \"sortDirection\":   \"ASC\"\r
+
+    }"
+order: 3000

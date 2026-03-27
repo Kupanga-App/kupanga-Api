@@ -75,6 +75,17 @@ public class JwtUtils {
         return createToken(claims, email,role, accessTokenExpirationTime);
     }
 
+    public boolean isTokenValid(String token, String email) {
+        try {
+            final String extractedEmail = extractUserEmail(token);
+
+            return (extractedEmail.equals(email) && !isTokenExpired(token));
+
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
 
     /**
      * Crée un token JWT signé.

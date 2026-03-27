@@ -1,0 +1,334 @@
+$kind: http-request
+url: "{{baseUrl}}/etats-des-lieux"
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \  \"bienId\": 1,\r
+
+    \  \"emailLocataire\": \"test@gmail.com\",\r
+
+    \  \"type\": \"SORTIE\",\r
+
+    \  \"dateRealisation\": \"2026-09-19\",\r
+
+    \  \"heureRealisation\": \"10:00\",\r
+
+    \  \"observations\": \"État général correct. Quelques dégradations
+    constatées par rapport à l'état des lieux d'entrée.\",\r
+
+    \r
+
+    \  \"compteurs\": [\r
+
+    \    {\r
+
+    \      \"typeCompteur\": \"ELECTRICITE_HP\",\r
+
+    \      \"numeroCompteur\": \"PDL-123456789\",\r
+
+    \      \"index\": 5847.0,\r
+
+    \      \"unite\": \"kWh\"\r
+
+    \    },\r
+
+    \    {\r
+
+    \      \"typeCompteur\": \"ELECTRICITE_HC\",\r
+
+    \      \"numeroCompteur\": \"PDL-123456789\",\r
+
+    \      \"index\": 2891.5,\r
+
+    \      \"unite\": \"kWh\"\r
+
+    \    },\r
+
+    \    {\r
+
+    \      \"typeCompteur\": \"EAU_FROIDE\",\r
+
+    \      \"numeroCompteur\": \"CPT-EAU-001\",\r
+
+    \      \"index\": 241.7,\r
+
+    \      \"unite\": \"m³\"\r
+
+    \    }\r
+
+    \  ],\r
+
+    \r
+
+    \  \"cles\": [\r
+
+    \    { \"typeCle\": \"Porte d'entrée\",    \"quantite\": 2 },\r
+
+    \    { \"typeCle\": \"Boîte aux lettres\", \"quantite\": 1 },\r
+
+    \    { \"typeCle\": \"Interphone\",        \"quantite\": 1 }\r
+
+    \  ],\r
+
+    \r
+
+    \  \"pieces\": [\r
+
+    \    {\r
+
+    \      \"nomPiece\": \"Entrée\",\r
+
+    \      \"ordre\": 1,\r
+
+    \      \"observations\": null,\r
+
+    \      \"elements\": [\r
+
+    \        { \"typeElement\": \"SOL\",      \"etatElement\":
+    \"BON\",          \"description\": \"Carrelage beige\",  \"observation\":
+    null },\r
+
+    \        { \"typeElement\": \"MUR\",      \"etatElement\":
+    \"BON\",          \"description\": \"Peinture blanche\", \"observation\":
+    null },\r
+
+    \        { \"typeElement\": \"PLAFOND\",  \"etatElement\":
+    \"BON\",          \"description\": \"Peinture blanche\", \"observation\":
+    null },\r
+
+    \        { \"typeElement\": \"PORTE\",    \"etatElement\": \"USAGE_NORMAL\",
+    \"description\": \"Porte blindée\",    \"observation\": \"Légères rayures
+    sur la poignée\" },\r
+
+    \        { \"typeElement\": \"LUMINAIRE\",\"etatElement\":
+    \"BON\",          \"description\": \"Plafonnier LED\",   \"observation\":
+    null }\r
+
+    \      ]\r
+
+    \    },\r
+
+    \    {\r
+
+    \      \"nomPiece\": \"Salon\",\r
+
+    \      \"ordre\": 2,\r
+
+    \      \"observations\": \"Trou dans le mur côté TV, non présent à
+    l'entrée.\",\r
+
+    \      \"elements\": [\r
+
+    \        { \"typeElement\": \"SOL\",      \"etatElement\": \"USAGE_NORMAL\",
+    \"description\": \"Parquet chêne\",              \"observation\":
+    \"Plusieurs griffures légères côté canapé\" },\r
+
+    \        { \"typeElement\": \"MUR\",      \"etatElement\":
+    \"MAUVAIS\",      \"description\": \"Peinture
+    blanche\",           \"observation\": \"Trou ~2 cm côté TV + marques de
+    fixation\" },\r
+
+    \        { \"typeElement\": \"PLAFOND\",  \"etatElement\":
+    \"BON\",          \"description\": \"Peinture
+    blanche\",           \"observation\": null },\r
+
+    \        { \"typeElement\": \"FENETRE\",  \"etatElement\":
+    \"BON\",          \"description\": \"Double vitrage
+    PVC\",         \"observation\": null },\r
+
+    \        { \"typeElement\": \"VOLET\",    \"etatElement\": \"HORS_SERVICE\",
+    \"description\": \"Volet roulant électrique\",   \"observation\": \"Moteur
+    en panne — ne remonte plus\" },\r
+
+    \        { \"typeElement\": \"RADIATEUR\",\"etatElement\":
+    \"BON\",          \"description\": \"Radiateur électrique
+    inertie\",\"observation\": null },\r
+
+    \        { \"typeElement\": \"PRISE\",    \"etatElement\":
+    \"BON\",          \"description\": \"4 prises + 1
+    TV\",            \"observation\": null },\r
+
+    \        { \"typeElement\": \"LUMINAIRE\",\"etatElement\":
+    \"BON\",          \"description\": \"Plafonnier +
+    applique\",      \"observation\": null }\r
+
+    \      ]\r
+
+    \    },\r
+
+    \    {\r
+
+    \      \"nomPiece\": \"Chambre 1\",\r
+
+    \      \"ordre\": 3,\r
+
+    \      \"observations\": null,\r
+
+    \      \"elements\": [\r
+
+    \        { \"typeElement\": \"SOL\",      \"etatElement\":
+    \"BON\",          \"description\": \"Parquet
+    chêne\",        \"observation\": null },\r
+
+    \        { \"typeElement\": \"MUR\",      \"etatElement\":
+    \"MAUVAIS\",      \"description\": \"Peinture
+    blanche\",     \"observation\": \"Papier peint posé sans autorisation — à
+    déposer\" },\r
+
+    \        { \"typeElement\": \"PLAFOND\",  \"etatElement\":
+    \"BON\",          \"description\": \"Peinture
+    blanche\",     \"observation\": null },\r
+
+    \        { \"typeElement\": \"FENETRE\",  \"etatElement\":
+    \"BON\",          \"description\": \"Double vitrage
+    PVC\",   \"observation\": null },\r
+
+    \        { \"typeElement\": \"VOLET\",    \"etatElement\":
+    \"BON\",          \"description\": \"Volet roulant manuel\",
+    \"observation\": null },\r
+
+    \        { \"typeElement\": \"RADIATEUR\",\"etatElement\":
+    \"BON\",          \"description\": \"Radiateur électrique\",
+    \"observation\": null },\r
+
+    \        { \"typeElement\": \"PRISE\",    \"etatElement\":
+    \"BON\",          \"description\": \"3
+    prises\",             \"observation\": null }\r
+
+    \      ]\r
+
+    \    },\r
+
+    \    {\r
+
+    \      \"nomPiece\": \"Cuisine\",\r
+
+    \      \"ordre\": 4,\r
+
+    \      \"observations\": \"Plaque induction avec fissure constatée.\",\r
+
+    \      \"elements\": [\r
+
+    \        { \"typeElement\": \"SOL\",       \"etatElement\":
+    \"USAGE_NORMAL\",\"description\": \"Carrelage
+    blanc\",        \"observation\": \"Joint décollé entre 2 carreaux\" },\r
+
+    \        { \"typeElement\": \"MUR\",       \"etatElement\":
+    \"BON\",         \"description\": \"Faïence +
+    peinture\",     \"observation\": null },\r
+
+    \        { \"typeElement\": \"PLAFOND\",   \"etatElement\":
+    \"BON\",         \"description\": \"Peinture
+    blanche\",       \"observation\": null },\r
+
+    \        { \"typeElement\": \"EQUIPEMENT\",\"etatElement\":
+    \"MAUVAIS\",     \"description\": \"Plaque induction 4
+    feux\",\"observation\": \"Fissure sur la vitre — non présente à l'entrée\"
+    },\r
+
+    \        { \"typeElement\": \"EQUIPEMENT\",\"etatElement\":
+    \"BON\",         \"description\": \"Four
+    encastrable\",       \"observation\": null },\r
+
+    \        { \"typeElement\": \"EQUIPEMENT\",\"etatElement\":
+    \"USAGE_NORMAL\",\"description\": \"Hotte
+    aspirante\",        \"observation\": \"Filtre non changé depuis l'entrée\"
+    },\r
+
+    \        { \"typeElement\": \"EQUIPEMENT\",\"etatElement\":
+    \"BON\",         \"description\": \"Réfrigérateur
+    combiné\",  \"observation\": null },\r
+
+    \        { \"typeElement\": \"LUMINAIRE\", \"etatElement\":
+    \"BON\",         \"description\": \"Spots encastrés
+    LED\",    \"observation\": null }\r
+
+    \      ]\r
+
+    \    },\r
+
+    \    {\r
+
+    \      \"nomPiece\": \"Salle de bain\",\r
+
+    \      \"ordre\": 5,\r
+
+    \      \"observations\": null,\r
+
+    \      \"elements\": [\r
+
+    \        { \"typeElement\": \"SOL\",       \"etatElement\":
+    \"BON\",         \"description\": \"Carrelage
+    gris\",                  \"observation\": null },\r
+
+    \        { \"typeElement\": \"MUR\",       \"etatElement\":
+    \"USAGE_NORMAL\",\"description\": \"Faïence
+    blanche\",                 \"observation\": \"Traces de calcaire sur 2
+    carreaux\" },\r
+
+    \        { \"typeElement\": \"PLAFOND\",   \"etatElement\":
+    \"BON\",         \"description\": \"Peinture
+    hydrofuge\",              \"observation\": null },\r
+
+    \        { \"typeElement\": \"EQUIPEMENT\",\"etatElement\":
+    \"BON\",         \"description\": \"Douche
+    italienne\",                \"observation\": null },\r
+
+    \        { \"typeElement\": \"EQUIPEMENT\",\"etatElement\":
+    \"BON\",         \"description\": \"Vasque +
+    meuble\",                 \"observation\": null },\r
+
+    \        { \"typeElement\": \"EQUIPEMENT\",\"etatElement\":
+    \"HORS_SERVICE\",\"description\": \"Sèche-serviettes
+    électrique\",     \"observation\": \"Ne fonctionne plus — panne électrique\"
+    },\r
+
+    \        { \"typeElement\": \"LUMINAIRE\", \"etatElement\":
+    \"BON\",         \"description\": \"Plafonnier
+    IP44\",                 \"observation\": null }\r
+
+    \      ]\r
+
+    \    },\r
+
+    \    {\r
+
+    \      \"nomPiece\": \"WC\",\r
+
+    \      \"ordre\": 6,\r
+
+    \      \"observations\": \"Chasse d'eau réparée entre l'entrée et la sortie
+    — OK.\",\r
+
+    \      \"elements\": [\r
+
+    \        { \"typeElement\": \"SOL\",       \"etatElement\":
+    \"BON\",         \"description\": \"Carrelage gris\",   \"observation\":
+    null },\r
+
+    \        { \"typeElement\": \"MUR\",       \"etatElement\":
+    \"BON\",         \"description\": \"Peinture blanche\", \"observation\":
+    null },\r
+
+    \        { \"typeElement\": \"EQUIPEMENT\",\"etatElement\":
+    \"BON\",         \"description\": \"WC suspendu\",      \"observation\":
+    \"Chasse d'eau réparée — conforme\" },\r
+
+    \        { \"typeElement\": \"LUMINAIRE\", \"etatElement\":
+    \"BON\",         \"description\": \"Plafonnier\",       \"observation\":
+    null }\r
+
+    \      ]\r
+
+    \    }\r
+
+    \  ]\r
+
+    }"
+auth:
+  type: bearer
+  credentials:
+    token: eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUk9MRV9QUk9QUklFVEFJUkUiLCJzdWIiOiJrYmcuYWwucHJAZ21haWwuY29tIiwiaWF0IjoxNzczOTEzNjI4LCJleHAiOjE3NzM5MTM5Mjh9.HzhMPPNM61EO-iE3JaeB6Zew73jfz5RMrulQGm_VKrM
+order: 1000

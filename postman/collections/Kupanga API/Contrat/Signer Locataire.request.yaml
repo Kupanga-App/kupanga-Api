@@ -1,0 +1,14 @@
+$kind: http-request
+url: "{{baseUrl}}/contrats/signer/{token}"
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \    \"signatureBase64\":
+    \"iVBORw0KGgoAAAANSUhEUgAAASwAAAEsCAYAAAB5fY51AAAABHNCSVQICAgIfAhkiAAAAAlwS\
+    FlzAAALEgAACxIB0t1+/AAAABx0RVh0U29mdHdhcmUAQWRvYmUgRmlyZXdvcmtzIENTNXG14zYA\
+    AAAWdEVYdENyZWF0aW9uIFRpbWUAMDkvMjMvMTNJ0GGGGGGGGGGGGx8TAAAB\"\r
+
+    }"
+order: 4000

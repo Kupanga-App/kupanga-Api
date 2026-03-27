@@ -1,0 +1,5 @@
+$kind: collection
+description: Postman collection for the Kupanga Spring Boot API - Real estate
+  management platform
+variables:
+  baseUrl: http://localhost:8080

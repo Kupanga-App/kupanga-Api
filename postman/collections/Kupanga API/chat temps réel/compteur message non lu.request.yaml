@@ -1,0 +1,7 @@
+$kind: http-request
+name: compteur message non lu
+url: "{{baseUrl}}/messages/non-lus"
+method: GET
+auth:
+  type: bearer
+order: 4482416714768130
