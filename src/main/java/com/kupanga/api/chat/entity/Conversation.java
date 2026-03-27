@@ -26,6 +26,8 @@ public class Conversation {
     @JoinColumn(name = "bien_id")
     private Bien bien;
 
+    private String emailExpediteur;
+
     // ─── Messages ────────────────────────────────────────────────
     @OneToMany(mappedBy = "conversation", cascade = CascadeType.ALL)
     @OrderBy("createdAt ASC")

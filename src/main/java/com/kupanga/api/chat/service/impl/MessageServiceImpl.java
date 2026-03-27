@@ -2,9 +2,11 @@ package com.kupanga.api.chat.service.impl;
 
 import com.kupanga.api.chat.dto.MessageDTO;
 import com.kupanga.api.chat.dto.MessagePayload;
+import com.kupanga.api.chat.entity.Conversation;
 import com.kupanga.api.chat.entity.Message;
 import com.kupanga.api.chat.mapper.MessageMapper;
 import com.kupanga.api.chat.repository.MessageRepository;
+import com.kupanga.api.chat.service.ConversationService;
 import com.kupanga.api.chat.service.MessageService;
 import com.kupanga.api.exception.business.KupangaBusinessException;
 import com.kupanga.api.immobilier.entity.Bien;
@@ -30,7 +32,7 @@ public class MessageServiceImpl implements MessageService {
     private final MessageRepository messageRepository;
     private final MessageMapper messageMapper;
     private final UserService   userService;
-    private final BienService bienService;
+    private final ConversationService conversationService;
     private final SimpMessagingTemplate messagingTemplate;  // pour le push WebSocket
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -48,14 +50,19 @@ public class MessageServiceImpl implements MessageService {
                     "Impossible d'envoyer un message à soi-même", HttpStatus.BAD_REQUEST);
         }
 
-        Bien bien = bienService.findById(payload.bienId());
+        Conversation conversation = conversationService.findConversationWithBienIdAndEmailExpediteur(payload.bienId(), emailExpediteur );
+        if( conversation == null){
+
+            conversation = conversationService.createConversation(payload.bienId(),  emailExpediteur);
+
+        }
 
         // Persister le message
         Message message = Message.builder()
                 .contenu(payload.contenu())
                 .expediteur(expediteur)
                 .destinataire(destinataire)
-               // .bien(bien)
+                .conversation(conversation)
                 .build();
 
         Message saved = messageRepository.save(message);

@@ -1,5 +1,6 @@
 package com.kupanga.api.immobilier.entity;
 
+import com.kupanga.api.chat.entity.Conversation;
 import com.kupanga.api.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -9,6 +10,7 @@ import org.locationtech.jts.geom.Point;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -82,20 +84,23 @@ public class Bien {
     private User locataire;
 
     @OneToMany(mappedBy = "bien", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private Set<Contrat> contrats;
+    private Set<Contrat> contrats = new HashSet<>();
 
     @OneToMany(mappedBy = "bien", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private Set<Quittance> quittances;
+    private Set<Quittance> quittances = new HashSet<>();
 
     @OneToMany(mappedBy = "bien", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private Set<EtatDesLieux> etatsDesLieux;
+    private Set<EtatDesLieux> etatsDesLieux = new HashSet<>();
 
     @OneToMany(mappedBy = "bien", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private Set<Document> documents;
+    private Set<Document> documents = new HashSet<>();
 
     @OneToMany(mappedBy = "bien", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private Set<BienImage> images;
+    private Set<BienImage> images = new HashSet<>();
 
     @OneToMany(mappedBy = "bien", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private Set<BienPoi> pois;
+    private Set<BienPoi> pois = new HashSet<>();
+
+    @OneToMany(mappedBy = "bien", cascade = CascadeType.ALL)
+    private Set<Conversation> conversations = new HashSet<>();
 }
