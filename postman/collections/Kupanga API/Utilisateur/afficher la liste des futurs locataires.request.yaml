@@ -1,0 +1,5 @@
+$kind: http-request
+name: afficher la liste des futurs locataires
+url: "{{baseUrl}}/users/1/recherche-locataire"
+method: POST
+order: 1508355958899352

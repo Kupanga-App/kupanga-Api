@@ -35,4 +35,6 @@ public interface BienRepository extends JpaRepository<Bien, Long>, JpaSpecificat
             """
     )
     List<Bien> findAllPropertiesAssociateToUser(Long userId);
+
+    boolean existsByIdAndProprietaireId(Long id, Long proprietaireId);
 }

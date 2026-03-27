@@ -1,0 +1,8 @@
+$kind: http-request
+name: marquer comme lus
+url: "{{baseUrl}}/messages/conversation/{emailExpediteur}/lire"
+method: POST
+auth:
+  credentials: []
+  type: bearer
+order: 4461403773781337

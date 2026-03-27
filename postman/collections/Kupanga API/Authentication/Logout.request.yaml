@@ -1,0 +1,8 @@
+$kind: http-request
+description: Logout user by invalidating the refresh token and clearing the cookie.
+url: "{{baseUrl}}/auth/logout"
+method: POST
+headers:
+  Content-Type: application/json
+  Cookie: refreshToken={{refreshToken}}
+order: 4000

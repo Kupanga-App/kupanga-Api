@@ -1,4 +1,4 @@
-package com.kupanga.api.immobilier.research.dto;
+package com.kupanga.api.pagination;
 
 import lombok.*;
 import org.springframework.data.domain.Sort;

@@ -76,7 +76,7 @@ class SecurityConfigTest {
 
         Assertions.assertNotNull(corsConfig);
         assertThat(corsConfig.getAllowedOrigins())
-                .containsExactlyInAnyOrder("http://localhost:4200", "https://kupanga.lespacelibellule.com");
+                .containsExactlyInAnyOrder("http://localhost:4200", "http://localhost:63342", "https://kupanga.lespacelibellule.com");
         assertThat(corsConfig.getAllowedMethods())
                 .containsExactlyInAnyOrder("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS");
         assertThat(corsConfig.getAllowedHeaders()).contains("*");

@@ -1,0 +1,15 @@
+$kind: http-request
+description: Authenticate user with email and password. Returns access token and
+  sets refresh token in cookie.
+url: "{{baseUrl}}/auth/login"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "email": "user@example.com",
+      "password": "Password123"
+    }
+order: 2000

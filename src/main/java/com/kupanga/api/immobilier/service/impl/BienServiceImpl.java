@@ -232,4 +232,17 @@ public class BienServiceImpl implements BienService {
                         .build())
                 .toList();
     }
+
+    @Override
+    public Bien findById(Long bienId){
+
+        return bienRepository.findById(bienId).orElseThrow(() ->
+                new KupangaBusinessException("Aucun bien trouvé pour cet id" , HttpStatus.NOT_FOUND)
+        );
+    }
+
+    @Override
+    public boolean existsByIdAndProprietaireId(Long bienId, Long proprietaireId) {
+        return bienRepository.existsByIdAndProprietaireId(bienId, proprietaireId);
+    }
 }

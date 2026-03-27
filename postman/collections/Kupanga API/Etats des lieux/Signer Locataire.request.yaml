@@ -1,0 +1,4 @@
+$kind: http-request
+url: "{{baseUrl}}/etats-des-lieux/signer/{token}"
+method: POST
+order: 4000
