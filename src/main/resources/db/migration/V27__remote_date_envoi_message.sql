@@ -1,2 +1,2 @@
 ALTER TABLE messages
-DROP COLUMN date_envoi;
+DROP COLUMN IF EXISTS date_envoi;
