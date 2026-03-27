@@ -38,4 +38,11 @@ public interface BienService {
      * @return liste des biens du propriétaire
      */
     List<BienDTO> findAllPropertiesAssociateToUser(String email);
+
+    /**
+     * Trouve un bien grâce à son id.
+     * @param bienId id du bien.
+     * @return le bien.
+     */
+    Bien findById(Long bienId);
 }

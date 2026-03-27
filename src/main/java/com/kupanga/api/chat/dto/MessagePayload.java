@@ -6,18 +6,17 @@ package com.kupanga.api.chat.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Builder;
 
-@Getter
-@Setter
-public class MessagePayload {
+@Builder
+public record MessagePayload (
 
-    @NotBlank
-    private String contenu;
+    @NotBlank(message = "Le contenu du message ne doit pas être vide.")
+    String contenu,
 
-    @NotNull
-    private String emailDestinataire;   // email du destinataire
+    @NotBlank(message = "l'email du destinataire ne doit pas être vide.")
+    String emailDestinataire,
 
-    private Long bienId;                // optionnel — contexte du bien concerné
-}
+    @NotNull(message = "l'id du bien concerné est obligatoire")
+    Long bienId
+){}

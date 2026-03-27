@@ -9,6 +9,7 @@ import com.kupanga.api.chat.service.MessageService;
 import com.kupanga.api.exception.business.KupangaBusinessException;
 import com.kupanga.api.immobilier.entity.Bien;
 import com.kupanga.api.immobilier.repository.BienRepository;
+import com.kupanga.api.immobilier.service.BienService;
 import com.kupanga.api.user.entity.User;
 import com.kupanga.api.user.service.UserService;
 import jakarta.transaction.Transactional;
@@ -28,8 +29,8 @@ public class MessageServiceImpl implements MessageService {
 
     private final MessageRepository messageRepository;
     private final MessageMapper messageMapper;
-    private final UserService          userService;
-    private final BienRepository       bienRepository;
+    private final UserService   userService;
+    private final BienService bienService;
     private final SimpMessagingTemplate messagingTemplate;  // pour le push WebSocket
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -40,28 +41,21 @@ public class MessageServiceImpl implements MessageService {
     public void envoyerMessage(MessagePayload payload, String emailExpediteur) {
 
         User expediteur   = userService.getUserByEmail(emailExpediteur);
-        User destinataire = userService.getUserByEmail(payload.getEmailDestinataire());
+        User destinataire = userService.getUserByEmail(payload.emailDestinataire());
 
         if (expediteur.getMail().equals(destinataire.getMail())) {
             throw new KupangaBusinessException(
                     "Impossible d'envoyer un message à soi-même", HttpStatus.BAD_REQUEST);
         }
 
-        // Bien optionnel
-        Bien bien = null;
-        if (payload.getBienId() != null) {
-            bien = bienRepository.findById(payload.getBienId())
-                    .orElseThrow(() -> new KupangaBusinessException(
-                            "Bien introuvable : " + payload.getBienId(), HttpStatus.NOT_FOUND));
-        }
+        Bien bien = bienService.findById(payload.bienId());
 
         // Persister le message
         Message message = Message.builder()
-                .contenu(payload.getContenu())
+                .contenu(payload.contenu())
                 .expediteur(expediteur)
                 .destinataire(destinataire)
                 .bien(bien)
-                .lu(false)
                 .build();
 
         Message saved = messageRepository.save(message);
@@ -76,7 +70,7 @@ public class MessageServiceImpl implements MessageService {
         );
 
         log.info("Message {} envoyé de {} à {}",
-                saved.getId(), emailExpediteur, payload.getEmailDestinataire());
+                saved.getId(), emailExpediteur, payload.emailDestinataire());
 
     }
 
