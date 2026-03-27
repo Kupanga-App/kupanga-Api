@@ -24,12 +24,7 @@ public class MessageMapper {
                 .destinataireNom(message.getDestinataire().getFirstName()
                         + " " + message.getDestinataire().getLastName())
                 .destinataireEmail(message.getDestinataire().getMail())
-                // Bien (optionnel)
-                .bienId(message.getBien() != null ? message.getBien().getId() : null)
-                .bienAdresse(message.getBien() != null
-                        ? message.getBien().getAdresse() + ", "
-                        + message.getBien().getVille()
-                        : null)
+
                 .build();
     }
 }

@@ -55,7 +55,7 @@ public class MessageServiceImpl implements MessageService {
                 .contenu(payload.contenu())
                 .expediteur(expediteur)
                 .destinataire(destinataire)
-                .bien(bien)
+               // .bien(bien)
                 .build();
 
         Message saved = messageRepository.save(message);
@@ -72,44 +72,5 @@ public class MessageServiceImpl implements MessageService {
         log.info("Message {} envoyé de {} à {}",
                 saved.getId(), emailExpediteur, payload.emailDestinataire());
 
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Lecture de conversation
-    // ─────────────────────────────────────────────────────────────────────────
-
-    @Override
-    public List<MessageDTO> getConversation(String emailA, String emailB) {
-        return messageRepository.findConversation(emailA, emailB)
-                .stream()
-                .map(messageMapper::toDTO)
-                .toList();
-    }
-
-    @Override
-    public List<MessageDTO> getConversationParBien(String emailA, String emailB, Long bienId) {
-        return messageRepository.findConversationParBien(emailA, emailB, bienId)
-                .stream()
-                .map(messageMapper::toDTO)
-                .toList();
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Marquer comme lu
-    // ─────────────────────────────────────────────────────────────────────────
-
-    @Override
-    public void marquerConversationLue(String emailDestinataire, String emailExpediteur) {
-        messageRepository.marquerConversationLue(emailDestinataire, emailExpediteur);
-        log.info("Conversation entre {} et {} marquée comme lue", emailDestinataire, emailExpediteur);
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Compteur non lus
-    // ─────────────────────────────────────────────────────────────────────────
-
-    @Override
-    public Long countMessagesNonLus(String email) {
-        return messageRepository.countMessagesNonLus(email);
     }
 }

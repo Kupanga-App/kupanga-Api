@@ -43,6 +43,6 @@ public class Message {
     private User destinataire;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "bien_id")
-    private Bien bien;                  // contexte optionnel : proprio ↔ locataire sur un bien
+    @JoinColumn(name = "conversation_id", nullable = false)
+    private Conversation conversation;
 }
