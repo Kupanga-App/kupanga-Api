@@ -45,4 +45,12 @@ public interface BienService {
      * @return le bien.
      */
     Bien findById(Long bienId);
+
+    /**
+     * Verifie si un boien appartient au propriétaire connecté ou pas
+     * @param id id du bien
+     * @param proprietaireId id du proprio
+     * @return true or false
+     */
+    boolean existsByIdAndProprietaireId(Long id, Long proprietaireId);
 }
