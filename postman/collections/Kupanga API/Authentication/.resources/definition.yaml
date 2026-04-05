@@ -1,0 +1,4 @@
+$kind: collection
+description: Authentication endpoints for user registration, login, logout, and
+  password management
+order: 1000

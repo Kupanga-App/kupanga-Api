@@ -1,0 +1,7 @@
+$kind: http-request
+name: Recupère les converstations par bien
+url: "{{baseUrl}}/messages/conversation/{email}/bien/{bienId}"
+method: GET
+auth:
+  type: bearer
+order: 4435527631167033

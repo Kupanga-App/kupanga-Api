@@ -118,6 +118,7 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of(
                 "http://localhost:4200",
+                "http://localhost:63342",  // ← IntelliJ built-in server  pour tester les websocket via une page Html
                 "https://kupanga.lespacelibellule.com"
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));

@@ -1,0 +1,49 @@
+$kind: http-request
+url: "{{baseUrl}}/biens"
+method: POST
+body:
+  type: formdata
+  content:
+    - type: text
+      key: bienFormDTO
+      value: |-
+        {
+            "titre": "Appartement lumineux 3 pièces",
+            "typeBien": "APPARTEMENT",
+            "description": "Bel appartement situé au centre-ville",
+            "adresse": "75 Boulevard Jules Verne",
+            "ville": "Nantes",
+            "codePostal": "44300",
+            "pays": "France",
+            "surfaceHabitable": 65.5,
+            "nombrePieces": 3,
+            "nombreChambres": 2,
+            "etage": 2,
+            "ascenseur": true,
+            "anneeConstruction": 1998,
+            "modeChauffage": "ELECTRIQUE",
+            "classeEnergie": "C",
+            "classeGes": "B",
+            "loyerMensuel": 850.00,
+            "chargesMensuelles": 50.00,
+            "depotGarantie": 1700.00,
+            "meuble": false,
+            "colocation": false,
+            "disponibleDe": "2026-04-01"
+        }
+      contentType: application/json
+    - type: file
+      key: files
+      src:
+        - /C:/Users/Leclerc/Workflow/BackEnd/Java/SpringBoot/Kupanga/Kupanga-Documentations/image/immo/64b565bfca9a139b28f747b3_agences_immobilieres_de_luxe_3.jpeg
+        - /C:/Users/Leclerc/Workflow/BackEnd/Java/SpringBoot/Kupanga/Kupanga-Documentations/image/immo/aef41bf24933e3a6ad1e6adbffbc53c6_898d93b5e6_1920-original.webp
+        - /C:/Users/Leclerc/Workflow/BackEnd/Java/SpringBoot/Kupanga/Kupanga-Documentations/image/immo/d.jpg
+        - /C:/Users/Leclerc/Workflow/BackEnd/Java/SpringBoot/Kupanga/Kupanga-Documentations/image/immo/CP
+          Coeur de Vie.webp
+        - /C:/Users/Leclerc/Workflow/BackEnd/Java/SpringBoot/Kupanga/Kupanga-Documentations/image/immo/CP
+          Coeur de Vie.webp
+auth:
+  type: bearer
+  credentials:
+    token: eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUk9MRV9QUk9QUklFVEFJUkUiLCJzdWIiOiJrYmcuYWwucHJAZ21haWwuY29tIiwiaWF0IjoxNzczNjIwNDc2LCJleHAiOjE3NzM2MjA3NzZ9.PYvUC6F-8cZk4iUSIOkTafLZvAWinJ3AF7NR4bc7ORw
+order: 1000

@@ -1,0 +1,7 @@
+$kind: http-request
+name: Récupère une conversation
+url: "{{baseUrl}}/messages/conversation/{emailInterlocuteur}"
+method: GET
+auth:
+  type: bearer
+order: 4260931608698402

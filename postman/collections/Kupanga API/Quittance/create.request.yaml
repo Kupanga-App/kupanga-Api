@@ -1,0 +1,29 @@
+$kind: http-request
+url: "{{baseUrl}}/quittances"
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \  \"bienId\": 1,\r
+
+    \  \"emailLocataire\": \"moiseaganze76@gmail.com\",\r
+
+    \  \"mois\": \"mars\",\r
+
+    \  \"annee\": 2026,\r
+
+    \  \"loyerMensuel\": 850.00,\r
+
+    \  \"chargesMensuelles\": 50.00,\r
+
+    \  \"dateEcheance\": \"2026-03-05\",\r
+
+    \  \"datePaiement\": null\r
+
+    }"
+auth:
+  type: bearer
+  credentials:
+    token: eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUk9MRV9QUk9QUklFVEFJUkUiLCJzdWIiOiJrYmcuYWwucHJAZ21haWwuY29tIiwiaWF0IjoxNzc0MjU5NzI0LCJleHAiOjE3NzQyNjAwMjR9.fSK1ekK2qPp5JHkeC_cACbB8FeKoo8oPyNrztOzVgic
+order: 1000

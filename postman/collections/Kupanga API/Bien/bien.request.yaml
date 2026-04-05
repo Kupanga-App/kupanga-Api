@@ -1,0 +1,4 @@
+$kind: http-request
+url: "{{baseUrl}}/biens/13"
+method: GET
+order: 2000

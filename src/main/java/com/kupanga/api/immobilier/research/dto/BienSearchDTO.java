@@ -2,6 +2,7 @@ package com.kupanga.api.immobilier.research.dto;
 
 import com.kupanga.api.immobilier.entity.*;
 import com.kupanga.api.immobilier.research.sort.BienSortEnum;
+import com.kupanga.api.pagination.Pagination;
 import org.springframework.data.domain.Sort;
 
 import java.time.LocalDate;

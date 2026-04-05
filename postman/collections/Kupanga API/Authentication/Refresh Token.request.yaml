@@ -1,0 +1,9 @@
+$kind: http-request
+description: Refresh the access token using the refresh token stored in cookie.
+  Returns new access token.
+url: "{{baseUrl}}/auth/refresh"
+method: POST
+headers:
+  Content-Type: application/json
+  Cookie: refreshToken={{refreshToken}}
+order: 3000

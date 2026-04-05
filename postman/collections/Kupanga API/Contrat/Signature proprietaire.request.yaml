@@ -1,0 +1,14 @@
+$kind: http-request
+url: "{{baseUrl}}/contrats/{id}/signer-proprio"
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \    \"signatureBase64\":
+    \"iVBORw0KGgoAAAANSUhEUgAAASwAAAEsCAYAAAB5fY51AAAABHNCSVQICAgIfAhkiAAAAAlwS\
+    FlzAAALEgAACxIB0t1+/AAAABx0RVh0U29mdHdhcmUAQWRvYmUgRmlyZXdvcmtzIENTNXG14zYA\
+    AAAWdEVYdENyZWF0aW9uIFRpbWUAMDkvMjMvMTNJ0x8TAAAB\"\r
+
+    }"
+order: 2000

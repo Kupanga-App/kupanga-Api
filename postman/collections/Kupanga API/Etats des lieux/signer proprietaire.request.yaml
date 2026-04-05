@@ -1,0 +1,4 @@
+$kind: http-request
+url: "{{baseUrl}}/etats-des-lieux/{id}/signer-proprietaire"
+method: POST
+order: 2000

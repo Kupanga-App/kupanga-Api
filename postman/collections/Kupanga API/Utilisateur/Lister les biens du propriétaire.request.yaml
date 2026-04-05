@@ -1,0 +1,4 @@
+$kind: http-request
+url: "{{baseUrl}}/users/biens"
+method: GET
+order: 1000

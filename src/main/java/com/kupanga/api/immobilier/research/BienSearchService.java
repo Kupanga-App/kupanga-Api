@@ -5,7 +5,7 @@ import com.kupanga.api.immobilier.mapper.BienMapper;
 import com.kupanga.api.immobilier.repository.BienRepository;
 import com.kupanga.api.immobilier.research.dto.BienPageDTO;
 import com.kupanga.api.immobilier.research.dto.BienSearchDTO;
-import com.kupanga.api.immobilier.research.dto.Pagination;
+import com.kupanga.api.pagination.Pagination;
 import com.kupanga.api.immobilier.research.specification.BienSpecification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;

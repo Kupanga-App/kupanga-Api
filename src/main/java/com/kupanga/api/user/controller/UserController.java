@@ -2,6 +2,9 @@ package com.kupanga.api.user.controller;
 
 import com.kupanga.api.immobilier.dto.readDTO.BienDTO;
 import com.kupanga.api.immobilier.service.BienService;
+import com.kupanga.api.user.research.LocataireSearchService;
+import com.kupanga.api.user.research.dto.LocatairePageDTO;
+import com.kupanga.api.user.research.dto.LocataireSearchDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -24,6 +27,7 @@ import java.util.List;
 public class UserController {
 
     private final BienService bienService;
+    private final LocataireSearchService locataireSearchService;
 
     // =========================================
     // MES BIENS
@@ -125,5 +129,19 @@ public class UserController {
     ResponseEntity<List<BienDTO>> getAllPropertiesAssociateToOwner() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         return ResponseEntity.ok(bienService.findAllPropertiesAssociateToUser(auth.getName()));
+    }
+
+    @PostMapping("/{bienId}/recherche-locataire")
+    public ResponseEntity<LocatairePageDTO> rechercherLocataires(
+            @PathVariable Long bienId,
+            @RequestBody(required = false) LocataireSearchDTO dto
+    ) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+
+        if (dto == null) dto = new LocataireSearchDTO(
+                null, null, null, null, null, null, null
+        );
+        return ResponseEntity.ok(locataireSearchService.rechercher( auth.getName() ,bienId, dto));
     }
 }
