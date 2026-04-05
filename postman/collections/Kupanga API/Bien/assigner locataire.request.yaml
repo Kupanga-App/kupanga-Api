@@ -1,0 +1,5 @@
+$kind: http-request
+name: assigner locataire
+url: "{{baseUrl}}/biens/1/assigne-locataire/2"
+method: POST
+order: 2698156231886002

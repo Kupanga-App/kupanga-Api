@@ -18,10 +18,10 @@ public interface BienMapper {
     @Mapping(target = "latitude",         expression = "java(bien.getLocalisation() != null ? bien.getLocalisation().getY() : null)")
     @Mapping(target = "longitude",        expression = "java(bien.getLocalisation() != null ? bien.getLocalisation().getX() : null)")
     @Mapping(target = "proprietaire",     source = "proprietaire", qualifiedByName = "mapProprietairePublic")
+    @Mapping(target = "locataire",     source = "locataire", qualifiedByName = "mapProprietairePublic")
     @Mapping(target = "images",           source = "images",       qualifiedByName = "imageUrls")
     @Mapping(target = "pois",         source = "pois",         qualifiedByName = "mapPoisFr")
     // ─── Champs privés — jamais exposés publiquement ──────────────────────────
-    @Mapping(target = "locataire",        ignore = true)
     @Mapping(target = "contrats",         ignore = true)
     @Mapping(target = "quittances",       ignore = true)
     @Mapping(target = "documents",        ignore = true)
