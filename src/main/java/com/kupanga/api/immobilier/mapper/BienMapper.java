@@ -29,11 +29,8 @@ public interface BienMapper {
 
     // ─── Propriétaire public : prénom + nom uniquement ────────────────────────
     @Named("mapProprietairePublic")
-    @Mapping(target = "id",           ignore = true)
     @Mapping(target = "password",     ignore = true)
     @Mapping(target = "mail",         ignore = true)
-    @Mapping(target = "role",         ignore = true)
-    @Mapping(target = "hasCompleteProfil", ignore = true)
     UserDTO mapProprietairePublic(User user);
 
     // ─── Images ───────────────────────────────────────────────────────────────
