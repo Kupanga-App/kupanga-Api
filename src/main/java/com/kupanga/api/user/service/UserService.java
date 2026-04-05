@@ -68,4 +68,11 @@ public interface UserService {
      * @throws IllegalArgumentException si le mot de passe ne correspond pas
      */
     void isCorrectPassword(String passwordLogin, String passwordUser);
+
+    /**
+     * rétrouve un utilisateur grâce à son Id.
+     * @param userId id de l'utilisateur
+     * @return User.
+     */
+    User findById(Long userId);
 }

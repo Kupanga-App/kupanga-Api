@@ -456,4 +456,12 @@ public class BienController {
     ) {
         return ResponseEntity.ok(bienSearchService.rechercher(dto));
     }
+
+    @PostMapping("/{bienId}/assigne-locataire/{userId}")
+    public ResponseEntity<Void> assignLocataire(@PathVariable Long bienId , @PathVariable Long userId){
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        bienService.affectLocataire(auth , bienId , userId);
+        return ResponseEntity.noContent().build();
+    }
 }

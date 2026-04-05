@@ -245,4 +245,16 @@ public class BienServiceImpl implements BienService {
     public boolean existsByIdAndProprietaireId(Long bienId, Long proprietaireId) {
         return bienRepository.existsByIdAndProprietaireId(bienId, proprietaireId);
     }
+
+    @Override
+    public void affectLocataire( Authentication auth, Long bienId , Long userId) {
+
+        User proprietaire = userService.getUserByEmail(auth.getName());
+        userService.verifyIfUserIsOwner(proprietaire.getRole());
+        User locataire = userService.findById(userId);
+        Bien bien = findWithAllProperties(bienId);
+        bien.setLocataire(locataire);
+        bienRepository.save(bien);
+
+    }
 }

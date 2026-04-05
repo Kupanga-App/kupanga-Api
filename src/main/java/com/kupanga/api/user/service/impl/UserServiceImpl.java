@@ -1,14 +1,12 @@
 package com.kupanga.api.user.service.impl;
 
-import com.kupanga.api.exception.business.InvalidPasswordException;
-import com.kupanga.api.exception.business.InvalidRoleException;
-import com.kupanga.api.exception.business.UserAlreadyExistsException;
-import com.kupanga.api.exception.business.UserNotFoundException;
+import com.kupanga.api.exception.business.*;
 import com.kupanga.api.user.entity.Role;
 import com.kupanga.api.user.entity.User;
 import com.kupanga.api.user.repository.UserRepository;
 import com.kupanga.api.user.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -80,5 +78,14 @@ public class UserServiceImpl implements UserService {
 
             throw new InvalidPasswordException();
         }
+    }
+
+    @Override
+    public User findById(Long userId) {
+
+        return userRepository.findById(userId).orElseThrow(
+                () -> new KupangaBusinessException("Aucun utilisateur trouvé pour l'Id : " + userId ,
+                        HttpStatus.NOT_FOUND)
+        );
     }
 }
