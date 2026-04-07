@@ -713,7 +713,7 @@
         document.getElementById('historyBanner').classList.add('visible');
 
         try {
-            const url = `${apiUrl}/api/messages/historique?bienId=${bienId}&emailInterlocuteur=${encodeURIComponent(emailInterlocut)}`;
+            const url = `${apiUrl}/historique?bienId=${bienId}&emailInterlocuteur=${encodeURIComponent(emailInterlocut)}`;
 
             const resp = await fetch(url, {
                 headers: { Authorization: 'Bearer ' + token }
@@ -800,9 +800,6 @@
 
                 addMessage('Connexion STOMP établie ✓', 'system');
 
-                // ① Charger l'historique via REST
-                await chargerHistorique();
-
                 // ② S'abonner à la queue privée de B pour la réception temps réel
                 stompClient.subscribe(`/user/${monEmail}/queue/messages`, msg => {
                     try {
@@ -819,6 +816,9 @@
                         incrementUnread();
                     }
                 });
+
+                // ① Charger l'historique via REST
+                await chargerHistorique();
 
                 setDebug(`[STOMP] Abonné à /user/${monEmail}/queue/messages`);
             },
