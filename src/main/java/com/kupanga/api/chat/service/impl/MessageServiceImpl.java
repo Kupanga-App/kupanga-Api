@@ -50,10 +50,10 @@ public class MessageServiceImpl implements MessageService {
                     "Impossible d'envoyer un message à soi-même", HttpStatus.BAD_REQUEST);
         }
 
-        Conversation conversation = conversationService.findConversationWithBienIdAndEmailExpediteur(payload.bienId(), emailExpediteur );
+        Conversation conversation = conversationService.findConversationWithBienIdAndEmailExpediteur(payload.bienId(), emailExpediteur , payload.emailDestinataire() );
         if( conversation == null){
 
-            conversation = conversationService.createConversation(payload.bienId(),  emailExpediteur);
+            conversation = conversationService.createConversation(payload.bienId(),  emailExpediteur , payload.emailDestinataire());
 
         }
 

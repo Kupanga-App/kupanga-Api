@@ -27,6 +27,7 @@ public class Conversation {
     private Bien bien;
 
     private String emailExpediteur;
+    private String emailDestinataire;
 
     // ─── Messages ────────────────────────────────────────────────
     @OneToMany(mappedBy = "conversation", cascade = CascadeType.ALL)

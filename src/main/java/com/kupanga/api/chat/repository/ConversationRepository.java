@@ -16,8 +16,11 @@ public interface ConversationRepository extends JpaRepository<Conversation , Lon
             from Conversation c
             inner join c.bien b
             where b.id = :bienId
-            and c.emailExpediteur = :email
+            and (
+            (c.emailExpediteur = :emailA and c.emailDestinataire = :emailB )
+            or (c.emailExpediteur = :emailB and c.emailDestinataire = :emailA )
+            )
    
     """)
-    Optional<Conversation> findConversationWithBienIdAndEmailExpediteur(Long bienId , String email);
+    Optional<Conversation> findConversationWithBienIdAndEmailExpediteur(Long bienId , String emailA , String emailB);
 }

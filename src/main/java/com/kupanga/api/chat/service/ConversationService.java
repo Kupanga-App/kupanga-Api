@@ -8,16 +8,18 @@ public interface ConversationService {
     /**
      * Créer une nouvelle conversation
      * @param bienId id du bien concerné.
-     * @param email email de l'expéditeur
+     * @param emailA email de l'expéditeur
+     * @param emailB email destinataire
      * @return Conversation.
      */
-    Conversation createConversation(Long bienId ,String email );
+    Conversation createConversation(Long bienId ,String emailA , String emailB );
 
     /**
      * Rétourne une conversation à partir de l'émail de l'utilisateur et id du bien
      * @param bienId id du bien
-     * @param email email de l'expéditeur
+     * @param emailA email de l'expéditeur
+     * @param emailB email destinataire.
      * @return Conversation
      */
-    Conversation findConversationWithBienIdAndEmailExpediteur( Long bienId , String email);
+    Conversation findConversationWithBienIdAndEmailExpediteur( Long bienId , String emailA , String emailB);
 }
