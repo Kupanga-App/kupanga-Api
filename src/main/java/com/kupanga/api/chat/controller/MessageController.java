@@ -42,4 +42,18 @@ public class MessageController {
     public void sendMessage(@Payload MessagePayload payload, Principal principal) {
         messageService.envoyerMessage(payload, principal.getName());
     }
+
+    @GetMapping("/historique")
+    public ResponseEntity<List<MessageDTO>> getHistorique(
+            @RequestParam Long bienId,
+            @RequestParam String emailInterlocuteur,
+            Principal principal) {
+
+        List<MessageDTO> messages = messageService.getHistorique(
+                bienId,
+                principal.getName(),   // email tiré du JWT, jamais du front
+                emailInterlocuteur
+        );
+        return ResponseEntity.ok(messages);
+    }
 }

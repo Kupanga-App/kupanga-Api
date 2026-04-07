@@ -80,4 +80,13 @@ public class MessageServiceImpl implements MessageService {
                 saved.getId(), emailExpediteur, payload.emailDestinataire());
 
     }
+
+    @Override
+    public List<MessageDTO> getHistorique(Long bienId, String emailConnecte, String emailInterlocuteur) {
+        return messageRepository
+                .findHistorique(bienId, emailConnecte, emailInterlocuteur)
+                .stream()
+                .map(messageMapper::toDTO)
+                .toList();
+    }
 }

@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kupanga — Réception WebSocket</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7/bundles/stomp.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <style>
+        :root {
+            --bg:         #0d0f14;
+            --surface:    #151820;
+            --surface2:   #1c2030;
+            --border:     #252a3a;
+            --accent:     #4f6ef7;
+            --accent2:    #7c3aed;
+            --success:    #22c55e;
+            --danger:     #ef4444;
+            --warning:    #f59e0b;
+            --text:       #e8eaf0;
+            --text-muted: #6b7280;
+            --bubble-out: #4f6ef7;
+            --bubble-in:  #1c2030;
+            --radius:     14px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            height: 100vh;
+            display: grid;
+            grid-template-columns: 340px 1fr;
+            overflow: hidden;
+        }
+
+        /* ── SIDEBAR ─────────────────────────────────── */
+        .sidebar {
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .sidebar-header {
+            padding: 28px 24px 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo {
+            font-family: 'Syne', sans-serif;
+            font-size: 22px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #22c55e, #4f6ef7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 4px;
+        }
+
+        .logo-sub {
+            font-size: 11px;
+            color: var(--text-muted);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        /* Badge "Récepteur" pour distinguer des deux onglets */
+        .role-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 10px;
+            background: rgba(34,197,94,0.12);
+            border: 1px solid rgba(34,197,94,0.3);
+            border-radius: 20px;
+            padding: 4px 10px;
+            font-size: 11px;
+            color: #22c55e;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+        }
+
+        .config-section {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 24px;
+        }
+
+        .config-section::-webkit-scrollbar { width: 4px; }
+        .config-section::-webkit-scrollbar-track { background: transparent; }
+        .config-section::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+        .section-title {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 14px;
+            margin-top: 20px;
+        }
+
+        .section-title:first-child { margin-top: 0; }
+
+        .field { margin-bottom: 14px; }
+
+        .field label {
+            display: block;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+
+        .field input, .field textarea {
+            width: 100%;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13px;
+            padding: 9px 12px;
+            outline: none;
+            transition: border-color 0.2s;
+            resize: none;
+        }
+
+        .field input:focus, .field textarea:focus { border-color: #22c55e; }
+        .field textarea { min-height: 70px; }
+
+        .field .hint {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 4px;
+            opacity: 0.7;
+        }
+
+        .btn-connect {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #22c55e, #4f6ef7);
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.15s;
+            margin-top: 8px;
+        }
+
+        .btn-connect:hover { opacity: 0.9; transform: translateY(-1px); }
+        .btn-connect:active { transform: translateY(0); }
+        .btn-connect:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+        .status-bar {
+            padding: 16px 24px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+        }
+
+        .status-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: var(--text-muted);
+            transition: background 0.3s;
+            flex-shrink: 0;
+        }
+
+        .status-dot.connected    { background: var(--success); box-shadow: 0 0 6px var(--success); }
+        .status-dot.disconnected { background: var(--danger); }
+        .status-dot.connecting   { background: var(--warning); animation: pulse 1s infinite; }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50%       { opacity: 0.3; }
+        }
+
+        #statusText { color: var(--text-muted); font-size: 12px; }
+
+        /* ── CHAT ────────────────────────────────────── */
+        .chat-area {
+            display: flex;
+            flex-direction: column;
+            background: var(--bg);
+            position: relative;
+        }
+
+        .chat-header {
+            padding: 20px 28px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--surface);
+        }
+
+        .chat-header-info { display: flex; align-items: center; gap: 12px; }
+
+        .avatar {
+            width: 38px; height: 38px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #22c55e, #4f6ef7);
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 14px; color: #fff;
+            flex-shrink: 0;
+        }
+
+        .chat-dest-name  { font-weight: 600; font-size: 15px; }
+        .chat-dest-sub   { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+
+        .badge-bienid {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 5px 12px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .badge-bienid span { color: #22c55e; font-weight: 600; }
+
+        /* Bandeau chargement historique */
+        .history-banner {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 28px;
+            background: rgba(79,110,247,0.08);
+            border-bottom: 1px solid rgba(79,110,247,0.15);
+            font-size: 12px;
+            color: var(--accent);
+        }
+
+        .history-banner.visible { display: flex; }
+
+        .spinner {
+            width: 14px; height: 14px;
+            border: 2px solid rgba(79,110,247,0.3);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            flex-shrink: 0;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Séparateur historique / temps réel */
+        .separator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 0;
+            color: var(--text-muted);
+            font-size: 11px;
+        }
+
+        .separator::before, .separator::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        /* Messages */
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .messages::-webkit-scrollbar { width: 4px; }
+        .messages::-webkit-scrollbar-track { background: transparent; }
+        .messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+        .empty-state {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            color: var(--text-muted);
+        }
+
+        .empty-icon { font-size: 40px; opacity: 0.3; }
+
+        .empty-state p {
+            font-size: 13px;
+            text-align: center;
+            line-height: 1.6;
+            max-width: 240px;
+        }
+
+        .msg-row {
+            display: flex;
+            flex-direction: column;
+            animation: slideIn 0.25s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .msg-row.outgoing { align-items: flex-end; }
+        .msg-row.incoming { align-items: flex-start; }
+
+        /* Highlight pour les nouveaux messages reçus en temps réel */
+        .msg-row.incoming.new .msg-bubble {
+            border-color: rgba(34,197,94,0.4);
+            box-shadow: 0 0 12px rgba(34,197,94,0.08);
+        }
+
+        .msg-meta {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+            padding: 0 4px;
+        }
+
+        .msg-bubble {
+            max-width: 72%;
+            padding: 11px 16px;
+            border-radius: var(--radius);
+            font-size: 14px;
+            line-height: 1.55;
+            word-break: break-word;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .msg-row.outgoing .msg-bubble {
+            background: var(--bubble-out);
+            color: #fff;
+            border-bottom-right-radius: 4px;
+        }
+
+        .msg-row.incoming .msg-bubble {
+            background: var(--bubble-in);
+            border: 1px solid var(--border);
+            color: var(--text);
+            border-bottom-left-radius: 4px;
+        }
+
+        .msg-row.system .msg-bubble {
+            background: transparent;
+            border: 1px dashed var(--border);
+            color: var(--text-muted);
+            font-size: 12px;
+            font-style: italic;
+            max-width: 100%;
+            text-align: center;
+            align-self: center;
+        }
+
+        .msg-time {
+            font-size: 10px;
+            color: var(--text-muted);
+            margin-top: 4px;
+            padding: 0 4px;
+        }
+
+        /* Input area */
+        .input-area {
+            padding: 18px 28px 22px;
+            border-top: 1px solid var(--border);
+            background: var(--surface);
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+        }
+
+        .input-wrap {
+            flex: 1;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 10px 14px;
+            transition: border-color 0.2s;
+        }
+
+        .input-wrap:focus-within { border-color: #22c55e; }
+
+        #msgInput {
+            width: 100%;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            resize: none;
+            max-height: 120px;
+            line-height: 1.5;
+        }
+
+        #msgInput::placeholder { color: var(--text-muted); }
+
+        .btn-send {
+            width: 44px; height: 44px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #22c55e, #4f6ef7);
+            border: none;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: opacity 0.2s, transform 0.15s;
+            flex-shrink: 0;
+        }
+
+        .btn-send:hover  { opacity: 0.85; transform: translateY(-1px); }
+        .btn-send:active { transform: translateY(0); }
+        .btn-send:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
+        .btn-send svg { width: 18px; height: 18px; fill: #fff; }
+
+        /* Debug */
+        .debug-bar {
+            background: #0a0b10;
+            border-top: 1px solid var(--border);
+            padding: 8px 28px;
+            font-size: 11px;
+            color: #22c55e;
+            font-family: 'Courier New', monospace;
+            max-height: 60px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            opacity: 0.6;
+        }
+
+        /* Overlay */
+        .overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(13,15,20,0.85);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            backdrop-filter: blur(4px);
+            z-index: 10;
+            transition: opacity 0.3s;
+        }
+
+        .overlay.hidden { opacity: 0; pointer-events: none; }
+        .overlay-icon   { font-size: 48px; }
+
+        .overlay p {
+            color: var(--text-muted);
+            font-size: 14px;
+            text-align: center;
+            max-width: 260px;
+            line-height: 1.6;
+        }
+
+        /* Compteur de messages non lus */
+        .unread-badge {
+            display: none;
+            background: var(--success);
+            color: #fff;
+            font-size: 10px;
+            font-weight: 700;
+            border-radius: 10px;
+            padding: 2px 7px;
+            margin-left: 6px;
+        }
+
+        .unread-badge.visible { display: inline-block; }
+    </style>
+</head>
+<body>
+
+<!-- ══ SIDEBAR ════════════════════════════════════════════════════════ -->
+<aside class="sidebar">
+    <div class="sidebar-header">
+        <div class="logo">Kupanga</div>
+        <div class="logo-sub">WebSocket Test Client</div>
+        <div class="role-badge">
+            ✦ Mode Récepteur (B)
+        </div>
+    </div>
+
+    <div class="config-section">
+
+        <div class="section-title">🔑 Authentification (Utilisateur B)</div>
+
+        <div class="field">
+            <label>URL du back Spring Boot</label>
+            <input type="text" id="cfgApiUrl" value="http://localhost:8089" placeholder="http://localhost:8089">
+        </div>
+
+        <div class="field">
+            <label>JWT Token de B</label>
+            <textarea id="cfgToken" placeholder="eyJhbGciOi... (token de l'utilisateur B)"></textarea>
+            <div class="hint">Token frais requis — expire rapidement</div>
+        </div>
+
+        <div class="field">
+            <label>Mon email (celui de B — celui du token)</label>
+            <input type="email" id="cfgMonEmail" placeholder="b@example.com">
+        </div>
+
+        <div class="section-title">💬 Conversation</div>
+
+        <div class="field">
+            <label>Email de l'expéditeur (A)</label>
+            <input type="email" id="cfgEmailDest" placeholder="a@example.com">
+            <div class="hint">Utilisé pour charger l'historique et envoyer des réponses</div>
+        </div>
+
+        <div class="field">
+            <label>ID du bien</label>
+            <input type="number" id="cfgBienId" value="1" min="1">
+            <div class="hint">Doit être le même bien que A</div>
+        </div>
+
+        <button class="btn-connect" id="btnConnect" onclick="toggleConnect()">
+            Se connecter
+        </button>
+
+    </div>
+
+    <div class="status-bar">
+        <div class="status-dot" id="statusDot"></div>
+        <span id="statusText">Non connecté</span>
+    </div>
+</aside>
+
+<!-- ══ CHAT ══════════════════════════════════════════════════════════ -->
+<main class="chat-area">
+
+    <div class="overlay" id="overlay">
+        <div class="overlay-icon">📥</div>
+        <p>Configure les paramètres de B et clique sur <strong>Se connecter</strong> pour démarrer la réception.</p>
+    </div>
+
+    <!-- Header -->
+    <div class="chat-header">
+        <div class="chat-header-info">
+            <div class="avatar" id="destAvatar">?</div>
+            <div>
+                <div class="chat-dest-name" id="destName">
+                    —
+                    <span class="unread-badge" id="unreadBadge">0</span>
+                </div>
+                <div class="chat-dest-sub" id="destSub">En attente de connexion</div>
+            </div>
+        </div>
+        <div class="badge-bienid">Bien <span id="headerBienId">#—</span></div>
+    </div>
+
+    <!-- Bandeau chargement historique -->
+    <div class="history-banner" id="historyBanner">
+        <div class="spinner"></div>
+        Chargement de l'historique…
+    </div>
+
+    <!-- Messages -->
+    <div class="messages" id="messages">
+        <div class="empty-state" id="emptyState">
+            <div class="empty-icon">📭</div>
+            <p>Aucun message pour l'instant.<br>Connecte-toi pour voir l'historique et recevoir en temps réel.</p>
+        </div>
+    </div>
+
+    <!-- Input (B peut aussi répondre) -->
+    <div class="input-area">
+        <div class="input-wrap">
+            <textarea id="msgInput" rows="1"
+                      placeholder="Répondre… (Entrée pour envoyer)"
+                      onkeydown="handleKey(event)"
+                      oninput="autoResize(this)"
+                      disabled></textarea>
+        </div>
+        <button class="btn-send" id="btnSend" onclick="sendMessage()" disabled title="Envoyer">
+            <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
+        </button>
+    </div>
+
+    <div class="debug-bar" id="debugBar">[STOMP] En attente…</div>
+</main>
+
+<script>
+    // ─────────────────────────────────────────────────────────────────
+    // STATE
+    // ─────────────────────────────────────────────────────────────────
+    let stompClient  = null;
+    let isConnected  = false;
+    let unreadCount  = 0;
+    let historySeparatorAdded = false;
+
+    // ─────────────────────────────────────────────────────────────────
+    // UI HELPERS
+    // ─────────────────────────────────────────────────────────────────
+    function setStatus(state, text) {
+        document.getElementById('statusDot').className = 'status-dot ' + state;
+        document.getElementById('statusText').textContent = text;
+    }
+
+    function setDebug(str) {
+        document.getElementById('debugBar').textContent = str;
+    }
+
+    function updateHeader() {
+        const dest   = document.getElementById('cfgEmailDest').value || '—';
+        const bienId = document.getElementById('cfgBienId').value   || '—';
+        document.getElementById('destName').childNodes[0].nodeValue = dest + ' ';
+        document.getElementById('destSub').textContent              = isConnected ? '● En ligne' : 'Hors ligne';
+        document.getElementById('destAvatar').textContent           = dest[0]?.toUpperCase() || '?';
+        document.getElementById('headerBienId').textContent         = '#' + bienId;
+    }
+
+    function incrementUnread() {
+        unreadCount++;
+        const badge = document.getElementById('unreadBadge');
+        badge.textContent = unreadCount;
+        badge.classList.add('visible');
+    }
+
+    function resetUnread() {
+        unreadCount = 0;
+        document.getElementById('unreadBadge').classList.remove('visible');
+    }
+
+    /**
+     * Ajoute un message dans la liste.
+     * @param {string}  contenu
+     * @param {string}  direction  — 'outgoing' | 'incoming' | 'system'
+     * @param {string}  meta       — label affiché au-dessus de la bulle
+     * @param {string}  timeStr    — heure formatée (optionnel, défaut = maintenant)
+     * @param {boolean} isNew      — true = highlight vert (nouveau message temps réel)
+     */
+    function addMessage(contenu, direction, meta = '', timeStr = null, isNew = false) {
+        const empty = document.getElementById('emptyState');
+        if (empty) empty.remove();
+
+        const wrap = document.getElementById('messages');
+        const now  = timeStr || new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+
+        const row = document.createElement('div');
+        row.className = 'msg-row ' + direction + (isNew ? ' new' : '');
+
+        if (direction !== 'system' && meta) {
+            const m = document.createElement('div');
+            m.className   = 'msg-meta';
+            m.textContent = meta;
+            row.appendChild(m);
+        }
+
+        const bubble = document.createElement('div');
+        bubble.className   = 'msg-bubble';
+        bubble.textContent = contenu;
+        row.appendChild(bubble);
+
+        if (direction !== 'system') {
+            const t = document.createElement('div');
+            t.className   = 'msg-time';
+            t.textContent = now;
+            row.appendChild(t);
+        }
+
+        wrap.appendChild(row);
+        wrap.scrollTop = wrap.scrollHeight;
+
+        // Retirer le highlight après 3s
+        if (isNew) {
+            setTimeout(() => row.classList.remove('new'), 3000);
+        }
+    }
+
+    function addSeparator(label) {
+        const wrap = document.getElementById('messages');
+        const sep  = document.createElement('div');
+        sep.className   = 'separator';
+        sep.textContent = label;
+        wrap.appendChild(sep);
+    }
+
+    function autoResize(el) {
+        el.style.height = 'auto';
+        el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+    }
+
+    function handleKey(e) {
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+    }
+
+    // ─────────────────────────────────────────────────────────────────
+    // HISTORIQUE
+    // ─────────────────────────────────────────────────────────────────
+    async function chargerHistorique() {
+        const apiUrl          = document.getElementById('cfgApiUrl').value.trim();
+        const token           = document.getElementById('cfgToken').value.trim();
+        const monEmail        = document.getElementById('cfgMonEmail').value.trim();
+        const emailInterlocut = document.getElementById('cfgEmailDest').value.trim();
+        const bienId          = document.getElementById('cfgBienId').value.trim();
+
+        if (!emailInterlocut || !bienId) return;
+
+        // Afficher le bandeau de chargement
+        document.getElementById('historyBanner').classList.add('visible');
+
+        try {
+            const url = `${apiUrl}/api/messages/historique?bienId=${bienId}&emailInterlocuteur=${encodeURIComponent(emailInterlocut)}`;
+
+            const resp = await fetch(url, {
+                headers: { Authorization: 'Bearer ' + token }
+            });
+
+            if (!resp.ok) {
+                throw new Error(`HTTP ${resp.status}`);
+            }
+
+            const messages = await resp.json();
+
+            if (messages.length === 0) {
+                addMessage('Aucun message dans l\'historique — soyez les premiers !', 'system');
+            } else {
+                // Afficher chaque message de l'historique
+                messages.forEach(msg => {
+                    // Si l'expéditeur du message = moi (B), c'est "outgoing", sinon "incoming"
+                    const direction = (msg.expediteurEmail === monEmail) ? 'outgoing' : 'incoming';
+                    const meta      = (direction === 'outgoing') ? 'Moi' : (msg.expediteurEmail || 'A');
+
+                    // Formater la date si disponible
+                    let timeStr = null;
+                    if (msg.createdAt) {
+                        timeStr = new Date(msg.createdAt).toLocaleTimeString('fr-FR', {
+                            hour: '2-digit', minute: '2-digit'
+                        });
+                    }
+
+                    addMessage(msg.contenu, direction, meta, timeStr, false);
+                });
+
+                addMessage(`${messages.length} message(s) chargé(s) depuis la base`, 'system');
+            }
+
+            // Séparateur entre historique et temps réel
+            addSeparator('— Temps réel —');
+            historySeparatorAdded = true;
+
+        } catch (err) {
+            console.error('Erreur chargement historique', err);
+            addMessage(`Impossible de charger l'historique : ${err.message}`, 'system');
+            addSeparator('— Temps réel —');
+            historySeparatorAdded = true;
+        } finally {
+            document.getElementById('historyBanner').classList.remove('visible');
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────
+    // CONNECT / DISCONNECT
+    // ─────────────────────────────────────────────────────────────────
+    function toggleConnect() {
+        if (isConnected) disconnect(); else connect();
+    }
+
+    function connect() {
+        const apiUrl   = document.getElementById('cfgApiUrl').value.trim();
+        const token    = document.getElementById('cfgToken').value.trim();
+        const monEmail = document.getElementById('cfgMonEmail').value.trim();
+
+        if (!token || !monEmail) {
+            alert('Renseigne le JWT de B et son email avant de te connecter.');
+            return;
+        }
+
+        setStatus('connecting', 'Connexion en cours…');
+        document.getElementById('btnConnect').disabled = true;
+        updateHeader();
+
+        stompClient = new StompJs.Client({
+            webSocketFactory: () => new SockJS(`${apiUrl}/ws`),
+            connectHeaders  : { Authorization: 'Bearer ' + token },
+
+            onConnect: async () => {
+                isConnected = true;
+                setStatus('connected', `Connecté — ${monEmail}`);
+                document.getElementById('btnConnect').textContent = 'Se déconnecter';
+                document.getElementById('btnConnect').disabled   = false;
+                document.getElementById('btnSend').disabled      = false;
+                document.getElementById('msgInput').disabled     = false;
+                document.getElementById('overlay').classList.add('hidden');
+                document.getElementById('msgInput').focus();
+                updateHeader();
+
+                addMessage('Connexion STOMP établie ✓', 'system');
+
+                // ① Charger l'historique via REST
+                await chargerHistorique();
+
+                // ② S'abonner à la queue privée de B pour la réception temps réel
+                stompClient.subscribe(`/user/${monEmail}/queue/messages`, msg => {
+                    try {
+                        const data    = JSON.parse(msg.body);
+                        const contenu = data.contenu || data.content || JSON.stringify(data);
+                        const meta    = data.expediteurEmail || 'A';
+
+                        addMessage(contenu, 'incoming', meta, null, true); // isNew = true → highlight vert
+                        incrementUnread();
+
+                        setDebug(`[REÇU] De: ${meta} — "${contenu.substring(0, 60)}"`);
+                    } catch {
+                        addMessage(msg.body, 'incoming', 'A', null, true);
+                        incrementUnread();
+                    }
+                });
+
+                setDebug(`[STOMP] Abonné à /user/${monEmail}/queue/messages`);
+            },
+
+            onStompError: frame => {
+                setStatus('disconnected', 'Erreur STOMP');
+                document.getElementById('btnConnect').disabled   = false;
+                document.getElementById('btnConnect').textContent = 'Se connecter';
+                addMessage(`Erreur STOMP : ${frame.headers['message'] || 'inconnue'}`, 'system');
+                console.error('STOMP ERROR', frame);
+                isConnected = false;
+                updateHeader();
+            },
+
+            onDisconnect: () => {
+                isConnected = false;
+                setStatus('disconnected', 'Déconnecté');
+                document.getElementById('btnConnect').textContent = 'Se connecter';
+                document.getElementById('btnConnect').disabled   = false;
+                document.getElementById('btnSend').disabled      = true;
+                document.getElementById('msgInput').disabled     = true;
+                document.getElementById('overlay').classList.remove('hidden');
+                addMessage('Connexion fermée', 'system');
+                historySeparatorAdded = false;
+                updateHeader();
+            },
+
+            onWebSocketError : e => { console.error('WS ERROR', e); setStatus('disconnected', 'Erreur WebSocket'); },
+            onWebSocketClose : e => console.warn('WS CLOSED', e.code, e.reason),
+            debug            : str => setDebug(str)
+        });
+
+        stompClient.activate();
+    }
+
+    function disconnect() {
+        if (stompClient) stompClient.deactivate();
+    }
+
+    // ─────────────────────────────────────────────────────────────────
+    // SEND (B peut répondre à A)
+    // ─────────────────────────────────────────────────────────────────
+    function sendMessage() {
+        const input     = document.getElementById('msgInput');
+        const emailDest = document.getElementById('cfgEmailDest').value.trim();
+        const bienId    = parseInt(document.getElementById('cfgBienId').value);
+        const contenu   = input.value.trim();
+
+        if (!contenu)   return;
+        if (!emailDest) { alert('Renseigne l\'email de A dans la config.'); return; }
+        if (!bienId)    { alert('Renseigne l\'ID du bien dans la config.'); return; }
+
+        stompClient.publish({
+            destination: '/app/chat.send',
+            body: JSON.stringify({ contenu, emailDestinataire: emailDest, bienId })
+        });
+
+        addMessage(contenu, 'outgoing', 'Moi');
+        resetUnread();
+        input.value        = '';
+        input.style.height = 'auto';
+    }
+
+    // Réinitialiser le compteur non lus quand B focus la fenêtre
+    window.addEventListener('focus', resetUnread);
+</script>
+</body>
+</html>
