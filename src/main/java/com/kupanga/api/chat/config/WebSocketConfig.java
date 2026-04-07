@@ -1,13 +1,22 @@
 package com.kupanga.api.chat.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.kupanga.api.chat.security.JwtChannelInterceptor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.messaging.converter.DefaultContentTypeResolver;
+import org.springframework.messaging.converter.MappingJackson2MessageConverter;
+import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
+import org.springframework.util.MimeTypeUtils;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
+
+import java.util.List;
 
 @Configuration
 @EnableWebSocketMessageBroker
@@ -37,7 +46,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws")
                 .setAllowedOriginPatterns("*")  // à restreindre en prod
-                .withSockJS(); //à remettre pour la connexion front et fallback SockJS pour les navigateurs sans WS natif
+                .withSockJS();
     }
 
     /**
@@ -47,5 +56,35 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
         registration.interceptors(jwtChannelInterceptor);
+    }
+
+    /**
+     * CRITIQUE : configure le convertisseur JSON utilisé par le broker STOMP.
+     * Ce pipeline est INDÉPENDANT du Jackson HTTP — sans ce fix, LocalDateTime
+     * dans MessageDTO déclenche une exception silencieuse et le push vers B
+     * n'arrive jamais.
+     */
+
+
+    @Override
+    public boolean configureMessageConverters(List<MessageConverter> messageConverters) {
+        // 1. Résolveur de content-type : on force application/json
+        DefaultContentTypeResolver resolver = new DefaultContentTypeResolver();
+        resolver.setDefaultMimeType(MimeTypeUtils.APPLICATION_JSON);
+
+        // 2. Configuration de l'ObjectMapper (Dates ISO-8601)
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+        // 3. Utilisation du BON convertisseur pour Messaging/Websocket
+        MappingJackson2MessageConverter converter = new MappingJackson2MessageConverter();
+        converter.setObjectMapper(mapper);
+        converter.setContentTypeResolver(resolver);
+
+        messageConverters.add(converter);
+
+        // Retourner false pour désactiver les convertisseurs par défaut
+        return false;
     }
 }

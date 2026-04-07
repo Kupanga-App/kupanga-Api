@@ -70,11 +70,22 @@ public class MessageServiceImpl implements MessageService {
 
         // ─── Push WebSocket au destinataire ───────────────────────────────────
         // Envoie dans la queue privée du destinataire : /user/{email}/queue/messages
-        messagingTemplate.convertAndSendToUser(
-                destinataire.getMail(),
-                "/queue/messages",
-                dto
-        );
+        try {
+            log.info("[WS-PUSH] → Envoi vers /user/{}/queue/messages  |  msgId={} | de={} | contenu=\"{}\"",
+                    destinataire.getMail(), saved.getId(), emailExpediteur,
+                    payload.contenu().substring(0, Math.min(50, payload.contenu().length())));
+
+            messagingTemplate.convertAndSendToUser(
+                    destinataire.getMail(),
+                    "/queue/messages",
+                    dto
+            );
+
+            log.info("[WS-PUSH] ✓ Message poussé avec succès vers {}", destinataire.getMail());
+
+        } catch (Exception e) {
+            log.error("[WS-PUSH] ✗ Échec du push WebSocket vers {} : {}", destinataire.getMail(), e.getMessage(), e);
+        }
 
         log.info("Message {} envoyé de {} à {}",
                 saved.getId(), emailExpediteur, payload.emailDestinataire());

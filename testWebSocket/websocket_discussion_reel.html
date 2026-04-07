@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kupanga — Conversation Temps Réel</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7/bundles/stomp.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <style>
+        /* ══ TOKENS ════════════════════════════════════════════ */
+        :root {
+            --bg:         #0d0f14;
+            --surface:    #151820;
+            --surface2:   #1c2030;
+            --border:     #252a3a;
+            --text:       #e8eaf0;
+            --text-muted: #6b7280;
+            --radius:     14px;
+            --success:    #22c55e;
+            --danger:     #ef4444;
+            --warning:    #f59e0b;
+            /* A = bleu/violet */
+            --a-grad:  linear-gradient(135deg,#4f6ef7,#7c3aed);
+            --a-color: #4f6ef7;
+            /* B = vert/cyan */
+            --b-grad:  linear-gradient(135deg,#22c55e,#0ea5e9);
+            --b-color: #22c55e;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* ══ TOPBAR ════════════════════════════════════════════ */
+        .topbar {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-shrink: 0;
+        }
+
+        .logo {
+            font-family: 'Syne', sans-serif;
+            font-size: 20px;
+            font-weight: 800;
+            background: linear-gradient(135deg,#4f6ef7,#22c55e);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            white-space: nowrap;
+        }
+
+        .logo-sub {
+            font-size: 10px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            white-space: nowrap;
+        }
+
+        .topbar-sep { width:1px; height:32px; background:var(--border); flex-shrink:0; }
+
+        .topbar-field {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+
+        .topbar-field input {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 7px;
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 12px;
+            padding: 6px 10px;
+            outline: none;
+            transition: border-color .2s;
+        }
+        .topbar-field input:focus { border-color: var(--a-color); }
+        .topbar-field input.wide  { width: 200px; }
+        .topbar-field input.narrow { width: 70px; }
+
+        .topbar-hint {
+            margin-left: auto;
+            font-size: 11px;
+            color: var(--text-muted);
+            text-align: right;
+            line-height: 1.7;
+        }
+
+        /* ══ MAIN SPLIT ════════════════════════════════════════ */
+        .main {
+            display: grid;
+            grid-template-columns: 1fr 3px 1fr;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .divider {
+            background: var(--border);
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .divider-icon {
+            position: absolute;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 4px 8px;
+            font-size: 11px;
+            color: var(--text-muted);
+            z-index: 2;
+        }
+
+        /* ══ DEMI-ÉCRAN (sidebar + chat) ══════════════════════ */
+        .half {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            overflow: hidden;
+        }
+
+        /* ── SIDEBAR ─────────────────────────────────────────── */
+        .sidebar {
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .sidebar-header {
+            padding: 22px 20px 16px;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .sidebar-logo {
+            font-family: 'Syne', sans-serif;
+            font-size: 18px;
+            font-weight: 800;
+            margin-bottom: 2px;
+        }
+        .half-a .sidebar-logo { background: var(--a-grad); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+        .half-b .sidebar-logo { background: var(--b-grad); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+
+        .sidebar-sub {
+            font-size: 10px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .role-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            margin-top: 8px;
+            border-radius: 20px;
+            padding: 3px 10px;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+        }
+        .half-a .role-badge { background:rgba(79,110,247,.12); border:1px solid rgba(79,110,247,.3); color:var(--a-color); }
+        .half-b .role-badge { background:rgba(34,197,94,.12);  border:1px solid rgba(34,197,94,.3);  color:var(--b-color); }
+
+        .config-scroll {
+            flex: 1;
+            overflow-y: auto;
+            padding: 18px 20px;
+        }
+        .config-scroll::-webkit-scrollbar { width:3px; }
+        .config-scroll::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
+
+        .section-title {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            margin-top: 18px;
+        }
+        .section-title:first-child { margin-top: 0; }
+
+        .field { margin-bottom: 12px; }
+
+        .field label {
+            display: block;
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .field input,
+        .field textarea {
+            width: 100%;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 12px;
+            padding: 8px 11px;
+            outline: none;
+            transition: border-color .2s;
+            resize: none;
+        }
+        .half-a .field input:focus,
+        .half-a .field textarea:focus { border-color: var(--a-color); }
+        .half-b .field input:focus,
+        .half-b .field textarea:focus { border-color: var(--b-color); }
+
+        .field textarea { min-height: 65px; }
+
+        .field .hint {
+            font-size: 10px;
+            color: var(--text-muted);
+            margin-top: 3px;
+            opacity: .7;
+        }
+
+        .btn-connect {
+            width: 100%;
+            padding: 11px;
+            border: none;
+            border-radius: 9px;
+            color: #fff;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity .2s, transform .15s;
+            margin-top: 6px;
+        }
+        .half-a .btn-connect { background: var(--a-grad); }
+        .half-b .btn-connect { background: var(--b-grad); }
+        .btn-connect:hover   { opacity:.88; transform:translateY(-1px); }
+        .btn-connect:active  { transform:translateY(0); }
+        .btn-connect:disabled { opacity:.38; cursor:not-allowed; transform:none; }
+
+        .status-bar {
+            padding: 14px 20px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            font-size: 12px;
+            flex-shrink: 0;
+        }
+
+        .status-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: var(--text-muted);
+            transition: background .3s;
+            flex-shrink: 0;
+        }
+        .status-dot.connected    { background:var(--success); box-shadow:0 0 6px var(--success); }
+        .status-dot.disconnected { background:var(--danger); }
+        .status-dot.connecting   { background:var(--warning); animation:pulse 1s infinite; }
+
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+        .status-text { color:var(--text-muted); font-size:11px; }
+
+        /* ── CHAT AREA ────────────────────────────────────────── */
+        .chat-area {
+            display: flex;
+            flex-direction: column;
+            background: var(--bg);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            padding: 16px 22px;
+            border-bottom: 1px solid var(--border);
+            background: var(--surface);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+
+        .chat-header-info { display:flex; align-items:center; gap:10px; }
+
+        .avatar {
+            width:36px; height:36px;
+            border-radius:50%;
+            display:flex; align-items:center; justify-content:center;
+            font-weight:700; font-size:13px; color:#fff;
+            flex-shrink:0;
+        }
+        .half-a .avatar { background:var(--a-grad); }
+        .half-b .avatar { background:var(--b-grad); }
+
+        .chat-dest-name { font-weight:600; font-size:14px; display:flex; align-items:center; gap:6px; }
+        .chat-dest-sub  { font-size:11px; color:var(--text-muted); margin-top:1px; }
+
+        .bien-badge {
+            background:var(--surface2);
+            border:1px solid var(--border);
+            border-radius:20px;
+            padding:4px 11px;
+            font-size:11px;
+            color:var(--text-muted);
+        }
+        .half-a .bien-badge span { color:var(--a-color); font-weight:600; }
+        .half-b .bien-badge span { color:var(--b-color); font-weight:600; }
+
+        /* Bandeau historique */
+        .history-banner {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 22px;
+            font-size: 12px;
+            flex-shrink: 0;
+        }
+        .half-a .history-banner { background:rgba(79,110,247,.07); border-bottom:1px solid rgba(79,110,247,.14); color:var(--a-color); }
+        .half-b .history-banner { background:rgba(34,197,94,.07);  border-bottom:1px solid rgba(34,197,94,.14);  color:var(--b-color); }
+        .history-banner.visible { display:flex; }
+
+        .spinner {
+            width:13px; height:13px;
+            border:2px solid rgba(255,255,255,.15);
+            border-radius:50%;
+            animation:spin .8s linear infinite;
+            flex-shrink:0;
+        }
+        .half-a .spinner { border-top-color:var(--a-color); }
+        .half-b .spinner { border-top-color:var(--b-color); }
+        @keyframes spin { to{transform:rotate(360deg)} }
+
+        /* Messages */
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 18px 22px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .messages::-webkit-scrollbar { width:4px; }
+        .messages::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
+
+        .empty-state {
+            flex:1;
+            display:flex; flex-direction:column; align-items:center; justify-content:center;
+            gap:10px; color:var(--text-muted);
+        }
+        .empty-icon { font-size:36px; opacity:.3; }
+        .empty-state p { font-size:12px; text-align:center; line-height:1.6; max-width:200px; }
+
+        .msg-row {
+            display:flex; flex-direction:column;
+            animation:slideIn .22s ease;
+        }
+        @keyframes slideIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+        .msg-row.outgoing { align-items:flex-end; }
+        .msg-row.incoming { align-items:flex-start; }
+
+        .msg-row.incoming.new .msg-bubble {
+            box-shadow:0 0 16px rgba(34,197,94,.2);
+        }
+        .half-a .msg-row.incoming.new .msg-bubble {
+            box-shadow:0 0 16px rgba(79,110,247,.22);
+        }
+
+        .msg-meta { font-size:10px; color:var(--text-muted); margin-bottom:3px; padding:0 3px; }
+
+        .msg-bubble {
+            max-width:78%;
+            padding:10px 14px;
+            border-radius:var(--radius);
+            font-size:13px;
+            line-height:1.55;
+            word-break:break-word;
+            transition:box-shadow .3s;
+        }
+        .half-a .msg-row.outgoing .msg-bubble { background:#4f6ef7; color:#fff; border-bottom-right-radius:4px; }
+        .half-b .msg-row.outgoing .msg-bubble { background:#22c55e; color:#fff; border-bottom-right-radius:4px; }
+
+        .msg-row.incoming .msg-bubble {
+            background:var(--surface2);
+            border:1px solid var(--border);
+            color:var(--text);
+            border-bottom-left-radius:4px;
+        }
+        .msg-row.system .msg-bubble {
+            background:transparent;
+            border:1px dashed var(--border);
+            color:var(--text-muted);
+            font-size:11px;
+            font-style:italic;
+            max-width:100%;
+            text-align:center;
+            align-self:center;
+        }
+
+        .msg-time { font-size:10px; color:var(--text-muted); margin-top:3px; padding:0 3px; }
+
+        .separator {
+            display:flex; align-items:center; gap:8px;
+            color:var(--text-muted); font-size:10px;
+            text-transform:uppercase; letter-spacing:.08em;
+        }
+        .separator::before,.separator::after { content:''; flex:1; height:1px; background:var(--border); }
+
+        /* Typing */
+        .typing-indicator {
+            display:none; align-items:center; gap:6px;
+            font-size:11px; color:var(--text-muted); font-style:italic;
+            padding:0 22px 8px; flex-shrink:0;
+        }
+        .typing-indicator.visible { display:flex; }
+        .typing-dots { display:flex; gap:3px; }
+        .typing-dots span {
+            width:5px; height:5px; border-radius:50%;
+            background:var(--text-muted);
+            animation:typeDot 1.2s infinite;
+        }
+        .typing-dots span:nth-child(2) { animation-delay:.2s; }
+        .typing-dots span:nth-child(3) { animation-delay:.4s; }
+        @keyframes typeDot { 0%,80%,100%{transform:scale(.6);opacity:.4} 40%{transform:scale(1);opacity:1} }
+
+        /* Unread badge */
+        .unread-badge {
+            display:none;
+            background:var(--success); color:#fff;
+            font-size:10px; font-weight:700;
+            border-radius:10px; padding:1px 6px;
+        }
+        .unread-badge.visible { display:inline-block; }
+
+        /* Input area */
+        .input-area {
+            padding:12px 22px 16px;
+            border-top:1px solid var(--border);
+            background:var(--surface);
+            display:flex; gap:10px; align-items:flex-end;
+            flex-shrink:0;
+        }
+
+        .input-wrap {
+            flex:1;
+            background:var(--surface2);
+            border:1px solid var(--border);
+            border-radius:10px;
+            padding:9px 13px;
+            transition:border-color .2s;
+        }
+        .half-a .input-wrap:focus-within { border-color:var(--a-color); }
+        .half-b .input-wrap:focus-within { border-color:var(--b-color); }
+
+        .msg-input {
+            width:100%; background:transparent; border:none; outline:none;
+            color:var(--text); font-family:'DM Sans',sans-serif;
+            font-size:13px; resize:none; max-height:100px; line-height:1.5;
+        }
+        .msg-input::placeholder { color:var(--text-muted); }
+
+        .btn-send {
+            width:40px; height:40px; border-radius:10px; border:none;
+            cursor:pointer; display:flex; align-items:center; justify-content:center;
+            transition:opacity .2s, transform .15s; flex-shrink:0;
+        }
+        .half-a .btn-send { background:var(--a-grad); }
+        .half-b .btn-send { background:var(--b-grad); }
+        .btn-send:hover  { opacity:.85; transform:translateY(-1px); }
+        .btn-send:active { transform:translateY(0); }
+        .btn-send:disabled { opacity:.28; cursor:not-allowed; transform:none; }
+        .btn-send svg { width:16px; height:16px; fill:#fff; }
+
+        /* Debug */
+        .debug-bar {
+            background:#0a0b10;
+            border-top:1px solid var(--border);
+            padding:5px 22px;
+            font-size:10px; font-family:'Courier New',monospace;
+            max-height:26px; overflow:hidden;
+            text-overflow:ellipsis; white-space:nowrap;
+            opacity:.55; flex-shrink:0;
+        }
+        .half-a .debug-bar { color:#4f6ef7; }
+        .half-b .debug-bar { color:#22c55e; }
+
+        /* Overlay */
+        .overlay {
+            position:absolute; inset:0;
+            background:rgba(13,15,20,.85);
+            display:flex; flex-direction:column;
+            align-items:center; justify-content:center;
+            gap:14px; backdrop-filter:blur(5px);
+            z-index:10; transition:opacity .3s;
+        }
+        .overlay.hidden { opacity:0; pointer-events:none; }
+        .overlay-icon   { font-size:46px; }
+        .overlay p { color:var(--text-muted); font-size:13px; text-align:center; max-width:220px; line-height:1.6; }
+        .overlay strong { color:var(--text); }
+    </style>
+</head>
+<body>
+
+<!-- ══ TOPBAR ═══════════════════════════════════════════════════════════ -->
+<header class="topbar">
+    <div>
+        <div class="logo">Kupanga</div>
+        <div class="logo-sub">Conversation Temps Réel</div>
+    </div>
+
+    <div class="topbar-sep"></div>
+
+    <div class="topbar-field">
+        <label>🌐 URL du backend</label>
+        <input id="cfgApiUrl" class="wide" type="text" value="http://localhost:8089" placeholder="http://localhost:8089">
+    </div>
+
+    <div class="topbar-sep"></div>
+
+    <div class="topbar-field">
+        <label>🏠 ID du Bien</label>
+        <input id="cfgBienId" class="narrow" type="number" value="1" min="1">
+        <span style="font-size:11px;color:var(--text-muted);">(partagé A ⇄ B)</span>
+    </div>
+
+    <div class="topbar-hint">
+        ① Renseigne les tokens JWT dans chaque sidebar<br>
+        ② Connecte A et B séparément<br>
+        ③ Envoie un message — l'autre le reçoit en temps réel ⚡
+    </div>
+</header>
+
+<!-- ══ MAIN SPLIT ════════════════════════════════════════════════════════ -->
+<div class="main">
+
+    <!-- ═══════════════ UTILISATEUR A ═══════════════ -->
+    <div class="half half-a">
+
+        <!-- SIDEBAR A -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">Kupanga</div>
+                <div class="sidebar-sub">WebSocket — Utilisateur A</div>
+                <div class="role-badge">✦ Émetteur (A)</div>
+            </div>
+
+            <div class="config-scroll">
+
+                <div class="section-title">🔑 Authentification — Utilisateur A</div>
+
+                <div class="field">
+                    <label>JWT Token de A</label>
+                    <textarea id="aToken" placeholder="eyJhbGciOi… (obtenu via POST /api/auth/login)"></textarea>
+                    <div class="hint">Token frais requis — expire rapidement</div>
+                </div>
+
+                <div class="field">
+                    <label>Mon email (celui du token de A)</label>
+                    <input type="email" id="aEmail" placeholder="a@example.com">
+                </div>
+
+                <div class="section-title">💬 Destinataire</div>
+
+                <div class="field">
+                    <label>Email de l'utilisateur B</label>
+                    <input type="email" id="aDest" placeholder="b@example.com">
+                    <div class="hint">Doit exister en base de données</div>
+                </div>
+
+                <button class="btn-connect" id="btnA" onclick="toggleA()">
+                    Se connecter
+                </button>
+
+            </div>
+
+            <div class="status-bar">
+                <div class="status-dot" id="dotA"></div>
+                <span class="status-text" id="statusA">Non connecté</span>
+            </div>
+        </aside>
+
+        <!-- CHAT AREA A -->
+        <div class="chat-area">
+
+            <div class="overlay" id="overlayA">
+                <div class="overlay-icon">🔌</div>
+                <p>Renseigne le token JWT et l'email de A dans la sidebar, puis clique sur <strong>Se connecter</strong>.</p>
+            </div>
+
+            <div class="chat-header">
+                <div class="chat-header-info">
+                    <div class="avatar" id="avatarA">?</div>
+                    <div>
+                        <div class="chat-dest-name" id="destNameA">
+                            —
+                            <span class="unread-badge" id="unreadA">0</span>
+                        </div>
+                        <div class="chat-dest-sub" id="destSubA">En attente de connexion</div>
+                    </div>
+                </div>
+                <div class="bien-badge">Bien <span id="bienA">#—</span></div>
+            </div>
+
+            <div class="history-banner" id="histA">
+                <div class="spinner"></div>
+                Chargement de l'historique…
+            </div>
+
+            <div class="messages" id="msgsA">
+                <div class="empty-state" id="emptyA">
+                    <div class="empty-icon">💬</div>
+                    <p>Aucun message.<br>Connecte-toi et envoie le premier !</p>
+                </div>
+            </div>
+
+            <div class="typing-indicator" id="typingA">
+                <div class="typing-dots"><span></span><span></span><span></span></div>
+                B est en train d'écrire…
+            </div>
+
+            <div class="input-area">
+                <div class="input-wrap">
+                    <textarea class="msg-input" id="inputA" rows="1"
+                              placeholder="Message de A… (Entrée pour envoyer)"
+                              onkeydown="keyA(event)" oninput="autoResize(this)"
+                              disabled></textarea>
+                </div>
+                <button class="btn-send" id="sendA" onclick="doSend('A')" disabled>
+                    <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
+                </button>
+            </div>
+
+            <div class="debug-bar" id="dbgA">[STOMP-A] En attente…</div>
+        </div>
+
+    </div><!-- /half-a -->
+
+    <!-- ═══════════════ DIVIDER ═══════════════ -->
+    <div class="divider">
+        <div class="divider-icon">⇄</div>
+    </div>
+
+    <!-- ═══════════════ UTILISATEUR B ═══════════════ -->
+    <div class="half half-b">
+
+        <!-- SIDEBAR B -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">Kupanga</div>
+                <div class="sidebar-sub">WebSocket — Utilisateur B</div>
+                <div class="role-badge">✦ Récepteur (B)</div>
+            </div>
+
+            <div class="config-scroll">
+
+                <div class="section-title">🔑 Authentification — Utilisateur B</div>
+
+                <div class="field">
+                    <label>JWT Token de B</label>
+                    <textarea id="bToken" placeholder="eyJhbGciOi… (token de l'utilisateur B)"></textarea>
+                    <div class="hint">Token frais requis — expire rapidement</div>
+                </div>
+
+                <div class="field">
+                    <label>Mon email (celui du token de B)</label>
+                    <input type="email" id="bEmail" placeholder="b@example.com">
+                </div>
+
+                <div class="section-title">💬 Destinataire</div>
+
+                <div class="field">
+                    <label>Email de l'utilisateur A</label>
+                    <input type="email" id="bDest" placeholder="a@example.com">
+                    <div class="hint">Utilisé pour charger l'historique et répondre</div>
+                </div>
+
+                <button class="btn-connect" id="btnB" onclick="toggleB()">
+                    Se connecter
+                </button>
+
+            </div>
+
+            <div class="status-bar">
+                <div class="status-dot" id="dotB"></div>
+                <span class="status-text" id="statusB">Non connecté</span>
+            </div>
+        </aside>
+
+        <!-- CHAT AREA B -->
+        <div class="chat-area">
+
+            <div class="overlay" id="overlayB">
+                <div class="overlay-icon">📥</div>
+                <p>Renseigne le token JWT et l'email de B dans la sidebar, puis clique sur <strong>Se connecter</strong> pour recevoir les messages de A.</p>
+            </div>
+
+            <div class="chat-header">
+                <div class="chat-header-info">
+                    <div class="avatar" id="avatarB">?</div>
+                    <div>
+                        <div class="chat-dest-name" id="destNameB">
+                            —
+                            <span class="unread-badge" id="unreadB">0</span>
+                        </div>
+                        <div class="chat-dest-sub" id="destSubB">En attente de connexion</div>
+                    </div>
+                </div>
+                <div class="bien-badge">Bien <span id="bienB">#—</span></div>
+            </div>
+
+            <div class="history-banner" id="histB">
+                <div class="spinner"></div>
+                Chargement de l'historique…
+            </div>
+
+            <div class="messages" id="msgsB">
+                <div class="empty-state" id="emptyB">
+                    <div class="empty-icon">📭</div>
+                    <p>Aucun message.<br>Connecte-toi pour voir l'historique et recevoir en temps réel.</p>
+                </div>
+            </div>
+
+            <div class="typing-indicator" id="typingB">
+                <div class="typing-dots"><span></span><span></span><span></span></div>
+                A est en train d'écrire…
+            </div>
+
+            <div class="input-area">
+                <div class="input-wrap">
+                    <textarea class="msg-input" id="inputB" rows="1"
+                              placeholder="Réponse de B… (Entrée pour envoyer)"
+                              onkeydown="keyB(event)" oninput="autoResize(this)"
+                              disabled></textarea>
+                </div>
+                <button class="btn-send" id="sendB" onclick="doSend('B')" disabled>
+                    <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
+                </button>
+            </div>
+
+            <div class="debug-bar" id="dbgB">[STOMP-B] En attente…</div>
+        </div>
+
+    </div><!-- /half-b -->
+
+</div><!-- /main -->
+
+<!-- ══ JAVASCRIPT ════════════════════════════════════════════════════════ -->
+<script>
+    // ─── État ────────────────────────────────────────────────────────────
+    const state = {
+        A: { client:null, connected:false, typingTimer:null },
+        B: { client:null, connected:false, typingTimer:null }
+    };
+
+    // ─── Helpers config ──────────────────────────────────────────────────
+    const apiUrl = () => document.getElementById('cfgApiUrl').value.trim() || 'http://localhost:8089';
+    const bienId = () => parseInt(document.getElementById('cfgBienId').value) || 1;
+
+    const cfg = who => ({
+        token : document.getElementById((who==='A'?'a':'b')+'Token').value.trim(),
+        email : document.getElementById((who==='A'?'a':'b')+'Email').value.trim(),
+        dest  : document.getElementById((who==='A'?'a':'b')+'Dest').value.trim(),
+    });
+
+    // ─── UI helpers ──────────────────────────────────────────────────────
+    function setStatus(who, cls, text) {
+        document.getElementById('dot'+who).className = 'status-dot ' + cls;
+        document.getElementById('status'+who).textContent = text;
+    }
+
+    function setDebug(who, str) {
+        document.getElementById('dbg'+who).textContent = str;
+    }
+
+    function updateHeader(who) {
+        const c = cfg(who);
+        const dest = c.dest || '—';
+        document.getElementById('destNameB'.replace('B', who)).childNodes[0].nodeValue = dest + ' ';
+        document.getElementById('avatarA'.replace('A', who)).textContent = dest[0]?.toUpperCase() || '?';
+        document.getElementById('destSubA'.replace('A', who)).textContent = state[who].connected ? '● En ligne' : 'Hors ligne';
+        document.getElementById('bienA'.replace('A', who)).textContent = '#' + bienId();
+    }
+
+    // Mise à jour du header de chat (destinataire, statut, bien)
+    function refreshHeader(who) {
+        const c    = cfg(who);
+        const dest = c.dest || '—';
+        const badge = document.getElementById('unread' + who);
+        document.getElementById('destName' + who).textContent = dest + ' ';
+        // Ré-injecter le badge unread (textContent supprime les enfants)
+        document.getElementById('destName' + who).appendChild(badge);
+        document.getElementById('destSub'  + who).textContent = state[who].connected ? '● En ligne' : 'Hors ligne';
+        document.getElementById('avatar'   + who).textContent = dest[0]?.toUpperCase() || '?';
+        document.getElementById('bien'     + who).textContent = '#' + bienId();
+    }
+
+    function autoResize(el) {
+        el.style.height = 'auto';
+        el.style.height = Math.min(el.scrollHeight, 100) + 'px';
+    }
+
+    function now() {
+        return new Date().toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'});
+    }
+    function fmtTime(iso) {
+        if (!iso) return now();
+        return new Date(iso).toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'});
+    }
+
+    // ─── Messages ────────────────────────────────────────────────────────
+    function addMsg(who, contenu, dir, meta='', time=null, isNew=false) {
+        const box   = document.getElementById('msgs' + who);
+        const empty = document.getElementById('empty' + who);
+        if (empty) empty.remove();
+
+        const t   = time || now();
+        const row = document.createElement('div');
+        row.className = 'msg-row ' + dir + (isNew && dir==='incoming' ? ' new' : '');
+
+        if (dir !== 'system' && meta) {
+            const m = document.createElement('div');
+            m.className = 'msg-meta'; m.textContent = meta;
+            row.appendChild(m);
+        }
+
+        const b = document.createElement('div');
+        b.className   = 'msg-bubble';
+        b.textContent = contenu;
+        row.appendChild(b);
+
+        if (dir !== 'system') {
+            const tEl = document.createElement('div');
+            tEl.className   = 'msg-time';
+            tEl.textContent = t;
+            row.appendChild(tEl);
+        }
+
+        box.appendChild(row);
+        box.scrollTop = box.scrollHeight;
+
+        if (isNew && dir === 'incoming') {
+            setTimeout(() => row.classList.remove('new'), 3000);
+        }
+    }
+
+    function addSep(who, label) {
+        const box = document.getElementById('msgs' + who);
+        const sep = document.createElement('div');
+        sep.className = 'separator'; sep.textContent = label;
+        box.appendChild(sep);
+    }
+
+    // ─── Typing indicator ────────────────────────────────────────────────
+    function onTyping(who) {
+        const other = who === 'A' ? 'B' : 'A';
+        if (state[other].connected) {
+            document.getElementById('typing' + other).classList.add('visible');
+        }
+        clearTimeout(state[who].typingTimer);
+        state[who].typingTimer = setTimeout(() => {
+            document.getElementById('typing' + other).classList.remove('visible');
+        }, 1500);
+    }
+
+    // ─── Historique ──────────────────────────────────────────────────────
+    async function loadHistory(who) {
+        const c = cfg(who);
+        if (!c.dest) return;
+
+        document.getElementById('hist' + who).classList.add('visible');
+
+        try {
+            const url  = `${apiUrl()}/historique?bienId=${bienId()}&emailInterlocuteur=${encodeURIComponent(c.dest)}`;
+            const resp = await fetch(url, { headers:{ Authorization:'Bearer ' + c.token } });
+
+            if (!resp.ok) throw new Error('HTTP ' + resp.status);
+
+            const msgs = await resp.json();
+
+            if (msgs.length === 0) {
+                addMsg(who, 'Historique vide — premier message !', 'system');
+            } else {
+                msgs.forEach(m => {
+                    const dir  = m.expediteurEmail === c.email ? 'outgoing' : 'incoming';
+                    const meta = dir === 'outgoing' ? 'Moi' : (m.expediteurEmail || 'Interlocuteur');
+                    addMsg(who, m.contenu, dir, meta, fmtTime(m.createdAt), false);
+                });
+                addMsg(who, `${msgs.length} message(s) chargé(s) depuis la base`, 'system');
+            }
+            addSep(who, '— Temps réel —');
+
+        } catch (err) {
+            console.error('[' + who + '] historique err', err);
+            addMsg(who, 'Impossible de charger l\'historique : ' + err.message, 'system');
+            addSep(who, '— Temps réel —');
+        } finally {
+            document.getElementById('hist' + who).classList.remove('visible');
+        }
+    }
+
+    // ─── Handler message entrant (évite la duplication de code) ─────────
+    function handleIncoming(who, frame) {
+        try {
+            console.log('[STOMP-' + who + '] Message reçu :', frame.body);
+            const data    = JSON.parse(frame.body);
+            const contenu = data.contenu || data.content || JSON.stringify(data);
+            const meta    = data.expediteurEmail || 'Interlocuteur';
+
+            addMsg(who, contenu, 'incoming', meta, null, true);
+            setDebug(who, '[REÇU ⚡] De ' + meta + ': "' + contenu.substring(0, 60) + '"');
+        } catch (e) {
+            console.error('[STOMP-' + who + '] Erreur parsing message:', e, frame.body);
+            addMsg(who, frame.body, 'incoming', 'Interlocuteur', null, true);
+        }
+    }
+
+    // ─── Connect / Disconnect ────────────────────────────────────────────
+    function toggleA() { state.A.connected ? disconnect('A') : connect('A'); }
+    function toggleB() { state.B.connected ? disconnect('B') : connect('B'); }
+
+    function connect(who) {
+        const c = cfg(who);
+        if (!c.token || !c.email) {
+            alert('[Utilisateur ' + who + '] Renseigne le token JWT et l\'email dans la sidebar.');
+            return;
+        }
+
+        setStatus(who, 'connecting', 'Connexion en cours…');
+        document.getElementById('btn' + who).disabled = true;
+        refreshHeader(who);
+
+        const client = new StompJs.Client({
+            webSocketFactory : () => new SockJS(apiUrl() + '/ws'),
+            connectHeaders   : { Authorization: 'Bearer ' + c.token },
+
+            onConnect: async () => {
+                state[who].connected = true;
+                state[who].client    = client;
+
+                setStatus(who, 'connected', 'Connecté — ' + c.email);
+                document.getElementById('btn'     + who).textContent = 'Se déconnecter';
+                document.getElementById('btn'     + who).disabled    = false;
+                document.getElementById('send'    + who).disabled    = false;
+                document.getElementById('input'   + who).disabled    = false;
+                document.getElementById('overlay' + who).classList.add('hidden');
+                document.getElementById('input'   + who).focus();
+                refreshHeader(who);
+
+                addMsg(who, 'Connexion STOMP établie ✓', 'system');
+
+                // ─── Abonnement à la queue privée ───────────────────────
+                // Spring pousse à /user/{email}/queue/messages via convertAndSendToUser
+                // On s'abonne aux deux chemins pour garantir la réception
+
+                // Chemin 1 — avec email explicite (match direct du simple broker)
+                client.subscribe('/user/' + c.email + '/queue/messages', frame => {
+                    handleIncoming(who, frame);
+                });
+
+                // Chemin 2 — chemin court résolu par Spring via le principal (sécurité)
+                client.subscribe('/user/queue/messages', frame => {
+                    handleIncoming(who, frame);
+                });
+
+                setDebug(who, '[STOMP-' + who + '] Abonné à /user/' + c.email + '/queue/messages');
+
+                console.log('[STOMP-' + who + '] Connexion OK. Principal: ' + c.email);
+                console.log('[STOMP-' + who + '] Subscribed to /user/' + c.email + '/queue/messages');
+
+                // ─── Chargement historique ───────────────────────────────
+                await loadHistory(who);
+            },
+
+            onStompError: frame => {
+                setStatus(who, 'disconnected', 'Erreur STOMP');
+                document.getElementById('btn' + who).disabled   = false;
+                document.getElementById('btn' + who).textContent = 'Se connecter';
+                addMsg(who, 'Erreur STOMP : ' + (frame.headers['message'] || 'inconnue'), 'system');
+                console.error('[STOMP-' + who + ']', frame);
+                state[who].connected = false;
+                refreshHeader(who);
+            },
+
+            onDisconnect: () => {
+                state[who].connected = false;
+                setStatus(who, 'disconnected', 'Déconnecté');
+                document.getElementById('btn'     + who).textContent = 'Se connecter';
+                document.getElementById('btn'     + who).disabled    = false;
+                document.getElementById('send'    + who).disabled    = true;
+                document.getElementById('input'   + who).disabled    = true;
+                document.getElementById('overlay' + who).classList.remove('hidden');
+                addMsg(who, 'Connexion fermée', 'system');
+                refreshHeader(who);
+            },
+
+            onWebSocketError : e => { console.error('[WS-'+who+']', e); setStatus(who,'disconnected','Erreur WebSocket'); },
+            onWebSocketClose : e => console.warn('[WS-'+who+'] CLOSED', e.code),
+            debug            : str => setDebug(who, str)
+        });
+
+        client.activate();
+        state[who].client = client;
+    }
+
+    function disconnect(who) {
+        if (state[who].client) state[who].client.deactivate();
+    }
+
+    // ─── Envoi ───────────────────────────────────────────────────────────
+    function doSend(who) {
+        const input   = document.getElementById('input' + who);
+        const c       = cfg(who);
+        const contenu = input.value.trim();
+        const bid     = bienId();
+
+        if (!contenu) return;
+        if (!c.dest)  { alert('[' + who + '] Renseigne l\'email du destinataire dans la sidebar.'); return; }
+        if (!bid)     { alert('Renseigne l\'ID du bien dans la barre du haut.'); return; }
+        if (!state[who].connected) { alert('Non connecté !'); return; }
+
+        state[who].client.publish({
+            destination : '/app/chat.send',
+            body        : JSON.stringify({ contenu, emailDestinataire: c.dest, bienId: bid })
+        });
+
+        addMsg(who, contenu, 'outgoing', 'Moi');
+        setDebug(who, '[ENVOYÉ] À ' + c.dest + ': "' + contenu.substring(0, 60) + '"');
+
+        // Cacher l'indicateur typing de l'autre côté
+        const other = who === 'A' ? 'B' : 'A';
+        document.getElementById('typing' + other).classList.remove('visible');
+        clearTimeout(state[who].typingTimer);
+
+        input.value = ''; input.style.height = 'auto';
+    }
+
+    // ─── Clavier ─────────────────────────────────────────────────────────
+    function keyA(e) { onTyping('A'); if (e.key==='Enter'&&!e.shiftKey){e.preventDefault();doSend('A');} }
+    function keyB(e) { onTyping('B'); if (e.key==='Enter'&&!e.shiftKey){e.preventDefault();doSend('B');} }
+</script>
+</body>
+</html>
