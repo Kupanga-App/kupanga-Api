@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface MessageRepository extends JpaRepository<Message, Long> {
 
@@ -33,4 +35,18 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
               AND m.lu = false
             """)
     Long countMessagesNonLus(@Param("email") String email);
+
+    @Query("""
+    SELECT m FROM Message m
+    WHERE m.conversation.bien.id = :bienId
+      AND (
+        (m.expediteur.mail = :emailA AND m.destinataire.mail = :emailB)
+        OR
+        (m.expediteur.mail = :emailB AND m.destinataire.mail = :emailA)
+      )
+    ORDER BY m.createdAt ASC
+    """)
+    List<Message> findHistorique(@Param("bienId") Long bienId,
+                                 @Param("emailA") String emailA,
+                                 @Param("emailB") String emailB);
 }

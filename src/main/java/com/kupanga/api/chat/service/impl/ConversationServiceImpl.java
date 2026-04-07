@@ -16,7 +16,7 @@ public class ConversationServiceImpl implements ConversationService {
     private final ConversationRepository conversationRepository;
 
     @Override
-    public Conversation createConversation(Long bienId , String email) {
+    public Conversation createConversation(Long bienId , String emailA , String emailB) {
 
         Bien bien = bienService.findById(bienId);
 
@@ -24,15 +24,16 @@ public class ConversationServiceImpl implements ConversationService {
 
                 Conversation.builder()
                         .bien(bien)
-                        .emailExpediteur(email)
+                        .emailExpediteur(emailA)
+                        .emailDestinataire(emailB)
                         .build()
         );
     }
 
     @Override
-    public Conversation findConversationWithBienIdAndEmailExpediteur(Long bienId, String email) {
+    public Conversation findConversationWithBienIdAndEmailExpediteur(Long bienId, String emailA , String emailB) {
 
-        return conversationRepository.findConversationWithBienIdAndEmailExpediteur(bienId , email)
+        return conversationRepository.findConversationWithBienIdAndEmailExpediteur(bienId , emailA , emailB)
                 .orElse(null) ;
     }
 }

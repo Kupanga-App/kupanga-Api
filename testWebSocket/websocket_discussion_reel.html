@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kupanga — Messagerie</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7/bundles/stomp.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <style>
+        :root {
+            --bg:         #0d0f14;
+            --surface:    #151820;
+            --surface2:   #1c2030;
+            --border:     #252a3a;
+            --accent:     #4f6ef7;
+            --accent2:    #7c3aed;
+            --success:    #22c55e;
+            --danger:     #ef4444;
+            --warning:    #f59e0b;
+            --text:       #e8eaf0;
+            --text-muted: #6b7280;
+            --bubble-out: #4f6ef7;
+            --bubble-in:  #1c2030;
+            --radius:     14px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            height: 100vh;
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            overflow: hidden;
+        }
+
+        /* ══ SIDEBAR ═════════════════════════════════════════════ */
+        .sidebar {
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .sidebar-header {
+            padding: 28px 24px 20px;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .logo {
+            font-family: 'Syne', sans-serif;
+            font-size: 22px;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 4px;
+        }
+
+        .logo-sub {
+            font-size: 10px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .config-scroll {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 24px;
+        }
+        .config-scroll::-webkit-scrollbar { width: 3px; }
+        .config-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+        .section-title {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            margin-top: 20px;
+        }
+        .section-title:first-child { margin-top: 0; }
+
+        .field { margin-bottom: 14px; }
+
+        .field label {
+            display: block;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+
+        .field input,
+        .field textarea {
+            width: 100%;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13px;
+            padding: 9px 12px;
+            outline: none;
+            transition: border-color .2s;
+            resize: none;
+        }
+        .field input:focus,
+        .field textarea:focus { border-color: var(--accent); }
+        .field textarea { min-height: 68px; }
+
+        .field .hint {
+            font-size: 10px;
+            color: var(--text-muted);
+            margin-top: 4px;
+            opacity: .7;
+        }
+
+        .btn-connect {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity .2s, transform .15s;
+            margin-top: 6px;
+        }
+        .btn-connect:hover   { opacity: .88; transform: translateY(-1px); }
+        .btn-connect:active  { transform: translateY(0); }
+        .btn-connect:disabled { opacity: .38; cursor: not-allowed; transform: none; }
+
+        .status-bar {
+            padding: 16px 24px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        .status-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: var(--text-muted);
+            transition: background .3s;
+            flex-shrink: 0;
+        }
+        .status-dot.connected    { background: var(--success); box-shadow: 0 0 6px var(--success); }
+        .status-dot.disconnected { background: var(--danger); }
+        .status-dot.connecting   { background: var(--warning); animation: pulse 1s infinite; }
+
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+        #statusText { color: var(--text-muted); font-size: 12px; }
+
+        /* ══ CHAT ════════════════════════════════════════════════ */
+        .chat-area {
+            display: flex;
+            flex-direction: column;
+            background: var(--bg);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            padding: 18px 28px;
+            border-bottom: 1px solid var(--border);
+            background: var(--surface);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+
+        .chat-header-left { display: flex; align-items: center; gap: 12px; }
+
+        .avatar {
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 15px; color: #fff;
+            flex-shrink: 0;
+        }
+
+        .chat-contact-name {
+            font-weight: 600;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .chat-contact-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+        .online-dot {
+            width: 7px; height: 7px;
+            border-radius: 50%;
+            background: var(--success);
+            box-shadow: 0 0 5px var(--success);
+            display: none;
+        }
+        .online-dot.visible { display: inline-block; }
+
+        .bien-pill {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 5px 12px;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+        .bien-pill span { color: var(--accent); font-weight: 600; }
+
+        /* Bandeau historique */
+        .history-banner {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 28px;
+            background: rgba(79,110,247,.08);
+            border-bottom: 1px solid rgba(79,110,247,.15);
+            font-size: 12px;
+            color: var(--accent);
+            flex-shrink: 0;
+        }
+        .history-banner.visible { display: flex; }
+
+        .spinner {
+            width: 14px; height: 14px;
+            border: 2px solid rgba(79,110,247,.25);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin .8s linear infinite;
+            flex-shrink: 0;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Messages */
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 22px 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .messages::-webkit-scrollbar { width: 4px; }
+        .messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+        .empty-state {
+            flex: 1;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            gap: 12px; color: var(--text-muted);
+        }
+        .empty-icon { font-size: 42px; opacity: .25; }
+        .empty-state p { font-size: 13px; text-align: center; line-height: 1.7; max-width: 240px; }
+
+        .date-chip {
+            display: flex; align-items: center; gap: 10px;
+            color: var(--text-muted); font-size: 11px;
+            text-transform: uppercase; letter-spacing: .06em;
+        }
+        .date-chip::before,.date-chip::after {
+            content: ''; flex: 1; height: 1px; background: var(--border);
+        }
+
+        .msg-row {
+            display: flex; flex-direction: column;
+            animation: slideIn .22s ease;
+        }
+        @keyframes slideIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+        .msg-row.outgoing { align-items: flex-end; }
+        .msg-row.incoming { align-items: flex-start; }
+
+        /* Incoming highlight pour les nouveaux messages */
+        .msg-row.incoming.new .msg-bubble {
+            border-color: rgba(79,110,247,.4);
+            box-shadow: 0 0 14px rgba(79,110,247,.12);
+        }
+
+        .msg-sender {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+            padding: 0 4px;
+            font-weight: 500;
+        }
+
+        .msg-bubble {
+            max-width: 70%;
+            padding: 11px 16px;
+            border-radius: var(--radius);
+            font-size: 14px;
+            line-height: 1.55;
+            word-break: break-word;
+            transition: border-color .3s, box-shadow .3s;
+        }
+
+        .msg-row.outgoing .msg-bubble {
+            background: var(--bubble-out);
+            color: #fff;
+            border-bottom-right-radius: 4px;
+        }
+
+        .msg-row.incoming .msg-bubble {
+            background: var(--bubble-in);
+            border: 1px solid var(--border);
+            color: var(--text);
+            border-bottom-left-radius: 4px;
+        }
+
+        .msg-row.system .msg-bubble {
+            background: transparent;
+            border: 1px dashed var(--border);
+            color: var(--text-muted);
+            font-size: 11px;
+            font-style: italic;
+            max-width: 100%;
+            text-align: center;
+            align-self: center;
+        }
+
+        .msg-time {
+            font-size: 10px;
+            color: var(--text-muted);
+            margin-top: 4px;
+            padding: 0 4px;
+        }
+
+        /* Typing indicator */
+        .typing-row {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            padding: 0 28px 10px;
+            flex-shrink: 0;
+        }
+        .typing-row.visible { display: flex; }
+
+        .typing-avatar {
+            width: 28px; height: 28px;
+            border-radius: 50%;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 11px; font-weight: 700;
+            color: var(--text-muted);
+            flex-shrink: 0;
+        }
+
+        .typing-bubble {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            border-bottom-left-radius: 4px;
+            padding: 10px 14px;
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+
+        .typing-dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: var(--text-muted);
+            animation: typeBounce 1.2s infinite;
+        }
+        .typing-dot:nth-child(2) { animation-delay: .2s; }
+        .typing-dot:nth-child(3) { animation-delay: .4s; }
+        @keyframes typeBounce {
+            0%,80%,100% { transform: scale(.7); opacity: .5; }
+            40%          { transform: scale(1.1); opacity: 1; }
+        }
+
+        /* Unread badge */
+        .unread-badge {
+            display: none;
+            background: var(--danger);
+            color: #fff;
+            font-size: 10px;
+            font-weight: 700;
+            border-radius: 10px;
+            padding: 2px 7px;
+            min-width: 18px;
+            text-align: center;
+        }
+        .unread-badge.visible { display: inline-block; }
+
+        /* Input area */
+        .input-area {
+            padding: 14px 28px 20px;
+            border-top: 1px solid var(--border);
+            background: var(--surface);
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+            flex-shrink: 0;
+        }
+
+        .input-wrap {
+            flex: 1;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 10px 14px;
+            transition: border-color .2s;
+        }
+        .input-wrap:focus-within { border-color: var(--accent); }
+
+        #msgInput {
+            width: 100%;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            resize: none;
+            max-height: 120px;
+            line-height: 1.5;
+        }
+        #msgInput::placeholder { color: var(--text-muted); }
+
+        .btn-send {
+            width: 44px; height: 44px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            border: none;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: opacity .2s, transform .15s;
+            flex-shrink: 0;
+        }
+        .btn-send:hover   { opacity: .85; transform: translateY(-1px); }
+        .btn-send:active  { transform: translateY(0); }
+        .btn-send:disabled { opacity: .28; cursor: not-allowed; transform: none; }
+        .btn-send svg { width: 18px; height: 18px; fill: #fff; }
+
+        /* Debug bar */
+        .debug-bar {
+            background: #080a0f;
+            border-top: 1px solid var(--border);
+            padding: 5px 28px;
+            font-size: 10px;
+            font-family: 'Courier New', monospace;
+            color: #4f6ef7;
+            max-height: 26px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            opacity: .55;
+            flex-shrink: 0;
+        }
+
+        /* Overlay non connecté */
+        .overlay {
+            position: absolute; inset: 0;
+            background: rgba(13,15,20,.88);
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            gap: 16px;
+            backdrop-filter: blur(6px);
+            z-index: 10;
+            transition: opacity .3s;
+        }
+        .overlay.hidden { opacity: 0; pointer-events: none; }
+        .overlay-icon   { font-size: 52px; }
+        .overlay p {
+            color: var(--text-muted);
+            font-size: 14px;
+            text-align: center;
+            max-width: 280px;
+            line-height: 1.7;
+        }
+        .overlay strong { color: var(--text); }
+
+        /* Notification toast */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: var(--surface);
+            border: 1px solid var(--accent);
+            border-radius: 12px;
+            padding: 12px 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            box-shadow: 0 8px 32px rgba(0,0,0,.4);
+            transform: translateY(80px);
+            opacity: 0;
+            transition: transform .3s ease, opacity .3s ease;
+            z-index: 100;
+            max-width: 320px;
+        }
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        .toast-icon { font-size: 18px; flex-shrink: 0; }
+        .toast-text { color: var(--text); line-height: 1.4; }
+        .toast-from { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+    </style>
+</head>
+<body>
+
+<!-- ══ SIDEBAR ════════════════════════════════════════════════════════ -->
+<aside class="sidebar">
+    <div class="sidebar-header">
+        <div class="logo">Kupanga</div>
+        <div class="logo-sub">Messagerie temps réel</div>
+    </div>
+
+    <div class="config-scroll">
+
+        <div class="section-title">🔑 Mon compte</div>
+
+        <div class="field">
+            <label>URL du backend</label>
+            <input type="text" id="cfgApiUrl" value="http://localhost:8089" placeholder="http://localhost:8089">
+        </div>
+
+        <div class="field">
+            <label>Mon JWT Token</label>
+            <textarea id="cfgToken" placeholder="eyJhbGciOi… (POST /api/auth/login)"></textarea>
+            <div class="hint">Token frais requis — expire rapidement</div>
+        </div>
+
+        <div class="field">
+            <label>Mon email (celui du token)</label>
+            <input type="email" id="cfgMonEmail" placeholder="moi@example.com">
+        </div>
+
+        <div class="section-title">💬 Conversation</div>
+
+        <div class="field">
+            <label>Email de mon interlocuteur</label>
+            <input type="email" id="cfgEmailDest" placeholder="interlocuteur@example.com">
+            <div class="hint">Doit exister en base de données</div>
+        </div>
+
+        <div class="field">
+            <label>ID du Bien</label>
+            <input type="number" id="cfgBienId" value="1" min="1">
+            <div class="hint">Doit être le même des deux côtés</div>
+        </div>
+
+        <button class="btn-connect" id="btnConnect" onclick="toggleConnect()">
+            Se connecter
+        </button>
+
+    </div>
+
+    <div class="status-bar">
+        <div class="status-dot" id="statusDot"></div>
+        <span id="statusText">Non connecté</span>
+    </div>
+</aside>
+
+<!-- ══ CHAT AREA ═══════════════════════════════════════════════════════ -->
+<main class="chat-area">
+
+    <!-- Overlay -->
+    <div class="overlay" id="overlay">
+        <div class="overlay-icon">💬</div>
+        <p>Configure ton compte dans la sidebar et clique sur <strong>Se connecter</strong> pour démarrer la messagerie.</p>
+    </div>
+
+    <!-- Header -->
+    <div class="chat-header">
+        <div class="chat-header-left">
+            <div class="avatar" id="contactAvatar">?</div>
+            <div>
+                <div class="chat-contact-name" id="contactName">
+                    —
+                    <span class="online-dot" id="onlineDot"></span>
+                    <span class="unread-badge" id="unreadBadge">0</span>
+                </div>
+                <div class="chat-contact-sub" id="contactSub">En attente de connexion</div>
+            </div>
+        </div>
+        <div class="bien-pill">Bien <span id="bienDisplay">#—</span></div>
+    </div>
+
+    <!-- Bandeau chargement historique -->
+    <div class="history-banner" id="historyBanner">
+        <div class="spinner"></div>
+        Chargement de l'historique de conversation…
+    </div>
+
+    <!-- Zone messages -->
+    <div class="messages" id="messages">
+        <div class="empty-state" id="emptyState">
+            <div class="empty-icon">🗨️</div>
+            <p>Aucun message pour l'instant.<br>Connecte-toi et envoie le premier message !</p>
+        </div>
+    </div>
+
+    <!-- Typing indicator -->
+    <div class="typing-row" id="typingRow">
+        <div class="typing-avatar" id="typingAvatar">?</div>
+        <div class="typing-bubble">
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+        </div>
+    </div>
+
+    <!-- Input -->
+    <div class="input-area">
+        <div class="input-wrap">
+            <textarea id="msgInput" rows="1"
+                      placeholder="Écris un message… (Entrée pour envoyer, Shift+Entrée pour nouvelle ligne)"
+                      onkeydown="handleKey(event)"
+                      oninput="autoResize(this)"
+                      disabled></textarea>
+        </div>
+        <button class="btn-send" id="btnSend" onclick="sendMessage()" disabled title="Envoyer">
+            <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
+        </button>
+    </div>
+
+    <!-- Debug -->
+    <div class="debug-bar" id="debugBar">[STOMP] En attente de connexion…</div>
+
+</main>
+
+<!-- Toast notification -->
+<div class="toast" id="toast">
+    <div class="toast-icon">💬</div>
+    <div>
+        <div class="toast-text" id="toastText"></div>
+        <div class="toast-from" id="toastFrom"></div>
+    </div>
+</div>
+
+<!-- ══ JAVASCRIPT ══════════════════════════════════════════════════════ -->
+<script>
+    // ─── État ────────────────────────────────────────────────────────────
+    let stompClient = null;
+    let isConnected = false;
+    let unreadCount = 0;
+    let toastTimer  = null;
+
+    // ─── Helpers ─────────────────────────────────────────────────────────
+    function apiUrl()    { return document.getElementById('cfgApiUrl').value.trim()    || 'http://localhost:8089'; }
+    function monEmail()  { return document.getElementById('cfgMonEmail').value.trim(); }
+    function emailDest() { return document.getElementById('cfgEmailDest').value.trim(); }
+    function bienId()    { return parseInt(document.getElementById('cfgBienId').value) || 1; }
+    function token()     { return document.getElementById('cfgToken').value.trim(); }
+
+    function setStatus(cls, text) {
+        document.getElementById('statusDot').className  = 'status-dot ' + cls;
+        document.getElementById('statusText').textContent = text;
+    }
+
+    function setDebug(str) {
+        document.getElementById('debugBar').textContent = str;
+    }
+
+    function updateHeader() {
+        const dest = emailDest() || '—';
+        const bien = bienId();
+        document.getElementById('contactAvatar').textContent = dest[0]?.toUpperCase() || '?';
+        document.getElementById('contactName').childNodes[0].nodeValue = dest + ' ';
+        document.getElementById('contactSub').textContent  = isConnected ? '● En ligne' : 'Hors ligne';
+        document.getElementById('bienDisplay').textContent  = '#' + bien;
+        document.getElementById('onlineDot').classList.toggle('visible', isConnected);
+        document.getElementById('typingAvatar').textContent = dest[0]?.toUpperCase() || '?';
+    }
+
+    function now() {
+        return new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function fmtTime(iso) {
+        if (!iso) return now();
+        try { return new Date(iso).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }); }
+        catch { return now(); }
+    }
+
+    function autoResize(el) {
+        el.style.height = 'auto';
+        el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+    }
+
+    function handleKey(e) {
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+    }
+
+    // ─── Toast notification ─────────────────────────────────────────────
+    function showToast(contenu, from) {
+        if (document.hasFocus()) return; // n'affiche que si fenêtre inactive
+        const toast = document.getElementById('toast');
+        document.getElementById('toastText').textContent = contenu.substring(0, 60) + (contenu.length > 60 ? '…' : '');
+        document.getElementById('toastFrom').textContent = 'De : ' + from;
+        toast.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toast.classList.remove('show'), 4000);
+    }
+
+    // ─── Badge non lus ──────────────────────────────────────────────────
+    function addUnread() {
+        unreadCount++;
+        const badge = document.getElementById('unreadBadge');
+        badge.textContent = unreadCount;
+        badge.classList.add('visible');
+        document.title = `(${unreadCount}) Kupanga — Messagerie`;
+    }
+
+    function clearUnread() {
+        unreadCount = 0;
+        document.getElementById('unreadBadge').classList.remove('visible');
+        document.title = 'Kupanga — Messagerie';
+    }
+
+    window.addEventListener('focus', clearUnread);
+
+    // ─── Affichage des messages ─────────────────────────────────────────
+    function addMessage(contenu, direction, meta = '', timeStr = null, isNew = false) {
+        const empty = document.getElementById('emptyState');
+        if (empty) empty.remove();
+
+        const box = document.getElementById('messages');
+        const t   = timeStr || now();
+
+        const row = document.createElement('div');
+        row.className = 'msg-row ' + direction + (isNew && direction === 'incoming' ? ' new' : '');
+
+        if (direction !== 'system' && meta) {
+            const s = document.createElement('div');
+            s.className   = 'msg-sender';
+            s.textContent = meta;
+            row.appendChild(s);
+        }
+
+        const bubble = document.createElement('div');
+        bubble.className   = 'msg-bubble';
+        bubble.textContent = contenu;
+        row.appendChild(bubble);
+
+        if (direction !== 'system') {
+            const tEl = document.createElement('div');
+            tEl.className   = 'msg-time';
+            tEl.textContent = t;
+            row.appendChild(tEl);
+        }
+
+        box.appendChild(row);
+        box.scrollTop = box.scrollHeight;
+
+        if (isNew && direction === 'incoming') {
+            setTimeout(() => row.classList.remove('new'), 3000);
+        }
+    }
+
+    function addSeparator(label) {
+        const box = document.getElementById('messages');
+        const sep = document.createElement('div');
+        sep.className   = 'date-chip';
+        sep.textContent = label;
+        box.appendChild(sep);
+    }
+
+    // ─── Historique ─────────────────────────────────────────────────────
+    async function chargerHistorique() {
+        if (!emailDest()) return;
+
+        document.getElementById('historyBanner').classList.add('visible');
+
+        try {
+            const url  = `${apiUrl()}/historique?bienId=${bienId()}&emailInterlocuteur=${encodeURIComponent(emailDest())}`;
+            const resp = await fetch(url, { headers: { Authorization: 'Bearer ' + token() } });
+
+            if (!resp.ok) throw new Error('HTTP ' + resp.status);
+
+            const msgs = await resp.json();
+
+            if (msgs.length === 0) {
+                addMessage('Aucun message — soyez les premiers à écrire !', 'system');
+            } else {
+                msgs.forEach(m => {
+                    const dir  = m.expediteurEmail === monEmail() ? 'outgoing' : 'incoming';
+                    const meta = dir === 'outgoing' ? 'Moi' : (m.expediteurEmail || 'Interlocuteur');
+                    addMessage(m.contenu, dir, meta, fmtTime(m.createdAt), false);
+                });
+                addMessage(`${msgs.length} message(s) récupéré(s)`, 'system');
+            }
+
+            addSeparator('— Temps réel —');
+
+        } catch (err) {
+            console.error('[historique]', err);
+            addMessage('Impossible de charger l\'historique : ' + err.message, 'system');
+            addSeparator('— Temps réel —');
+        } finally {
+            document.getElementById('historyBanner').classList.remove('visible');
+        }
+    }
+
+    // ─── Connexion STOMP ────────────────────────────────────────────────
+    function toggleConnect() {
+        isConnected ? disconnect() : connect();
+    }
+
+    function connect() {
+        if (!token() || !monEmail()) {
+            alert('Renseigne ton token JWT et ton email avant de te connecter.');
+            return;
+        }
+
+        setStatus('connecting', 'Connexion en cours…');
+        document.getElementById('btnConnect').disabled = true;
+
+        stompClient = new StompJs.Client({
+            webSocketFactory : () => new SockJS(apiUrl() + '/ws'),
+            connectHeaders   : { Authorization: 'Bearer ' + token() },
+
+            onConnect: async () => {
+                isConnected = true;
+
+                setStatus('connected', 'Connecté — ' + monEmail());
+                document.getElementById('btnConnect').textContent = 'Se déconnecter';
+                document.getElementById('btnConnect').disabled    = false;
+                document.getElementById('btnSend').disabled       = false;
+                document.getElementById('msgInput').disabled      = false;
+                document.getElementById('overlay').classList.add('hidden');
+                document.getElementById('msgInput').focus();
+                updateHeader();
+
+                addMessage('Connexion STOMP établie ✓', 'system');
+
+                // ─── Abonnement queue privée ───────────────────────────
+                // Chemin 1 : email explicite (match direct simple broker)
+                stompClient.subscribe('/user/' + monEmail() + '/queue/messages', handleFrame);
+
+                // Chemin 2 : chemin court résolu par Spring via le principal
+                stompClient.subscribe('/user/queue/messages', handleFrame);
+
+                setDebug('[STOMP] Abonné à /user/' + monEmail() + '/queue/messages');
+                console.log('[STOMP] Connecté — abonné à /user/' + monEmail() + '/queue/messages');
+
+                // ─── Chargement historique ─────────────────────────────
+                await chargerHistorique();
+            },
+
+            onStompError: frame => {
+                setStatus('disconnected', 'Erreur STOMP');
+                document.getElementById('btnConnect').disabled    = false;
+                document.getElementById('btnConnect').textContent = 'Se connecter';
+                addMessage('Erreur STOMP : ' + (frame.headers['message'] || 'inconnue'), 'system');
+                console.error('[STOMP ERROR]', frame);
+                isConnected = false;
+                updateHeader();
+            },
+
+            onDisconnect: () => {
+                isConnected = false;
+                setStatus('disconnected', 'Déconnecté');
+                document.getElementById('btnConnect').textContent = 'Se connecter';
+                document.getElementById('btnConnect').disabled    = false;
+                document.getElementById('btnSend').disabled       = true;
+                document.getElementById('msgInput').disabled      = true;
+                document.getElementById('overlay').classList.remove('hidden');
+                addMessage('Connexion fermée', 'system');
+                updateHeader();
+            },
+
+            onWebSocketError : e => { console.error('[WS ERROR]', e); setStatus('disconnected', 'Erreur WebSocket'); },
+            onWebSocketClose : e => console.warn('[WS CLOSED]', e.code, e.reason),
+            debug            : str => setDebug(str)
+        });
+
+        stompClient.activate();
+    }
+
+    function disconnect() {
+        if (stompClient) stompClient.deactivate();
+    }
+
+    // ─── Handler message entrant ────────────────────────────────────────
+    function handleFrame(frame) {
+        try {
+            console.log('[STOMP] Message reçu :', frame.body);
+            const data    = JSON.parse(frame.body);
+            const contenu = data.contenu || data.content || JSON.stringify(data);
+            const from    = data.expediteurEmail || 'Interlocuteur';
+
+            addMessage(contenu, 'incoming', from, null, true);
+            setDebug('[REÇU ⚡] De ' + from + ' : "' + contenu.substring(0, 55) + '"');
+
+            addUnread();
+            showToast(contenu, from);
+
+        } catch (e) {
+            console.error('[STOMP] Parse error:', e, frame.body);
+            addMessage(frame.body, 'incoming', 'Interlocuteur', null, true);
+        }
+    }
+
+    // ─── Envoi message ──────────────────────────────────────────────────
+    function sendMessage() {
+        const input   = document.getElementById('msgInput');
+        const contenu = input.value.trim();
+
+        if (!contenu)       return;
+        if (!emailDest())   { alert('Renseigne l\'email de ton interlocuteur dans la sidebar.'); return; }
+        if (!isConnected)   { alert('Non connecté !'); return; }
+
+        stompClient.publish({
+            destination : '/app/chat.send',
+            body        : JSON.stringify({
+                contenu,
+                emailDestinataire : emailDest(),
+                bienId            : bienId()
+            })
+        });
+
+        addMessage(contenu, 'outgoing', 'Moi');
+        setDebug('[ENVOYÉ] → ' + emailDest() + ' : "' + contenu.substring(0, 55) + '"');
+        clearUnread();
+
+        input.value        = '';
+        input.style.height = 'auto';
+    }
+</script>
+</body>
+</html>

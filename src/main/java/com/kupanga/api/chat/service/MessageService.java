@@ -17,4 +17,13 @@ public interface MessageService {
      */
     void envoyerMessage(MessagePayload payload, String emailExpediteur);
 
+    /**
+     *
+     * @param bienId
+     * @param emailConnecte
+     * @param emailInterlocuteur
+     * @return
+     */
+    List<MessageDTO> getHistorique(Long bienId, String emailConnecte, String emailInterlocuteur);
+
 }

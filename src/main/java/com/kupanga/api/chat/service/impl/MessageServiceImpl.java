@@ -50,10 +50,10 @@ public class MessageServiceImpl implements MessageService {
                     "Impossible d'envoyer un message à soi-même", HttpStatus.BAD_REQUEST);
         }
 
-        Conversation conversation = conversationService.findConversationWithBienIdAndEmailExpediteur(payload.bienId(), emailExpediteur );
+        Conversation conversation = conversationService.findConversationWithBienIdAndEmailExpediteur(payload.bienId(), emailExpediteur , payload.emailDestinataire() );
         if( conversation == null){
 
-            conversation = conversationService.createConversation(payload.bienId(),  emailExpediteur);
+            conversation = conversationService.createConversation(payload.bienId(),  emailExpediteur , payload.emailDestinataire());
 
         }
 
@@ -70,14 +70,34 @@ public class MessageServiceImpl implements MessageService {
 
         // ─── Push WebSocket au destinataire ───────────────────────────────────
         // Envoie dans la queue privée du destinataire : /user/{email}/queue/messages
-        messagingTemplate.convertAndSendToUser(
-                destinataire.getMail(),
-                "/queue/messages",
-                dto
-        );
+        try {
+            log.info("[WS-PUSH] → Envoi vers /user/{}/queue/messages  |  msgId={} | de={} | contenu=\"{}\"",
+                    destinataire.getMail(), saved.getId(), emailExpediteur,
+                    payload.contenu().substring(0, Math.min(50, payload.contenu().length())));
+
+            messagingTemplate.convertAndSendToUser(
+                    destinataire.getMail(),
+                    "/queue/messages",
+                    dto
+            );
+
+            log.info("[WS-PUSH] ✓ Message poussé avec succès vers {}", destinataire.getMail());
+
+        } catch (Exception e) {
+            log.error("[WS-PUSH] ✗ Échec du push WebSocket vers {} : {}", destinataire.getMail(), e.getMessage(), e);
+        }
 
         log.info("Message {} envoyé de {} à {}",
                 saved.getId(), emailExpediteur, payload.emailDestinataire());
 
+    }
+
+    @Override
+    public List<MessageDTO> getHistorique(Long bienId, String emailConnecte, String emailInterlocuteur) {
+        return messageRepository
+                .findHistorique(bienId, emailConnecte, emailInterlocuteur)
+                .stream()
+                .map(messageMapper::toDTO)
+                .toList();
     }
 }

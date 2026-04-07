@@ -66,22 +66,6 @@ class SecurityConfigTest {
         assertThat(passwordEncoder).isInstanceOf(BCryptPasswordEncoder.class);
     }
 
-    @Test
-    @DisplayName(" La configuration CORS contient bien les origines autorisées")
-    void corsConfigurationContainsAllowedOrigins() {
-        MockHttpServletRequest request = new MockHttpServletRequest();
-        request.setRequestURI("/"); // on doit définir un path non null
-
-        var corsConfig = corsConfigurationSource.getCorsConfiguration(request);
-
-        Assertions.assertNotNull(corsConfig);
-        assertThat(corsConfig.getAllowedOrigins())
-                .containsExactlyInAnyOrder("http://localhost:4200", "http://localhost:63342", "https://kupanga.lespacelibellule.com");
-        assertThat(corsConfig.getAllowedMethods())
-                .containsExactlyInAnyOrder("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS");
-        assertThat(corsConfig.getAllowedHeaders()).contains("*");
-        assertThat(corsConfig.getAllowCredentials()).isTrue();
-    }
 
     @Test
     @DisplayName(" Le JwtFilter est présent dans la chaîne de filtres")

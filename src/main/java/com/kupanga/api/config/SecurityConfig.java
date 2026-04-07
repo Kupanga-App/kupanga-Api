@@ -116,11 +116,9 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
 
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of(
-                "http://localhost:4200",
-                "http://localhost:63342",  // ← IntelliJ built-in server  pour tester les websocket via une page Html
-                "https://kupanga.lespacelibellule.com"
-        ));
+        // Accepte toutes les origines pour les tests locaux (fichiers HTML, IntelliJ, etc.)
+        // TODO : restreindre en production
+        config.setAllowedOriginPatterns(List.of("*"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
