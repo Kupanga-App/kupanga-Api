@@ -1,11 +1,11 @@
 $kind: http-request
-description: "Complete user profile with personal information. Role can be:
-  ROLE_PROPRIETAIRE, ROLE_LOCATAIRE, or ROLE_ADMIN."
+name: Register User
+description: "Complete user profile with personal information. Role can be: ROLE_PROPRIETAIRE, ROLE_LOCATAIRE, or ROLE_ADMIN."
 url: "{{baseUrl}}/auth/register"
 method: POST
 headers:
-  - key: Content-Type
-    value: application/json
+  - key: ""
+    value: ""
   - key: ""
     value: ""
     disabled: true
@@ -14,13 +14,12 @@ body:
   content:
     - type: text
       key: userFormDTO
-      value: '{ "firstName": "John", "lastName": "Doe", "mail": "kbg.al.pr@gmail.com",
-        "password": "Password123", "role": "ROLE_LOCATAIRE", "urlAvatar": null
-        }'
-      contentType: application/json
+      value: '{ "firstName": "James", "lastName": "Doe", "mail": "noreplydevback@gmail.com", "password": "Password123", "role": "ROLE_LOCATAIRE", "urlAvatar": null }'
+      contentType: ""
+      disabled: false
     - type: file
       key: imageProfil
       src:
-        - /C:/Users/Leclerc/Workflow/BackEnd/Java/SpringBoot/Kupanga/Kupanga-Documentations/image/immo/avec
-          beaucoup plus d'espace mon grand.jpg
+        - /C:/Users/Leclerc/Workflow/BackEnd/Java/SpringBoot/Kupanga/Kupanga-Documentations/image/avatars_profil/femme2.jpg
+      disabled: false
 order: 1000

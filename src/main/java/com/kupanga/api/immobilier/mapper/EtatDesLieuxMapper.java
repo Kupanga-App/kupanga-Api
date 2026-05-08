@@ -2,102 +2,84 @@ package com.kupanga.api.immobilier.mapper;
 
 import com.kupanga.api.immobilier.dto.readDTO.EtatDesLieuxDTO;
 import com.kupanga.api.immobilier.entity.*;
-import org.springframework.stereotype.Component;
+import com.kupanga.api.user.entity.User;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
-import java.util.Set;
-import java.util.stream.Collectors;
+@Mapper(componentModel = "spring")
+public interface EtatDesLieuxMapper {
 
-@Component
-public class EtatDesLieuxMapper {
+    // ─────────────────────────────────────────────────────────────
+    // EtatDesLieux → DTO
+    // ─────────────────────────────────────────────────────────────
 
-    public EtatDesLieuxDTO toDTO(EtatDesLieux edl) {
-        EtatDesLieuxDTO dto = new EtatDesLieuxDTO();
+    @Mapping(target = "nomProprietaire", source = "proprietaire")
+    @Mapping(target = "emailProprietaire", source = "proprietaire.mail")
 
-        dto.setId(edl.getId());
-        dto.setType(edl.getType());
-        dto.setStatut(edl.getStatut());
-        dto.setDateRealisation(edl.getDateRealisation());
-        dto.setHeureRealisation(edl.getHeureRealisation());
-        dto.setObservations(edl.getObservations());
-        dto.setUrlPdf(edl.getUrlPdf());
+    @Mapping(target = "nomLocataire", source = "locataire")
+    @Mapping(target = "emailLocataire", source = "locataire.mail")
 
-        // Signatures
-        dto.setSignatureProprietaire(edl.getSignatureProprietaire());
-        dto.setDateSignatureProprietaire(edl.getDateSignatureProprietaire());
-        dto.setSignatureLocataire(edl.getSignatureLocataire());
-        dto.setDateSignatureLocataire(edl.getDateSignatureLocataire());
+    @Mapping(target = "adresseBien", source = "bien")
+    @Mapping(target = "typeBien", expression =
+            "java(edl.getBien() != null && edl.getBien().getTypeBien() != null ? edl.getBien().getTypeBien().name() : null)"
+    )
 
-        // Parties
-        dto.setNomProprietaire(edl.getProprietaire().getFirstName()
-                + " " + edl.getProprietaire().getLastName());
-        dto.setEmailProprietaire(edl.getProprietaire().getMail());
-        dto.setNomLocataire(edl.getLocataire().getFirstName()
-                + " " + edl.getLocataire().getLastName());
-        dto.setEmailLocataire(edl.getLocataire().getMail());
+    EtatDesLieuxDTO toDTO(EtatDesLieux edl);
 
-        // Bien
-        dto.setAdresseBien(edl.getBien().getAdresse() + ", "
-                + edl.getBien().getCodePostal() + " " + edl.getBien().getVille());
-        dto.setTypeBien(edl.getBien().getTypeBien() != null
-                ? edl.getBien().getTypeBien().name() : null);
+    // ─────────────────────────────────────────────────────────────
+    // PieceEdl → PieceEdlDTO
+    // ─────────────────────────────────────────────────────────────
 
-        // Collections
-        dto.setPieces(mapPieces(edl.getPieces()));
-        dto.setCompteurs(mapCompteurs(edl.getCompteurs()));
-        dto.setCles(mapCles(edl.getCles()));
+    EtatDesLieuxDTO.PieceEdlDTO toDTO(PieceEdl piece);
 
-        return dto;
+    // ─────────────────────────────────────────────────────────────
+    // ElementEdl → ElementEdlDTO
+    // ─────────────────────────────────────────────────────────────
+
+    @Mapping(target = "typeElement", expression =
+            "java(element.getTypeElement() != null ? element.getTypeElement().name() : null)"
+    )
+    @Mapping(target = "etatElement", expression =
+            "java(element.getEtatElement() != null ? element.getEtatElement().name() : null)"
+    )
+    EtatDesLieuxDTO.ElementEdlDTO toDTO(ElementEdl element);
+
+    // ─────────────────────────────────────────────────────────────
+    // CompteurReleve → CompteurReleveDTO
+    // ─────────────────────────────────────────────────────────────
+
+    @Mapping(target = "typeCompteur", expression =
+            "java(compteur.getTypeCompteur() != null ? compteur.getTypeCompteur().name() : null)"
+    )
+    EtatDesLieuxDTO.CompteurReleveDTO toDTO(CompteurReleve compteur);
+
+    // ─────────────────────────────────────────────────────────────
+    // CleRemise → CleRemiseDTO
+    // ─────────────────────────────────────────────────────────────
+
+    EtatDesLieuxDTO.CleRemiseDTO toDTO(CleRemise cle);
+
+    // ─────────────────────────────────────────────────────────────
+    // Helpers
+    // ─────────────────────────────────────────────────────────────
+
+    default String map(User user) {
+        if (user == null) {
+            return null;
+        }
+
+        return user.getFirstName() + " " + user.getLastName();
     }
 
-    // ─── Helpers privés ───────────────────────────────────────────────────────
+    default String map(Bien bien) {
+        if (bien == null) {
+            return null;
+        }
 
-    private Set<EtatDesLieuxDTO.PieceEdlDTO> mapPieces(Set<PieceEdl> pieces) {
-        if (pieces == null) return Set.of();
-        return pieces.stream().map(p -> {
-            EtatDesLieuxDTO.PieceEdlDTO dto = new EtatDesLieuxDTO.PieceEdlDTO();
-            dto.setId(p.getId());
-            dto.setNomPiece(p.getNomPiece());
-            dto.setOrdre(p.getOrdre());
-            dto.setObservations(p.getObservations());
-            dto.setElements(mapElements(p.getElements()));
-            return dto;
-        }).collect(Collectors.toSet());
-    }
-
-    private Set<EtatDesLieuxDTO.ElementEdlDTO> mapElements(Set<ElementEdl> elements) {
-        if (elements == null) return Set.of();
-        return elements.stream().map(e -> {
-            EtatDesLieuxDTO.ElementEdlDTO dto = new EtatDesLieuxDTO.ElementEdlDTO();
-            dto.setId(e.getId());
-            dto.setTypeElement(e.getTypeElement().name());
-            dto.setEtatElement(e.getEtatElement().name());
-            dto.setDescription(e.getDescription());
-            dto.setObservation(e.getObservation());
-            return dto;
-        }).collect(Collectors.toSet());
-    }
-
-    private Set<EtatDesLieuxDTO.CompteurReleveDTO> mapCompteurs(Set<CompteurReleve> compteurs) {
-        if (compteurs == null) return Set.of();
-        return compteurs.stream().map(c -> {
-            EtatDesLieuxDTO.CompteurReleveDTO dto = new EtatDesLieuxDTO.CompteurReleveDTO();
-            dto.setId(c.getId());
-            dto.setTypeCompteur(c.getTypeCompteur().name());
-            dto.setNumeroCompteur(c.getNumeroCompteur());
-            dto.setIndex(c.getIndex());
-            dto.setUnite(c.getUnite());
-            return dto;
-        }).collect(Collectors.toSet());
-    }
-
-    private Set<EtatDesLieuxDTO.CleRemiseDTO> mapCles(Set<CleRemise> cles) {
-        if (cles == null) return Set.of();
-        return cles.stream().map(c -> {
-            EtatDesLieuxDTO.CleRemiseDTO dto = new EtatDesLieuxDTO.CleRemiseDTO();
-            dto.setId(c.getId());
-            dto.setTypeCle(c.getTypeCle());
-            dto.setQuantite(c.getQuantite());
-            return dto;
-        }).collect(Collectors.toSet());
+        return bien.getAdresse()
+                + ", "
+                + bien.getCodePostal()
+                + " "
+                + bien.getVille();
     }
 }

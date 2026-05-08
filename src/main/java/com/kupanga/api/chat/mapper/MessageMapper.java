@@ -1,30 +1,26 @@
 package com.kupanga.api.chat.mapper;
 
-
 import com.kupanga.api.chat.dto.MessageDTO;
 import com.kupanga.api.chat.entity.Message;
-import org.springframework.stereotype.Component;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
-@Component
-public class MessageMapper {
+@Mapper(componentModel = "spring")
+public interface MessageMapper {
 
-    public MessageDTO toDTO(Message message) {
-        return MessageDTO.builder()
-                .id(message.getId())
-                .contenu(message.getContenu())
-                .lu(message.getLu())
-                .createdAt(message.getCreatedAt())
-                // Expéditeur
-                .expediteurId(message.getExpediteur().getId())
-                .expediteurNom(message.getExpediteur().getFirstName()
-                        + " " + message.getExpediteur().getLastName())
-                .expediteurEmail(message.getExpediteur().getMail())
-                // Destinataire
-                .destinataireId(message.getDestinataire().getId())
-                .destinataireNom(message.getDestinataire().getFirstName()
-                        + " " + message.getDestinataire().getLastName())
-                .destinataireEmail(message.getDestinataire().getMail())
+    @Mapping(target = "expediteurId", source = "expediteur.id")
+    @Mapping(target = "expediteurEmail", source = "expediteur.mail")
+    @Mapping(
+            target = "expediteurNom",
+            expression = "java(message.getExpediteur().getFirstName() + \" \" + message.getExpediteur().getLastName())"
+    )
 
-                .build();
-    }
+    @Mapping(target = "destinataireId", source = "destinataire.id")
+    @Mapping(target = "destinataireEmail", source = "destinataire.mail")
+    @Mapping(
+            target = "destinataireNom",
+            expression = "java(message.getDestinataire().getFirstName() + \" \" + message.getDestinataire().getLastName())"
+    )
+
+    MessageDTO toDTO(Message message);
 }
