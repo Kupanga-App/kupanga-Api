@@ -2,13 +2,14 @@ package com.kupanga.api.chat.repository;
 
 import com.kupanga.api.chat.entity.Conversation;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
 @Repository
-public interface ConversationRepository extends JpaRepository<Conversation , Long> {
+public interface ConversationRepository extends JpaRepository<Conversation , Long> , JpaSpecificationExecutor<Conversation> {
 
     @Query("""
    

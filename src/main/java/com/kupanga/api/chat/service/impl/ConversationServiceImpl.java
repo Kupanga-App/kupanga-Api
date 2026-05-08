@@ -16,6 +16,11 @@ public class ConversationServiceImpl implements ConversationService {
     private final ConversationRepository conversationRepository;
 
     @Override
+    public void save(Conversation conversation) {
+        conversationRepository.save(conversation);
+    }
+
+    @Override
     public Conversation createConversation(Long bienId , String emailA , String emailB) {
 
         Bien bien = bienService.findById(bienId);
