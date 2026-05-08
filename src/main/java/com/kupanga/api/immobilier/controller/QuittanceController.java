@@ -3,6 +3,9 @@ package com.kupanga.api.immobilier.controller;
 import com.kupanga.api.immobilier.dto.formDTO.QuittanceFormDTO;
 import com.kupanga.api.immobilier.dto.formDTO.SignatureDTO;
 import com.kupanga.api.immobilier.dto.readDTO.QuittanceDTO;
+import com.kupanga.api.immobilier.research.QuittanceSearchService;
+import com.kupanga.api.immobilier.research.dto.QuittancePageDTO;
+import com.kupanga.api.immobilier.research.dto.QuittanceSearchDTO;
 import com.kupanga.api.immobilier.service.QuittanceService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -28,6 +31,7 @@ import java.util.List;
 public class QuittanceController {
 
     private final QuittanceService quittanceService;
+    private final QuittanceSearchService quittanceSearchService;
 
     // =========================================
     // CRÉER UNE QUITTANCE
@@ -275,4 +279,30 @@ public class QuittanceController {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         return ResponseEntity.ok(quittanceService.getQuittanceById(id, auth.getName()));
     }
+
+    // =========================================
+    // RECHERCHE PAGINÉE (utilisateur connecté)
+    // =========================================
+    @Operation(
+            summary = "Rechercher ses quittances",
+            description = """
+                    Retourne les quittances de l'utilisateur connecté, paginées et filtrables.
+                    Un propriétaire voit les quittances de ses biens,
+                    un locataire voit les siennes.
+                    Tri par défaut : année + mois décroissants.
+                    """
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Liste paginée des quittances"),
+            @ApiResponse(responseCode = "401", description = "Non authentifié")
+    })
+    @PostMapping("/search")
+    public ResponseEntity<QuittancePageDTO> search(
+            @RequestBody QuittanceSearchDTO dto
+    ) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return ResponseEntity.ok(quittanceSearchService.rechercher(dto, auth.getName()));
+    }
+
+
 }

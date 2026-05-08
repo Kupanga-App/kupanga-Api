@@ -2,12 +2,13 @@ package com.kupanga.api.immobilier.repository;
 
 import com.kupanga.api.immobilier.entity.EtatDesLieux;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 
-public interface EtatDesLieuxRepository extends JpaRepository<EtatDesLieux, Long> {
+public interface EtatDesLieuxRepository extends JpaRepository<EtatDesLieux, Long>, JpaSpecificationExecutor<EtatDesLieux> {
 
     Optional<EtatDesLieux> findByTokenSignature(String tokenSignature);
 

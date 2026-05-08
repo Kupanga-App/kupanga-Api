@@ -3,6 +3,9 @@ package com.kupanga.api.immobilier.controller;
 import com.kupanga.api.immobilier.dto.formDTO.ContratFormDTO;
 import com.kupanga.api.immobilier.dto.formDTO.SignatureDTO;
 import com.kupanga.api.immobilier.dto.readDTO.ContratDTO;
+import com.kupanga.api.immobilier.research.ContratSearchService;
+import com.kupanga.api.immobilier.research.dto.ContratPageDTO;
+import com.kupanga.api.immobilier.research.dto.ContratSearchDTO;
 import com.kupanga.api.immobilier.service.ContratService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -26,6 +29,7 @@ import org.springframework.web.bind.annotation.*;
 public class ContratController {
 
     private final ContratService contratService;
+    private final ContratSearchService contratSearchService;
 
     // =========================================
     // CRÉER UN CONTRAT
@@ -330,4 +334,29 @@ public class ContratController {
         contratService.signerLocataire(token, dto.signatureBase64());
         return ResponseEntity.noContent().build();
     }
+
+    // =========================================
+    // RECHERCHE PAGINÉE (utilisateur connecté)
+    // =========================================
+    @Operation(
+            summary = "Rechercher ses contrats",
+            description = """
+                    Retourne les contrats de l'utilisateur connecté, paginés et filtrables.
+                    Un propriétaire consulte ses contrats en tant que bailleur,
+                    un locataire consulte les siens en tant que preneur.
+                    Tri par défaut : date de début décroissante.
+                    """
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Liste paginée des contrats"),
+            @ApiResponse(responseCode = "401", description = "Non authentifié")
+    })
+    @PostMapping("/search")
+    public ResponseEntity<ContratPageDTO> search(
+            @RequestBody ContratSearchDTO dto
+    ) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return ResponseEntity.ok(contratSearchService.rechercher(dto, auth.getName()));
+    }
+
 }

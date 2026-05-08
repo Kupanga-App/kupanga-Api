@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 public class QuittanceDTO {
 
     private Long   id;
-    private Integer mois;
+    private String mois;
     private Integer annee;
     private String  moisLabel;          // "Mars 2026" — calculé côté service
 

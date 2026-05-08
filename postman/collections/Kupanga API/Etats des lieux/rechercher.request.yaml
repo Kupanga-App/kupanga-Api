@@ -1,0 +1,32 @@
+$kind: http-request
+name: rechercher
+url: "{{baseUrl}}/etats-des-lieux/search"
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \  \"type\": null,\r
+
+    \  \"statut\": null,\r
+
+    \  \"annee\": null,\r
+
+    \  \"mois\": null,\r
+
+    \  \"bienId\": null,\r
+
+    \  \"page\": null,\r
+
+    \  \"size\": null,\r
+
+    \  \"sortBy\": null,\r
+
+    \  \"sortDirection\": null\r
+
+    }"
+auth:
+  type: bearer
+  credentials:
+    token: eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUk9MRV9QUk9QUklFVEFJUkUiLCJzdWIiOiJrYmcuYWwucHJAZ21haWwuY29tIiwiaWF0IjoxNzc4MjU2NTkxLCJleHAiOjE3NzgyNTY4OTF9.wwvn0OMBTIWgpaCowUyYzMRngbuyZ1k2AxzT_GmXHJ8
+order: 738772188663055

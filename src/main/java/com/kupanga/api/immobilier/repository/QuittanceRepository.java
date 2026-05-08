@@ -3,13 +3,14 @@ package com.kupanga.api.immobilier.repository;
 import com.kupanga.api.immobilier.entity.Quittance;
 import com.kupanga.api.immobilier.entity.StatutQuittance;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
 
-public interface QuittanceRepository extends JpaRepository<Quittance, Long> {
+public interface QuittanceRepository extends JpaRepository<Quittance, Long>, JpaSpecificationExecutor<Quittance> {
 
     /**
      * Toutes les quittances d'un locataire pour un bien donné.

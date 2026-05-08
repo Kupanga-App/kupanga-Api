@@ -1,0 +1,34 @@
+$kind: http-request
+name: rechercher
+url: "{{baseUrl}}/contrats/search"
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \  \"bienId\": null,\r
+
+    \  \"dureeBailMoisMin\": null,\r
+
+    \  \"dureeBailMoisMax\": null,\r
+
+    \  \"loyerMin\": null,\r
+
+    \  \"loyerMax\": null,\r
+
+    \  \"dateDebutApres\": null,\r
+
+    \  \"dateDebutAvant\": null,\r
+
+    \  \"statut\": null,\r
+
+    \  \"page\": null,\r
+
+    \  \"size\": null,\r
+
+    \  \"sortBy\": null,\r
+
+    \  \"sortDirection\": null\r
+
+    }"
+order: 1594590189586967

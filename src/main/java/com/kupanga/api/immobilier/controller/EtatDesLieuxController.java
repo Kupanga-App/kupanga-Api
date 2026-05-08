@@ -3,6 +3,9 @@ package com.kupanga.api.immobilier.controller;
 import com.kupanga.api.immobilier.dto.formDTO.EtatDesLieuxFormDTO;
 import com.kupanga.api.immobilier.dto.formDTO.SignatureDTO;
 import com.kupanga.api.immobilier.dto.readDTO.EtatDesLieuxDTO;
+import com.kupanga.api.immobilier.research.EtatDesLieuxSearchService;
+import com.kupanga.api.immobilier.research.dto.EtatDesLieuxPageDTO;
+import com.kupanga.api.immobilier.research.dto.EtatDesLieuxSearchDTO;
 import com.kupanga.api.immobilier.service.EtatDesLieuxService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -27,6 +30,7 @@ import org.springframework.web.bind.annotation.*;
 public class EtatDesLieuxController {
 
     private final EtatDesLieuxService edlService;
+    private final EtatDesLieuxSearchService edlSearchService;
 
     // =========================================
     // CRÉER UN ÉTAT DES LIEUX
@@ -449,4 +453,29 @@ public class EtatDesLieuxController {
         edlService.signerLocataire(token, dto.signatureBase64());
         return ResponseEntity.noContent().build();
     }
+
+    // =========================================
+    // RECHERCHE PAGINÉE (utilisateur connecté)
+    // =========================================
+    @Operation(
+            summary = "Rechercher ses états des lieux",
+            description = """
+                    Retourne les états des lieux de l'utilisateur connecté, paginés et filtrables.
+                    Un propriétaire voit ses EDL en tant que propriétaire,
+                    un locataire voit les siens en tant que locataire.
+                    """
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Liste paginée des états des lieux"),
+            @ApiResponse(responseCode = "401", description = "Non authentifié")
+    })
+    @PostMapping("/search")
+    public ResponseEntity<EtatDesLieuxPageDTO> search(
+            @RequestBody EtatDesLieuxSearchDTO dto
+    ) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return ResponseEntity.ok(edlSearchService.rechercher(dto, auth.getName()));
+    }
+
+
 }
