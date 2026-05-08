@@ -3,12 +3,14 @@ spring:
     name: kupanga
   profiles:
     active: dev
+  config:
+    import: optional:file:.env.dev[.properties]
 
   mail:
     host: smtp.gmail.com
     port: 587
-    username: noreplydevback@gmail.com
-    password: bwpfjdtbtiobxmoe
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
     properties:
       mail:
         smtp:
@@ -35,5 +37,5 @@ app:
     newFeature: false
 
 jwt:
-  secret-key: 6Z7v1pL8y8KZgA0h5ZJm6Q1sZ3D7GxK9E3Zxv7Z9rA4=
+  secret-key: ${JWT_SECRET_KEY}
   expiration-time: 300000

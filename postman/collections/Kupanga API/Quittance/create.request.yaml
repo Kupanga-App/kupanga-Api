@@ -1,4 +1,5 @@
 $kind: http-request
+name: create
 url: "{{baseUrl}}/quittances"
 method: POST
 body:
@@ -9,7 +10,7 @@ body:
 
     \  \"emailLocataire\": \"moiseaganze76@gmail.com\",\r
 
-    \  \"mois\": \"mars\",\r
+    \  \"mois\": \"avril\",\r
 
     \  \"annee\": 2026,\r
 
@@ -25,5 +26,5 @@ body:
 auth:
   type: bearer
   credentials:
-    token: eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUk9MRV9QUk9QUklFVEFJUkUiLCJzdWIiOiJrYmcuYWwucHJAZ21haWwuY29tIiwiaWF0IjoxNzc0MjU5NzI0LCJleHAiOjE3NzQyNjAwMjR9.fSK1ekK2qPp5JHkeC_cACbB8FeKoo8oPyNrztOzVgic
+    token: eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUk9MRV9QUk9QUklFVEFJUkUiLCJzdWIiOiJrYmcuYWwucHJAZ21haWwuY29tIiwiaWF0IjoxNzc4MjQzOTYwLCJleHAiOjE3NzgyNDQyNjB9.jTO8GONmNfra2rMVMIPe2Vb0hzIOnBblwJYgxQ8u81A
 order: 1000

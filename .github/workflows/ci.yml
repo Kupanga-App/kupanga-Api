@@ -12,20 +12,21 @@ on:
       - develop
 
 jobs:
-  build-test-static-docker:
-    name: 🚀🧱 Build Maven | 🧪 Tests | 🔍 Analyse Qualité | 🐳 Docker Build
+
+  # ──────────────────────────────────────────────────────────────────
+  # 1. Services & Migrations
+  #    Valide que PostgreSQL/PostGIS démarre et que les migrations
+  #    Flyway sont propres — indépendamment du code applicatif.
+  # ──────────────────────────────────────────────────────────────────
+  infra:
+    name: 🛠 Services & Migrations
     runs-on: ubuntu-latest
-    env:
-      DOCKER_BUILDKIT: 1
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # -----------------------------
-      # Start PostgreSQL + PostGIS
-      # -----------------------------
-      - name: Start PostGIS manually
+      - name: Start PostGIS
         run: |
           docker run -d \
             --name postgres \
@@ -38,20 +39,18 @@ jobs:
       - name: Wait for PostgreSQL + PostGIS
         run: |
           for i in {1..40}; do
-            if PGPASSWORD=devpassword psql -h localhost -U kupanga -d kupanga_dev -c "SELECT PostGIS_Version();" > /dev/null 2>&1; then
+            if PGPASSWORD=devpassword psql -h localhost -U kupanga -d kupanga_dev \
+                -c "SELECT PostGIS_Version();" > /dev/null 2>&1; then
               echo "✅ PostgreSQL + PostGIS prêts"
               exit 0
             fi
-            echo "⏳ Attente de PostgreSQL/PostGIS..."
+            echo "⏳ Attente PostgreSQL/PostGIS... ($i/40)"
             sleep 3
           done
-          echo "❌ PostgreSQL/PostGIS n'a pas démarré à temps"
+          echo "❌ PostgreSQL/PostGIS n'a pas démarré"
           docker logs postgres
           exit 1
 
-      # -----------------------------
-      # Flyway — migration avant les tests
-      # -----------------------------
       - name: Run Flyway migrations
         run: |
           docker run --rm \
@@ -76,10 +75,138 @@ jobs:
             -password=devpassword \
             info
 
-      # -----------------------------
-      # MinIO
-      # -----------------------------
-      - name: Start MinIO manually
+      - name: Start MinIO
+        run: |
+          docker run -d \
+            --name minio \
+            -p 9000:9000 \
+            -p 9001:9001 \
+            -e MINIO_ROOT_USER=minioadmin \
+            -e MINIO_ROOT_PASSWORD=minioadmin \
+            minio/minio server /data --console-address ":9001"
+
+      - name: Wait for MinIO
+        run: |
+          for i in {1..10}; do
+            if curl -f http://localhost:9000/minio/health/live > /dev/null 2>&1; then
+              echo "✅ MinIO prêt"
+              exit 0
+            fi
+            echo "⏳ Attente MinIO... ($i/10)"
+            sleep 3
+          done
+          echo "❌ MinIO non démarré"
+          exit 1
+
+  # ──────────────────────────────────────────────────────────────────
+  # 2. Build Maven
+  #    Compile et package sans lancer les tests.
+  #    L'artifact JAR est mis à disposition pour le job Docker.
+  # ──────────────────────────────────────────────────────────────────
+  build:
+    name: 🏗 Build Maven
+    needs: infra
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Installer Java 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Cache dépendances Maven
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-maven-
+
+      - name: Build Maven (sans tests)
+        run: mvn clean install -DskipTests
+
+  # ──────────────────────────────────────────────────────────────────
+  # 3. Tests
+  #    Runner neuf → les services sont redémarrés ici.
+  #    Les variables externalisées depuis application.yml sont injectées
+  #    via l'env du job (GitHub Secrets pour les valeurs sensibles).
+  # ──────────────────────────────────────────────────────────────────
+  test:
+    name: 🧪 Tests
+    needs: build
+    runs-on: ubuntu-latest
+    env:
+      # --- Datasource (override application-test.yml pour CI) ---
+      SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/kupanga_dev
+      SPRING_DATASOURCE_USERNAME: kupanga
+      SPRING_DATASOURCE_PASSWORD: devpassword
+      SPRING_FLYWAY_ENABLED: "false"
+      SPRING_JPA_HIBERNATE_DDL_AUTO: validate
+      # --- Secrets externalisés (application.yml) ---------------
+      # Ajouter MAIL_PASSWORD et JWT_SECRET_KEY dans GitHub Secrets
+      # (Settings → Secrets and variables → Actions)
+      MAIL_USERNAME: ci@kupanga.com
+      MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD || 'ci-dummy-password' }}
+      JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY || 'Y2lEdW1teUtleU5vdEZvclByb2R1Y3Rpb24tMTIzNDU2Nzg=' }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Installer Java 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Cache dépendances Maven
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-maven-
+
+      - name: Start PostGIS
+        run: |
+          docker run -d \
+            --name postgres \
+            -e POSTGRES_USER=kupanga \
+            -e POSTGRES_PASSWORD=devpassword \
+            -e POSTGRES_DB=kupanga_dev \
+            -p 5432:5432 \
+            postgis/postgis:15-3.4-alpine
+
+      - name: Wait for PostgreSQL + PostGIS
+        run: |
+          for i in {1..40}; do
+            if PGPASSWORD=devpassword psql -h localhost -U kupanga -d kupanga_dev \
+                -c "SELECT PostGIS_Version();" > /dev/null 2>&1; then
+              echo "✅ PostgreSQL + PostGIS prêts"
+              exit 0
+            fi
+            echo "⏳ Attente PostgreSQL/PostGIS... ($i/40)"
+            sleep 3
+          done
+          docker logs postgres
+          exit 1
+
+      - name: Run Flyway migrations
+        run: |
+          docker run --rm \
+            --network host \
+            -v ${{ github.workspace }}/src/main/resources/db/migration:/flyway/sql \
+            flyway/flyway:10 \
+            -url=jdbc:postgresql://localhost:5432/kupanga_dev \
+            -user=kupanga \
+            -password=devpassword \
+            -baselineOnMigrate=true \
+            -validateOnMigrate=false \
+            migrate
+
+      - name: Start MinIO
         run: |
           docker run -d \
             --name minio \
@@ -98,49 +225,43 @@ jobs:
             fi
             sleep 3
           done
-          echo "❌ MinIO non démarré"
           exit 1
-
-      # -----------------------------
-      # Java
-      # -----------------------------
-      - name: Installer Java 21
-        uses: actions/setup-java@v3
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-
-      # -----------------------------
-      # Variables DB + Flyway désactivé côté Spring
-      # (Flyway a déjà tourné via Docker ci-dessus)
-      # -----------------------------
-      - name: Set env vars
-        run: |
-          echo "SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/kupanga_dev" >> $GITHUB_ENV
-          echo "SPRING_DATASOURCE_USERNAME=kupanga"                                 >> $GITHUB_ENV
-          echo "SPRING_DATASOURCE_PASSWORD=devpassword"                             >> $GITHUB_ENV
-          echo "SPRING_FLYWAY_ENABLED=false"                                        >> $GITHUB_ENV
-          echo "SPRING_JPA_HIBERNATE_DDL_AUTO=validate"                             >> $GITHUB_ENV
-
-      # -----------------------------
-      # Build & tests
-      # -----------------------------
-      - name: Build Maven
-        run: mvn clean install -DskipTests
 
       - name: Tests
         run: mvn test -Dspring.profiles.active=test
 
-      # -----------------------------
-      # Analyse statique
-      # -----------------------------
+  # ──────────────────────────────────────────────────────────────────
+  # 4. Analyse Qualité  (parallèle avec les tests)
+  # ──────────────────────────────────────────────────────────────────
+  quality:
+    name: 🔍 Analyse Qualité
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Analyse statique Semgrep
         uses: returntocorp/semgrep-action@v1
         with:
           config: p/java
 
-      # -----------------------------
-      # Docker
-      # -----------------------------
+  # ──────────────────────────────────────────────────────────────────
+  # 5. Docker Build  (bloqué jusqu'à ce que tests ET qualité passent)
+  #    Le Dockerfile est multi-stage et compile lui-même via mvnw,
+  #    donc aucun artifact à télécharger.
+  # ──────────────────────────────────────────────────────────────────
+  docker:
+    name: 🐳 Docker Build
+    needs: [ test, quality ]
+    runs-on: ubuntu-latest
+    env:
+      DOCKER_BUILDKIT: 1
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Build Docker image
         run: docker build -t kupanga-ci-test:latest .

@@ -1,8 +1,10 @@
 spring:
+  config:
+    import: optional:file:.env.dev[.properties]
   datasource:
-    url: jdbc:postgresql://localhost:5433/kupanga_dev
-    username: kupanga
-    password: devpassword
+    url: ${DB_URL}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -28,9 +30,9 @@ spring:
     type: redis
 
 minio:
-  endpoint: http://localhost:9001
-  access-key: minioadmin
-  secret-key: minioadmin
+  endpoint: ${MINIO_ENDPOINT}
+  access-key: ${MINIO_ROOT_USER}
+  secret-key: ${MINIO_ROOT_PASSWORD}
 
 app:
   url: http://localhost:4200/
