@@ -9,5 +9,6 @@ public interface ConversationMapper {
 
     @Mapping(source = "bien.id", target = "bienId")
     @Mapping(source = "bien.titre", target = "bienTitre")
+    @Mapping(target = "nonLuCount", constant = "0l")
     ConversationDTO toDto(Conversation conversation);
 }

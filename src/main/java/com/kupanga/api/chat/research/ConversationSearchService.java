@@ -5,9 +5,11 @@ import com.kupanga.api.chat.dto.ConversationPageDTO;
 import com.kupanga.api.chat.dto.ConversationSearchDTO;
 import com.kupanga.api.chat.mapper.ConversationMapper;
 import com.kupanga.api.chat.repository.ConversationRepository;
+import com.kupanga.api.chat.repository.MessageRepository;
 import com.kupanga.api.chat.research.specification.ConversationSpecification;
 import com.kupanga.api.pagination.Pagination;
 import com.kupanga.api.user.service.UserService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -22,6 +24,7 @@ public class ConversationSearchService {
     private final ConversationRepository conversationRepository;
     private final ConversationSpecification conversationSpecification;
     private final ConversationMapper conversationMapper;
+    private final MessageRepository messageRepository;
     private final UserService userService;
 
     /**
@@ -32,6 +35,7 @@ public class ConversationSearchService {
      * @param dto   criteres de recherche et pagination
      * @return une page de conversations
      */
+    @Transactional
     public ConversationPageDTO rechercher(String email, ConversationSearchDTO dto) {
 
         userService.getUserByEmail(email);
@@ -46,7 +50,16 @@ public class ConversationSearchService {
 
         Page<ConversationDTO> page = conversationRepository
                 .findAll(conversationSpecification.build(email, dto), pageable)
-                .map(conversationMapper::toDto);
+                .map(conv -> {
+                    ConversationDTO base = conversationMapper.toDto(conv);
+                    long count = messageRepository.countNonLuByConversationAndDestinataire(conv.getId(), email);
+                    return new ConversationDTO(
+                            base.id(), base.bienId(), base.bienTitre(),
+                            base.emailExpediteur(), base.emailDestinataire(),
+                            base.lastMessage(), base.lastMessageAt(), base.createdAt(),
+                            count
+                    );
+                });
 
         return ConversationPageDTO.from(page);
     }

@@ -10,5 +10,6 @@ public record ConversationDTO(
         String emailDestinataire,
         String lastMessage,
         LocalDateTime lastMessageAt,
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        long nonLuCount
 ) {}

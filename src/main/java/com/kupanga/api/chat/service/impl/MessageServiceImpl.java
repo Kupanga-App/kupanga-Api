@@ -2,6 +2,7 @@ package com.kupanga.api.chat.service.impl;
 
 import com.kupanga.api.chat.dto.MessageDTO;
 import com.kupanga.api.chat.dto.MessagePayload;
+import com.kupanga.api.chat.dto.NotificationDTO;
 import com.kupanga.api.chat.entity.Conversation;
 import com.kupanga.api.chat.entity.Message;
 import com.kupanga.api.chat.mapper.MessageMapper;
@@ -21,6 +22,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -57,6 +59,9 @@ public class MessageServiceImpl implements MessageService {
 
         }
 
+        conversation.setLastMessage(payload.contenu());
+        conversation.setLastMessageAt(LocalDateTime.now());
+        conversationService.save(conversation);
         // Persister le message
         Message message = Message.builder()
                 .contenu(payload.contenu())
@@ -87,6 +92,29 @@ public class MessageServiceImpl implements MessageService {
             log.error("[WS-PUSH] ✗ Échec du push WebSocket vers {} : {}", destinataire.getMail(), e.getMessage(), e);
         }
 
+        // ─── Push WebSocket notification ──────────────────────────────────────
+        // Envoie sur /user/{email}/queue/notifications pour les vues hors-conversation
+        try {
+            NotificationDTO notif = new NotificationDTO(
+                    conversation.getId(),
+                    expediteur.getMail(),
+                    expediteur.getFirstName() + " " + expediteur.getLastName(),
+                    payload.contenu().substring(0, Math.min(60, payload.contenu().length())),
+                    saved.getCreatedAt()
+            );
+
+            messagingTemplate.convertAndSendToUser(
+                    destinataire.getMail(),
+                    "/queue/notifications",
+                    notif
+            );
+
+            log.info("[WS-NOTIF] ✓ Notification poussée vers {}", destinataire.getMail());
+
+        } catch (Exception e) {
+            log.error("[WS-NOTIF] ✗ Échec notification vers {} : {}", destinataire.getMail(), e.getMessage());
+        }
+
         log.info("Message {} envoyé de {} à {}",
                 saved.getId(), emailExpediteur, payload.emailDestinataire());
 
@@ -99,5 +127,15 @@ public class MessageServiceImpl implements MessageService {
                 .stream()
                 .map(messageMapper::toDTO)
                 .toList();
+    }
+
+    @Override
+    public Long countMessagesNonLus(String email) {
+        return messageRepository.countMessagesNonLus(email);
+    }
+
+    @Override
+    public void marquerConversationLue(String emailDestinataire, String emailExpediteur) {
+        messageRepository.marquerConversationLue(emailDestinataire, emailExpediteur);
     }
 }

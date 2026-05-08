@@ -37,6 +37,15 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     Long countMessagesNonLus(@Param("email") String email);
 
     @Query("""
+            SELECT COUNT(m) FROM Message m
+            WHERE m.conversation.id = :conversationId
+              AND m.destinataire.mail = :email
+              AND m.lu = false
+            """)
+    long countNonLuByConversationAndDestinataire(@Param("conversationId") Long conversationId,
+                                                 @Param("email") String email);
+
+    @Query("""
     SELECT m FROM Message m
     WHERE m.conversation.bien.id = :bienId
       AND (

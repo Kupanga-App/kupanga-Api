@@ -26,4 +26,8 @@ public interface MessageService {
      */
     List<MessageDTO> getHistorique(Long bienId, String emailConnecte, String emailInterlocuteur);
 
+    Long countMessagesNonLus(String email);
+
+    void marquerConversationLue(String emailDestinataire, String emailExpediteur);
+
 }

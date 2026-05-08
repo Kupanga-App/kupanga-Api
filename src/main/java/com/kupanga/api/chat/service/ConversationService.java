@@ -5,6 +5,7 @@ import com.kupanga.api.chat.entity.Conversation;
 
 public interface ConversationService {
 
+    void save(Conversation conversation);
     /**
      * Créer une nouvelle conversation
      * @param bienId id du bien concerné.

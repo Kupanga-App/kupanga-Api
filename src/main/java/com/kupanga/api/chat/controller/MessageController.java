@@ -51,9 +51,21 @@ public class MessageController {
 
         List<MessageDTO> messages = messageService.getHistorique(
                 bienId,
-                principal.getName(),   // email tiré du JWT, jamais du front
+                principal.getName(),
                 emailInterlocuteur
         );
         return ResponseEntity.ok(messages);
+    }
+
+    @GetMapping("/messages/non-lus")
+    public ResponseEntity<Long> countNonLus(Principal principal) {
+        return ResponseEntity.ok(messageService.countMessagesNonLus(principal.getName()));
+    }
+
+    @PostMapping("/messages/conversation/{emailExpediteur}/lire")
+    public ResponseEntity<Void> marquerLus(@PathVariable String emailExpediteur,
+                                           Principal principal) {
+        messageService.marquerConversationLue(principal.getName(), emailExpediteur);
+        return ResponseEntity.ok().build();
     }
 }
