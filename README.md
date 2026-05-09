@@ -190,7 +190,7 @@ graph TD
 | Technologie | Rôle |
 | :--- | :--- |
 | **Spring Boot** | API backend |
-| **Render** | Déploiement cloud — [kupanga-api.onrender.com](https://kupanga-api.onrender.com) |
+| **Render** | Déploiement cloud — [https://kupanga-api.onrender.com](https://kupanga-api.onrender.com) |
 | **Neon** | Base de données PostgreSQL serverless |
 | **Upstash** | Cache Redis serverless |
 | **Sentry** | Monitoring et tracking d'erreurs — [Traces & Performance](https://apprentissage.sentry.io/explore/traces/?mode=samples&project=-1&statsPeriod=14d) |
