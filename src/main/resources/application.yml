@@ -2,7 +2,7 @@ spring:
   application:
     name: kupanga
   profiles:
-    active: dev
+    active: ${SPRING_PROFILES_ACTIVE:dev}
   config:
     import: optional:file:.env.dev[.properties]
 
@@ -21,16 +21,13 @@ spring:
     allowed-origins: "http://localhost:4200 , https://kupanga.lespacelibellule.com"
 
 server:
-  port: 8089
+  port: ${PORT:8089}
 
 springdoc:
   api-docs:
     path: /v3/api-docs
   swagger-ui:
     path: /swagger-ui.html
-
-email:
-  sender: "no-reply@kupanga.com"
 
 app:
   feature-flags:
