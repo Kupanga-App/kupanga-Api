@@ -36,3 +36,13 @@ app:
   cookie:
     secure: true
     same-site: None
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+
+  endpoint:
+    health:
+      show-details: always
