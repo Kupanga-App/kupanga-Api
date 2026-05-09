@@ -1,16 +1,42 @@
 # Kupanga API
 
+![Java 21](https://img.shields.io/badge/Java_21-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)
+![Maven](https://img.shields.io/badge/Maven-C71A36?style=for-the-badge&logo=apachemaven&logoColor=white)
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white)
 ![Spring Security](https://img.shields.io/badge/Spring_Security-6DB33F?style=for-the-badge&logo=spring-security&logoColor=white)
-![JWT](https://img.shields.io/badge/JWT-000000?style=for-the-badge&logo=json-web-tokens&logoColor=white)
+![JWT](https://img.shields.io/badge/JWT-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white)
+![WebSocket](https://img.shields.io/badge/WebSocket_STOMP-010101?style=for-the-badge&logo=websocket&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)
+![PostGIS](https://img.shields.io/badge/PostGIS-336791?style=for-the-badge&logo=postgresql&logoColor=white)
+![Flyway](https://img.shields.io/badge/Flyway-CC0200?style=for-the-badge&logo=flyway&logoColor=white)
+![Redis](https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)
 ![MinIO](https://img.shields.io/badge/MinIO-C72E49?style=for-the-badge&logo=minio&logoColor=white)
-![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?style=for-the-badge&logo=github-actions&logoColor=white)
-![JUnit5](https://img.shields.io/badge/JUnit5-25A162?style=for-the-badge&logo=junit5&logoColor=white)
-![Mockito](https://img.shields.io/badge/Mockito-788BD2?style=for-the-badge&logo=mockito&logoColor=white)
+![Thymeleaf](https://img.shields.io/badge/Thymeleaf-005F0F?style=for-the-badge&logo=thymeleaf&logoColor=white)
+![Flying Saucer PDF](https://img.shields.io/badge/Flying_Saucer_PDF-FF0000?style=for-the-badge&logo=adobeacrobatreader&logoColor=white)
+![Lombok](https://img.shields.io/badge/Lombok-BC4521?style=for-the-badge&logo=lombok&logoColor=white)
+![MapStruct](https://img.shields.io/badge/MapStruct-DF2C2C?style=for-the-badge&logoColor=white)
 ![Swagger](https://img.shields.io/badge/Swagger-85EA2D?style=for-the-badge&logo=swagger&logoColor=black)
+![JUnit5](https://img.shields.io/badge/JUnit5-25A162?style=for-the-badge&logo=junit5&logoColor=white)
+![Mockito](https://img.shields.io/badge/Mockito-788BD2?style=for-the-badge&logoColor=white)
+![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?style=for-the-badge&logo=github-actions&logoColor=white)
+![Sentry](https://img.shields.io/badge/Sentry-362D59?style=for-the-badge&logo=sentry&logoColor=white)
 
-Bienvenue sur l'API de l'application Kupanga. Ce projet backend est construit avec Spring Boot et suit une architecture modulaire et sécurisée.
+**Kupanga** est une plateforme de gestion locative immobilière complète. Elle couvre l'intégralité du cycle de vie d'une location : publication et recherche de biens, signature de contrats, états des lieux, génération de documents administratifs (contrats, quittances, EDL…), messagerie temps réel entre locataires et propriétaires, et suivi des notifications.
+
+L'API est construite avec Spring Boot selon une architecture modulaire, sécurisée par JWT + RBAC, et expose des endpoints RESTful documentés via Swagger.
+
+## ✨ Fonctionnalités
+
+| Module | Description |
+| :--- | :--- |
+| 🔐 **Authentification & Sécurité** | Inscription, connexion, JWT, refresh token, contrôle d'accès par rôle (RBAC) |
+| 🏠 **Gestion des Biens** | CRUD complet des biens immobiliers, géolocalisation PostGIS, photos via MinIO |
+| 🔍 **Recherche Avancée** | Filtres multi-critères, recherche géographique par rayon, recherche par points d'intérêt (POI) — proximité écoles, crèches, pharmacies, hôpitaux, etc., cache Redis des résultats |
+| 💬 **Messagerie Temps Réel** | Conversations propriétaire ↔ locataire via WebSocket STOMP |
+| 📋 **États des Lieux** | Création, édition et validation bipartite des EDL avec pièces jointes |
+| 📄 **Documents Administratifs** | Génération PDF automatisée : contrats de location, quittances de loyer, EDL signés |
+| 🔔 **Notifications** | Alertes système et emails transactionnels |
+| 👤 **Gestion Utilisateurs** | Profils propriétaires et locataires, gestion des documents d'identité |
 
 ## 🚀 Installation & Démarrage
 
@@ -61,7 +87,7 @@ L'intégration continue est gérée par **GitHub Actions** pour assurer la quali
 
 ## 🏗️ Architecture Backend
 
-L'architecture backend s'appuie sur une **architecture modulaire** (comportant des modules dédiés comme Utilisateur, Biens, etc.), permettant une meilleure maintenabilité et évolutivité du code.
+L'API est découpée en **modules métier indépendants** (Biens, Utilisateurs, Contrats, Messagerie, EDL…) orchestrés par une couche sécurité centralisée (JWT + RBAC). Les données relationnelles et géospatiales sont gérées par PostgreSQL + PostGIS, le cache par Redis, et les fichiers (photos, PDFs) par MinIO.
 
 ```mermaid
 graph TD
@@ -82,6 +108,7 @@ graph TD
     classDef docNode fill:#f3e5f5,stroke:#4a148c,color:black,stroke-width:2px;
     classDef dbNode fill:#b2dfdb,stroke:#004d40,color:black,stroke-width:2px;
     classDef storageNode fill:#ffccbc,stroke:#bf360c,color:black,stroke-width:2px;
+    classDef cacheNode fill:#ffcdd2,stroke:#c62828,color:black,stroke-width:2px;
 
     subgraph API["Couche API"]
         direction TB
@@ -108,6 +135,7 @@ graph TD
     subgraph Data["Couche Données"]
         direction TB
         Postgres[("PostgreSQL + PostGIS<br/>Données Relationnelles<br/>Géolocalisation")]:::dbNode
+        Redis[("Redis Cache<br/>Sessions & Tokens<br/>Géocodage")]:::cacheNode
         Minio[("Stockage Fichiers - MinIO<br/>Photos Biens<br/>Documents PDF")]:::storageNode
     end
     class Data dataLayer
@@ -131,14 +159,101 @@ graph TD
 
     %% Services -> Data
     Search --> Postgres
+    Search -->|cache géocodage| Redis
     Notif --> Postgres
     Msg --> Postgres
     EDL --> Postgres
     EDL --> Minio
     Prop --> Postgres
     Prop --> Minio
+    Prop -->|cache résultats| Redis
     Users --> Postgres
     Users --> Minio
+    Users -->|cache session| Redis
     Docs --> Postgres
     Docs --> Minio
+```
+
+---
+
+## ☁️ Infrastructure & DevOps
+
+![Render](https://img.shields.io/badge/Render-46E3B7?style=for-the-badge&logo=render&logoColor=white)
+![Neon](https://img.shields.io/badge/Neon-00E599?style=for-the-badge&logo=neon&logoColor=black)
+![Upstash](https://img.shields.io/badge/Upstash-00E9A3?style=for-the-badge&logo=upstash&logoColor=black)
+![Sentry](https://img.shields.io/badge/Sentry-362D59?style=for-the-badge&logo=sentry&logoColor=white)
+![UptimeRobot](https://img.shields.io/badge/UptimeRobot-3BD671?style=for-the-badge&logo=uptimerobot&logoColor=white)
+![Oracle Cloud](https://img.shields.io/badge/Oracle_Cloud-F80000?style=for-the-badge&logo=oracle&logoColor=white)
+
+### 🧱 Stack technique
+
+| Technologie | Rôle |
+| :--- | :--- |
+| **Spring Boot** | API backend |
+| **Render** | Déploiement cloud — [kupanga-api.onrender.com](https://kupanga-api.onrender.com) |
+| **Neon** | Base de données PostgreSQL serverless |
+| **Upstash** | Cache Redis serverless |
+| **Sentry** | Monitoring et tracking d'erreurs — [Traces & Performance](https://apprentissage.sentry.io/explore/traces/?mode=samples&project=-1&statsPeriod=14d) |
+| **UptimeRobot** | Keep-alive et monitoring HTTP — [Page de statut](https://stats.uptimerobot.com/TGJ2ot3L7D) |
+| **Oracle Cloud** | Hébergement MinIO stockage fichiers (VM Always Free) |
+
+### 🗺️ Architecture d'Infrastructure
+
+```mermaid
+graph TD
+    %% Canvas Styles
+    classDef clientLayer fill:#e3f2fd,stroke:#1565c0,stroke-width:2px;
+    classDef hostLayer fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px;
+    classDef dataLayer fill:#fff3e0,stroke:#e65100,stroke-width:2px;
+    classDef monitorLayer fill:#fce4ec,stroke:#880e4f,stroke-width:2px;
+
+    %% Node Styles
+    classDef clientNode fill:#90caf9,stroke:#1565c0,color:black,stroke-width:2px;
+    classDef renderNode fill:#b2dfdb,stroke:#00695c,color:black,stroke-width:2px;
+    classDef neonNode fill:#ffcc80,stroke:#e65100,color:black,stroke-width:2px;
+    classDef upstashNode fill:#a5d6a7,stroke:#1b5e20,color:black,stroke-width:2px;
+    classDef minioNode fill:#ffccbc,stroke:#bf360c,color:black,stroke-width:2px;
+    classDef sentryNode fill:#ce93d8,stroke:#4a148c,color:black,stroke-width:2px;
+    classDef uptimeNode fill:#80cbc4,stroke:#004d40,color:black,stroke-width:2px;
+
+    subgraph Client["Client"]
+        direction TB
+        ClientApp["Application Client<br/>Web / Mobile"]:::clientNode
+    end
+    class Client clientLayer
+
+    subgraph Hosting["Hébergement Cloud — Render"]
+        direction TB
+        Render["Spring Boot API<br/>Déploiement Continu<br/>kupanga-api.onrender.com"]:::renderNode
+    end
+    class Hosting hostLayer
+
+    subgraph Data["Couche Données & Stockage"]
+        direction TB
+        Neon[("Neon<br/>PostgreSQL Serverless<br/>Base de données")]:::neonNode
+        Upstash[("Upstash<br/>Redis Serverless<br/>Cache")]:::upstashNode
+        MinIO[("Oracle Cloud — MinIO<br/>Stockage Fichiers<br/>VM Always Free")]:::minioNode
+    end
+    class Data dataLayer
+
+    subgraph Monitor["Observabilité & Monitoring"]
+        direction TB
+        Sentry["Sentry<br/>Tracking d'erreurs<br/>Traces & Performance"]:::sentryNode
+        UptimeRobot["UptimeRobot<br/>Keep-Alive HTTP<br/>Page de statut"]:::uptimeNode
+    end
+    class Monitor monitorLayer
+
+    %% Relations Client → API
+    ClientApp --> Render
+
+    %% Relations API → Données
+    Render --> Neon
+    Render --> Upstash
+    Render --> MinIO
+
+    %% Relations API → Observabilité
+    Render --> Sentry
+
+    %% UptimeRobot surveille l'API
+    UptimeRobot -->|ping keep-alive| Render
 ```
