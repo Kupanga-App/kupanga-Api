@@ -187,6 +187,8 @@ Le back-office est une interface web **server-side** (Thymeleaf + Bootstrap 5) e
 
 ### 🔑 Accès & Authentification
 
+> 🔗 **Accès direct :** [https://kupanga-api.onrender.com/backoffice/](https://kupanga-api.onrender.com/backoffice/)
+
 L'authentification du back-office est **totalement isolée** de l'authentification JWT de l'application principale. Elle repose sur une session HTTP Spring Security classique (formLogin) et des credentials stockés en variables d'environnement — aucun utilisateur en base de données n'est requis.
 
 | Variable d'environnement | Rôle |
