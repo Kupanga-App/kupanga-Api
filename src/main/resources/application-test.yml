@@ -29,3 +29,6 @@ app:
   cookie:
     secure: false
     same-site: Lax
+
+ADMIN_EMAIL: test-admin@kupanga.test
+ADMIN_PASSWORD: test-admin-password
