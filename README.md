@@ -37,6 +37,7 @@ L'API est construite avec Spring Boot selon une architecture modulaire, sécuris
 | 📄 **Documents Administratifs** | Génération PDF automatisée : contrats de location, quittances de loyer, EDL signés |
 | 🔔 **Notifications** | Alertes système et emails transactionnels |
 | 👤 **Gestion Utilisateurs** | Profils propriétaires et locataires, gestion des documents d'identité |
+| 🖥️ **Back-Office Administration** | Interface web dédiée (Thymeleaf + Bootstrap 5) — reporting, modération et gestion des utilisateurs & biens |
 
 ## 🚀 Installation & Démarrage
 
@@ -172,6 +173,123 @@ graph TD
     Users -->|cache session| Redis
     Docs --> Postgres
     Docs --> Minio
+```
+
+---
+
+## 🖥️ Back-Office Administration
+
+![Thymeleaf](https://img.shields.io/badge/Thymeleaf-005F0F?style=for-the-badge&logo=thymeleaf&logoColor=white)
+![Bootstrap](https://img.shields.io/badge/Bootstrap_5-7952B3?style=for-the-badge&logo=bootstrap&logoColor=white)
+![Spring Security](https://img.shields.io/badge/Session_Auth-6DB33F?style=for-the-badge&logo=spring-security&logoColor=white)
+
+Le back-office est une interface web **server-side** (Thymeleaf + Bootstrap 5) embarquée directement dans le même serveur Spring Boot. Il est accessible sur la même URL que l'API, sous le préfixe `/backoffice`, et ne nécessite aucun déploiement front séparé.
+
+### 🔑 Accès & Authentification
+
+L'authentification du back-office est **totalement isolée** de l'authentification JWT de l'application principale. Elle repose sur une session HTTP Spring Security classique (formLogin) et des credentials stockés en variables d'environnement — aucun utilisateur en base de données n'est requis.
+
+| Variable d'environnement | Rôle |
+| :--- | :--- |
+| `ADMIN_EMAIL` | Email de connexion de l'administrateur |
+| `ADMIN_PASSWORD` | Mot de passe de connexion de l'administrateur |
+
+| Route | Description |
+| :--- | :--- |
+| `/backoffice/login` | Page de connexion admin |
+| `/backoffice/dashboard` | Tableau de bord — statistiques globales |
+| `/backoffice/users` | Gestion et modération des utilisateurs |
+| `/backoffice/biens` | Gestion et modération des biens |
+| `/backoffice/logout` | Déconnexion (invalidation session + cookie) |
+
+### 📊 Fonctionnalités
+
+| Section | Reporting | Modération |
+| :--- | :--- | :--- |
+| **Tableau de bord** | Total utilisateurs, locataires, propriétaires · Total biens · Villes couvertes · Répartition par ville et par type | — |
+| **Utilisateurs** | Recherche paginée multi-critères (prénom, nom, email, rôle) · Photo de profil ou avatar par défaut | Suppression unitaire avec confirmation |
+| **Biens** | Recherche paginée multi-critères (titre, ville, type) · Carousel photos (MinIO) + compteur | Suppression unitaire avec confirmation |
+
+### 🏗️ Architecture dédiée
+
+Le back-office est entièrement isolé dans le package `com.kupanga.api.backoffice`, calqué sur l'architecture modulaire existante.
+
+```
+com.kupanga.api.backoffice/
+│
+├── config/
+│   ├── BackOfficeSecurityConfig.java   ← SecurityFilterChain @Order(1), /backoffice/**
+│   └── AdminCredentialsAuthProvider.java ← AuthenticationProvider sans BDD
+│
+├── controller/
+│   ├── BackOfficeAuthController.java   ← GET /backoffice/login
+│   ├── BackOfficeDashboardController.java ← GET /backoffice/dashboard
+│   ├── BackOfficeUserController.java   ← GET /backoffice/users · POST /{id}/supprimer
+│   └── BackOfficeBienController.java   ← GET /backoffice/biens · POST /{id}/supprimer
+│
+├── service/
+│   ├── UserAdminService.java           ← Recherche paginée, comptages, suppression
+│   └── BienAdminService.java           ← Recherche paginée, stats reporting, suppression
+│
+├── specification/
+│   ├── UserAdminSpecification.java     ← Filtres JPA : prénom, nom, email, rôle
+│   └── BienAdminSpecification.java     ← Filtres JPA : titre, ville, type
+│
+└── dto/
+    ├── UserAdminSearchDTO / UserAdminDTO / UserAdminPageDTO
+    └── BienAdminSearchDTO / BienAdminDTO / BienAdminPageDTO
+
+resources/templates/backoffice/
+├── login.html
+├── dashboard.html
+├── users/list.html
+├── biens/list.html
+└── fragments/layout.html              ← Sidebar, topbar, styles Bootstrap 5 (fragments réutilisables)
+```
+
+### 🔐 Double chaîne de sécurité
+
+L'application fait coexister deux `SecurityFilterChain` Spring Security sans conflit, grâce à `securityMatcher` et `@Order` :
+
+```mermaid
+graph TD
+    classDef chainA fill:#e8eaf6,stroke:#3949ab,stroke-width:2px,color:black;
+    classDef chainB fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:black;
+    classDef infra fill:#fff9c4,stroke:#f9a825,stroke-width:2px,color:black;
+
+    Request["Requête HTTP entrante"]
+
+    subgraph Chain1["SecurityFilterChain @Order(1) — Back-Office"]
+        direction TB
+        Matcher1["securityMatcher('/backoffice/**')"]:::chainA
+        FormLogin["formLogin · Session HTTP<br/>AdminCredentialsAuthProvider<br/>CSRF activé"]:::chainA
+        BackControllers["Controllers Back-Office<br/>Dashboard · Users · Biens"]:::chainA
+    end
+
+    subgraph Chain2["SecurityFilterChain @Order(2) — API REST"]
+        direction TB
+        Matcher2["Toutes les autres routes"]:::chainB
+        JwtFilter["Filtre JWT · Stateless<br/>UserDetailsService → BDD<br/>CSRF désactivé"]:::chainB
+        ApiControllers["Controllers API REST<br/>Auth · Biens · Users · Chat…"]:::chainB
+    end
+
+    subgraph Shared["Couche données partagée"]
+        direction LR
+        DB[("PostgreSQL")]:::infra
+        Minio[("MinIO")]:::infra
+    end
+
+    Request --> Matcher1
+    Matcher1 -->|"/backoffice/**"| FormLogin
+    FormLogin --> BackControllers
+    BackControllers --> DB
+    BackControllers --> Minio
+
+    Matcher1 -->|"Autre route"| Matcher2
+    Matcher2 --> JwtFilter
+    JwtFilter --> ApiControllers
+    ApiControllers --> DB
+    ApiControllers --> Minio
 ```
 
 ---
