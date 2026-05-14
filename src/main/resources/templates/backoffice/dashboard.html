@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head th:replace="~{backoffice/fragments/layout :: head('Tableau de bord')}"></head>
+<body>
+
+<!-- Sidebar -->
+<div th:replace="~{backoffice/fragments/layout :: sidebar('dashboard')}"></div>
+
+<div class="main-wrapper">
+
+    <!-- Topbar -->
+    <div th:replace="~{backoffice/fragments/layout :: topbar}"></div>
+
+    <!-- Contenu -->
+    <div class="container-fluid px-4 py-4">
+
+        <!-- En-tête page -->
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <div>
+                <h5 class="fw-bold mb-0">Tableau de bord</h5>
+                <p class="text-muted small mb-0">Vue d'ensemble de la plateforme</p>
+            </div>
+        </div>
+
+        <!-- ── Stat cards ─────────────────────────────── -->
+        <div class="row g-3 mb-4">
+
+            <div class="col-sm-6 col-xl-4">
+                <div class="card stat-card">
+                    <div class="card-body d-flex align-items-center gap-3 p-3">
+                        <div class="stat-icon bg-primary bg-opacity-10">
+                            <i class="bi bi-people-fill text-primary"></i>
+                        </div>
+                        <div>
+                            <div class="text-muted small">Total Utilisateurs</div>
+                            <div class="fw-bold fs-4 lh-1" th:text="${totalUsers}">0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-sm-6 col-xl-4">
+                <div class="card stat-card">
+                    <div class="card-body d-flex align-items-center gap-3 p-3">
+                        <div class="stat-icon bg-success bg-opacity-10">
+                            <i class="bi bi-person-check-fill text-success"></i>
+                        </div>
+                        <div>
+                            <div class="text-muted small">Locataires</div>
+                            <div class="fw-bold fs-4 lh-1" th:text="${totalLocataires}">0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-sm-6 col-xl-4">
+                <div class="card stat-card">
+                    <div class="card-body d-flex align-items-center gap-3 p-3">
+                        <div class="stat-icon bg-info bg-opacity-10">
+                            <i class="bi bi-person-workspace text-info"></i>
+                        </div>
+                        <div>
+                            <div class="text-muted small">Propriétaires</div>
+                            <div class="fw-bold fs-4 lh-1" th:text="${totalProprietaires}">0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-sm-6 col-xl-6">
+                <div class="card stat-card">
+                    <div class="card-body d-flex align-items-center gap-3 p-3">
+                        <div class="stat-icon bg-warning bg-opacity-10">
+                            <i class="bi bi-house-fill text-warning"></i>
+                        </div>
+                        <div>
+                            <div class="text-muted small">Total Biens</div>
+                            <div class="fw-bold fs-4 lh-1" th:text="${totalBiens}">0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-sm-6 col-xl-6">
+                <div class="card stat-card">
+                    <div class="card-body d-flex align-items-center gap-3 p-3">
+                        <div class="stat-icon bg-danger bg-opacity-10">
+                            <i class="bi bi-geo-alt-fill text-danger"></i>
+                        </div>
+                        <div>
+                            <div class="text-muted small">Villes couvertes</div>
+                            <div class="fw-bold fs-4 lh-1" th:text="${totalVilles}">0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Tables reporting ───────────────────────── -->
+        <div class="row g-3">
+
+            <!-- Biens par ville -->
+            <div class="col-lg-7">
+                <div class="card content-card h-100">
+                    <div class="card-header d-flex align-items-center gap-2">
+                        <i class="bi bi-geo-alt text-primary"></i>
+                        Répartition par ville
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Ville</th>
+                                        <th class="text-end">Biens</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="entry, stat : ${biensParVille}">
+                                        <td class="text-muted small" th:text="${stat.count}"></td>
+                                        <td class="fw-medium" th:text="${entry.key}"></td>
+                                        <td class="text-end">
+                                            <span class="badge rounded-pill bg-primary bg-opacity-10 text-primary fw-semibold"
+                                                  th:text="${entry.value}"></span>
+                                        </td>
+                                    </tr>
+                                    <tr th:if="${#maps.isEmpty(biensParVille)}">
+                                        <td colspan="3" class="text-center text-muted py-4">
+                                            <i class="bi bi-inbox fs-4 d-block mb-1"></i>Aucune donnée
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Biens par type -->
+            <div class="col-lg-5">
+                <div class="card content-card h-100">
+                    <div class="card-header d-flex align-items-center gap-2">
+                        <i class="bi bi-grid text-primary"></i>
+                        Répartition par type
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Type</th>
+                                        <th class="text-end">Biens</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="entry : ${biensParType}">
+                                        <td>
+                                            <span class="badge bg-secondary bg-opacity-10 text-secondary fw-medium"
+                                                  th:text="${entry.key}"></span>
+                                        </td>
+                                        <td class="text-end">
+                                            <span class="badge rounded-pill bg-warning bg-opacity-10 text-warning fw-semibold"
+                                                  th:text="${entry.value}"></span>
+                                        </td>
+                                    </tr>
+                                    <tr th:if="${#maps.isEmpty(biensParType)}">
+                                        <td colspan="2" class="text-center text-muted py-4">
+                                            <i class="bi bi-inbox fs-4 d-block mb-1"></i>Aucune donnée
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div th:replace="~{backoffice/fragments/layout :: scripts}"></div>
+</body>
+</html>

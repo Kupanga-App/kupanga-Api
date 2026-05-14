@@ -37,4 +37,13 @@ public interface BienRepository extends JpaRepository<Bien, Long>, JpaSpecificat
     List<Bien> findAllPropertiesAssociateToUser(Long userId);
 
     boolean existsByIdAndProprietaireId(Long id, Long proprietaireId);
+
+    @Query("SELECT COUNT(DISTINCT b.ville) FROM Bien b WHERE b.ville IS NOT NULL")
+    long countDistinctVilles();
+
+    @Query("SELECT b.ville, COUNT(b) FROM Bien b WHERE b.ville IS NOT NULL GROUP BY b.ville ORDER BY COUNT(b) DESC")
+    List<Object[]> countParVille();
+
+    @Query("SELECT b.typeBien, COUNT(b) FROM Bien b GROUP BY b.typeBien")
+    List<Object[]> countParType();
 }

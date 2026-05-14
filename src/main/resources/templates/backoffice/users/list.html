@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head th:replace="~{backoffice/fragments/layout :: head('Utilisateurs')}"></head>
+<body>
+
+<div th:replace="~{backoffice/fragments/layout :: sidebar('users')}"></div>
+
+<div class="main-wrapper">
+
+    <div th:replace="~{backoffice/fragments/layout :: topbar}"></div>
+
+    <div class="container-fluid px-4 py-4">
+
+        <!-- En-tête -->
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <div>
+                <h5 class="fw-bold mb-0">Gestion des utilisateurs</h5>
+                <p class="text-muted small mb-0"
+                   th:text="${page.totalElements} + ' utilisateur(s) trouvé(s)'">0 utilisateur(s)</p>
+            </div>
+        </div>
+
+        <!-- ── Formulaire de recherche ─────────────────── -->
+        <div class="search-card">
+            <form th:action="@{/backoffice/users}" method="get">
+                <div class="row g-2 align-items-end">
+                    <div class="col-sm-6 col-md-3">
+                        <label class="form-label small fw-semibold mb-1">Prénom</label>
+                        <input type="text" name="firstName" class="form-control"
+                               placeholder="Rechercher..."
+                               th:value="${firstName}"/>
+                    </div>
+                    <div class="col-sm-6 col-md-3">
+                        <label class="form-label small fw-semibold mb-1">Nom</label>
+                        <input type="text" name="lastName" class="form-control"
+                               placeholder="Rechercher..."
+                               th:value="${lastName}"/>
+                    </div>
+                    <div class="col-sm-6 col-md-3">
+                        <label class="form-label small fw-semibold mb-1">Email</label>
+                        <input type="text" name="mail" class="form-control"
+                               placeholder="Rechercher..."
+                               th:value="${mail}"/>
+                    </div>
+                    <div class="col-sm-6 col-md-2">
+                        <label class="form-label small fw-semibold mb-1">Rôle</label>
+                        <select name="role" class="form-select">
+                            <option value="">Tous les rôles</option>
+                            <option th:each="r : ${roles}"
+                                    th:value="${r.name()}"
+                                    th:text="${r.name()}"
+                                    th:selected="${r == role}"></option>
+                        </select>
+                    </div>
+                    <input type="hidden" name="size" th:value="${size}"/>
+                    <div class="col-sm-12 col-md-1 d-flex gap-2">
+                        <button type="submit" class="btn btn-search flex-grow-1">
+                            <i class="bi bi-search"></i>
+                        </button>
+                        <a th:href="@{/backoffice/users}" class="btn btn-reset btn-outline-secondary flex-grow-1">
+                            <i class="bi bi-x-lg"></i>
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- ── Table ──────────────────────────────────── -->
+        <div class="card content-card">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Utilisateur</th>
+                                <th>Rôle</th>
+                                <th>Profil</th>
+                                <th class="text-end">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="user : ${page.contenu}">
+                                <td class="text-muted small align-middle" th:text="${user.id}"></td>
+
+                                <!-- Avatar + nom + email -->
+                                <td class="align-middle">
+                                    <div class="d-flex align-items-center gap-3">
+
+                                        <!-- Photo de profil ou icône par défaut -->
+                                        <div class="flex-shrink-0">
+                                            <img th:if="${user.urlProfile != null and !#strings.isEmpty(user.urlProfile)}"
+                                                 th:src="${user.urlProfile}"
+                                                 class="rounded-circle border"
+                                                 style="width:40px;height:40px;object-fit:cover;"
+                                                 alt="Photo de profil"/>
+                                            <div th:unless="${user.urlProfile != null and !#strings.isEmpty(user.urlProfile)}"
+                                                 class="rounded-circle d-flex align-items-center justify-content-center"
+                                                 style="width:40px;height:40px;background:#e8eaf6;flex-shrink:0;">
+                                                <i class="bi bi-person" style="font-size:1.1rem;color:#5c6bc0;"></i>
+                                            </div>
+                                        </div>
+
+                                        <!-- Nom + email -->
+                                        <div>
+                                            <div class="fw-medium lh-sm"
+                                                 th:text="${(user.firstName != null ? user.firstName : '') + ' ' + (user.lastName != null ? user.lastName : '')}">
+                                                —
+                                            </div>
+                                            <div class="text-muted small" th:text="${user.mail}">—</div>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <td class="align-middle">
+                                    <span th:switch="${user.role?.name()}">
+                                        <span th:case="'ROLE_LOCATAIRE'"
+                                              class="badge badge-locataire">Locataire</span>
+                                        <span th:case="'ROLE_PROPRIETAIRE'"
+                                              class="badge badge-proprietaire">Propriétaire</span>
+                                        <span th:case="'ROLE_ADMIN'"
+                                              class="badge badge-admin">Admin</span>
+                                        <span th:case="*" class="badge bg-light text-muted"
+                                              th:text="${user.role}">—</span>
+                                    </span>
+                                </td>
+
+                                <td class="align-middle">
+                                    <i th:if="${user.hasCompleteProfil}"
+                                       class="bi bi-check-circle-fill text-success"></i>
+                                    <i th:unless="${user.hasCompleteProfil}"
+                                       class="bi bi-clock text-warning"></i>
+                                </td>
+
+                                <td class="text-end align-middle">
+                                    <button class="btn btn-danger btn-sm"
+                                            title="Supprimer"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#deleteModal"
+                                            th:attr="data-user-id=${user.id},
+                                                     data-user-name=${(user.firstName != null ? user.firstName : '') + ' ' + (user.lastName != null ? user.lastName : '')}">
+                                        <i class="bi bi-trash3"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(page.contenu)}">
+                                <td colspan="5" class="text-center text-muted py-5">
+                                    <i class="bi bi-person-x fs-3 d-block mb-2"></i>
+                                    Aucun utilisateur trouvé
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            <div th:if="${page.totalPages > 1}"
+                 class="card-footer bg-white border-top d-flex align-items-center justify-content-between py-2 px-3">
+                <span class="text-muted small">
+                    Page <strong th:text="${page.pageActuelle + 1}"></strong>
+                    sur <strong th:text="${page.totalPages}"></strong>
+                </span>
+                <nav>
+                    <ul class="pagination pagination-sm mb-0">
+                        <li class="page-item" th:classappend="${page.premierePage} ? 'disabled'">
+                            <a class="page-link"
+                               th:href="@{/backoffice/users(page=${page.pageActuelle - 1}, size=${size},
+                                          firstName=${firstName}, lastName=${lastName},
+                                          mail=${mail}, role=${role})}">
+                                <i class="bi bi-chevron-left"></i>
+                            </a>
+                        </li>
+                        <li th:each="i : ${#numbers.sequence(0, page.totalPages - 1)}"
+                            class="page-item"
+                            th:classappend="${i == page.pageActuelle} ? 'active'">
+                            <a class="page-link"
+                               th:href="@{/backoffice/users(page=${i}, size=${size},
+                                          firstName=${firstName}, lastName=${lastName},
+                                          mail=${mail}, role=${role})}"
+                               th:text="${i + 1}"></a>
+                        </li>
+                        <li class="page-item" th:classappend="${page.dernierePage} ? 'disabled'">
+                            <a class="page-link"
+                               th:href="@{/backoffice/users(page=${page.pageActuelle + 1}, size=${size},
+                                          firstName=${firstName}, lastName=${lastName},
+                                          mail=${mail}, role=${role})}">
+                                <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- ── Modal confirmation suppression ────────────────── -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-body text-center p-4">
+                <div class="rounded-circle bg-danger bg-opacity-10 d-inline-flex align-items-center
+                             justify-content-center mb-3" style="width:56px;height:56px;">
+                    <i class="bi bi-trash3 text-danger fs-4"></i>
+                </div>
+                <h6 class="fw-bold mb-1">Confirmer la suppression</h6>
+                <p class="text-muted small mb-4">
+                    Supprimer <strong id="deleteTargetName"></strong> ?
+                    Cette action est irréversible.
+                </p>
+                <form id="deleteForm" th:action="@{/backoffice/users/0/supprimer}" method="post">
+                    <div class="d-flex gap-2 justify-content-center">
+                        <button type="button" class="btn btn-outline-secondary btn-sm px-3"
+                                data-bs-dismiss="modal">Annuler</button>
+                        <button type="submit" class="btn btn-danger btn-sm px-3">Supprimer</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{backoffice/fragments/layout :: scripts}"></div>
+<script>
+    document.getElementById('deleteModal').addEventListener('show.bs.modal', function (event) {
+        const btn  = event.relatedTarget;
+        const id   = btn.dataset.userId;
+        const name = btn.dataset.userName;
+        document.getElementById('deleteTargetName').textContent = name;
+        document.getElementById('deleteForm').action = '/backoffice/users/' + id + '/supprimer';
+    });
+</script>
+</body>
+</html>

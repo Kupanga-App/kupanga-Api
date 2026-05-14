@@ -1,5 +1,6 @@
 package com.kupanga.api.user.repository;
 
+import com.kupanga.api.user.entity.Role;
 import com.kupanga.api.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -13,4 +14,5 @@ public interface UserRepository extends JpaRepository<User, Long> , JpaSpecifica
     boolean existsByMail(String mail);
     Optional<User> findByMail(String mail);
 
+    long countByRole(Role role);
 }

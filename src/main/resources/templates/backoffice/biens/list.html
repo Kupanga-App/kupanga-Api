@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head th:replace="~{backoffice/fragments/layout :: head('Biens')}"></head>
+<body>
+
+<div th:replace="~{backoffice/fragments/layout :: sidebar('biens')}"></div>
+
+<div class="main-wrapper">
+
+    <div th:replace="~{backoffice/fragments/layout :: topbar}"></div>
+
+    <div class="container-fluid px-4 py-4">
+
+        <!-- En-tête -->
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <div>
+                <h5 class="fw-bold mb-0">Gestion des biens</h5>
+                <p class="text-muted small mb-0"
+                   th:text="${page.totalElements} + ' bien(s) trouvé(s)'">0 bien(s)</p>
+            </div>
+        </div>
+
+        <!-- ── Formulaire de recherche ─────────────────── -->
+        <div class="search-card">
+            <form th:action="@{/backoffice/biens}" method="get">
+                <div class="row g-2 align-items-end">
+                    <div class="col-sm-6 col-md-4">
+                        <label class="form-label small fw-semibold mb-1">Titre</label>
+                        <input type="text" name="titre" class="form-control"
+                               placeholder="Rechercher..." th:value="${titre}"/>
+                    </div>
+                    <div class="col-sm-6 col-md-4">
+                        <label class="form-label small fw-semibold mb-1">Ville</label>
+                        <input type="text" name="ville" class="form-control"
+                               placeholder="Rechercher..." th:value="${ville}"/>
+                    </div>
+                    <div class="col-sm-6 col-md-3">
+                        <label class="form-label small fw-semibold mb-1">Type de bien</label>
+                        <select name="typeBien" class="form-select">
+                            <option value="">Tous les types</option>
+                            <option th:each="t : ${typesBien}"
+                                    th:value="${t.name()}"
+                                    th:text="${t.name()}"
+                                    th:selected="${t == typeBien}"></option>
+                        </select>
+                    </div>
+                    <input type="hidden" name="size" th:value="${size}"/>
+                    <div class="col-sm-6 col-md-1 d-flex gap-2">
+                        <button type="submit" class="btn btn-search flex-grow-1">
+                            <i class="bi bi-search"></i>
+                        </button>
+                        <a th:href="@{/backoffice/biens}" class="btn btn-reset btn-outline-secondary flex-grow-1">
+                            <i class="bi bi-x-lg"></i>
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- ── Liste des biens (cartes) ───────────────── -->
+
+        <!-- État vide -->
+        <div th:if="${#lists.isEmpty(page.contenu)}"
+             class="card content-card text-center py-5 text-muted">
+            <i class="bi bi-house-x fs-2 d-block mb-2"></i>
+            Aucun bien trouvé pour ces critères
+        </div>
+
+        <!-- Carte par bien -->
+        <div th:each="bien : ${page.contenu}" class="card content-card mb-3 overflow-hidden">
+            <div class="row g-0">
+
+                <!-- ── Colonne gauche : Carousel photos ──────── -->
+                <div class="col-md-4 col-lg-3 bg-dark position-relative"
+                     style="min-height: 210px;">
+
+                    <!-- Carousel Bootstrap -->
+                    <div th:id="'carousel-' + ${bien.id}"
+                         class="carousel slide h-100"
+                         style="min-height: 210px;"
+                         data-bs-ride="false">
+
+                        <!-- Indicateurs (dots) — uniquement si plusieurs photos -->
+                        <div th:if="${bien.images.size() > 1}" class="carousel-indicators">
+                            <button th:each="img, stat : ${bien.images}"
+                                    type="button"
+                                    th:attr="data-bs-target='#carousel-' + ${bien.id},
+                                             data-bs-slide-to=${stat.index}"
+                                    th:classappend="${stat.first} ? ' active'"
+                                    th:aria-label="'Photo ' + ${stat.count}">
+                            </button>
+                        </div>
+
+                        <!-- Items -->
+                        <div class="carousel-inner h-100">
+
+                            <!-- Photos -->
+                            <div th:each="img, stat : ${bien.images}"
+                                 class="carousel-item"
+                                 th:classappend="${stat.first} ? ' active'"
+                                 style="height: 210px;">
+                                <img th:src="${img}"
+                                     class="d-block w-100 h-100"
+                                     style="object-fit: cover;"
+                                     loading="lazy"
+                                     alt="Photo du bien"/>
+                            </div>
+
+                            <!-- Placeholder si aucune photo -->
+                            <div th:if="${#lists.isEmpty(bien.images)}"
+                                 class="carousel-item active"
+                                 style="height: 210px;">
+                                <div class="d-flex flex-column align-items-center justify-content-center
+                                            h-100 text-muted">
+                                    <i class="bi bi-image fs-1 mb-1 opacity-50"></i>
+                                    <small class="opacity-50">Aucune photo</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Contrôles précédent / suivant -->
+                        <button th:if="${bien.images.size() > 1}"
+                                class="carousel-control-prev"
+                                type="button"
+                                th:attr="data-bs-target='#carousel-' + ${bien.id}"
+                                data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon"></span>
+                            <span class="visually-hidden">Précédent</span>
+                        </button>
+                        <button th:if="${bien.images.size() > 1}"
+                                class="carousel-control-next"
+                                type="button"
+                                th:attr="data-bs-target='#carousel-' + ${bien.id}"
+                                data-bs-slide="next">
+                            <span class="carousel-control-next-icon"></span>
+                            <span class="visually-hidden">Suivant</span>
+                        </button>
+
+                        <!-- Badge compteur de photos (coin haut-droite) -->
+                        <div th:if="${!#lists.isEmpty(bien.images)}"
+                             class="position-absolute top-0 end-0 m-2">
+                            <span class="badge bg-dark bg-opacity-60 rounded-pill small">
+                                <i class="bi bi-images me-1"></i>
+                                <span th:text="${bien.images.size()}"></span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── Colonne droite : Informations ──────────── -->
+                <div class="col-md-8 col-lg-9">
+                    <div class="card-body d-flex flex-column h-100 py-3 px-4">
+
+                        <!-- Titre + badge type -->
+                        <div class="d-flex align-items-start justify-content-between gap-2 mb-2">
+                            <div>
+                                <h6 class="fw-bold mb-0 lh-sm"
+                                    th:text="${bien.titre != null ? bien.titre : 'Sans titre'}">
+                                    Titre
+                                </h6>
+                                <div class="text-muted small mt-1">
+                                    <i class="bi bi-geo-alt me-1"></i>
+                                    <span th:text="${bien.ville != null ? bien.ville : '—'}"></span>
+                                    <span th:if="${bien.pays != null}"
+                                          th:text="', ' + ${bien.pays}"></span>
+                                </div>
+                            </div>
+                            <div class="flex-shrink-0">
+                                <span th:switch="${bien.typeBien?.name()}">
+                                    <span th:case="'APPARTEMENT'"
+                                          class="badge bg-info bg-opacity-15 text-info fw-medium">
+                                        <i class="bi bi-building me-1"></i>Appartement
+                                    </span>
+                                    <span th:case="'MAISON'"
+                                          class="badge bg-success bg-opacity-15 text-success fw-medium">
+                                        <i class="bi bi-house me-1"></i>Maison
+                                    </span>
+                                    <span th:case="'STUDIO'"
+                                          class="badge bg-warning bg-opacity-15 text-warning fw-medium">
+                                        <i class="bi bi-door-open me-1"></i>Studio
+                                    </span>
+                                    <span th:case="*"
+                                          class="badge bg-secondary bg-opacity-15 text-secondary"
+                                          th:text="${bien.typeBien}">—
+                                    </span>
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Séparateur -->
+                        <hr class="my-2 opacity-25"/>
+
+                        <!-- Détails (grille 3 colonnes) -->
+                        <div class="row g-3 flex-grow-1">
+                            <div class="col-sm-4">
+                                <div class="text-muted small mb-1">
+                                    <i class="bi bi-cash-coin me-1"></i>Loyer / mois
+                                </div>
+                                <div class="fw-semibold"
+                                     th:text="${bien.loyerMensuel != null
+                                        ? #numbers.formatDecimal(bien.loyerMensuel, 0, 'COMMA', 0, 'POINT') + ' €'
+                                        : '—'}">
+                                    —
+                                </div>
+                            </div>
+                            <div class="col-sm-4">
+                                <div class="text-muted small mb-1">
+                                    <i class="bi bi-person me-1"></i>Propriétaire
+                                </div>
+                                <div class="small text-truncate"
+                                     th:text="${bien.proprietaireMail}"
+                                     th:title="${bien.proprietaireMail}">
+                                    —
+                                </div>
+                            </div>
+                            <div class="col-sm-4">
+                                <div class="text-muted small mb-1">
+                                    <i class="bi bi-calendar3 me-1"></i>Ajouté le
+                                </div>
+                                <div class="small"
+                                     th:text="${bien.createdAt != null
+                                        ? #temporals.format(bien.createdAt, 'dd/MM/yyyy')
+                                        : '—'}">
+                                    —
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Footer carte : ID + bouton suppression -->
+                        <div class="d-flex align-items-center justify-content-between
+                                    mt-3 pt-2 border-top">
+                            <span class="text-muted small">
+                                ID <strong th:text="${bien.id}"></strong>
+                            </span>
+                            <button class="btn btn-danger btn-sm"
+                                    title="Supprimer ce bien"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#deleteModal"
+                                    th:attr="data-bien-id=${bien.id},
+                                             data-bien-titre=${bien.titre != null ? bien.titre : 'ce bien'}">
+                                <i class="bi bi-trash3 me-1"></i>Supprimer
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Pagination ─────────────────────────────── -->
+        <div th:if="${page.totalPages > 1}"
+             class="card content-card d-flex flex-row align-items-center
+                    justify-content-between py-2 px-3">
+            <span class="text-muted small">
+                Page <strong th:text="${page.pageActuelle + 1}"></strong>
+                sur <strong th:text="${page.totalPages}"></strong>
+                &nbsp;·&nbsp;
+                <strong th:text="${page.totalElements}"></strong> biens
+            </span>
+            <nav>
+                <ul class="pagination pagination-sm mb-0">
+                    <li class="page-item" th:classappend="${page.premierePage} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="@{/backoffice/biens(page=${page.pageActuelle - 1}, size=${size},
+                                      titre=${titre}, ville=${ville}, typeBien=${typeBien})}">
+                            <i class="bi bi-chevron-left"></i>
+                        </a>
+                    </li>
+                    <li th:each="i : ${#numbers.sequence(0, page.totalPages - 1)}"
+                        class="page-item"
+                        th:classappend="${i == page.pageActuelle} ? 'active'">
+                        <a class="page-link"
+                           th:href="@{/backoffice/biens(page=${i}, size=${size},
+                                      titre=${titre}, ville=${ville}, typeBien=${typeBien})}"
+                           th:text="${i + 1}"></a>
+                    </li>
+                    <li class="page-item" th:classappend="${page.dernierePage} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="@{/backoffice/biens(page=${page.pageActuelle + 1}, size=${size},
+                                      titre=${titre}, ville=${ville}, typeBien=${typeBien})}">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+
+    </div>
+</div>
+
+<!-- ── Modal confirmation suppression ────────────────── -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-body text-center p-4">
+                <div class="rounded-circle bg-danger bg-opacity-10 d-inline-flex
+                             align-items-center justify-content-center mb-3"
+                     style="width:56px;height:56px;">
+                    <i class="bi bi-house-x text-danger fs-4"></i>
+                </div>
+                <h6 class="fw-bold mb-1">Confirmer la suppression</h6>
+                <p class="text-muted small mb-4">
+                    Supprimer <strong id="deleteTargetTitre"></strong> ?
+                    Cette action est irréversible.
+                </p>
+                <form id="deleteForm" th:action="@{/backoffice/biens/0/supprimer}" method="post">
+                    <div class="d-flex gap-2 justify-content-center">
+                        <button type="button" class="btn btn-outline-secondary btn-sm px-3"
+                                data-bs-dismiss="modal">Annuler</button>
+                        <button type="submit" class="btn btn-danger btn-sm px-3">Supprimer</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{backoffice/fragments/layout :: scripts}"></div>
+<script>
+    document.getElementById('deleteModal').addEventListener('show.bs.modal', function (event) {
+        const btn   = event.relatedTarget;
+        const id    = btn.dataset.bienId;
+        const titre = btn.dataset.bienTitre;
+        document.getElementById('deleteTargetTitre').textContent = titre;
+        document.getElementById('deleteForm').action = '/backoffice/biens/' + id + '/supprimer';
+    });
+</script>
+</body>
+</html>

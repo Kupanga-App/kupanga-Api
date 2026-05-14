@@ -20,7 +20,8 @@ public class BienSpecification {
      */
     public Specification<Bien> build(BienSearchDTO dto) {
         return Specification
-                .where(parVilles(dto.villes()))
+                .where(sansLocataire())
+                .and(parVilles(dto.villes()))
                 .and(parPays(dto.pays()))
                 .and(parCodesPostaux(dto.codesPostaux()))
                 .and(parTypesBien(dto.typesBien()))
@@ -156,6 +157,15 @@ public class BienSpecification {
 
             return root.get("id").in(subquery);
         };
+    }
+
+    // ─── Disponibilité ────────────────────────────────────────────────────────────
+
+    /** Exclut les biens déjà occupés — locataire doit être null. */
+    private Specification<Bien> sansLocataire() {
+
+        return (root, query, cb) -> cb.isNull(root.get("locataire"));
+
     }
 
     // ─── Conditions de location ───────────────────────────────────────────────────
