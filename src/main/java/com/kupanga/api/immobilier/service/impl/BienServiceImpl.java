@@ -131,7 +131,6 @@ public class BienServiceImpl implements BienService {
     public List<BienDTO> findAllPropertiesAssociateToUser(String email){
 
         User user = userService.getUserByEmail(email);
-        userService.verifyIfUserIsOwner(user.getRole());
 
         return bienRepository.findAllPropertiesAssociateToUser(user.getId())
                 .stream()

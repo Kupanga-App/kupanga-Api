@@ -31,7 +31,8 @@ public interface BienRepository extends JpaRepository<Bien, Long>, JpaSpecificat
             select b
             from Bien b
             inner join b.proprietaire p
-            where p.id = :userId
+            inner join b.locataire l
+            where p.id = :userId or l.id = :userId
             """
     )
     List<Bien> findAllPropertiesAssociateToUser(Long userId);
