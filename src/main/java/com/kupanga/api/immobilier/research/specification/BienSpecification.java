@@ -3,6 +3,7 @@ package com.kupanga.api.immobilier.research.specification;
 import com.kupanga.api.immobilier.entity.*;
 import com.kupanga.api.immobilier.research.dto.BienSearchDTO;
 import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.JoinType;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
@@ -45,7 +46,8 @@ public class BienSpecification {
                 // ─── Diagnostic énergétique ───────────────────────────────────
                 .and(parClassesEnergie(dto.classesEnergie()))
                 .and(parModesChauffage(dto.modesChauffage()))
-                .and(parClassesGes(dto.classesGes()));
+                .and(parClassesGes(dto.classesGes()))
+                .and(fetchProprietaire());
     }
 
     /**
@@ -272,6 +274,16 @@ public class BienSpecification {
         return (root, query, cb) -> {
             if (classesGes == null || classesGes.isEmpty()) return null;
             return root.get("classeGes").in(classesGes);
+        };
+    }
+
+    private Specification<Bien> fetchProprietaire() {
+        return (root, query, cb) -> {
+            if (Bien.class.equals(query.getResultType())) {
+                root.fetch("proprietaire", JoinType.LEFT);
+                query.distinct(true);
+            }
+            return null;
         };
     }
 }

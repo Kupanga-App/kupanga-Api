@@ -31,7 +31,7 @@ public interface BienRepository extends JpaRepository<Bien, Long>, JpaSpecificat
             select b
             from Bien b
             inner join b.proprietaire p
-            inner join b.locataire l
+            left join b.locataire l
             where p.id = :userId or l.id = :userId
             """
     )

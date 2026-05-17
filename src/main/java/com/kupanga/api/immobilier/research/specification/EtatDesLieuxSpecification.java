@@ -24,7 +24,10 @@ public class EtatDesLieuxSpecification {
     private Specification<EtatDesLieux> parUtilisateur(Long userId, Role role) {
         return (root, query, cb) -> {
             if (role == Role.ROLE_PROPRIETAIRE) {
-                return cb.equal(root.get("proprietaire").get("id"), userId);
+                return cb.or(
+                        cb.equal(root.get("proprietaire").get("id"), userId),
+                        cb.equal(root.get("locataire").get("id"), userId)
+                );
             }
             return cb.equal(root.get("locataire").get("id"), userId);
         };
