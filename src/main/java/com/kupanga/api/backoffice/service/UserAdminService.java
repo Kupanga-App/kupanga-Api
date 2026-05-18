@@ -1,5 +1,8 @@
 package com.kupanga.api.backoffice.service;
 
+import com.kupanga.api.authentification.entity.RefreshToken;
+import com.kupanga.api.authentification.repository.PasswordResetTokenRepository;
+import com.kupanga.api.authentification.repository.RefreshTokenRepository;
 import com.kupanga.api.backoffice.dto.UserAdminDTO;
 import com.kupanga.api.backoffice.dto.UserAdminPageDTO;
 import com.kupanga.api.backoffice.dto.UserAdminSearchDTO;
@@ -23,8 +26,10 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class UserAdminService {
 
-    private final UserRepository        userRepository;
-    private final UserAdminSpecification userAdminSpecification;
+    private final UserRepository            userRepository;
+    private final UserAdminSpecification    userAdminSpecification;
+    private final RefreshTokenRepository    refreshTokenRepository;
+    private final PasswordResetTokenRepository passwordResetTokenRepository;
 
     /**
      * Recherche paginée des utilisateurs selon les critères admin.
@@ -48,11 +53,21 @@ public class UserAdminService {
 
     /**
      * Supprime un utilisateur par son identifiant.
+     * Supprime d'abord ses tokens liés (refresh token, password reset token)
+     * pour respecter les contraintes FK avant la suppression de l'utilisateur.
      *
      * @param id identifiant de l'utilisateur à supprimer
      */
     @Transactional
     public void supprimer(Long id) {
+        RefreshToken refreshToken = refreshTokenRepository.findByUserId(id);
+        if (refreshToken != null) {
+            refreshTokenRepository.delete(refreshToken);
+        }
+
+        passwordResetTokenRepository.findByUser_Id(id)
+                .ifPresent(passwordResetTokenRepository::delete);
+
         userRepository.deleteById(id);
     }
 
