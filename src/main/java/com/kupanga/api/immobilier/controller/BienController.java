@@ -632,9 +632,62 @@ public class BienController {
     }
 
 
-    @PostMapping("/{bienId}/assigne-locataire/{userId}")
-    public ResponseEntity<Void> assignLocataire(@PathVariable Long bienId , @PathVariable Long userId){
+    // =========================================
+    // ASSIGNER UN LOCATAIRE À UN BIEN
+    // =========================================
+    @Operation(
+            summary = "Assigner un locataire à un bien",
+            description = """
+                    Permet à un **propriétaire** d'associer un locataire existant à l'un de ses biens.
+                    Le locataire doit déjà posséder un compte sur la plateforme.
 
+                    Cette opération remplace tout locataire précédemment assigné au bien.
+                    Elle ne génère pas de contrat — utilisez l'endpoint dédié pour créer un contrat.
+                    """
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "204",
+                    description = "Locataire assigné avec succès"
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Utilisateur non authentifié ou token invalide",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    { "error": "Accès non autorisé" }
+                                    """)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "Accès refusé : l'utilisateur n'a pas le rôle PROPRIETAIRE",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    { "error": "Accès refusé : rôle PROPRIETAIRE requis" }
+                                    """)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Bien ou locataire introuvable",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    { "error": "Aucun bien trouvé pour cet id" }
+                                    """)
+                    )
+            )
+    })
+    @PostMapping("/{bienId}/assigne-locataire/{userId}")
+    public ResponseEntity<Void> assignLocataire(
+            @Parameter(description = "Identifiant unique du bien auquel assigner le locataire", required = true)
+            @PathVariable Long bienId,
+            @Parameter(description = "Identifiant unique de l'utilisateur à assigner comme locataire", required = true)
+            @PathVariable Long userId
+    ) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         bienService.affectLocataire(auth , bienId , userId);
         return ResponseEntity.noContent().build();

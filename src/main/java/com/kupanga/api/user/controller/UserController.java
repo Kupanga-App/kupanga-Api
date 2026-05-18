@@ -6,6 +6,7 @@ import com.kupanga.api.user.research.LocataireSearchService;
 import com.kupanga.api.user.research.dto.LocatairePageDTO;
 import com.kupanga.api.user.research.dto.LocataireSearchDTO;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -131,8 +132,111 @@ public class UserController {
         return ResponseEntity.ok(bienService.findAllPropertiesAssociateToUser(auth.getName()));
     }
 
+    // =========================================
+    // RECHERCHER UN LOCATAIRE
+    // =========================================
+    @Operation(
+            summary = "Rechercher un locataire pour un bien",
+            description = """
+                    Permet à un propriétaire de rechercher des locataires éligibles
+                    pour un de ses biens. La recherche est paginée et filtrable.
+
+                    **Filtres disponibles :** prénom, nom, email (recherche partielle insensible à la casse).
+
+                    **Tri disponible :** `firstName`, `lastName`, `mail`. Défaut : `firstName ASC`.
+
+                    **Pagination :** défaut page `0`, taille `10`.
+
+                    Un body vide `{}` ou absent retourne tous les locataires paginés.
+                    """
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Liste paginée des locataires correspondant aux critères",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    {
+                                        "contenu": [
+                                            {
+                                                "id": 12,
+                                                "firstName": "Sophie",
+                                                "lastName": "Martin",
+                                                "mail": "sophie.martin@email.com",
+                                                "role": "ROLE_LOCATAIRE",
+                                                "urlProfile": null,
+                                                "hasCompleteProfil": true
+                                            }
+                                        ],
+                                        "pageActuelle": 0,
+                                        "totalPages": 1,
+                                        "totalElements": 1,
+                                        "dernierePage": true,
+                                        "premierePage": true
+                                    }
+                                    """)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Utilisateur non authentifié",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    { "error": "Accès non autorisé" }
+                                    """)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "L'utilisateur n'est pas propriétaire de ce bien",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    { "error": "Accès refusé : rôle PROPRIETAIRE requis" }
+                                    """)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Bien introuvable",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    { "error": "Aucun bien trouvé pour cet id" }
+                                    """)
+                    )
+            )
+    })
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            description = "Filtres de recherche, tri et pagination. Tous les champs sont optionnels.",
+            required = false,
+            content = @Content(
+                    mediaType = "application/json",
+                    examples = {
+                            @ExampleObject(
+                                    name = "Recherche par nom",
+                                    value = """
+                                            {
+                                                "lastName": "Martin",
+                                                "page": 0,
+                                                "size": 10,
+                                                "sortBy": "lastName",
+                                                "sortDirection": "ASC"
+                                            }
+                                            """
+                            ),
+                            @ExampleObject(
+                                    name = "Body vide — tous les locataires",
+                                    value = "{}"
+                            )
+                    }
+            )
+    )
     @PostMapping("/{bienId}/recherche-locataire")
     public ResponseEntity<LocatairePageDTO> rechercherLocataires(
+            @Parameter(description = "Identifiant du bien pour lequel on cherche un locataire", required = true)
             @PathVariable Long bienId,
             @RequestBody(required = false) LocataireSearchDTO dto
     ) {
