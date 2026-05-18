@@ -16,6 +16,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+/**
+ * Service de recherche paginée des contrats.
+ * Filtre les contrats accessibles à l'utilisateur connecté (propriétaire ou locataire).
+ */
 @Service
 @RequiredArgsConstructor
 public class ContratSearchService {
@@ -25,6 +29,14 @@ public class ContratSearchService {
     private final ContratMapper contratMapper;
     private final UserService userService;
 
+    /**
+     * Recherche paginée des contrats selon les critères fournis.
+     * Seuls les contrats accessibles à l'utilisateur connecté sont retournés.
+     *
+     * @param dto   critères de recherche, tri et pagination
+     * @param email email de l'utilisateur connecté
+     * @return page de contrats correspondant aux critères
+     */
     public ContratPageDTO rechercher(ContratSearchDTO dto, String email) {
         User user = userService.getUserByEmail(email);
         Pagination pagination = dto.toPagination();

@@ -1,5 +1,8 @@
 package com.kupanga.api.backoffice.service;
 
+import com.kupanga.api.authentification.entity.RefreshToken;
+import com.kupanga.api.authentification.repository.PasswordResetTokenRepository;
+import com.kupanga.api.authentification.repository.RefreshTokenRepository;
 import com.kupanga.api.backoffice.dto.UserAdminDTO;
 import com.kupanga.api.backoffice.dto.UserAdminPageDTO;
 import com.kupanga.api.backoffice.dto.UserAdminSearchDTO;
@@ -15,13 +18,25 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Service d'administration des utilisateurs.
+ * Fournit les opérations de recherche paginée, suppression et statistiques pour le back-office.
+ */
 @Service
 @RequiredArgsConstructor
 public class UserAdminService {
 
-    private final UserRepository        userRepository;
-    private final UserAdminSpecification userAdminSpecification;
+    private final UserRepository            userRepository;
+    private final UserAdminSpecification    userAdminSpecification;
+    private final RefreshTokenRepository    refreshTokenRepository;
+    private final PasswordResetTokenRepository passwordResetTokenRepository;
 
+    /**
+     * Recherche paginée des utilisateurs selon les critères admin.
+     *
+     * @param dto critères de recherche, tri et pagination
+     * @return page d'utilisateurs correspondant aux critères
+     */
     @Transactional(readOnly = true)
     public UserAdminPageDTO rechercher(UserAdminSearchDTO dto) {
         Pagination pagination = dto.toPagination();
@@ -36,16 +51,42 @@ public class UserAdminService {
         return UserAdminPageDTO.from(page);
     }
 
+    /**
+     * Supprime un utilisateur par son identifiant.
+     * Supprime d'abord ses tokens liés (refresh token, password reset token)
+     * pour respecter les contraintes FK avant la suppression de l'utilisateur.
+     *
+     * @param id identifiant de l'utilisateur à supprimer
+     */
     @Transactional
     public void supprimer(Long id) {
+        RefreshToken refreshToken = refreshTokenRepository.findByUserId(id);
+        if (refreshToken != null) {
+            refreshTokenRepository.delete(refreshToken);
+        }
+
+        passwordResetTokenRepository.findByUser_Id(id)
+                .ifPresent(passwordResetTokenRepository::delete);
+
         userRepository.deleteById(id);
     }
 
+    /**
+     * Retourne le nombre total d'utilisateurs enregistrés.
+     *
+     * @return nombre total d'utilisateurs
+     */
     @Transactional(readOnly = true)
     public long countAll() {
         return userRepository.count();
     }
 
+    /**
+     * Retourne le nombre d'utilisateurs ayant un rôle donné.
+     *
+     * @param role le rôle à compter
+     * @return nombre d'utilisateurs pour ce rôle
+     */
     @Transactional(readOnly = true)
     public long countByRole(Role role) {
         return userRepository.countByRole(role);

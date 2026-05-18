@@ -6,7 +6,9 @@ public interface BienPoiService {
 
     /**
      * Calcule et sauvegarde les POI pour un bien de façon asynchrone.
-     * @Async → ne bloque pas la création du bien
+     * S'exécute en arrière-plan et ne bloque pas la création du bien.
+     *
+     * @param bien le bien pour lequel calculer les POI
      */
     void calculerEtSauvegarderPoi(Bien bien);
 }

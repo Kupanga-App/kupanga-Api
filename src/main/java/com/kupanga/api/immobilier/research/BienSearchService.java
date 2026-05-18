@@ -14,6 +14,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+/**
+ * Service de recherche paginée des biens immobiliers.
+ * Applique les filtres dynamiques définis dans {@link BienSearchDTO} via une Specification JPA.
+ */
 @Service
 @RequiredArgsConstructor
 public class BienSearchService {
@@ -22,6 +26,12 @@ public class BienSearchService {
     private final BienSpecification bienSpecification;
     private final BienMapper bienMapper;
 
+    /**
+     * Recherche paginée des biens selon les critères fournis.
+     *
+     * @param dto critères de recherche, tri et pagination
+     * @return page de biens correspondant aux critères
+     */
     public BienPageDTO rechercher(BienSearchDTO dto) {
         Pagination pagination = dto.toPagination();
 
