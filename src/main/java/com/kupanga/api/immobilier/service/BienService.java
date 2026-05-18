@@ -1,6 +1,7 @@
 package com.kupanga.api.immobilier.service;
 
 import com.kupanga.api.immobilier.dto.formDTO.BienFormDTO;
+import com.kupanga.api.immobilier.dto.formDTO.BienUpdateDTO;
 import com.kupanga.api.immobilier.dto.readDTO.BienDTO;
 import com.kupanga.api.immobilier.entity.Bien;
 import org.springframework.security.core.Authentication;
@@ -17,6 +18,17 @@ public interface BienService {
      * @param files les photos du bien.
      */
     void createBien(Authentication auth , BienFormDTO bienFormDTO , List<MultipartFile> files);
+
+    /**
+     * Mise à jour partielle d'un bien (PATCH).
+     * Seuls les champs non-null du DTO sont appliqués.
+     * Une description vide ("") efface la valeur existante.
+     * @param auth utilisateur connecté (doit être le propriétaire du bien)
+     * @param bienId id du bien à modifier
+     * @param dto champs à mettre à jour
+     * @return le bien mis à jour
+     */
+    BienDTO updateBien(Authentication auth, Long bienId, BienUpdateDTO dto);
 
     /**
      * Récupère les infos du bien immobilier.

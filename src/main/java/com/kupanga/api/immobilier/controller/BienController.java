@@ -1,6 +1,7 @@
 package com.kupanga.api.immobilier.controller;
 
 import com.kupanga.api.immobilier.dto.formDTO.BienFormDTO;
+import com.kupanga.api.immobilier.dto.formDTO.BienUpdateDTO;
 import com.kupanga.api.immobilier.dto.readDTO.BienDTO;
 import com.kupanga.api.immobilier.research.BienSearchService;
 import com.kupanga.api.immobilier.research.dto.BienPageDTO;
@@ -14,6 +15,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -456,6 +458,179 @@ public class BienController {
     ) {
         return ResponseEntity.ok(bienSearchService.rechercher(dto));
     }
+
+    // =========================================
+    // MODIFIER UN BIEN (PATCH partiel)
+    // =========================================
+    @Operation(
+            summary = "Modifier partiellement un bien immobilier",
+            description = """
+                    Permet au **propriétaire** du bien de mettre à jour un ou plusieurs champs.
+
+                    ### Règles de mise à jour
+
+                    **Convention `null` = inchangé :**
+                    Tout champ absent du JSON (ou explicitement `null`) est ignoré —
+                    la valeur existante en base est conservée.
+                    Le front n'a donc pas à renvoyer l'intégralité des données du bien,
+                    seulement ce qui change.
+
+                    **Cas particulier — effacement de la description :**
+                    `"description": null` → inchangé.
+                    `"description": ""` → la description est effacée (mise à `null` en base).
+                    C'est le seul champ nullable via cet endpoint.
+
+                    ### Champs modifiables
+
+                    | Champ               | Type       | Validation si fourni                        |
+                    |---------------------|------------|---------------------------------------------|
+                    | `titre`             | String     | 3–150 car., alphanum + `,.'"-()`, sans URL  |
+                    | `typeBien`          | Enum       | `APPARTEMENT`, `MAISON`, `STUDIO`, `VILLA`, `BUREAU`, `COMMERCE` |
+                    | `description`       | String     | max 1000 car., sans URL — `""` pour effacer |
+                    | `surfaceHabitable`  | Double     | 9.0 – 10 000.0                              |
+                    | `nombrePieces`      | Integer    | 1 – 50                                      |
+                    | `nombreChambres`    | Integer    | 0 – 20                                      |
+                    | `etage`             | Integer    | 0 – 200                                     |
+                    | `ascenseur`         | Boolean    | —                                           |
+                    | `anneeConstruction` | Integer    | 1800 – 2100                                 |
+                    | `modeChauffage`     | Enum       | `ELECTRIQUE`, `GAZ`, `FIOUL`, `BOIS`, `POMPE_A_CHALEUR`, `POELE`, `COLLECTIF`, `SANS_CHAUFFAGE` |
+                    | `classeEnergie`     | Enum       | `A` à `G`                                   |
+                    | `classeGes`         | Enum       | `A` à `G`                                   |
+                    | `loyerMensuel`      | Double     | 1.0 – 100 000.0, 2 décimales max            |
+                    | `chargesMensuelles` | Double     | 0.0 – 10 000.0, 2 décimales max             |
+                    | `depotGarantie`     | Double     | 0.0 – 100 000.0, 2 décimales max            |
+                    | `meuble`            | Boolean    | —                                           |
+                    | `colocation`        | Boolean    | —                                           |
+                    | `disponibleDe`      | LocalDate  | format `YYYY-MM-DD`, aucune contrainte future/passé |
+
+                    ### Champs non modifiables via cet endpoint
+                    `adresse`, `ville`, `codePostal`, `pays`, `localisation` (géocodage géré séparément),
+                    `proprietaire`, `locataire`, `contrats`, `quittances`, `images`, `documents`, `pois`.
+
+                    ### Réponse
+                    Retourne le bien complet mis à jour (`BienDTO`).
+                    """
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Bien mis à jour avec succès — retourne le bien complet",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = BienDTO.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Données invalides — un champ fourni ne respecte pas sa contrainte de format",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    {
+                                        "status": 400,
+                                        "message": "Données invalides",
+                                        "erreurs": {
+                                            "titre":            "Entre 3 et 150 caractères",
+                                            "loyerMensuel":     "Le loyer doit être supérieur à 0",
+                                            "surfaceHabitable": "La surface minimale est de 9 m²"
+                                        },
+                                        "timestamp": "2026-05-18T10:00:00"
+                                    }
+                                    """)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Utilisateur non authentifié ou token invalide",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    { "error": "Accès non autorisé" }
+                                    """)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "Accès refusé — l'utilisateur n'est pas le propriétaire de ce bien",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    { "error": "Accès refusé : vous n'êtes pas le propriétaire de ce bien" }
+                                    """)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Bien introuvable",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    { "error": "Aucun bien trouvé pour cet id" }
+                                    """)
+                    )
+            )
+    })
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            description = "Champs à modifier. Seuls les champs présents et non-null sont appliqués.",
+            required = true,
+            content = @Content(
+                    mediaType = "application/json",
+                    examples = {
+                            @ExampleObject(
+                                    name = "Modifier uniquement le loyer et la disponibilité",
+                                    value = """
+                                            {
+                                                "loyerMensuel": 920.00,
+                                                "disponibleDe": "2026-07-01"
+                                            }
+                                            """
+                            ),
+                            @ExampleObject(
+                                    name = "Mise à jour complète des champs",
+                                    value = """
+                                            {
+                                                "titre":             "Studio rénové centre-ville",
+                                                "typeBien":          "STUDIO",
+                                                "description":       "Entièrement rénové en 2025, calme et lumineux.",
+                                                "surfaceHabitable":  28.5,
+                                                "nombrePieces":      1,
+                                                "nombreChambres":    0,
+                                                "etage":             3,
+                                                "ascenseur":         true,
+                                                "anneeConstruction": 1975,
+                                                "modeChauffage":     "ELECTRIQUE",
+                                                "classeEnergie":     "D",
+                                                "classeGes":         "D",
+                                                "loyerMensuel":      650.00,
+                                                "chargesMensuelles": 40.00,
+                                                "depotGarantie":     1300.00,
+                                                "meuble":            true,
+                                                "colocation":        false,
+                                                "disponibleDe":      "2026-06-15"
+                                            }
+                                            """
+                            ),
+                            @ExampleObject(
+                                    name = "Effacer la description",
+                                    value = """
+                                            {
+                                                "description": ""
+                                            }
+                                            """
+                            )
+                    }
+            )
+    )
+    @PatchMapping("/{bienId}")
+    public ResponseEntity<BienDTO> updateBien(
+            @Parameter(description = "Identifiant unique du bien à modifier", required = true)
+            @PathVariable Long bienId,
+            @Valid @RequestBody BienUpdateDTO dto
+    ) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return ResponseEntity.ok(bienService.updateBien(auth, bienId, dto));
+    }
+
 
     @PostMapping("/{bienId}/assigne-locataire/{userId}")
     public ResponseEntity<Void> assignLocataire(@PathVariable Long bienId , @PathVariable Long userId){

@@ -2,6 +2,7 @@ package com.kupanga.api.immobilier.service.impl;
 
 import com.kupanga.api.exception.business.KupangaBusinessException;
 import com.kupanga.api.immobilier.dto.formDTO.BienFormDTO;
+import com.kupanga.api.immobilier.dto.formDTO.BienUpdateDTO;
 import com.kupanga.api.immobilier.dto.readDTO.BienDTO;
 import com.kupanga.api.immobilier.entity.*;
 import com.kupanga.api.immobilier.mapper.BienMapper;
@@ -243,6 +244,54 @@ public class BienServiceImpl implements BienService {
     @Override
     public boolean existsByIdAndProprietaireId(Long bienId, Long proprietaireId) {
         return bienRepository.existsByIdAndProprietaireId(bienId, proprietaireId);
+    }
+
+    @Override
+    public BienDTO updateBien(Authentication auth, Long bienId, BienUpdateDTO dto) {
+
+        User proprietaire = userService.getUserByEmail(auth.getName());
+        Bien bien = findById(bienId);
+
+        if (!bien.getProprietaire().getId().equals(proprietaire.getId())) {
+            throw new KupangaBusinessException(
+                    "Accès refusé : vous n'êtes pas le propriétaire de ce bien",
+                    HttpStatus.FORBIDDEN
+            );
+        }
+
+        // ─── Informations générales ───────────────────────────────────────────
+        if (dto.getTitre()       != null) bien.setTitre(dto.getTitre());
+        if (dto.getTypeBien()    != null) bien.setTypeBien(dto.getTypeBien());
+
+        // "" = effacement explicite · null = inchangé
+        if (dto.getDescription() != null) {
+            bien.setDescription(dto.getDescription().isEmpty() ? null : dto.getDescription());
+        }
+
+        // ─── Caractéristiques physiques ───────────────────────────────────────
+        if (dto.getSurfaceHabitable()  != null) bien.setSurfaceHabitable(dto.getSurfaceHabitable());
+        if (dto.getNombrePieces()      != null) bien.setNombrePieces(dto.getNombrePieces());
+        if (dto.getNombreChambres()    != null) bien.setNombreChambres(dto.getNombreChambres());
+        if (dto.getEtage()             != null) bien.setEtage(dto.getEtage());
+        if (dto.getAscenseur()         != null) bien.setAscenseur(dto.getAscenseur());
+        if (dto.getAnneeConstruction() != null) bien.setAnneeConstruction(dto.getAnneeConstruction());
+        if (dto.getModeChauffage()     != null) bien.setModeChauffage(dto.getModeChauffage());
+
+        // ─── Diagnostic énergétique ───────────────────────────────────────────
+        if (dto.getClasseEnergie() != null) bien.setClasseEnergie(dto.getClasseEnergie());
+        if (dto.getClasseGes()     != null) bien.setClasseGes(dto.getClasseGes());
+
+        // ─── Conditions de location ───────────────────────────────────────────
+        if (dto.getLoyerMensuel()      != null) bien.setLoyerMensuel(dto.getLoyerMensuel());
+        if (dto.getChargesMensuelles() != null) bien.setChargesMensuelles(dto.getChargesMensuelles());
+        if (dto.getDepotGarantie()     != null) bien.setDepotGarantie(dto.getDepotGarantie());
+        if (dto.getMeuble()            != null) bien.setMeuble(dto.getMeuble());
+        if (dto.getColocation()        != null) bien.setColocation(dto.getColocation());
+        if (dto.getDisponibleDe()      != null) bien.setDisponibleDe(dto.getDisponibleDe());
+
+        bienRepository.save(bien);
+
+        return bienMapper.toPublicDTO(bien);
     }
 
     @Override
