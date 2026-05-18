@@ -2,139 +2,426 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="fr">
 
 <!-- ═══════════════════════════════════════════════════
-     Fragment : <head> commun (styles + CDNs)
+     Fragment : <head> commun
      Usage    : th:replace="~{backoffice/fragments/layout :: head('Titre')}"
      ═══════════════════════════════════════════════════ -->
 <head th:fragment="head(title)">
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <title th:text="${title} + ' — Kupanga Admin'">Kupanga Admin</title>
+    <!-- Bootstrap CSS (grid + composants interactifs) -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
+    <!-- Google Fonts : DM Serif Display · DM Sans · DM Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""/>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&amp;family=DM+Sans:wght@300;400;500;600&amp;family=DM+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
     <style>
+        /* ── Variables ──────────────────────────────── */
         :root {
-            --sidebar-w   : 240px;
-            --sidebar-bg  : #1a237e;
-            --sidebar-hover: rgba(255,255,255,0.08);
-            --sidebar-active: rgba(255,255,255,0.18);
-            --topbar-h    : 56px;
-            --radius      : 12px;
-            --shadow      : 0 2px 16px rgba(0,0,0,.07);
+            --night:       #10212B;
+            --night-mid:   #1E3545;
+            --night-light: #2C4A5F;
+            --olive:       #8FA464;
+            --olive-light: #B5CA8D;
+            --olive-dark:  #6B7C4B;
+            --mint:        #EFFBDB;
+            --mint-80:     rgba(239,251,219,0.80);
+            --mint-55:     rgba(239,251,219,0.55);
+            --olive-10:    rgba(143,164,100,0.10);
+            --olive-15:    rgba(143,164,100,0.15);
+            --olive-25:    rgba(143,164,100,0.25);
+            --olive-40:    rgba(143,164,100,0.40);
+            --danger:      #C0614A;
+            --warning:     #D4A853;
+            --info:        #5A8FAF;
+            --shadow-card: 0 4px 24px rgba(0,0,0,0.2);
+            --sidebar-w:   240px;
+            --topbar-h:    56px;
+            --radius:      12px;
+            --radius-sm:   8px;
         }
 
-        body { background: #f0f2f8; font-family: 'Segoe UI', system-ui, sans-serif; }
+        *, *::before, *::after { box-sizing: border-box; }
 
-        /* ── Sidebar ─────────────────────────────────── */
+        body {
+            background: var(--night);
+            font-family: 'DM Sans', system-ui, sans-serif;
+            color: var(--mint-80);
+            font-size: 0.95rem;
+            font-weight: 400;
+            line-height: 1.6;
+        }
+
+        /* ── Icônes Lucide ──────────────────────────── */
+        .lucide {
+            stroke-width: 1.5;
+            width: 20px; height: 20px;
+            flex-shrink: 0;
+            vertical-align: middle;
+        }
+
+        /* ── Typographie ────────────────────────────── */
+        h5, h6 {
+            color: var(--mint);
+            font-family: 'DM Sans', system-ui, sans-serif;
+            font-weight: 600;
+        }
+
+        /* ── Sidebar ────────────────────────────────── */
         .sidebar {
             position: fixed; top: 0; left: 0;
             width: var(--sidebar-w); height: 100vh;
-            background: var(--sidebar-bg);
+            background: var(--night);
+            border-right: 1px solid var(--olive-15);
             display: flex; flex-direction: column;
             z-index: 1000; overflow-y: auto;
         }
         .sidebar-brand {
             padding: 1.4rem 1.2rem 1.2rem;
-            color: #fff;
-            font-size: 1.35rem; font-weight: 800; letter-spacing: -.5px;
-            border-bottom: 1px solid rgba(255,255,255,.1);
+            color: var(--mint);
+            border-bottom: 1px solid var(--olive-15);
         }
+        .sidebar-brand-row {
+            font-family: 'DM Serif Display', Georgia, serif;
+            font-size: 1.4rem; font-weight: 400;
+            display: flex; align-items: center; gap: 0.5rem;
+        }
+        .sidebar-brand-row .lucide { color: var(--olive); width: 22px; height: 22px; }
         .sidebar-brand small {
             display: block;
-            font-size: .6rem; font-weight: 400;
-            color: rgba(255,255,255,.45); letter-spacing: .5px;
-            text-transform: uppercase; margin-top: 2px;
+            font-family: 'DM Mono', monospace;
+            font-size: 0.6rem; font-weight: 400;
+            color: var(--mint-55); letter-spacing: 0.2em;
+            text-transform: uppercase; margin-top: 4px;
         }
-        .sidebar-nav { padding: .75rem .6rem; flex: 1; }
+        .sidebar-nav { padding: 0.75rem 0.6rem; flex: 1; }
+        .sidebar-section-label {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.58rem; font-weight: 400;
+            letter-spacing: 0.22em; text-transform: uppercase;
+            color: var(--mint-55);
+            padding: 0.75rem 1rem 0.3rem;
+        }
         .sidebar-nav .nav-link {
-            color: rgba(255,255,255,.65);
-            padding: .6rem 1rem; border-radius: 8px;
-            margin-bottom: 2px; font-size: .875rem;
-            display: flex; align-items: center; gap: .6rem;
-            transition: background .15s, color .15s;
+            color: var(--mint-55);
+            padding: 0.6rem 1rem; border-radius: var(--radius-sm);
+            margin-bottom: 2px; font-size: 0.875rem; font-weight: 500;
+            display: flex; align-items: center; gap: 0.6rem;
+            transition: background 0.15s, color 0.15s;
         }
-        .sidebar-nav .nav-link:hover  { background: var(--sidebar-hover); color: #fff; }
-        .sidebar-nav .nav-link.active { background: var(--sidebar-active); color: #fff; font-weight: 600; }
-        .sidebar-nav .nav-link i { font-size: 1rem; width: 18px; text-align: center; }
+        .sidebar-nav .nav-link:hover  { background: var(--olive-10); color: var(--mint); }
+        .sidebar-nav .nav-link.active { background: var(--olive-15); color: var(--olive-light); }
+        .sidebar-nav .nav-link .lucide { width: 18px; height: 18px; color: inherit; }
+        .sidebar-nav .nav-link.active .lucide { color: var(--olive); }
         .sidebar-footer {
-            padding: .9rem 1rem;
-            border-top: 1px solid rgba(255,255,255,.1);
+            padding: 0.9rem 1rem;
+            border-top: 1px solid var(--olive-15);
         }
 
-        /* ── Main area ───────────────────────────────── */
+        /* ── Zone principale ────────────────────────── */
         .main-wrapper { margin-left: var(--sidebar-w); min-height: 100vh; display: flex; flex-direction: column; }
 
-        /* ── Top bar ─────────────────────────────────── */
+        /* ── Topbar ─────────────────────────────────── */
         .topbar {
             height: var(--topbar-h);
-            background: #fff;
-            border-bottom: 1px solid #e5e8f0;
+            background: var(--night-mid);
+            border-bottom: 1px solid var(--olive-15);
             display: flex; align-items: center; justify-content: flex-end;
             padding: 0 1.5rem;
-            box-shadow: 0 1px 4px rgba(0,0,0,.04);
             position: sticky; top: 0; z-index: 100;
         }
-
-        /* ── Cards ───────────────────────────────────── */
-        .stat-card {
-            border: none; border-radius: var(--radius);
-            box-shadow: var(--shadow); background: #fff;
+        .topbar-admin {
+            display: flex; align-items: center; gap: 0.75rem;
+            font-size: 0.82rem; color: var(--mint-80);
         }
+        .topbar-admin-avatar {
+            width: 32px; height: 32px; border-radius: 50%;
+            background: var(--olive-10);
+            border: 1px solid var(--olive-25);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .topbar-admin-avatar .lucide { width: 16px; height: 16px; color: var(--olive); }
+
+        /* ── Stat cards ─────────────────────────────── */
+        .stat-card {
+            background: var(--night-mid);
+            border: 1px solid var(--olive-15);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-card);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+        .stat-card .card-body { padding: 1.25rem; }
         .stat-icon {
             width: 48px; height: 48px; border-radius: 10px;
+            background: var(--olive-10);
+            border: 1px solid var(--olive-15);
             display: flex; align-items: center; justify-content: center;
-            font-size: 1.3rem; flex-shrink: 0;
+            flex-shrink: 0;
         }
+        .stat-icon .lucide { color: var(--olive); width: 22px; height: 22px; }
+        .stat-value {
+            font-family: 'DM Mono', monospace;
+            font-size: 1.7rem; font-weight: 500;
+            color: var(--mint); line-height: 1;
+        }
+        .stat-label { font-size: 0.8rem; color: var(--mint-55); margin-bottom: 0.25rem; }
 
-        /* ── Tables ──────────────────────────────────── */
+        /* ── Content cards / tables ─────────────────── */
         .content-card {
-            border: none; border-radius: var(--radius);
-            box-shadow: var(--shadow); background: #fff;
+            background: var(--night-mid);
+            border: 1px solid var(--olive-15);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-card);
         }
         .content-card .card-header {
-            background: #fff; border-bottom: 1px solid #f0f2f8;
+            background: var(--night-mid);
+            border-bottom: 1px solid var(--olive-15);
             border-radius: var(--radius) var(--radius) 0 0 !important;
-            padding: 1rem 1.25rem; font-weight: 600;
+            padding: 1rem 1.25rem;
+            font-weight: 600; color: var(--mint);
+            display: flex; align-items: center; gap: 0.5rem;
         }
-        .table { margin-bottom: 0; font-size: .875rem; }
+        .content-card .card-header .lucide { color: var(--olive); width: 18px; height: 18px; }
+        .content-card .card-footer {
+            background: var(--night-mid);
+            border-top: 1px solid var(--olive-15);
+        }
+
+        /* ── Tables ─────────────────────────────────── */
+        .table {
+            color: var(--mint-80);
+            margin-bottom: 0;
+            font-size: 0.875rem;
+            --bs-table-bg: transparent;
+            --bs-table-hover-bg: var(--night-light);
+            --bs-table-border-color: var(--olive-15);
+        }
         .table thead th {
-            background: #f8f9fc; border-bottom: 2px solid #e8eaf6;
-            font-weight: 600; color: #5c6784; font-size: .8rem;
-            text-transform: uppercase; letter-spacing: .4px;
+            background: var(--night-light);
+            border-bottom: 1px solid var(--olive-25);
+            color: var(--olive-light);
+            font-family: 'DM Mono', monospace;
+            font-size: 0.62rem; font-weight: 400;
+            text-transform: uppercase; letter-spacing: 0.2em;
+            padding: 0.75rem 1rem;
         }
-        .table tbody tr:hover { background: #f8f9ff; }
-
-        /* ── Pagination ──────────────────────────────── */
-        .pagination .page-link {
-            border: none; border-radius: 8px !important;
-            margin: 0 2px; color: #1a237e; font-size: .85rem;
-            padding: .4rem .75rem;
+        .table tbody td {
+            border-color: var(--olive-15);
+            padding: 0.75rem 1rem;
+            vertical-align: middle;
         }
-        .pagination .page-link:hover { background: #e8eaf6; }
-        .pagination .page-item.active .page-link { background: #1a237e; color: #fff; }
-        .pagination .page-item.disabled .page-link { color: #adb5bd; }
+        .table-hover > tbody > tr:hover > * { background: var(--night-light); }
 
-        /* ── Badges rôles ────────────────────────────── */
-        .badge-locataire   { background: #e8f5e9; color: #2e7d32; }
-        .badge-proprietaire{ background: #e3f2fd; color: #1565c0; }
-        .badge-admin       { background: #fce4ec; color: #c62828; }
-
-        /* ── Search form ─────────────────────────────── */
+        /* ── Panneau de recherche ────────────────────── */
         .search-card {
-            border: none; border-radius: var(--radius);
-            box-shadow: var(--shadow); background: #fff;
+            background: var(--night-mid);
+            border: 1px solid var(--olive-15);
+            border-radius: var(--radius);
             padding: 1.25rem;
             margin-bottom: 1.25rem;
+            box-shadow: var(--shadow-card);
+        }
+        .form-label {
+            font-size: 0.82rem; font-weight: 500;
+            color: var(--mint); margin-bottom: 0.35rem;
         }
         .form-control, .form-select {
-            border-radius: 8px; font-size: .875rem;
-            border-color: #e0e3ef;
+            background: var(--night) !important;
+            border: 1px solid rgba(143,164,100,0.20);
+            color: var(--mint) !important;
+            font-size: 0.875rem;
+            border-radius: var(--radius-sm);
+            padding: 0.65rem 1rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
+        .form-control::placeholder { color: var(--mint-55); }
         .form-control:focus, .form-select:focus {
-            border-color: #7986cb; box-shadow: 0 0 0 .2rem rgba(121,134,203,.2);
+            border-color: var(--olive);
+            box-shadow: 0 0 0 3px var(--olive-25);
+            background: var(--night) !important;
+            color: var(--mint) !important;
+            outline: none;
         }
-        .btn-search { background: #1a237e; color: #fff; border-radius: 8px; }
-        .btn-search:hover { background: #283593; color: #fff; }
-        .btn-reset  { border-radius: 8px; }
+        .form-select option { background: var(--night-mid); color: var(--mint); }
+
+        /* ── Boutons ────────────────────────────────── */
+        .btn-search {
+            background: var(--olive); color: var(--night);
+            border: none; border-radius: var(--radius-sm);
+            padding: 0.6rem 1rem; font-weight: 600;
+            transition: background 0.2s;
+        }
+        .btn-search:hover { background: var(--olive-light); color: var(--night); }
+
+        .btn-reset {
+            border-radius: var(--radius-sm);
+            border-color: var(--olive-25) !important;
+            color: var(--mint-80) !important;
+            background: transparent !important;
+            transition: border-color 0.2s, background 0.2s;
+        }
+        .btn-reset:hover {
+            border-color: var(--olive) !important;
+            color: var(--mint) !important;
+            background: var(--olive-10) !important;
+        }
+
+        .btn-danger {
+            background: var(--danger) !important;
+            border-color: var(--danger) !important;
+            color: var(--mint) !important;
+            border-radius: var(--radius-sm);
+        }
+        .btn-danger:hover {
+            background: #a8503b !important;
+            border-color: #a8503b !important;
+        }
+
+        .btn-outline-secondary {
+            border-color: var(--olive-25) !important;
+            color: var(--mint-80) !important;
+            background: transparent !important;
+            border-radius: var(--radius-sm);
+        }
+        .btn-outline-secondary:hover {
+            border-color: var(--olive) !important;
+            color: var(--mint) !important;
+            background: var(--olive-10) !important;
+        }
+
+        .btn-outline-light {
+            border-color: var(--olive-25);
+            color: var(--mint-55);
+            background: transparent;
+            font-size: 0.82rem; font-weight: 500;
+            border-radius: var(--radius-sm);
+            transition: background 0.15s, border-color 0.15s, color 0.15s;
+        }
+        .btn-outline-light:hover {
+            background: var(--olive-10);
+            border-color: var(--olive);
+            color: var(--mint);
+        }
+
+        /* ── Badges rôles ───────────────────────────── */
+        .badge-locataire {
+            background: var(--olive-10); color: var(--olive-light);
+            font-family: 'DM Mono', monospace; font-size: 0.62rem;
+            padding: 0.25rem 0.75rem; border-radius: 100px;
+            letter-spacing: 0.08em; display: inline-block;
+        }
+        .badge-proprietaire {
+            background: rgba(90,143,175,0.15); color: var(--info);
+            font-family: 'DM Mono', monospace; font-size: 0.62rem;
+            padding: 0.25rem 0.75rem; border-radius: 100px;
+            letter-spacing: 0.08em; display: inline-block;
+        }
+        .badge-admin {
+            background: rgba(192,97,74,0.15); color: var(--danger);
+            font-family: 'DM Mono', monospace; font-size: 0.62rem;
+            padding: 0.25rem 0.75rem; border-radius: 100px;
+            letter-spacing: 0.08em; display: inline-block;
+        }
+        .badge-default {
+            background: rgba(239,251,219,0.08); color: var(--mint-55);
+            font-family: 'DM Mono', monospace; font-size: 0.62rem;
+            padding: 0.25rem 0.75rem; border-radius: 100px;
+            letter-spacing: 0.08em; display: inline-block;
+        }
+
+        /* ── Badges type de bien ────────────────────── */
+        .badge-type {
+            font-family: 'DM Mono', monospace; font-size: 0.62rem;
+            padding: 0.25rem 0.75rem; border-radius: 100px;
+            display: inline-flex; align-items: center; gap: 0.35rem;
+            letter-spacing: 0.06em;
+        }
+        .badge-type .lucide { width: 12px; height: 12px; stroke-width: 1.5; }
+        .badge-appartement { background: rgba(90,143,175,0.15); color: var(--info); }
+        .badge-maison      { background: var(--olive-10);       color: var(--olive-light); }
+        .badge-studio      { background: rgba(212,168,83,0.15); color: var(--warning); }
+
+        /* ── Badges comptage (tables dashboard) ─────── */
+        .badge-count {
+            background: var(--olive-10); color: var(--olive-light);
+            font-family: 'DM Mono', monospace; font-size: 0.65rem;
+            padding: 0.2rem 0.65rem; border-radius: 100px;
+            display: inline-block;
+        }
+        .badge-count-alt {
+            background: rgba(239,251,219,0.08); color: var(--mint-55);
+            font-family: 'DM Mono', monospace; font-size: 0.65rem;
+            padding: 0.2rem 0.65rem; border-radius: 100px;
+            display: inline-block;
+        }
+
+        /* ── Pagination ─────────────────────────────── */
+        .pagination .page-link {
+            background: transparent; color: var(--mint-80);
+            border: none; border-radius: var(--radius-sm) !important;
+            margin: 0 2px; font-size: 0.82rem;
+            padding: 0.4rem 0.75rem;
+            transition: background 0.15s;
+        }
+        .pagination .page-link:hover { background: var(--night-light); color: var(--mint); }
+        .pagination .page-item.active .page-link {
+            background: var(--olive); color: var(--night); font-weight: 600;
+        }
+        .pagination .page-item.disabled .page-link { color: var(--mint-55); }
+
+        /* ── Modals dark ────────────────────────────── */
+        .modal-content {
+            background: var(--night-mid);
+            border: 1px solid var(--olive-15);
+            border-radius: var(--radius);
+            color: var(--mint-80);
+        }
+        .modal-header, .modal-footer { border-color: var(--olive-15); }
+
+        /* ── Carte bien ─────────────────────────────── */
+        .bien-card {
+            background: var(--night-mid);
+            border: 1px solid var(--olive-15);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-card);
+            overflow: hidden;
+            margin-bottom: 1rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .bien-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+        .bien-card hr { border-color: var(--olive-15); opacity: 1; }
+        .bien-card .border-top { border-color: var(--olive-15) !important; }
+
+        /* ── Avatar placeholder ─────────────────────── */
+        .avatar-placeholder {
+            width: 40px; height: 40px; border-radius: 50%;
+            background: var(--night-light);
+            border: 1px solid var(--olive-25);
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+
+        /* ── Icône état profil ───────────────────────── */
+        .icon-complete .lucide { color: var(--olive); }
+        .icon-pending  .lucide { color: var(--warning); }
+
+        /* ── Utilitaires ────────────────────────────── */
+        .text-muted { color: var(--mint-55) !important; }
+        .fw-medium  { font-weight: 500; }
+
+        /* ── Scrollbar ──────────────────────────────── */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--night); }
+        ::-webkit-scrollbar-thumb { background: var(--night-light); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--olive-dark); }
     </style>
 </head>
 
@@ -145,28 +432,38 @@
 <div th:fragment="sidebar(active)">
     <div class="sidebar">
         <div class="sidebar-brand">
-            <i class="bi bi-buildings me-2"></i>Kupanga
+            <div class="sidebar-brand-row">
+                <i data-lucide="home" aria-hidden="true"></i>
+                Kupanga
+            </div>
             <small>Administration</small>
         </div>
 
         <nav class="sidebar-nav">
+            <div class="sidebar-section-label">Navigation</div>
             <ul class="nav flex-column">
                 <li class="nav-item">
                     <a class="nav-link" th:classappend="${active == 'dashboard'} ? ' active'"
                        th:href="@{/backoffice/dashboard}">
-                        <i class="bi bi-speedometer2"></i>Tableau de bord
+                        <i data-lucide="layout-dashboard" aria-hidden="true"></i>Tableau de bord
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:classappend="${active == 'analytics'} ? ' active'"
+                       th:href="@{/backoffice/analytics}">
+                        <i data-lucide="bar-chart-2" aria-hidden="true"></i>Analytiques
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" th:classappend="${active == 'users'} ? ' active'"
                        th:href="@{/backoffice/users}">
-                        <i class="bi bi-people"></i>Utilisateurs
+                        <i data-lucide="users" aria-hidden="true"></i>Utilisateurs
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" th:classappend="${active == 'biens'} ? ' active'"
                        th:href="@{/backoffice/biens}">
-                        <i class="bi bi-house"></i>Biens
+                        <i data-lucide="building-2" aria-hidden="true"></i>Biens
                     </a>
                 </li>
             </ul>
@@ -174,8 +471,10 @@
 
         <div class="sidebar-footer">
             <form th:action="@{/backoffice/logout}" method="post">
-                <button type="submit" class="btn btn-sm btn-outline-light w-100">
-                    <i class="bi bi-box-arrow-left me-1"></i>Déconnexion
+                <button type="submit"
+                        class="btn btn-outline-light w-100 d-flex align-items-center justify-content-center gap-2">
+                    <i data-lucide="log-out" style="width:15px;height:15px;" aria-hidden="true"></i>
+                    Déconnexion
                 </button>
             </form>
         </div>
@@ -188,21 +487,22 @@
      ═══════════════════════════════════════════════════ -->
 <div th:fragment="topbar">
     <div class="topbar">
-        <div class="d-flex align-items-center gap-2">
-            <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center"
-                 style="width:32px;height:32px;">
-                <i class="bi bi-shield-lock text-primary" style="font-size:.9rem;"></i>
+        <div class="topbar-admin">
+            <div class="topbar-admin-avatar">
+                <i data-lucide="shield" aria-hidden="true"></i>
             </div>
-            <span class="text-muted small" th:text="${adminEmail}">admin</span>
+            <span th:text="${adminEmail}">admin</span>
         </div>
     </div>
 </div>
 
 <!-- ═══════════════════════════════════════════════════
-     Fragment : scripts Bootstrap (en bas de body)
+     Fragment : scripts (bas de body)
      ═══════════════════════════════════════════════════ -->
 <div th:fragment="scripts">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script>lucide.createIcons();</script>
 </div>
 
 </html>

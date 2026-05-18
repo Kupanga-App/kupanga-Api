@@ -14,28 +14,28 @@
         <!-- En-tête -->
         <div class="d-flex align-items-center justify-content-between mb-4">
             <div>
-                <h5 class="fw-bold mb-0">Gestion des biens</h5>
+                <h5 class="mb-0">Gestion des biens</h5>
                 <p class="text-muted small mb-0"
                    th:text="${page.totalElements} + ' bien(s) trouvé(s)'">0 bien(s)</p>
             </div>
         </div>
 
-        <!-- ── Formulaire de recherche ─────────────────── -->
+        <!-- ── Formulaire de recherche ──────────────── -->
         <div class="search-card">
             <form th:action="@{/backoffice/biens}" method="get">
                 <div class="row g-2 align-items-end">
                     <div class="col-sm-6 col-md-4">
-                        <label class="form-label small fw-semibold mb-1">Titre</label>
+                        <label class="form-label">Titre</label>
                         <input type="text" name="titre" class="form-control"
                                placeholder="Rechercher..." th:value="${titre}"/>
                     </div>
                     <div class="col-sm-6 col-md-4">
-                        <label class="form-label small fw-semibold mb-1">Ville</label>
+                        <label class="form-label">Ville</label>
                         <input type="text" name="ville" class="form-control"
                                placeholder="Rechercher..." th:value="${ville}"/>
                     </div>
                     <div class="col-sm-6 col-md-3">
-                        <label class="form-label small fw-semibold mb-1">Type de bien</label>
+                        <label class="form-label">Type de bien</label>
                         <select name="typeBien" class="form-select">
                             <option value="">Tous les types</option>
                             <option th:each="t : ${typesBien}"
@@ -46,41 +46,43 @@
                     </div>
                     <input type="hidden" name="size" th:value="${size}"/>
                     <div class="col-sm-6 col-md-1 d-flex gap-2">
-                        <button type="submit" class="btn btn-search flex-grow-1">
-                            <i class="bi bi-search"></i>
+                        <button type="submit" class="btn btn-search flex-grow-1"
+                                aria-label="Rechercher">
+                            <i data-lucide="search" style="width:16px;height:16px;" aria-hidden="true"></i>
                         </button>
-                        <a th:href="@{/backoffice/biens}" class="btn btn-reset btn-outline-secondary flex-grow-1">
-                            <i class="bi bi-x-lg"></i>
+                        <a th:href="@{/backoffice/biens}"
+                           class="btn btn-reset flex-grow-1 d-flex align-items-center justify-content-center"
+                           aria-label="Réinitialiser">
+                            <i data-lucide="x" style="width:16px;height:16px;" aria-hidden="true"></i>
                         </a>
                     </div>
                 </div>
             </form>
         </div>
 
-        <!-- ── Liste des biens (cartes) ───────────────── -->
-
-        <!-- État vide -->
+        <!-- ── État vide ───────────────────────────── -->
         <div th:if="${#lists.isEmpty(page.contenu)}"
              class="card content-card text-center py-5 text-muted">
-            <i class="bi bi-house-x fs-2 d-block mb-2"></i>
+            <i data-lucide="building-2"
+               style="width:40px;height:40px;display:block;margin:0 auto 0.75rem;opacity:0.4;"
+               aria-hidden="true"></i>
             Aucun bien trouvé pour ces critères
         </div>
 
-        <!-- Carte par bien -->
-        <div th:each="bien : ${page.contenu}" class="card content-card mb-3 overflow-hidden">
+        <!-- ── Carte par bien ──────────────────────── -->
+        <div th:each="bien : ${page.contenu}" class="bien-card">
             <div class="row g-0">
 
-                <!-- ── Colonne gauche : Carousel photos ──────── -->
-                <div class="col-md-4 col-lg-3 bg-dark position-relative"
-                     style="min-height: 210px;">
+                <!-- Colonne gauche : Carousel photos -->
+                <div class="col-md-4 col-lg-3 position-relative"
+                     style="min-height:210px;background:var(--night-light);">
 
-                    <!-- Carousel Bootstrap -->
                     <div th:id="'carousel-' + ${bien.id}"
                          class="carousel slide h-100"
-                         style="min-height: 210px;"
+                         style="min-height:210px;"
                          data-bs-ride="false">
 
-                        <!-- Indicateurs (dots) — uniquement si plusieurs photos -->
+                        <!-- Indicateurs -->
                         <div th:if="${bien.images.size() > 1}" class="carousel-indicators">
                             <button th:each="img, stat : ${bien.images}"
                                     type="button"
@@ -91,17 +93,14 @@
                             </button>
                         </div>
 
-                        <!-- Items -->
                         <div class="carousel-inner h-100">
-
-                            <!-- Photos -->
                             <div th:each="img, stat : ${bien.images}"
                                  class="carousel-item"
                                  th:classappend="${stat.first} ? ' active'"
-                                 style="height: 210px;">
+                                 style="height:210px;">
                                 <img th:src="${img}"
                                      class="d-block w-100 h-100"
-                                     style="object-fit: cover;"
+                                     style="object-fit:cover;"
                                      loading="lazy"
                                      alt="Photo du bien"/>
                             </div>
@@ -109,57 +108,60 @@
                             <!-- Placeholder si aucune photo -->
                             <div th:if="${#lists.isEmpty(bien.images)}"
                                  class="carousel-item active"
-                                 style="height: 210px;">
-                                <div class="d-flex flex-column align-items-center justify-content-center
-                                            h-100 text-muted">
-                                    <i class="bi bi-image fs-1 mb-1 opacity-50"></i>
-                                    <small class="opacity-50">Aucune photo</small>
+                                 style="height:210px;">
+                                <div class="d-flex flex-column align-items-center justify-content-center h-100 text-muted">
+                                    <i data-lucide="image"
+                                       style="width:36px;height:36px;opacity:0.35;"
+                                       aria-hidden="true"></i>
+                                    <small class="mt-1" style="font-size:0.75rem;opacity:0.5;">Aucune photo</small>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Contrôles précédent / suivant -->
+                        <!-- Contrôles -->
                         <button th:if="${bien.images.size() > 1}"
-                                class="carousel-control-prev"
-                                type="button"
+                                class="carousel-control-prev" type="button"
                                 th:attr="data-bs-target='#carousel-' + ${bien.id}"
                                 data-bs-slide="prev">
                             <span class="carousel-control-prev-icon"></span>
                             <span class="visually-hidden">Précédent</span>
                         </button>
                         <button th:if="${bien.images.size() > 1}"
-                                class="carousel-control-next"
-                                type="button"
+                                class="carousel-control-next" type="button"
                                 th:attr="data-bs-target='#carousel-' + ${bien.id}"
                                 data-bs-slide="next">
                             <span class="carousel-control-next-icon"></span>
                             <span class="visually-hidden">Suivant</span>
                         </button>
 
-                        <!-- Badge compteur de photos (coin haut-droite) -->
+                        <!-- Badge compteur -->
                         <div th:if="${!#lists.isEmpty(bien.images)}"
                              class="position-absolute top-0 end-0 m-2">
-                            <span class="badge bg-dark bg-opacity-60 rounded-pill small">
-                                <i class="bi bi-images me-1"></i>
+                            <span style="background:rgba(16,33,43,0.75);color:rgba(239,251,219,0.80);
+                                         font-family:'DM Mono',monospace;font-size:0.62rem;
+                                         padding:0.2rem 0.6rem;border-radius:100px;
+                                         border:1px solid rgba(143,164,100,0.20);
+                                         display:inline-flex;align-items:center;gap:0.3rem;">
+                                <i data-lucide="images" style="width:11px;height:11px;" aria-hidden="true"></i>
                                 <span th:text="${bien.images.size()}"></span>
                             </span>
                         </div>
                     </div>
                 </div>
 
-                <!-- ── Colonne droite : Informations ──────────── -->
+                <!-- Colonne droite : Informations -->
                 <div class="col-md-8 col-lg-9">
                     <div class="card-body d-flex flex-column h-100 py-3 px-4">
 
                         <!-- Titre + badge type -->
                         <div class="d-flex align-items-start justify-content-between gap-2 mb-2">
                             <div>
-                                <h6 class="fw-bold mb-0 lh-sm"
-                                    th:text="${bien.titre != null ? bien.titre : 'Sans titre'}">
+                                <div class="fw-medium lh-sm" style="color:var(--mint);font-size:1rem;"
+                                     th:text="${bien.titre != null ? bien.titre : 'Sans titre'}">
                                     Titre
-                                </h6>
-                                <div class="text-muted small mt-1">
-                                    <i class="bi bi-geo-alt me-1"></i>
+                                </div>
+                                <div class="text-muted small mt-1 d-flex align-items-center gap-1">
+                                    <i data-lucide="map-pin" style="width:12px;height:12px;" aria-hidden="true"></i>
                                     <span th:text="${bien.ville != null ? bien.ville : '—'}"></span>
                                     <span th:if="${bien.pays != null}"
                                           th:text="', ' + ${bien.pays}"></span>
@@ -167,36 +169,32 @@
                             </div>
                             <div class="flex-shrink-0">
                                 <span th:switch="${bien.typeBien?.name()}">
-                                    <span th:case="'APPARTEMENT'"
-                                          class="badge bg-info bg-opacity-15 text-info fw-medium">
-                                        <i class="bi bi-building me-1"></i>Appartement
+                                    <span th:case="'APPARTEMENT'" class="badge-type badge-appartement">
+                                        <i data-lucide="building" aria-hidden="true"></i>Appartement
                                     </span>
-                                    <span th:case="'MAISON'"
-                                          class="badge bg-success bg-opacity-15 text-success fw-medium">
-                                        <i class="bi bi-house me-1"></i>Maison
+                                    <span th:case="'MAISON'" class="badge-type badge-maison">
+                                        <i data-lucide="home" aria-hidden="true"></i>Maison
                                     </span>
-                                    <span th:case="'STUDIO'"
-                                          class="badge bg-warning bg-opacity-15 text-warning fw-medium">
-                                        <i class="bi bi-door-open me-1"></i>Studio
+                                    <span th:case="'STUDIO'" class="badge-type badge-studio">
+                                        <i data-lucide="door-open" aria-hidden="true"></i>Studio
                                     </span>
-                                    <span th:case="*"
-                                          class="badge bg-secondary bg-opacity-15 text-secondary"
-                                          th:text="${bien.typeBien}">—
-                                    </span>
+                                    <span th:case="*" class="badge-type badge-default"
+                                          th:text="${bien.typeBien}">—</span>
                                 </span>
                             </div>
                         </div>
 
-                        <!-- Séparateur -->
-                        <hr class="my-2 opacity-25"/>
+                        <hr class="my-2"/>
 
                         <!-- Détails (grille 3 colonnes) -->
                         <div class="row g-3 flex-grow-1">
                             <div class="col-sm-4">
-                                <div class="text-muted small mb-1">
-                                    <i class="bi bi-cash-coin me-1"></i>Loyer / mois
+                                <div class="text-muted small mb-1 d-flex align-items-center gap-1">
+                                    <i data-lucide="credit-card" style="width:13px;height:13px;" aria-hidden="true"></i>
+                                    Loyer / mois
                                 </div>
-                                <div class="fw-semibold"
+                                <div class="fw-medium"
+                                     style="font-family:'DM Mono',monospace;color:var(--mint);"
                                      th:text="${bien.loyerMensuel != null
                                         ? #numbers.formatDecimal(bien.loyerMensuel, 0, 'COMMA', 0, 'POINT') + ' €'
                                         : '—'}">
@@ -204,20 +202,23 @@
                                 </div>
                             </div>
                             <div class="col-sm-4">
-                                <div class="text-muted small mb-1">
-                                    <i class="bi bi-person me-1"></i>Propriétaire
+                                <div class="text-muted small mb-1 d-flex align-items-center gap-1">
+                                    <i data-lucide="user" style="width:13px;height:13px;" aria-hidden="true"></i>
+                                    Propriétaire
                                 </div>
                                 <div class="small text-truncate"
+                                     style="font-family:'DM Mono',monospace;color:var(--mint-80);font-size:0.78rem;"
                                      th:text="${bien.proprietaireMail}"
                                      th:title="${bien.proprietaireMail}">
                                     —
                                 </div>
                             </div>
                             <div class="col-sm-4">
-                                <div class="text-muted small mb-1">
-                                    <i class="bi bi-calendar3 me-1"></i>Ajouté le
+                                <div class="text-muted small mb-1 d-flex align-items-center gap-1">
+                                    <i data-lucide="calendar" style="width:13px;height:13px;" aria-hidden="true"></i>
+                                    Ajouté le
                                 </div>
-                                <div class="small"
+                                <div style="font-family:'DM Mono',monospace;color:var(--mint-80);font-size:0.78rem;"
                                      th:text="${bien.createdAt != null
                                         ? #temporals.format(bien.createdAt, 'dd/MM/yyyy')
                                         : '—'}">
@@ -227,18 +228,19 @@
                         </div>
 
                         <!-- Footer carte : ID + bouton suppression -->
-                        <div class="d-flex align-items-center justify-content-between
-                                    mt-3 pt-2 border-top">
-                            <span class="text-muted small">
-                                ID <strong th:text="${bien.id}"></strong>
+                        <div class="d-flex align-items-center justify-content-between mt-3 pt-2 border-top">
+                            <span class="text-muted"
+                                  style="font-family:'DM Mono',monospace;font-size:0.72rem;">
+                                ID <strong style="color:var(--mint-80);" th:text="${bien.id}"></strong>
                             </span>
-                            <button class="btn btn-danger btn-sm"
+                            <button class="btn btn-danger btn-sm d-inline-flex align-items-center gap-1"
                                     title="Supprimer ce bien"
                                     data-bs-toggle="modal"
                                     data-bs-target="#deleteModal"
                                     th:attr="data-bien-id=${bien.id},
                                              data-bien-titre=${bien.titre != null ? bien.titre : 'ce bien'}">
-                                <i class="bi bi-trash3 me-1"></i>Supprimer
+                                <i data-lucide="trash-2" style="width:14px;height:14px;" aria-hidden="true"></i>
+                                Supprimer
                             </button>
                         </div>
 
@@ -247,7 +249,7 @@
             </div>
         </div>
 
-        <!-- ── Pagination ─────────────────────────────── -->
+        <!-- ── Pagination ──────────────────────────── -->
         <div th:if="${page.totalPages > 1}"
              class="card content-card d-flex flex-row align-items-center
                     justify-content-between py-2 px-3">
@@ -263,7 +265,7 @@
                         <a class="page-link"
                            th:href="@{/backoffice/biens(page=${page.pageActuelle - 1}, size=${size},
                                       titre=${titre}, ville=${ville}, typeBien=${typeBien})}">
-                            <i class="bi bi-chevron-left"></i>
+                            <i data-lucide="chevron-left" style="width:14px;height:14px;" aria-hidden="true"></i>
                         </a>
                     </li>
                     <li th:each="i : ${#numbers.sequence(0, page.totalPages - 1)}"
@@ -278,7 +280,7 @@
                         <a class="page-link"
                            th:href="@{/backoffice/biens(page=${page.pageActuelle + 1}, size=${size},
                                       titre=${titre}, ville=${ville}, typeBien=${typeBien})}">
-                            <i class="bi bi-chevron-right"></i>
+                            <i data-lucide="chevron-right" style="width:14px;height:14px;" aria-hidden="true"></i>
                         </a>
                     </li>
                 </ul>
@@ -288,24 +290,26 @@
     </div>
 </div>
 
-<!-- ── Modal confirmation suppression ────────────────── -->
+<!-- ── Modal confirmation suppression ──────────── -->
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-sm">
-        <div class="modal-content border-0 shadow">
+        <div class="modal-content">
             <div class="modal-body text-center p-4">
-                <div class="rounded-circle bg-danger bg-opacity-10 d-inline-flex
-                             align-items-center justify-content-center mb-3"
-                     style="width:56px;height:56px;">
-                    <i class="bi bi-house-x text-danger fs-4"></i>
+                <div class="d-inline-flex align-items-center justify-content-center mb-3"
+                     style="width:56px;height:56px;border-radius:50%;background:rgba(192,97,74,0.15);border:1px solid rgba(192,97,74,0.25);">
+                    <i data-lucide="home"
+                       style="width:24px;height:24px;color:#C0614A;"
+                       aria-hidden="true"></i>
                 </div>
-                <h6 class="fw-bold mb-1">Confirmer la suppression</h6>
+                <h6 class="mb-1">Confirmer la suppression</h6>
                 <p class="text-muted small mb-4">
-                    Supprimer <strong id="deleteTargetTitre"></strong> ?
+                    Supprimer <strong id="deleteTargetTitre" style="color:var(--mint);"></strong> ?
                     Cette action est irréversible.
                 </p>
                 <form id="deleteForm" th:action="@{/backoffice/biens/0/supprimer}" method="post">
                     <div class="d-flex gap-2 justify-content-center">
-                        <button type="button" class="btn btn-outline-secondary btn-sm px-3"
+                        <button type="button"
+                                class="btn btn-outline-secondary btn-sm px-3"
                                 data-bs-dismiss="modal">Annuler</button>
                         <button type="submit" class="btn btn-danger btn-sm px-3">Supprimer</button>
                     </div>

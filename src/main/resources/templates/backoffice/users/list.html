@@ -14,36 +14,36 @@
         <!-- En-tête -->
         <div class="d-flex align-items-center justify-content-between mb-4">
             <div>
-                <h5 class="fw-bold mb-0">Gestion des utilisateurs</h5>
+                <h5 class="mb-0">Gestion des utilisateurs</h5>
                 <p class="text-muted small mb-0"
                    th:text="${page.totalElements} + ' utilisateur(s) trouvé(s)'">0 utilisateur(s)</p>
             </div>
         </div>
 
-        <!-- ── Formulaire de recherche ─────────────────── -->
+        <!-- ── Formulaire de recherche ──────────────── -->
         <div class="search-card">
             <form th:action="@{/backoffice/users}" method="get">
                 <div class="row g-2 align-items-end">
                     <div class="col-sm-6 col-md-3">
-                        <label class="form-label small fw-semibold mb-1">Prénom</label>
+                        <label class="form-label">Prénom</label>
                         <input type="text" name="firstName" class="form-control"
                                placeholder="Rechercher..."
                                th:value="${firstName}"/>
                     </div>
                     <div class="col-sm-6 col-md-3">
-                        <label class="form-label small fw-semibold mb-1">Nom</label>
+                        <label class="form-label">Nom</label>
                         <input type="text" name="lastName" class="form-control"
                                placeholder="Rechercher..."
                                th:value="${lastName}"/>
                     </div>
                     <div class="col-sm-6 col-md-3">
-                        <label class="form-label small fw-semibold mb-1">Email</label>
+                        <label class="form-label">Email</label>
                         <input type="text" name="mail" class="form-control"
                                placeholder="Rechercher..."
                                th:value="${mail}"/>
                     </div>
                     <div class="col-sm-6 col-md-2">
-                        <label class="form-label small fw-semibold mb-1">Rôle</label>
+                        <label class="form-label">Rôle</label>
                         <select name="role" class="form-select">
                             <option value="">Tous les rôles</option>
                             <option th:each="r : ${roles}"
@@ -54,18 +54,21 @@
                     </div>
                     <input type="hidden" name="size" th:value="${size}"/>
                     <div class="col-sm-12 col-md-1 d-flex gap-2">
-                        <button type="submit" class="btn btn-search flex-grow-1">
-                            <i class="bi bi-search"></i>
+                        <button type="submit" class="btn btn-search flex-grow-1"
+                                aria-label="Rechercher">
+                            <i data-lucide="search" style="width:16px;height:16px;" aria-hidden="true"></i>
                         </button>
-                        <a th:href="@{/backoffice/users}" class="btn btn-reset btn-outline-secondary flex-grow-1">
-                            <i class="bi bi-x-lg"></i>
+                        <a th:href="@{/backoffice/users}"
+                           class="btn btn-reset flex-grow-1 d-flex align-items-center justify-content-center"
+                           aria-label="Réinitialiser">
+                            <i data-lucide="x" style="width:16px;height:16px;" aria-hidden="true"></i>
                         </a>
                     </div>
                 </div>
             </form>
         </div>
 
-        <!-- ── Table ──────────────────────────────────── -->
+        <!-- ── Table ──────────────────────────────── -->
         <div class="card content-card">
             <div class="card-body p-0">
                 <div class="table-responsive">
@@ -81,71 +84,80 @@
                         </thead>
                         <tbody>
                             <tr th:each="user : ${page.contenu}">
-                                <td class="text-muted small align-middle" th:text="${user.id}"></td>
+                                <td class="text-muted small"
+                                    style="font-family:'DM Mono',monospace;font-size:0.75rem;"
+                                    th:text="${user.id}"></td>
 
                                 <!-- Avatar + nom + email -->
-                                <td class="align-middle">
+                                <td>
                                     <div class="d-flex align-items-center gap-3">
-
-                                        <!-- Photo de profil ou icône par défaut -->
                                         <div class="flex-shrink-0">
                                             <img th:if="${user.urlProfile != null and !#strings.isEmpty(user.urlProfile)}"
                                                  th:src="${user.urlProfile}"
-                                                 class="rounded-circle border"
-                                                 style="width:40px;height:40px;object-fit:cover;"
+                                                 class="rounded-circle"
+                                                 style="width:40px;height:40px;object-fit:cover;border:1px solid rgba(143,164,100,0.20);"
                                                  alt="Photo de profil"/>
                                             <div th:unless="${user.urlProfile != null and !#strings.isEmpty(user.urlProfile)}"
-                                                 class="rounded-circle d-flex align-items-center justify-content-center"
-                                                 style="width:40px;height:40px;background:#e8eaf6;flex-shrink:0;">
-                                                <i class="bi bi-person" style="font-size:1.1rem;color:#5c6bc0;"></i>
+                                                 class="avatar-placeholder">
+                                                <svg viewBox="0 0 40 40" width="40" height="40"
+                                                     xmlns="http://www.w3.org/2000/svg"
+                                                     style="display:block;" aria-hidden="true">
+                                                    <circle cx="20" cy="15" r="8.5" fill="rgba(143,164,100,0.55)"/>
+                                                    <ellipse cx="20" cy="39" rx="14" ry="10.5" fill="rgba(143,164,100,0.55)"/>
+                                                </svg>
                                             </div>
                                         </div>
-
-                                        <!-- Nom + email -->
                                         <div>
                                             <div class="fw-medium lh-sm"
                                                  th:text="${(user.firstName != null ? user.firstName : '') + ' ' + (user.lastName != null ? user.lastName : '')}">
                                                 —
                                             </div>
-                                            <div class="text-muted small" th:text="${user.mail}">—</div>
+                                            <div class="text-muted small"
+                                                 style="font-family:'DM Mono',monospace;font-size:0.75rem;"
+                                                 th:text="${user.mail}">—</div>
                                         </div>
                                     </div>
                                 </td>
 
-                                <td class="align-middle">
+                                <td>
                                     <span th:switch="${user.role?.name()}">
                                         <span th:case="'ROLE_LOCATAIRE'"
-                                              class="badge badge-locataire">Locataire</span>
+                                              class="badge-locataire">Locataire</span>
                                         <span th:case="'ROLE_PROPRIETAIRE'"
-                                              class="badge badge-proprietaire">Propriétaire</span>
+                                              class="badge-proprietaire">Propriétaire</span>
                                         <span th:case="'ROLE_ADMIN'"
-                                              class="badge badge-admin">Admin</span>
-                                        <span th:case="*" class="badge bg-light text-muted"
+                                              class="badge-admin">Admin</span>
+                                        <span th:case="*"
+                                              class="badge-default"
                                               th:text="${user.role}">—</span>
                                     </span>
                                 </td>
 
-                                <td class="align-middle">
-                                    <i th:if="${user.hasCompleteProfil}"
-                                       class="bi bi-check-circle-fill text-success"></i>
-                                    <i th:unless="${user.hasCompleteProfil}"
-                                       class="bi bi-clock text-warning"></i>
+                                <td>
+                                    <span th:if="${user.hasCompleteProfil}" class="icon-complete">
+                                        <i data-lucide="check-circle" aria-label="Profil complet"></i>
+                                    </span>
+                                    <span th:unless="${user.hasCompleteProfil}" class="icon-pending">
+                                        <i data-lucide="clock" aria-label="Profil incomplet"></i>
+                                    </span>
                                 </td>
 
-                                <td class="text-end align-middle">
-                                    <button class="btn btn-danger btn-sm"
+                                <td class="text-end">
+                                    <button class="btn btn-danger btn-sm d-inline-flex align-items-center gap-1"
                                             title="Supprimer"
                                             data-bs-toggle="modal"
                                             data-bs-target="#deleteModal"
                                             th:attr="data-user-id=${user.id},
                                                      data-user-name=${(user.firstName != null ? user.firstName : '') + ' ' + (user.lastName != null ? user.lastName : '')}">
-                                        <i class="bi bi-trash3"></i>
+                                        <i data-lucide="trash-2" style="width:14px;height:14px;" aria-hidden="true"></i>
                                     </button>
                                 </td>
                             </tr>
                             <tr th:if="${#lists.isEmpty(page.contenu)}">
                                 <td colspan="5" class="text-center text-muted py-5">
-                                    <i class="bi bi-person-x fs-3 d-block mb-2"></i>
+                                    <i data-lucide="user-x"
+                                       style="width:36px;height:36px;display:block;margin:0 auto 0.75rem;opacity:0.5;"
+                                       aria-hidden="true"></i>
                                     Aucun utilisateur trouvé
                                 </td>
                             </tr>
@@ -156,7 +168,7 @@
 
             <!-- Pagination -->
             <div th:if="${page.totalPages > 1}"
-                 class="card-footer bg-white border-top d-flex align-items-center justify-content-between py-2 px-3">
+                 class="card-footer d-flex align-items-center justify-content-between py-2 px-3">
                 <span class="text-muted small">
                     Page <strong th:text="${page.pageActuelle + 1}"></strong>
                     sur <strong th:text="${page.totalPages}"></strong>
@@ -168,7 +180,7 @@
                                th:href="@{/backoffice/users(page=${page.pageActuelle - 1}, size=${size},
                                           firstName=${firstName}, lastName=${lastName},
                                           mail=${mail}, role=${role})}">
-                                <i class="bi bi-chevron-left"></i>
+                                <i data-lucide="chevron-left" style="width:14px;height:14px;" aria-hidden="true"></i>
                             </a>
                         </li>
                         <li th:each="i : ${#numbers.sequence(0, page.totalPages - 1)}"
@@ -185,7 +197,7 @@
                                th:href="@{/backoffice/users(page=${page.pageActuelle + 1}, size=${size},
                                           firstName=${firstName}, lastName=${lastName},
                                           mail=${mail}, role=${role})}">
-                                <i class="bi bi-chevron-right"></i>
+                                <i data-lucide="chevron-right" style="width:14px;height:14px;" aria-hidden="true"></i>
                             </a>
                         </li>
                     </ul>
@@ -196,23 +208,26 @@
     </div>
 </div>
 
-<!-- ── Modal confirmation suppression ────────────────── -->
+<!-- ── Modal confirmation suppression ──────────── -->
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-sm">
-        <div class="modal-content border-0 shadow">
+        <div class="modal-content">
             <div class="modal-body text-center p-4">
-                <div class="rounded-circle bg-danger bg-opacity-10 d-inline-flex align-items-center
-                             justify-content-center mb-3" style="width:56px;height:56px;">
-                    <i class="bi bi-trash3 text-danger fs-4"></i>
+                <div class="d-inline-flex align-items-center justify-content-center mb-3"
+                     style="width:56px;height:56px;border-radius:50%;background:rgba(192,97,74,0.15);border:1px solid rgba(192,97,74,0.25);">
+                    <i data-lucide="trash-2"
+                       style="width:24px;height:24px;color:#C0614A;"
+                       aria-hidden="true"></i>
                 </div>
-                <h6 class="fw-bold mb-1">Confirmer la suppression</h6>
+                <h6 class="mb-1">Confirmer la suppression</h6>
                 <p class="text-muted small mb-4">
-                    Supprimer <strong id="deleteTargetName"></strong> ?
+                    Supprimer <strong id="deleteTargetName" style="color:var(--mint);"></strong> ?
                     Cette action est irréversible.
                 </p>
                 <form id="deleteForm" th:action="@{/backoffice/users/0/supprimer}" method="post">
                     <div class="d-flex gap-2 justify-content-center">
-                        <button type="button" class="btn btn-outline-secondary btn-sm px-3"
+                        <button type="button"
+                                class="btn btn-outline-secondary btn-sm px-3"
                                 data-bs-dismiss="modal">Annuler</button>
                         <button type="submit" class="btn btn-danger btn-sm px-3">Supprimer</button>
                     </div>
