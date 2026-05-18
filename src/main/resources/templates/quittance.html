@@ -3,242 +3,401 @@
 <head>
     <meta charset="UTF-8"/>
     <style>
-
         body {
             font-family: Arial, sans-serif;
-            font-size: 12px;
-            color: #1a1a2e;
-            margin: 30px;
-        }
-
-        /* Layout principal */
-        .container {
-            border: 2px solid #1a3a6b;
-            padding: 20px;
-        }
-
-        /* Top boxes */
-        .top {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 20px;
-        }
-
-        .box {
-            border: 1px solid #1a3a6b;
-            padding: 10px;
-            width: 45%;
             font-size: 11px;
+            color: #2a2a28;
+            margin: 32px 40px;
+            background-color: #f5f2eb;
+            line-height: 1.5;
         }
 
-        /* Titre centré */
-        .title {
-            text-align: center;
-            margin: 20px 0;
+        /* ── Header ── */
+        .brand {
+            font-size: 15px;
+            font-weight: bold;
+            color: #2a2a28;
+        }
+        .brand-tagline {
+            font-size: 8px;
+            color: #9a9890;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-top: 2px;
+        }
+        .doc-ref {
+            font-size: 9px;
+            color: #9a9890;
+            letter-spacing: 0.5px;
         }
 
-        .title h1 {
-            font-size: 20px;
-            color: #1a3a6b;
-        }
-
-        .title h2 {
-            font-size: 14px;
-            margin-top: 5px;
-        }
-
-        /* Bloc principal */
-        .content {
-            border: 1px solid #c5d3e8;
-            padding: 15px;
-        }
-
-        /* Texte */
-        .line {
+        /* ── Title ── */
+        .pre-title {
+            font-size: 8px;
+            color: #9a9890;
+            text-transform: uppercase;
+            letter-spacing: 2.5px;
             margin-bottom: 8px;
         }
-
-        .bold {
-            font-weight: bold;
+        .main-title {
+            font-size: 26px;
+            font-weight: normal;
+            color: #2a2a28;
+            margin-bottom: 10px;
         }
-
-        .blue {
-            color: #1a6fbf;
-            font-weight: bold;
+        .main-title em {
+            font-family: Georgia, 'Times New Roman', serif;
+            font-style: italic;
         }
-
-        /* Détail */
-        .detail {
-            margin-top: 15px;
-            font-size: 11px;
-        }
-
-        /* Signature */
-        .signature-bloc {
-            margin-top: 24px;
-            border-top: 1px solid #c5d3e8;
-            padding-top: 14px;
-        }
-
-        .sig-label {
+        .subtitle-text {
             font-size: 10px;
+            color: #6b6b60;
+            line-height: 1.6;
+        }
+
+        /* ── Section heading ── */
+        .section-head {
+            font-size: 8px;
             font-weight: bold;
-            color: #1a3a6b;
+            color: #6b6b60;
             text-transform: uppercase;
-            letter-spacing: 0.8px;
+            letter-spacing: 2.5px;
+            border-bottom: 1px solid #ccc7be;
+            padding-bottom: 5px;
+            margin-top: 26px;
+            margin-bottom: 14px;
+        }
+
+        /* ── Partie card ── */
+        .partie-card {
+            border: 1px solid #dedad3;
+            background-color: #faf8f4;
+            padding: 14px 16px;
+            page-break-inside: avoid;
+        }
+        .partie-role-lbl {
+            font-size: 8px;
+            font-weight: bold;
+            color: #9a9890;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
             margin-bottom: 6px;
         }
+        .name-sublabel {
+            font-size: 9px;
+            color: #9a9890;
+        }
+        .name-big {
+            font-size: 12px;
+            font-weight: bold;
+            color: #2a2a28;
+        }
+        .email-txt {
+            font-size: 9px;
+            color: #6b6b60;
+            margin-top: 4px;
+        }
 
+        /* ── Paragraph ── */
+        .para {
+            font-size: 11px;
+            color: #2a2a28;
+            line-height: 1.7;
+            margin-bottom: 14px;
+        }
+
+        /* ── Financial table ── */
+        .fin-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0;
+        }
+        .fin-table thead th {
+            background-color: #f0ece4;
+            font-size: 8px;
+            font-weight: bold;
+            color: #9a9890;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 8px 14px;
+            text-align: left;
+            border-bottom: 1px solid #ccc7be;
+        }
+        .fin-table thead th.right {
+            text-align: right;
+        }
+        .fin-table tbody td {
+            padding: 10px 14px;
+            border-bottom: 1px solid #eae7e0;
+            font-size: 11px;
+            color: #2a2a28;
+        }
+        .fin-table tbody td.right {
+            text-align: right;
+        }
+        .fin-table tbody tr.total-row td {
+            font-weight: bold;
+            font-size: 12px;
+            background-color: #f0ece4;
+            border-top: 1px solid #ccc7be;
+            border-bottom: 1px solid #ccc7be;
+        }
+
+        /* ── Note italic ── */
+        .note {
+            font-size: 9px;
+            color: #9a9890;
+            font-style: italic;
+            line-height: 1.6;
+            margin-top: 10px;
+        }
+
+        /* ── Box card (sig / info) ── */
+        .box-card {
+            border: 1px solid #dedad3;
+            background-color: #faf8f4;
+            padding: 14px 16px;
+            page-break-inside: avoid;
+        }
+        .sig-role-lbl {
+            font-size: 8px;
+            font-weight: bold;
+            color: #9a9890;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 4px;
+        }
+        .sig-name-big {
+            font-size: 13px;
+            font-weight: bold;
+            color: #2a2a28;
+            margin-bottom: 12px;
+        }
         .sig-img {
             width: 200px;
             height: 70px;
-            border: 1px dashed #c5d3e8;
-            border-radius: 4px;
-            display: block;
+            border: 1px solid #ccc7be;
         }
-
-        .sig-placeholder {
-            width: 200px;
-            height: 70px;
-            border: 1px dashed #c5d3e8;
-            border-radius: 4px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #aab8cc;
-            font-size: 10px;
-            font-style: italic;
+        .sig-date-lbl {
+            font-size: 9px;
+            color: #9a9890;
+            margin-top: 6px;
         }
-
-        .sig-date {
-            font-size: 10px;
-            color: #4a6fa5;
-            margin-top: 4px;
+        .sig-made-lbl {
+            font-size: 9px;
+            color: #9a9890;
+            margin-top: 10px;
         }
-
-        .sig-name {
+        .info-section-lbl {
+            font-size: 8px;
+            color: #9a9890;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .info-lbl {
+            font-size: 9px;
+            color: #9a9890;
+            padding: 3px 0;
+            width: 40%;
+        }
+        .info-val {
+            font-size: 9px;
             font-weight: bold;
-            color: #1a1a2e;
-            margin-top: 4px;
-            font-size: 11px;
+            color: #2a2a28;
+            padding: 3px 0;
         }
 
-        /* Footer */
-        .footer {
-            margin-top: 20px;
-            font-size: 10px;
-            color: #666;
+        /* ── Footer ── */
+        .page-footer {
+            margin-top: 32px;
+            padding-top: 10px;
+            border-top: 1px solid #ccc7be;
         }
-
+        .footer-brand {
+            font-size: 8px;
+            font-weight: bold;
+            color: #9a9890;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+        .footer-ref-txt {
+            font-size: 8px;
+            color: #9a9890;
+            text-align: right;
+        }
     </style>
 </head>
-
 <body>
 
-<div class="container">
-
-    <!-- ── Top : Bailleur / Locataire ── -->
-    <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+<!-- ── Header ── -->
+<div style="padding-bottom: 14px; border-bottom: 1px solid #d0cbc2; margin-bottom: 28px;">
+    <table style="width: 100%; border-collapse: collapse;">
         <tr>
-            <td style="width: 48%; border: 1px solid #1a3a6b; padding: 10px; font-size: 11px; vertical-align: top;">
-                <div class="bold">Bailleur</div>
-                <div th:text="${proprietaire.firstName + ' ' + proprietaire.lastName}"></div>
-                <div th:text="${proprietaire.mail}"></div>
+            <td style="vertical-align: bottom;">
+                <div class="brand">kupanga</div>
+                <div class="brand-tagline">Gestion locative</div>
             </td>
-            <td style="width: 4%;"></td>
-            <td style="width: 48%; border: 1px solid #1a3a6b; padding: 10px; font-size: 11px; vertical-align: top;">
-                <div class="bold">Locataire</div>
-                <div th:text="${locataire.firstName + ' ' + locataire.lastName}"></div>
-                <div th:text="${locataire.mail}"></div>
+            <td style="text-align: right; vertical-align: bottom;">
+                <div class="doc-ref">QUITTANCE N° <span th:text="${quittance.id}"></span></div>
+                <div class="doc-ref">ÉMISE LE <span th:text="${#temporals.format(quittance.createdAt, 'dd/MM/yyyy')}"></span></div>
             </td>
         </tr>
     </table>
+</div>
 
-    <!-- ── Titre ── -->
-    <div class="title">
-        <h1>Quittance de loyer</h1>
-        <h2 th:text="'Loyer ' + ${moisLabel} + ' ' + ${quittance.annee}"></h2>
-    </div>
+<!-- ── Title ── -->
+<div style="text-align: center; margin-bottom: 28px;">
+    <div class="pre-title">Reçu de paiement — Loyer <span th:text="${moisLabel + ' ' + quittance.annee}"></span></div>
+    <div class="main-title">Quittance <em>de loyer</em></div>
+    <p class="subtitle-text">
+        Atteste du paiement intégral du loyer et des charges pour le terme du mois indiqué,
+        en application de l'article 21 de la loi du 6 juillet 1989.
+    </p>
+</div>
 
-    <!-- ── Contenu ── -->
-    <div class="content">
-
-        <div class="line">
-            Reçu de : <span class="bold"
-                            th:text="${locataire.firstName + ' ' + locataire.lastName}"></span>
-        </div>
-
-        <div class="line">
-            La somme de : <span class="blue"
-                                th:text="${quittance.montantTotal} + ' €'"></span>
-        </div>
-
-        <div class="line">
-            Le : <span th:text="${#temporals.format(quittance.datePaiement, 'dd/MM/yyyy')}"></span>
-        </div>
-
-        <div class="line">
-            pour loyer et accessoires des locaux sis :
-            <span class="bold"
-                  th:text="${quittance.bien.adresse + ', ' + quittance.bien.codePostal + ' ' + quittance.bien.ville}"></span>
-        </div>
-
-        <div class="line">
-            en paiement du terme du
-            <span th:text="${#temporals.format(quittance.dateEcheance, 'dd/MM/yyyy')}"></span>
-        </div>
-
-        <!-- ── Détail financier ── -->
-        <div class="detail">
-            <div>Détail :</div>
-            <div>- Loyer : <span th:text="${quittance.loyerMensuel} + ' €'"></span></div>
-            <div>- Charges : <span th:text="${quittance.chargesMensuelles} + ' €'"></span></div>
-            <div class="bold">
-                Total : <span th:text="${quittance.montantTotal} + ' €'"></span>
+<!-- ── 01. Désignation des parties ── -->
+<div class="section-head">01 — Désignation des parties</div>
+<table style="width: 100%; border-collapse: collapse;">
+    <tr>
+        <td style="width: 49%; vertical-align: top;">
+            <div class="partie-card">
+                <div class="partie-role-lbl">Bailleur</div>
+                <div class="name-sublabel">Nom complet</div>
+                <div class="name-big" th:text="${proprietaire.firstName + ' ' + proprietaire.lastName}"></div>
+                <div class="email-txt">Email &nbsp;<span th:text="${proprietaire.mail}"></span></div>
             </div>
-        </div>
+        </td>
+        <td style="width: 2%;"></td>
+        <td style="width: 49%; vertical-align: top;">
+            <div class="partie-card">
+                <div class="partie-role-lbl">Locataire</div>
+                <div class="name-sublabel">Nom complet</div>
+                <div class="name-big" th:text="${locataire.firstName + ' ' + locataire.lastName}"></div>
+                <div class="email-txt">Email &nbsp;<span th:text="${locataire.mail}"></span></div>
+            </div>
+        </td>
+    </tr>
+</table>
 
-        <!-- ── Signature bailleur ── -->
-        <div class="signature-bloc">
-            <table style="width: 100%; border-collapse: collapse;">
-                <tr>
-                    <td style="vertical-align: top;">
-                        <div class="sig-label">Signature du bailleur</div>
+<!-- ── 02. Détail du règlement ── -->
+<div class="section-head">02 — Détail du règlement</div>
 
-                        <!-- Signature présente -->
-                        <img th:if="${quittance.signatureProprietaire != null}"
-                             class="sig-img"
-                             th:src="'data:image/png;base64,' + ${quittance.signatureProprietaire}"
-                             alt="Signature bailleur"/>
+<p class="para">
+    La présente quittance atteste avoir reçu de
+    <strong th:text="${locataire.firstName + ' ' + locataire.lastName}"></strong>,
+    locataire, la somme de <strong th:text="${quittance.montantTotal} + ' €'"></strong>,
+    en règlement intégral du loyer et des accessoires du terme du
+    <span th:text="${#temporals.format(quittance.dateEcheance, 'dd/MM/yyyy')}"></span>,
+    pour les locaux sis au
+    <strong th:text="${quittance.bien.adresse + ', ' + quittance.bien.codePostal + ' ' + quittance.bien.ville}"></strong>.
+</p>
 
-                        <!-- Signature absente -->
-                        <div th:if="${quittance.signatureProprietaire == null}"
-                             class="sig-placeholder">En attente de signature</div>
+<div style="page-break-inside: avoid;">
+<table class="fin-table">
+    <thead>
+    <tr>
+        <th>Désignation</th>
+        <th class="right">Montant</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td>Loyer mensuel hors charges</td>
+        <td class="right"><span th:text="${quittance.loyerMensuel}"></span> €</td>
+    </tr>
+    <tr>
+        <td>Provision sur charges</td>
+        <td class="right"><span th:text="${quittance.chargesMensuelles}"></span> €</td>
+    </tr>
+    <tr class="total-row">
+        <td>Total reçu</td>
+        <td class="right"><span th:text="${quittance.montantTotal}"></span> €</td>
+    </tr>
+    </tbody>
+</table>
 
-                        <!-- Date de signature -->
-                        <p th:if="${quittance.dateSignatureProprietaire != null}"
-                           class="sig-date"
-                           th:text="'Signé le ' + ${#temporals.format(quittance.dateSignatureProprietaire, 'dd/MM/yyyy à HH:mm')}"></p>
+<div class="note">
+    La présente quittance est délivrée sous réserve de tous les droits du bailleur, et notamment de ceux relatifs
+    à la régularisation annuelle des charges. Elle vaut décharge pour le terme considéré.
+</div>
+</div><!-- end no-break table financière -->
 
-                        <div class="sig-name"
-                             th:text="${proprietaire.firstName + ' ' + proprietaire.lastName}"></div>
-                    </td>
-                    <td style="text-align: right; vertical-align: bottom; font-size: 11px; color: #555;">
-                        Fait le
-                        <span th:text="${#temporals.format(quittance.createdAt, 'dd/MM/yyyy')}"></span>
-                    </td>
-                </tr>
-            </table>
-        </div>
+<!-- ── 03. Signature du bailleur ── -->
+<div style="page-break-inside: avoid;">
+<div class="section-head">03 — Signature du bailleur</div>
 
-    </div>
+<table style="width: 100%; border-collapse: collapse;">
+    <tr>
+        <td style="width: 55%; vertical-align: top; padding-right: 10px;">
+            <div class="box-card">
+                <div class="sig-role-lbl">Bailleur</div>
+                <div class="sig-name-big" th:text="${proprietaire.firstName + ' ' + proprietaire.lastName}"></div>
 
-    <!-- ── Footer ── -->
-    <div class="footer">
-        Kupanga — Quittance n°
-        <span th:text="${quittance.id}"></span>
-    </div>
+                <img th:if="${quittance.signatureProprietaire != null}"
+                     class="sig-img"
+                     th:src="'data:image/png;base64,' + ${quittance.signatureProprietaire}"
+                     alt="Signature bailleur"/>
+                <table th:if="${quittance.signatureProprietaire == null}"
+                       style="width: 200px; height: 70px; border-collapse: collapse; border: 1px dashed #ccc7be; background-color: #edeae4;">
+                    <tr>
+                        <td style="text-align: center; vertical-align: middle; color: #b0aca4; font-size: 9px; font-style: italic;">
+                            En attente de signature
+                        </td>
+                    </tr>
+                </table>
 
+                <p th:if="${quittance.dateSignatureProprietaire != null}"
+                   class="sig-date-lbl"
+                   th:text="'Signé le ' + ${#temporals.format(quittance.dateSignatureProprietaire, 'dd/MM/yyyy à HH:mm')}"></p>
+
+                <div class="sig-made-lbl">
+                    Fait le <span th:text="${#temporals.format(quittance.createdAt, 'dd/MM/yyyy')}"></span>
+                </div>
+            </div>
+        </td>
+        <td style="width: 45%; vertical-align: top; padding-left: 10px;">
+            <div class="box-card">
+                <div style="padding-bottom: 8px; border-bottom: 1px solid #dedad3; margin-bottom: 10px;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <tr>
+                            <td class="info-section-lbl">Émission</td>
+                            <td style="text-align: right;" class="info-section-lbl">Quittance n°</td>
+                        </tr>
+                    </table>
+                </div>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                        <td class="info-lbl">Référence</td>
+                        <td class="info-val" th:text="${quittance.id}"></td>
+                    </tr>
+                    <tr>
+                        <td class="info-lbl">Terme</td>
+                        <td class="info-val" th:text="${moisLabel + ' ' + quittance.annee}"></td>
+                    </tr>
+                    <tr>
+                        <td class="info-lbl">Échéance</td>
+                        <td class="info-val" th:text="${#temporals.format(quittance.dateEcheance, 'dd/MM/yyyy')}"></td>
+                    </tr>
+                    <tr>
+                        <td class="info-lbl">Payée le</td>
+                        <td class="info-val" th:text="${#temporals.format(quittance.datePaiement, 'dd/MM/yyyy')}"></td>
+                    </tr>
+                </table>
+            </div>
+        </td>
+    </tr>
+</table>
+
+</div><!-- end no-break signature -->
+
+<!-- ── Footer ── -->
+<div class="page-footer">
+    <table style="width: 100%; border-collapse: collapse;">
+        <tr>
+            <td class="footer-brand">Kupanga — Gestion locative</td>
+            <td class="footer-ref-txt">Quittance n° <span th:text="${quittance.id}"></span> — Page 1 / 1</td>
+        </tr>
+    </table>
 </div>
 
 </body>

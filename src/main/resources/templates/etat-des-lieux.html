@@ -3,373 +3,431 @@
 <head>
     <meta charset="UTF-8"/>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-
         body {
             font-family: Arial, sans-serif;
-            font-size: 12px;
-            color: #1a1a2e;
-            margin: 40px;
+            font-size: 11px;
+            color: #2a2a28;
+            margin: 32px 40px;
+            background-color: #f5f2eb;
+            line-height: 1.5;
+        }
+
+        /* ── Header ── */
+        .brand {
+            font-size: 15px;
+            font-weight: bold;
+            color: #2a2a28;
+        }
+        .brand-tagline {
+            font-size: 8px;
+            color: #9a9890;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-top: 2px;
+        }
+        .doc-ref {
+            font-size: 9px;
+            color: #9a9890;
+            letter-spacing: 0.5px;
+        }
+
+        /* ── Type badge ── */
+        .type-badge {
+            font-size: 9px;
+            font-weight: bold;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            padding: 3px 14px;
+            margin-bottom: 10px;
+            display: inline-block;
+        }
+        .badge-entree {
+            background-color: #daecd4;
+            color: #2e6624;
+            border: 1px solid #b8ddb0;
+        }
+        .badge-sortie {
+            background-color: #f5d5d3;
+            color: #7a1a18;
+            border: 1px solid #e8b8b6;
+        }
+
+        /* ── Title ── */
+        .pre-title {
+            font-size: 8px;
+            color: #9a9890;
+            text-transform: uppercase;
+            letter-spacing: 2.5px;
+            margin-bottom: 8px;
+        }
+        .main-title {
+            font-size: 26px;
+            font-weight: normal;
+            color: #2a2a28;
+            margin-bottom: 10px;
+        }
+        .main-title em {
+            font-family: Georgia, 'Times New Roman', serif;
+            font-style: italic;
+        }
+        .subtitle-text {
+            font-size: 10px;
+            color: #6b6b60;
             line-height: 1.6;
         }
 
-        /* ── En-tête ── */
-        .header {
-            border: 2px solid #1a3a6b;
-            border-radius: 4px;
-            text-align: center;
-            padding: 20px;
-            margin-bottom: 30px;
-        }
-        .header h1 {
-            font-size: 22px;
+        /* ── Section heading ── */
+        .section-head {
+            font-size: 8px;
             font-weight: bold;
-            color: #1a3a6b;
+            color: #6b6b60;
             text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-        .header .type-badge {
-            display: inline-block;
-            margin-top: 10px;
-            padding: 4px 20px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: bold;
-            letter-spacing: 1px;
-        }
-        .badge-entree { background-color: #d4edda; color: #155724; }
-        .badge-sortie { background-color: #f8d7da; color: #721c24; }
-        .header .sous-titre {
-            font-size: 11px;
-            color: #4a6fa5;
-            margin-top: 8px;
-            font-style: italic;
-        }
-
-        /* ── Titres de section ── */
-        .section-title {
-            font-size: 13px;
-            font-weight: bold;
-            color: #1a3a6b;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            border-bottom: 2px solid #1a3a6b;
-            padding-bottom: 4px;
-            margin: 28px 0 16px 0;
-        }
-
-        /* ── Carte générique ── */
-        .card {
-            border: 1px solid #c5d3e8;
-            border-radius: 8px;
-            padding: 16px 20px;
+            letter-spacing: 2.5px;
+            border-bottom: 1px solid #ccc7be;
+            padding-bottom: 5px;
+            margin-top: 26px;
             margin-bottom: 14px;
         }
-        .card-label {
-            font-size: 13px;
+
+        /* ── Card ── */
+        .info-card {
+            border: 1px solid #dedad3;
+            background-color: #faf8f4;
+            padding: 14px 16px;
+            margin-bottom: 10px;
+            page-break-inside: avoid;
+        }
+        .card-title {
+            font-size: 9px;
             font-weight: bold;
-            color: #1a3a6b;
-            margin-bottom: 12px;
+            color: #9a9890;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 10px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid #eae7e0;
         }
 
-        /* ── Ligne de champ ── */
-        .field-row {
-            display: flex;
-            align-items: baseline;
-            margin-bottom: 8px;
-            border-bottom: 1px dotted #c5d3e8;
-            padding-bottom: 4px;
+        /* ── Field row ── */
+        .field-lbl {
+            font-size: 10px;
+            color: #9a9890;
+            width: 45%;
+            vertical-align: top;
+            padding: 4px 0;
+            border-bottom: 1px solid #eae7e0;
         }
-        .field-row:last-child { border-bottom: none; }
-        .field-label {
+        .field-val {
+            font-size: 10px;
             font-weight: bold;
-            color: #333;
-            min-width: 200px;
-            flex-shrink: 0;
+            color: #2a2a28;
+            vertical-align: top;
+            padding: 4px 0;
+            border-bottom: 1px solid #eae7e0;
         }
-        .field-value {
-            color: #1a6fbf;
-            font-weight: bold;
+        .field-row-last td {
+            border-bottom: none;
         }
 
-        /* ── Tableau compteurs ── */
-        table.compteurs {
+        /* ── Partie card ── */
+        .partie-card {
+            border: 1px solid #dedad3;
+            background-color: #faf8f4;
+            padding: 14px 16px;
+            page-break-inside: avoid;
+        }
+        .partie-role-lbl {
+            font-size: 8px;
+            font-weight: bold;
+            color: #9a9890;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 6px;
+        }
+        .name-sublabel {
+            font-size: 9px;
+            color: #9a9890;
+        }
+        .name-big {
+            font-size: 12px;
+            font-weight: bold;
+            color: #2a2a28;
+        }
+        .email-txt {
+            font-size: 9px;
+            color: #6b6b60;
+            margin-top: 4px;
+        }
+
+        /* ── Data tables (compteurs, clés) ── */
+        .data-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 8px;
         }
-        table.compteurs th {
-            background-color: #1a3a6b;
-            color: white;
-            padding: 8px 12px;
-            text-align: left;
-            font-size: 11px;
-        }
-        table.compteurs td {
-            padding: 8px 12px;
-            border-bottom: 1px solid #e0e8f5;
-        }
-        table.compteurs tr:nth-child(even) td {
-            background-color: #f0f5fc;
-        }
-        table.compteurs td.index-val {
-            color: #1a6fbf;
+        .data-table thead th {
+            background-color: #f0ece4;
+            font-size: 8px;
             font-weight: bold;
+            color: #9a9890;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 8px 14px;
+            text-align: left;
+            border-bottom: 1px solid #ccc7be;
+        }
+        .data-table thead th.right {
             text-align: right;
         }
-
-        /* ── Tableau clés ── */
-        table.cles {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 8px;
-        }
-        table.cles th {
-            background-color: #4a6fa5;
-            color: white;
-            padding: 8px 12px;
-            text-align: left;
-            font-size: 11px;
-        }
-        table.cles td {
-            padding: 8px 12px;
-            border-bottom: 1px solid #e0e8f5;
-        }
-        table.cles td.qte {
-            font-weight: bold;
-            color: #1a6fbf;
+        .data-table thead th.center {
             text-align: center;
         }
+        .data-table tbody td {
+            padding: 9px 14px;
+            border-bottom: 1px solid #eae7e0;
+            font-size: 11px;
+            color: #2a2a28;
+        }
+        .data-table tbody td.right {
+            text-align: right;
+        }
+        .data-table tbody td.center {
+            text-align: center;
+            font-weight: bold;
+        }
+        .data-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+        .data-table .empty-row td {
+            text-align: center;
+            color: #b0aca4;
+            font-style: italic;
+            padding: 12px;
+        }
 
-        /* ── Bloc pièce ── */
+        /* ── Pièce bloc ── */
         .piece-bloc {
-            border: 1px solid #c5d3e8;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            overflow: hidden;
+            border: 1px solid #dedad3;
+            margin-bottom: 16px;
+            page-break-inside: avoid;
         }
         .piece-header {
-            background-color: #1a3a6b;
-            color: white;
-            padding: 10px 16px;
-            font-size: 13px;
+            background-color: #2a2a28;
+            color: #f5f2eb;
+            padding: 8px 14px;
+            font-size: 11px;
             font-weight: bold;
             letter-spacing: 0.5px;
         }
-        .piece-body { padding: 0; }
 
-        /* ── Tableau éléments ── */
-        table.elements {
+        /* ── Éléments table ── */
+        .elem-table {
             width: 100%;
             border-collapse: collapse;
         }
-        table.elements th {
-            background-color: #eef2f9;
-            color: #1a3a6b;
+        .elem-table thead th {
+            background-color: #f0ece4;
+            font-size: 8px;
+            font-weight: bold;
+            color: #9a9890;
+            text-transform: uppercase;
+            letter-spacing: 1px;
             padding: 7px 12px;
             text-align: left;
-            font-size: 11px;
-            font-weight: bold;
-            border-bottom: 1px solid #c5d3e8;
+            border-bottom: 1px solid #dedad3;
         }
-        table.elements td {
-            padding: 7px 12px;
-            border-bottom: 1px solid #eef2f9;
+        .elem-table tbody td {
+            padding: 8px 12px;
+            border-bottom: 1px solid #eae7e0;
+            font-size: 10px;
+            color: #2a2a28;
             vertical-align: top;
         }
-        table.elements tr:last-child td { border-bottom: none; }
+        .elem-table tbody tr:last-child td {
+            border-bottom: none;
+        }
 
-        /* ── Badge état élément ── */
+        /* ── État badges ── */
         .etat-badge {
             display: inline-block;
-            padding: 2px 10px;
-            border-radius: 10px;
-            font-size: 10px;
+            padding: 2px 8px;
+            font-size: 9px;
             font-weight: bold;
-            white-space: nowrap;
         }
-        .etat-BON              { background-color: #d4edda; color: #155724; }
-        .etat-USAGE_NORMAL     { background-color: #fff3cd; color: #856404; }
-        .etat-MAUVAIS          { background-color: #f8d7da; color: #721c24; }
-        .etat-HORS_SERVICE     { background-color: #d6d8d9; color: #1b1e21; }
+        .etat-BON              { background-color: #daecd4; color: #2e6624; }
+        .etat-USAGE_NORMAL     { background-color: #f5e9c0; color: #7a5c00; }
+        .etat-MAUVAIS          { background-color: #f5d5d3; color: #7a1a18; }
+        .etat-HORS_SERVICE     { background-color: #e0ddd8; color: #3a3a38; }
 
-        /* ── Bloc observation pièce ── */
+        /* ── Obs pièce ── */
         .obs-piece {
-            background-color: #fafbff;
-            border-top: 1px dashed #c5d3e8;
+            background-color: #f5f2eb;
+            border-top: 1px dashed #dedad3;
             padding: 8px 12px;
             font-style: italic;
-            color: #555;
-            font-size: 11px;
+            color: #6b6b60;
+            font-size: 10px;
         }
 
-        /* ── Observations générales ── */
+        /* ── Obs générale ── */
         .obs-generale {
-            background-color: #f0f5fc;
-            border-left: 4px solid #1a3a6b;
-            border-radius: 4px;
+            background-color: #faf8f4;
+            border-left: 3px solid #ccc7be;
             padding: 12px 16px;
             font-style: italic;
-            color: #333;
+            color: #2a2a28;
+            font-size: 11px;
         }
 
         /* ── Signatures ── */
-        .signatures {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 40px;
-            gap: 20px;
-        }
         .sig-box {
-            flex: 1;
-            border: 1px solid #c5d3e8;
-            border-radius: 8px;
-            padding: 16px;
-            text-align: center;
+            border: 1px solid #dedad3;
+            background-color: #faf8f4;
+            padding: 14px 16px;
+            page-break-inside: avoid;
         }
-        .sig-box .sig-title {
+        .sig-role-lbl {
+            font-size: 8px;
             font-weight: bold;
-            color: #1a3a6b;
-            margin-bottom: 12px;
-            font-size: 12px;
+            color: #9a9890;
             text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 4px;
         }
-        .sig-box img {
+        .sig-name-big {
+            font-size: 13px;
+            font-weight: bold;
+            color: #2a2a28;
+            margin-bottom: 12px;
+        }
+        .sig-img {
             width: 200px;
             height: 80px;
-            border: 1px dashed #c5d3e8;
-            border-radius: 4px;
-            display: block;
-            margin: 0 auto 8px auto;
+            border: 1px solid #ccc7be;
         }
-        .sig-placeholder {
-            width: 200px;
-            height: 80px;
-            border: 1px dashed #c5d3e8;
-            border-radius: 4px;
-            margin: 0 auto 8px auto;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #aab8cc;
-            font-size: 10px;
-        }
-        .sig-date {
-            font-size: 10px;
-            color: #4a6fa5;
+        .sig-date-lbl {
+            font-size: 9px;
+            color: #9a9890;
             margin-top: 6px;
         }
+        .sig-made-lbl {
+            font-size: 9px;
+            color: #9a9890;
+            margin-top: 10px;
+        }
 
-        /* ── Pied de page ── */
-        .footer {
-            margin-top: 40px;
-            border-top: 1px solid #c5d3e8;
+        /* ── Footer ── */
+        .page-footer {
+            margin-top: 32px;
             padding-top: 10px;
-            display: flex;
-            justify-content: space-between;
-            font-size: 10px;
-            color: #888;
+            border-top: 1px solid #ccc7be;
+        }
+        .footer-brand {
+            font-size: 8px;
+            font-weight: bold;
+            color: #9a9890;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+        .footer-ref-txt {
+            font-size: 8px;
+            color: #9a9890;
+            text-align: right;
         }
     </style>
 </head>
 <body>
 
-<!-- ════════════════════════════════════════════════════════════════ -->
-<!-- ── En-tête ── -->
-<!-- ════════════════════════════════════════════════════════════════ -->
-<div class="header">
-    <h1>État des lieux</h1>
+<!-- ── Header ── -->
+<div style="padding-bottom: 14px; border-bottom: 1px solid #d0cbc2; margin-bottom: 28px;">
+    <table style="width: 100%; border-collapse: collapse;">
+        <tr>
+            <td style="vertical-align: bottom;">
+                <div class="brand">kupanga</div>
+                <div class="brand-tagline">Gestion locative</div>
+            </td>
+            <td style="text-align: right; vertical-align: bottom;">
+                <div class="doc-ref">EDL N° <span th:text="${edl.id}"></span></div>
+                <div class="doc-ref">ÉTABLI LE <span th:text="${#temporals.format(edl.dateRealisation, 'dd/MM/yyyy')}"></span></div>
+            </td>
+        </tr>
+    </table>
+</div>
 
-    <div th:if="${edl.type.name() == 'ENTREE'}" class="type-badge badge-entree">
-        ENTRÉE DANS LES LIEUX
-    </div>
-    <div th:if="${edl.type.name() == 'SORTIE'}" class="type-badge badge-sortie">
-        SORTIE DES LIEUX
-    </div>
+<!-- ── Title ── -->
+<div style="text-align: center; margin-bottom: 28px;">
+    <div class="pre-title">État des lieux</div>
 
-    <p class="sous-titre">
-        Établi contradictoirement entre le bailleur et le locataire —
-        Loi n° 89-462 du 6 juillet 1989
+    <div th:if="${edl.type.name() == 'ENTREE'}" class="type-badge badge-entree">Entrée dans les lieux</div>
+    <div th:if="${edl.type.name() == 'SORTIE'}" class="type-badge badge-sortie">Sortie des lieux</div>
+
+    <div class="main-title">État <em>des lieux</em></div>
+    <p class="subtitle-text">
+        Établi contradictoirement entre le bailleur et le locataire,
+        en application de la loi n° 89-462 du 6 juillet 1989.
     </p>
 </div>
 
-<!-- ════════════════════════════════════════════════════════════════ -->
-<!-- ── Informations générales ── -->
-<!-- ════════════════════════════════════════════════════════════════ -->
-<div class="section-title">Informations générales</div>
-
-<div class="card">
-    <div class="field-row">
-        <span class="field-label">Date de réalisation :</span>
-        <span class="field-value"
-              th:text="${#temporals.format(edl.dateRealisation, 'dd/MM/yyyy')}"></span>
-    </div>
-    <div class="field-row">
-        <span class="field-label">Heure de début :</span>
-        <span class="field-value"
-              th:text="${edl.heureRealisation != null
-                         ? #temporals.format(edl.heureRealisation, 'HH:mm')
-                         : '—'}"></span>
-    </div>
-    <div class="field-row">
-        <span class="field-label">Adresse du bien :</span>
-        <span class="field-value"
-              th:text="${edl.bien.adresse + ', ' + edl.bien.codePostal + ' ' + edl.bien.ville}"></span>
-    </div>
-    <div class="field-row">
-        <span class="field-label">Type de bien :</span>
-        <span class="field-value" th:text="${edl.bien.typeBien}"></span>
-    </div>
-    <div class="field-row">
-        <span class="field-label">Surface habitable :</span>
-        <span class="field-value">
-            <span th:text="${edl.bien.surfaceHabitable}"></span> m²
-        </span>
-    </div>
+<!-- ── 01. Informations générales ── -->
+<div class="section-head">01 — Informations générales</div>
+<div class="info-card">
+    <table style="width: 100%; border-collapse: collapse;">
+        <tr>
+            <td class="field-lbl">Date de réalisation</td>
+            <td class="field-val" th:text="${#temporals.format(edl.dateRealisation, 'dd/MM/yyyy')}"></td>
+        </tr>
+        <tr>
+            <td class="field-lbl">Heure de début</td>
+            <td class="field-val"
+                th:text="${edl.heureRealisation != null ? #temporals.format(edl.heureRealisation, 'HH:mm') : '—'}"></td>
+        </tr>
+        <tr>
+            <td class="field-lbl">Type de bien</td>
+            <td class="field-val" th:text="${edl.bien.typeBien}"></td>
+        </tr>
+        <tr>
+            <td class="field-lbl">Adresse du bien</td>
+            <td class="field-val"
+                th:text="${edl.bien.adresse + ', ' + edl.bien.codePostal + ' ' + edl.bien.ville}"></td>
+        </tr>
+        <tr class="field-row-last">
+            <td class="field-lbl">Surface habitable</td>
+            <td class="field-val"><span th:text="${edl.bien.surfaceHabitable}"></span> m²</td>
+        </tr>
+    </table>
 </div>
 
-<!-- ════════════════════════════════════════════════════════════════ -->
-<!-- ── Désignation des parties ── -->
-<!-- ════════════════════════════════════════════════════════════════ -->
-<div class="section-title">Désignation des parties</div>
+<!-- ── 02. Désignation des parties ── -->
+<div class="section-head">02 — Désignation des parties</div>
+<table style="width: 100%; border-collapse: collapse;">
+    <tr>
+        <td style="width: 49%; vertical-align: top;">
+            <div class="partie-card">
+                <div class="partie-role-lbl">Bailleur</div>
+                <div class="name-sublabel">Nom complet</div>
+                <div class="name-big" th:text="${proprietaire.firstName + ' ' + proprietaire.lastName}"></div>
+                <div class="email-txt">Email &nbsp;<span th:text="${proprietaire.mail}"></span></div>
+            </div>
+        </td>
+        <td style="width: 2%;"></td>
+        <td style="width: 49%; vertical-align: top;">
+            <div class="partie-card">
+                <div class="partie-role-lbl">Locataire</div>
+                <div class="name-sublabel">Nom complet</div>
+                <div class="name-big" th:text="${locataire.firstName + ' ' + locataire.lastName}"></div>
+                <div class="email-txt">Email &nbsp;<span th:text="${locataire.mail}"></span></div>
+            </div>
+        </td>
+    </tr>
+</table>
 
-<div class="card">
-    <div class="card-label">Bailleur (propriétaire)</div>
-    <div class="field-row">
-        <span class="field-label">Prénom(s), Nom(s) :</span>
-        <span class="field-value"
-              th:text="${proprietaire.firstName + ' ' + proprietaire.lastName}"></span>
-    </div>
-    <div class="field-row">
-        <span class="field-label">Email :</span>
-        <span class="field-value" th:text="${proprietaire.mail}"></span>
-    </div>
-</div>
-
-<div class="card">
-    <div class="card-label">Locataire(s)</div>
-    <div class="field-row">
-        <span class="field-label">Prénom(s), Nom(s) :</span>
-        <span class="field-value"
-              th:text="${locataire.firstName + ' ' + locataire.lastName}"></span>
-    </div>
-    <div class="field-row">
-        <span class="field-label">Email :</span>
-        <span class="field-value" th:text="${locataire.mail}"></span>
-    </div>
-</div>
-
-<!-- ════════════════════════════════════════════════════════════════ -->
-<!-- ── Relevés de compteurs ── -->
-<!-- ════════════════════════════════════════════════════════════════ -->
-<div class="section-title">Relevés de compteurs</div>
-
-<table class="compteurs">
+<!-- ── 03. Relevés de compteurs ── -->
+<div class="section-head">03 — Relevés de compteurs</div>
+<table class="data-table">
     <thead>
     <tr>
         <th>Type de compteur</th>
         <th>N° de compteur</th>
-        <th style="text-align: right;">Index relevé</th>
+        <th class="right">Index relevé</th>
         <th>Unité</th>
     </tr>
     </thead>
@@ -377,151 +435,164 @@
     <tr th:each="compteur : ${edl.compteurs}">
         <td th:text="${compteur.typeCompteur}"></td>
         <td th:text="${compteur.numeroCompteur != null ? compteur.numeroCompteur : '—'}"></td>
-        <td class="index-val" th:text="${compteur.index}"></td>
+        <td class="right" th:text="${compteur.index}"></td>
         <td th:text="${compteur.unite != null ? compteur.unite : '—'}"></td>
     </tr>
-    <tr th:if="${#sets.isEmpty(edl.compteurs)}">
-        <td colspan="4" style="text-align:center; color:#aaa; font-style:italic;">
-            Aucun compteur renseigné
-        </td>
+    <tr th:if="${#sets.isEmpty(edl.compteurs)}" class="empty-row">
+        <td colspan="4">Aucun compteur renseigné</td>
     </tr>
     </tbody>
 </table>
 
-<!-- ════════════════════════════════════════════════════════════════ -->
-<!-- ── Clés remises / restituées ── -->
-<!-- ════════════════════════════════════════════════════════════════ -->
-<div class="section-title"
-     th:text="${edl.type.name() == 'ENTREE' ? 'Clés remises au locataire' : 'Clés restituées par le locataire'}">
+<!-- ── 04. Remise des clés ── -->
+<div class="section-head"
+     th:text="${edl.type.name() == 'ENTREE' ? '04 — Clés remises au locataire' : '04 — Clés restituées par le locataire'}">
 </div>
-
-<table class="cles">
+<table class="data-table">
     <thead>
     <tr>
         <th>Type de clé</th>
-        <th style="text-align: center;">Quantité</th>
+        <th class="center">Quantité</th>
     </tr>
     </thead>
     <tbody>
     <tr th:each="cle : ${edl.cles}">
         <td th:text="${cle.typeCle}"></td>
-        <td class="qte" th:text="${cle.quantite}"></td>
+        <td class="center" th:text="${cle.quantite}"></td>
     </tr>
-    <tr th:if="${#sets.isEmpty(edl.cles)}">
-        <td colspan="2" style="text-align:center; color:#aaa; font-style:italic;">
-            Aucune clé renseignée
-        </td>
+    <tr th:if="${#sets.isEmpty(edl.cles)}" class="empty-row">
+        <td colspan="2">Aucune clé renseignée</td>
     </tr>
     </tbody>
 </table>
 
-<!-- ════════════════════════════════════════════════════════════════ -->
-<!-- ── État détaillé des pièces ── -->
-<!-- ════════════════════════════════════════════════════════════════ -->
-<div class="section-title">État détaillé du logement — pièce par pièce</div>
+<!-- ── 05. État détaillé des pièces ── -->
+<div class="section-head">05 — État détaillé du logement — pièce par pièce</div>
 
 <div th:each="piece : ${edl.pieces}" class="piece-bloc">
 
-    <!-- En-tête de la pièce -->
     <div class="piece-header" th:text="${piece.nomPiece}"></div>
 
-    <div class="piece-body">
+    <table class="elem-table">
+        <thead>
+        <tr>
+            <th style="width: 20%;">Élément</th>
+            <th style="width: 20%;">Description</th>
+            <th style="width: 18%;">État</th>
+            <th style="width: 42%;">Observations</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="el : ${piece.elements}">
+            <td th:text="${el.typeElement}"></td>
+            <td th:text="${el.description != null ? el.description : '—'}"></td>
+            <td>
+                <span th:class="'etat-badge etat-' + ${el.etatElement.name()}"
+                      th:text="${el.etatElement}"></span>
+            </td>
+            <td th:text="${el.observation != null ? el.observation : '—'}"></td>
+        </tr>
+        <tr th:if="${#lists.isEmpty(piece.elements)}">
+            <td colspan="4" style="text-align: center; color: #b0aca4; font-style: italic; padding: 12px;">
+                Aucun élément renseigné
+            </td>
+        </tr>
+        </tbody>
+    </table>
 
-        <!-- Tableau des éléments -->
-        <table class="elements">
-            <thead>
-            <tr>
-                <th style="width: 20%;">Élément</th>
-                <th style="width: 20%;">Description</th>
-                <th style="width: 15%;">État</th>
-                <th style="width: 45%;">Observations</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="el : ${piece.elements}">
-                <td th:text="${el.typeElement}"></td>
-                <td th:text="${el.description != null ? el.description : '—'}"></td>
-                <td>
-                    <span th:class="'etat-badge etat-' + ${el.etatElement.name()}"
-                          th:text="${el.etatElement}"></span>
-                </td>
-                <td th:text="${el.observation != null ? el.observation : '—'}"></td>
-            </tr>
-            <tr th:if="${#lists.isEmpty(piece.elements)}">
-                <td colspan="4" style="text-align:center; color:#aaa; font-style:italic;">
-                    Aucun élément renseigné
-                </td>
-            </tr>
-            </tbody>
-        </table>
-
-        <!-- Observations de la pièce -->
-        <div th:if="${piece.observations != null}" class="obs-piece">
-            <strong>Remarques :</strong>
-            <span th:text="${piece.observations}"></span>
-        </div>
-
+    <div th:if="${piece.observations != null}" class="obs-piece">
+        <strong>Remarques :</strong>
+        <span th:text="${piece.observations}"></span>
     </div>
 </div>
 
 <div th:if="${#sets.isEmpty(edl.pieces)}"
-     style="text-align:center; color:#aaa; font-style:italic; padding: 20px 0;">
+     style="text-align: center; color: #b0aca4; font-style: italic; padding: 20px 0;">
     Aucune pièce renseignée
 </div>
 
-<!-- ════════════════════════════════════════════════════════════════ -->
 <!-- ── Observations générales ── -->
-<!-- ════════════════════════════════════════════════════════════════ -->
 <div th:if="${edl.observations != null}">
-    <div class="section-title">Observations générales</div>
+    <div class="section-head">Observations générales</div>
     <div class="obs-generale" th:text="${edl.observations}"></div>
 </div>
 
-<!-- ════════════════════════════════════════════════════════════════ -->
-<!-- ── Signatures ── -->
-<!-- ════════════════════════════════════════════════════════════════ -->
-<div class="section-title">Signatures des parties</div>
+<!-- ── 06. Signatures des parties ── -->
+<div style="page-break-inside: avoid;">
+<div class="section-head">06 — Signatures des parties</div>
 
-<table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+<table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
     <tr>
-        <td style="width: 50%; padding-right: 10px; vertical-align: top;">
+        <td style="width: 49%; vertical-align: top;">
             <div class="sig-box">
-                <div class="sig-title">Signature du bailleur</div>
+                <div class="sig-role-lbl">Bailleur</div>
+                <div class="sig-name-big" th:text="${proprietaire.firstName + ' ' + proprietaire.lastName}"></div>
+
                 <img th:if="${edl.signatureProprietaire != null}"
+                     class="sig-img"
                      th:src="'data:image/png;base64,' + ${edl.signatureProprietaire}"
                      alt="Signature bailleur"/>
-                <div th:if="${edl.signatureProprietaire == null}"
-                     class="sig-placeholder">En attente de signature</div>
+                <table th:if="${edl.signatureProprietaire == null}"
+                       style="width: 200px; height: 80px; border-collapse: collapse; border: 1px dashed #ccc7be; background-color: #edeae4;">
+                    <tr>
+                        <td style="text-align: center; vertical-align: middle; color: #b0aca4; font-size: 9px; font-style: italic;">
+                            En attente de signature
+                        </td>
+                    </tr>
+                </table>
+
                 <p th:if="${edl.dateSignatureProprietaire != null}"
-                   class="sig-date"
+                   class="sig-date-lbl"
                    th:text="'Signé le ' + ${#temporals.format(edl.dateSignatureProprietaire, 'dd/MM/yyyy à HH:mm')}"></p>
-                <p style="margin-top: 8px; color: #555;"
-                   th:text="${proprietaire.firstName + ' ' + proprietaire.lastName}"></p>
+
+                <div class="sig-made-lbl">
+                    Fait le <span th:text="${#temporals.format(edl.dateRealisation, 'dd/MM/yyyy')}"></span>
+                </div>
             </div>
         </td>
-        <td style="width: 50%; padding-left: 10px; vertical-align: top;">
+        <td style="width: 2%;"></td>
+        <td style="width: 49%; vertical-align: top;">
             <div class="sig-box">
-                <div class="sig-title">Signature du locataire</div>
+                <div class="sig-role-lbl">Locataire</div>
+                <div class="sig-name-big" th:text="${locataire.firstName + ' ' + locataire.lastName}"></div>
+
                 <img th:if="${edl.signatureLocataire != null}"
+                     class="sig-img"
                      th:src="'data:image/png;base64,' + ${edl.signatureLocataire}"
                      alt="Signature locataire"/>
-                <div th:if="${edl.signatureLocataire == null}"
-                     class="sig-placeholder">En attente de signature</div>
+                <table th:if="${edl.signatureLocataire == null}"
+                       style="width: 200px; height: 80px; border-collapse: collapse; border: 1px dashed #ccc7be; background-color: #edeae4;">
+                    <tr>
+                        <td style="text-align: center; vertical-align: middle; color: #b0aca4; font-size: 9px; font-style: italic;">
+                            En attente de signature
+                        </td>
+                    </tr>
+                </table>
+
                 <p th:if="${edl.dateSignatureLocataire != null}"
-                   class="sig-date"
+                   class="sig-date-lbl"
                    th:text="'Signé le ' + ${#temporals.format(edl.dateSignatureLocataire, 'dd/MM/yyyy à HH:mm')}"></p>
-                <p style="margin-top: 8px; color: #555;"
-                   th:text="${locataire.firstName + ' ' + locataire.lastName}"></p>
+
+                <div class="sig-made-lbl">
+                    Fait le <span th:text="${#temporals.format(edl.dateRealisation, 'dd/MM/yyyy')}"></span>
+                </div>
             </div>
         </td>
     </tr>
 </table>
 
-<!-- ── Pied de page ── -->
-<div class="footer">
-    <span>Kupanga — Gestion immobilière</span>
-    <span th:text="'EDL ' + ${edl.type} + ' — ' + ${edl.bien.adresse}"></span>
-    <span>Page 1 sur 1</span>
+</div><!-- end no-break signature -->
+
+<!-- ── Footer ── -->
+<div class="page-footer">
+    <table style="width: 100%; border-collapse: collapse;">
+        <tr>
+            <td class="footer-brand">Kupanga — Gestion locative</td>
+            <td class="footer-ref-txt">
+                EDL <span th:text="${edl.type}"></span> — <span th:text="${edl.bien.adresse}"></span>
+            </td>
+        </tr>
+    </table>
 </div>
 
 </body>
