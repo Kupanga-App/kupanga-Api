@@ -139,15 +139,16 @@ public class EmailServiceImpl implements EmailService {
 
             String htmlContent = String.format(
                     CONTENU_MAIL_INVITATION_SIGNATURE,
-                    prenomLocataire,
-                    prenomProprietaire,
-                    contrat.getAdresseBien(),
-                    contrat.getLoyerMensuel(),
-                    contrat.getChargesMensuelles(),
-                    contrat.getDepotGarantie(),
-                    contrat.getDateDebut(),
-                    contrat.getDureeBailMois(),
-                    lienSignature
+                    prenomProprietaire,              // %1$s preheader
+                    prenomLocataire,                 // %2$s salutation
+                    prenomProprietaire,              // %3$s corps
+                    contrat.getAdresseBien(),        // %4$s
+                    contrat.getLoyerMensuel(),       // %5$s
+                    contrat.getChargesMensuelles(),  // %6$s
+                    contrat.getDepotGarantie(),      // %7$s
+                    contrat.getDateDebut(),          // %8$s
+                    contrat.getDureeBailMois(),      // %9$s
+                    lienSignature                    // %10$s
             );
 
             helper.setText(htmlContent, true);
