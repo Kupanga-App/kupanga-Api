@@ -6,11 +6,20 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface EtatDesLieuxRepository extends JpaRepository<EtatDesLieux, Long>, JpaSpecificationExecutor<EtatDesLieux> {
 
     Optional<EtatDesLieux> findByTokenSignature(String tokenSignature);
+
+    @Query("SELECT e FROM EtatDesLieux e LEFT JOIN FETCH e.locataire WHERE e.bien.id = :bienId ORDER BY e.createdAt DESC")
+    List<EtatDesLieux> findByBienId(@Param("bienId") Long bienId);
+
+    long countByBienId(Long bienId);
+
+    @Query("SELECT e.bien.id, COUNT(e) FROM EtatDesLieux e GROUP BY e.bien.id")
+    List<Object[]> countParBien();
 
     /**
      * Charge l'EDL avec toutes ses relations en une seule requête

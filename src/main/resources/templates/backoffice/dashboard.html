@@ -92,6 +92,48 @@
                 </div>
             </div>
 
+            <div class="col-sm-6 col-xl-4">
+                <div class="card stat-card">
+                    <div class="card-body d-flex align-items-center gap-3">
+                        <div class="stat-icon">
+                            <i data-lucide="file-text" aria-hidden="true"></i>
+                        </div>
+                        <div>
+                            <div class="stat-label">Contrats générés</div>
+                            <div class="stat-value" th:text="${totalContrats}">0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-sm-6 col-xl-4">
+                <div class="card stat-card">
+                    <div class="card-body d-flex align-items-center gap-3">
+                        <div class="stat-icon">
+                            <i data-lucide="clipboard-list" aria-hidden="true"></i>
+                        </div>
+                        <div>
+                            <div class="stat-label">États des lieux</div>
+                            <div class="stat-value" th:text="${totalEdl}">0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-sm-6 col-xl-4">
+                <div class="card stat-card">
+                    <div class="card-body d-flex align-items-center gap-3">
+                        <div class="stat-icon">
+                            <i data-lucide="receipt" aria-hidden="true"></i>
+                        </div>
+                        <div>
+                            <div class="stat-label">Quittances émises</div>
+                            <div class="stat-value" th:text="${totalQuittances}">0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </div>
 
         <!-- ── Tables reporting ────────────────────── -->

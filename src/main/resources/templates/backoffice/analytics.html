@@ -70,6 +70,48 @@
                 </div>
             </div>
 
+            <div class="col-sm-6 col-xl-4">
+                <div class="card stat-card">
+                    <div class="card-body d-flex align-items-center gap-3">
+                        <div class="stat-icon">
+                            <i data-lucide="file-text" aria-hidden="true"></i>
+                        </div>
+                        <div>
+                            <div class="stat-label">Contrats générés</div>
+                            <div class="stat-value" th:text="${totalContrats}">0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-sm-6 col-xl-4">
+                <div class="card stat-card">
+                    <div class="card-body d-flex align-items-center gap-3">
+                        <div class="stat-icon">
+                            <i data-lucide="clipboard-list" aria-hidden="true"></i>
+                        </div>
+                        <div>
+                            <div class="stat-label">États des lieux</div>
+                            <div class="stat-value" th:text="${totalEdl}">0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-sm-6 col-xl-4">
+                <div class="card stat-card">
+                    <div class="card-body d-flex align-items-center gap-3">
+                        <div class="stat-icon">
+                            <i data-lucide="receipt" aria-hidden="true"></i>
+                        </div>
+                        <div>
+                            <div class="stat-label">Quittances émises</div>
+                            <div class="stat-value" th:text="${totalQuittances}">0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </div>
 
         <!-- ── Ligne 1 : Utilisateurs + Biens par ville ── -->
@@ -211,6 +253,108 @@
 
         </div>
 
+        <!-- ── Ligne 3 : Documents par bien ──────────── -->
+        <div class="row g-3 mt-1">
+
+            <!-- Donut : répartition documents -->
+            <div class="col-lg-5">
+                <div class="card content-card h-100">
+                    <div class="card-header">
+                        <i data-lucide="files" aria-hidden="true"></i>
+                        Répartition des documents
+                    </div>
+                    <div class="card-body d-flex flex-column align-items-center justify-content-center gap-3"
+                         style="min-height:280px;">
+                        <div style="position:relative;width:200px;height:200px;">
+                            <canvas id="chartDocs"></canvas>
+                            <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+                                        text-align:center;pointer-events:none;">
+                                <div style="font-family:'DM Mono',monospace;font-size:1.6rem;font-weight:500;
+                                            color:var(--mint);line-height:1;"
+                                     th:text="${totalContrats + totalEdl + totalQuittances}">0</div>
+                                <div style="font-size:0.7rem;color:var(--mint-55);margin-top:2px;">docs</div>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-3 flex-wrap justify-content-center" id="legendDocs"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tableau : documents par bien -->
+            <div class="col-lg-7">
+                <div class="card content-card h-100">
+                    <div class="card-header">
+                        <i data-lucide="building-2" aria-hidden="true"></i>
+                        Documents générés par bien
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Bien</th>
+                                        <th class="text-center">
+                                            <i data-lucide="file-text" style="width:13px;height:13px;" aria-hidden="true"></i>
+                                            Contrats
+                                        </th>
+                                        <th class="text-center">
+                                            <i data-lucide="clipboard-list" style="width:13px;height:13px;" aria-hidden="true"></i>
+                                            EDL
+                                        </th>
+                                        <th class="text-center">
+                                            <i data-lucide="receipt" style="width:13px;height:13px;" aria-hidden="true"></i>
+                                            Quittances
+                                        </th>
+                                        <th class="text-end">Total</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="row : ${documentsParBien}">
+                                        <td>
+                                            <div class="fw-medium" style="color:var(--mint);font-size:0.88rem;"
+                                                 th:text="${row.titre != null ? row.titre : 'Sans titre'}"></div>
+                                            <div class="text-muted" style="font-size:0.75rem;"
+                                                 th:text="${row.ville != null ? row.ville : '—'}"></div>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge-count" th:text="${row.nbContrats}"></span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge-count" th:text="${row.nbEdl}"></span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge-count" th:text="${row.nbQuittances}"></span>
+                                        </td>
+                                        <td class="text-end">
+                                            <span class="badge-count-alt"
+                                                  style="font-family:'DM Mono',monospace;"
+                                                  th:text="${row.total()}"></span>
+                                        </td>
+                                        <td class="text-end">
+                                            <a th:href="@{'/backoffice/biens/' + ${row.bienId} + '/documents'}"
+                                               class="btn btn-outline-light btn-sm"
+                                               style="font-size:0.72rem;padding:0.2rem 0.6rem;">
+                                                <i data-lucide="eye" style="width:12px;height:12px;" aria-hidden="true"></i>
+                                                Voir
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    <tr th:if="${#lists.isEmpty(documentsParBien)}">
+                                        <td colspan="6" class="text-center text-muted py-5">
+                                            <i data-lucide="inbox" style="width:32px;height:32px;display:block;margin:0 auto 0.5rem;" aria-hidden="true"></i>
+                                            Aucun document généré
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
     </div>
 </div>
 
@@ -227,6 +371,9 @@
     const totalUsers         = /*[[${totalUsers}]]*/ 0;
     const biensParVille      = /*[[${biensParVille}]]*/ {};
     const biensParType       = /*[[${biensParType}]]*/ {};
+    const totalContrats      = /*[[${totalContrats}]]*/ 0;
+    const totalEdl           = /*[[${totalEdl}]]*/ 0;
+    const totalQuittances    = /*[[${totalQuittances}]]*/ 0;
 
     const totalAdmins = Math.max(0, totalUsers - totalLocataires - totalProprietaires);
 
@@ -394,6 +541,42 @@
     });
 
     buildLegend('legendTypes', typeLabels, typeBg);
+
+    /* ══════════════════════════════════════════
+       Chart 4 — Répartition des documents
+       ══════════════════════════════════════════ */
+    const docsLabels = ['Contrats', 'États des lieux', 'Quittances'];
+    const docsData   = [totalContrats, totalEdl, totalQuittances];
+    const docsBg     = [COLORS.info.bg, COLORS.warning.bg, COLORS.olive.bg];
+    const docsBorder = [COLORS.info.border, COLORS.warning.border, COLORS.olive.border];
+    const totalDocs  = totalContrats + totalEdl + totalQuittances;
+
+    new Chart(document.getElementById('chartDocs'), {
+        type: 'doughnut',
+        data: {
+            labels: docsLabels,
+            datasets: [{
+                data: docsData,
+                backgroundColor: docsBg,
+                borderColor: docsBorder,
+                borderWidth: 1.5,
+                hoverOffset: 6,
+            }]
+        },
+        options: {
+            cutout: '65%',
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: ctx => ` ${ctx.label}: ${ctx.raw} (${pct(ctx.raw, totalDocs)})`
+                    }
+                }
+            }
+        }
+    });
+
+    buildLegend('legendDocs', docsLabels, docsBg);
 
     /* ── Couleurs des points dans le tableau récap ── */
     document.querySelectorAll('.type-dot').forEach(dot => {

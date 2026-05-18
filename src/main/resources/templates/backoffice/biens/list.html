@@ -227,21 +227,29 @@
                             </div>
                         </div>
 
-                        <!-- Footer carte : ID + bouton suppression -->
+                        <!-- Footer carte : ID + actions -->
                         <div class="d-flex align-items-center justify-content-between mt-3 pt-2 border-top">
                             <span class="text-muted"
                                   style="font-family:'DM Mono',monospace;font-size:0.72rem;">
                                 ID <strong style="color:var(--mint-80);" th:text="${bien.id}"></strong>
                             </span>
-                            <button class="btn btn-danger btn-sm d-inline-flex align-items-center gap-1"
-                                    title="Supprimer ce bien"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#deleteModal"
-                                    th:attr="data-bien-id=${bien.id},
-                                             data-bien-titre=${bien.titre != null ? bien.titre : 'ce bien'}">
-                                <i data-lucide="trash-2" style="width:14px;height:14px;" aria-hidden="true"></i>
-                                Supprimer
-                            </button>
+                            <div class="d-flex align-items-center gap-2">
+                                <a th:href="@{'/backoffice/biens/' + ${bien.id} + '/documents'}"
+                                   class="btn btn-outline-light btn-sm d-inline-flex align-items-center gap-1"
+                                   title="Voir les documents">
+                                    <i data-lucide="files" style="width:14px;height:14px;" aria-hidden="true"></i>
+                                    Documents
+                                </a>
+                                <button class="btn btn-danger btn-sm d-inline-flex align-items-center gap-1"
+                                        title="Supprimer ce bien"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#deleteModal"
+                                        th:attr="data-bien-id=${bien.id},
+                                                 data-bien-titre=${bien.titre != null ? bien.titre : 'ce bien'}">
+                                    <i data-lucide="trash-2" style="width:14px;height:14px;" aria-hidden="true"></i>
+                                    Supprimer
+                                </button>
+                            </div>
                         </div>
 
                     </div>

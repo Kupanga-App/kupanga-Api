@@ -17,10 +17,13 @@ public interface QuittanceRepository extends JpaRepository<Quittance, Long>, Jpa
      */
     List<Quittance> findByBienIdAndLocataireId(Long bienId, Long locataireId);
 
-    /**
-     * Toutes les quittances d'un bien (vue propriétaire).
-     */
-    List<Quittance> findByBienId(Long bienId);
+    @Query("SELECT q FROM Quittance q LEFT JOIN FETCH q.locataire WHERE q.bien.id = :bienId ORDER BY q.annee DESC, q.createdAt DESC")
+    List<Quittance> findByBienId(@Param("bienId") Long bienId);
+
+    long countByBienId(Long bienId);
+
+    @Query("SELECT q.bien.id, COUNT(q) FROM Quittance q GROUP BY q.bien.id")
+    List<Object[]> countParBien();
 
     /**
      * Toutes les quittances d'un propriétaire.
