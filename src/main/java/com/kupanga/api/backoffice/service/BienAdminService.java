@@ -18,6 +18,10 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * Service d'administration des biens immobiliers.
+ * Fournit les opérations de recherche paginée, suppression et statistiques pour le back-office.
+ */
 @Service
 @RequiredArgsConstructor
 public class BienAdminService {
@@ -25,6 +29,12 @@ public class BienAdminService {
     private final BienRepository        bienRepository;
     private final BienAdminSpecification bienAdminSpecification;
 
+    /**
+     * Recherche paginée des biens selon les critères admin.
+     *
+     * @param dto critères de recherche, tri et pagination
+     * @return page de biens correspondant aux critères
+     */
     @Transactional(readOnly = true)
     public BienAdminPageDTO rechercher(BienAdminSearchDTO dto) {
         Pagination pagination = dto.toPagination();
@@ -39,21 +49,41 @@ public class BienAdminService {
         return BienAdminPageDTO.from(page);
     }
 
+    /**
+     * Supprime un bien par son identifiant.
+     *
+     * @param id identifiant du bien à supprimer
+     */
     @Transactional
     public void supprimer(Long id) {
         bienRepository.deleteById(id);
     }
 
+    /**
+     * Retourne le nombre total de biens enregistrés.
+     *
+     * @return nombre total de biens
+     */
     @Transactional(readOnly = true)
     public long countAll() {
         return bienRepository.count();
     }
 
+    /**
+     * Retourne le nombre de villes distinctes parmi tous les biens.
+     *
+     * @return nombre de villes uniques
+     */
     @Transactional(readOnly = true)
     public long countDistinctVilles() {
         return bienRepository.countDistinctVilles();
     }
 
+    /**
+     * Retourne la répartition des biens par ville sous forme de map triée.
+     *
+     * @return map nom de ville → nombre de biens
+     */
     @Transactional(readOnly = true)
     public Map<String, Long> getBiensParVille() {
         return bienRepository.countParVille().stream()
@@ -65,6 +95,11 @@ public class BienAdminService {
                 ));
     }
 
+    /**
+     * Retourne la répartition des biens par type sous forme de map triée.
+     *
+     * @return map type de bien → nombre de biens
+     */
     @Transactional(readOnly = true)
     public Map<String, Long> getBiensParType() {
         return bienRepository.countParType().stream()

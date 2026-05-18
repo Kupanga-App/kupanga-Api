@@ -20,9 +20,9 @@ public interface RefreshTokenService {
     RefreshToken getByToken(String token) ;
 
     /**
+     * Supprime le refresh token de la base de données.
      *
-     * @param token token
-     * supprime le refresh token de la BD
+     * @param token le refresh token à supprimer
      */
     void deleteRefreshToken(String token);
 }

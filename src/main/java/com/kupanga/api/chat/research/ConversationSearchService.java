@@ -17,6 +17,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+/**
+ * Service de recherche paginée des conversations du chat.
+ * Filtre les conversations de l'utilisateur connecté selon les critères fournis.
+ */
 @Service
 @RequiredArgsConstructor
 public class ConversationSearchService {

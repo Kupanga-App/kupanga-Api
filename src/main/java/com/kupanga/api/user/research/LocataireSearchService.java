@@ -19,6 +19,10 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+/**
+ * Service de recherche paginée des locataires éligibles pour un bien donné.
+ * Réservé au propriétaire du bien.
+ */
 @Service
 @RequiredArgsConstructor
 public class LocataireSearchService {

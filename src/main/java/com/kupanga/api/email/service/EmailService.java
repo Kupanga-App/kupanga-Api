@@ -6,25 +6,15 @@ import com.kupanga.api.immobilier.entity.Quittance;
 
 /**
  * Service pour l'envoi d'emails liés aux utilisateurs.
- *
- * <p>
- * Cette interface définit les opérations d'envoi de mails pour la gestion des comptes utilisateurs,
- * telles que l'envoi d'un mot de passe temporaire ou la confirmation de création de compte.
- * </p>
+ * Couvre la gestion des comptes, les contrats, états des lieux et quittances.
  */
 public interface EmailService {
 
-
     /**
-     * Envoie un email de confirmation pour un nouveau compte utilisateur finalisé.
-     *
-     * <p>
-     * Ce mail peut contenir les informations personnelles de l'utilisateur
-     * ainsi que son email pour connexion.
-     * </p>
+     * Envoie un email de bienvenue pour un nouveau compte utilisateur finalisé.
      *
      * @param destinataire l'adresse email du destinataire
-     * @param prenom le prénom de l'utilisateur
+     * @param prenom       le prénom de l'utilisateur
      */
     void sendWelcomeMessage(String destinataire, String prenom);
 

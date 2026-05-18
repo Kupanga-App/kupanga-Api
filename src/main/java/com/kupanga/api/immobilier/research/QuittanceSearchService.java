@@ -17,6 +17,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+/**
+ * Service de recherche paginée des quittances.
+ * Filtre les quittances accessibles à l'utilisateur connecté (propriétaire ou locataire).
+ */
 @Service
 @RequiredArgsConstructor
 public class QuittanceSearchService {
@@ -26,6 +30,14 @@ public class QuittanceSearchService {
     private final QuittanceMapper quittanceMapper;
     private final UserService userService;
 
+    /**
+     * Recherche paginée des quittances selon les critères fournis.
+     * Quand le tri est par année, un tri secondaire par mois est automatiquement ajouté.
+     *
+     * @param dto   critères de recherche, tri et pagination
+     * @param email email de l'utilisateur connecté
+     * @return page de quittances correspondant aux critères
+     */
     public QuittancePageDTO rechercher(QuittanceSearchDTO dto, String email) {
         User user = userService.getUserByEmail(email);
         Pagination pagination = dto.toPagination();

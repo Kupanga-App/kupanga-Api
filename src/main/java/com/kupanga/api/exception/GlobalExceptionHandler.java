@@ -19,18 +19,8 @@ import java.util.Map;
 
 /**
  * Gestionnaire global des exceptions pour l'application.
- *
- * <p>
- * Toutes les exceptions de type {@link BusinessException} sont interceptées ici
- * et renvoient une réponse HTTP structurée contenant :
- * </p>
- * <ul>
- *     <li>status : code HTTP</li>
- *     <li>error : libellé standard du code HTTP</li>
- *     <li>Message : message métier détaillé</li>
- *     <li>path : URI de la requête ayant généré l'erreur</li>
- *     <li>Timestamp : date et heure de l'erreur</li>
- * </ul>
+ * Intercepte les {@link BusinessException} et les erreurs de validation
+ * pour renvoyer des réponses HTTP structurées via {@link ApiErrorResponse}.
  */
 @RestControllerAdvice
 public class GlobalExceptionHandler {

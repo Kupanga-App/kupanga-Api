@@ -5,6 +5,11 @@ import com.kupanga.api.chat.entity.Conversation;
 
 public interface ConversationService {
 
+    /**
+     * Persiste une conversation en base de données.
+     *
+     * @param conversation la conversation à sauvegarder
+     */
     void save(Conversation conversation);
     /**
      * Créer une nouvelle conversation
