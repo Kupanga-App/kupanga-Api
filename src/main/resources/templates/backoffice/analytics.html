@@ -392,11 +392,12 @@
         'STUDIO':      COLORS.warning,
     };
 
-    /* ── Defaults Chart.js ── */
-    Chart.defaults.color            = 'rgba(239,251,219,0.55)';
-    Chart.defaults.borderColor      = 'rgba(143,164,100,0.15)';
-    Chart.defaults.font.family      = "'DM Sans', system-ui, sans-serif";
-    Chart.defaults.font.size        = 12;
+    /* ── Defaults Chart.js (adaptatifs au thème) ── */
+    const _light = document.documentElement.dataset.theme === 'light';
+    Chart.defaults.color       = _light ? 'rgba(16,33,43,0.55)'   : 'rgba(239,251,219,0.55)';
+    Chart.defaults.borderColor = _light ? 'rgba(107,124,75,0.15)' : 'rgba(143,164,100,0.15)';
+    Chart.defaults.font.family = "'DM Sans', system-ui, sans-serif";
+    Chart.defaults.font.size   = 12;
 
     /* ── Helpers ── */
     function pct(val, total) {
@@ -497,7 +498,7 @@
             },
             scales: {
                 x: {
-                    grid: { color: 'rgba(143,164,100,0.10)' },
+                    grid: { color: _light ? 'rgba(107,124,75,0.10)' : 'rgba(143,164,100,0.10)' },
                     ticks: { precision: 0 }
                 },
                 y: {
