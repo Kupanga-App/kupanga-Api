@@ -163,6 +163,20 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- TestContainers -->
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>1.19.3</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>1.19.3</version>
+            <scope>test</scope>
+        </dependency>
+
         <!-- Flyway -->
         <dependency>
             <groupId>org.flywaydb</groupId>
@@ -283,6 +297,18 @@
                         </goals>
                     </execution>
                 </executions>
+                <configuration>
+                    <excludes>
+                        <!-- DTOs, entités, configs sans logique métier -->
+                        <exclude>**/dto/**</exclude>
+                        <exclude>**/entity/**</exclude>
+                        <exclude>**/config/**</exclude>
+                        <exclude>**/*Config.class</exclude>
+                        <exclude>**/ApiApplication.class</exclude>
+                        <!-- Controllers back-office (vues Thymeleaf, non testés en unité) -->
+                        <exclude>**/backoffice/controller/**</exclude>
+                    </excludes>
+                </configuration>
             </plugin>
         </plugins>
     </build>
