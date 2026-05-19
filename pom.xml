@@ -301,10 +301,6 @@
                     <excludes>
                         <!-- DTOs, entités, configs sans logique métier -->
                         <exclude>**/dto/**</exclude>
-                        <exclude>**/entity/**</exclude>
-                        <exclude>**/config/**</exclude>
-                        <exclude>**/*Config.class</exclude>
-                        <exclude>**/ApiApplication.class</exclude>
                         <!-- Controllers back-office (vues Thymeleaf, non testés en unité) -->
                         <exclude>**/backoffice/controller/**</exclude>
                     </excludes>
