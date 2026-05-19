@@ -20,6 +20,7 @@ import org.locationtech.jts.geom.Point;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -129,6 +130,7 @@ public class BienServiceImpl implements BienService {
     }
 
     @Override
+    @Transactional
     public List<BienDTO> findAllPropertiesAssociateToUser(String email){
 
         User user = userService.getUserByEmail(email);
