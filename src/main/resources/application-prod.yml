@@ -32,7 +32,7 @@ app:
   url: ${FRONTEND_URL:https://kupanga.lespacelibellule.com/}
   reset-link: ${FRONTEND_URL:https://kupanga.lespacelibellule.com/}auth/reset-password?token=
   url-login: ${FRONTEND_URL:https://kupanga.lespacelibellule.com/}auth/login
-  url-mino: ${MINIO_PUBLIC_URL:https://minio-backend.duckdns.org:9000}
+  url-mino: ${MINIO_PUBLIC_URL:https://minio-backend.duckdns.org}
   cookie:
     secure: true
     same-site: None
