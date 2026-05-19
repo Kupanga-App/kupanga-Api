@@ -14,7 +14,7 @@ public class MinioConfig {
     @Value("${minio.secret-key}")
     private String secretKey ;
 
-    @Value("${app.url-mino}")
+    @Value("${minio.endpoint}")
     private String url_minio;
 
     /**
