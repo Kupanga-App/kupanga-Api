@@ -305,6 +305,8 @@
                         <exclude>**/config/**</exclude>
                         <exclude>**/*Config.class</exclude>
                         <exclude>**/ApiApplication.class</exclude>
+                        <!-- Controllers back-office (vues Thymeleaf, non testés en unité) -->
+                        <exclude>**/backoffice/controller/**</exclude>
                     </excludes>
                 </configuration>
             </plugin>

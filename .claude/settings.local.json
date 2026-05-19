@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs -I {} find {} -name \"*.java\")",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\Leclerc\\\\Workflow\\\\BackEnd\\\\Java\\\\SpringBoot\\\\Kupanga\\\\kupanga-Api\" -Recurse -Directory)",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(mvn test *)"
+    ]
+  }
+}
