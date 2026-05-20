@@ -19,7 +19,7 @@ springdoc:
     path: /swagger-ui.html
 
 brevo:
-  api-key: ${BREVO_API_KEY}
+  api-key: ${BREVO_API_KEY:test-api-key}
   sender-email: ${BREVO_SENDER_EMAIL:noreplydevback@gmail.com}
   sender-name: ${BREVO_SENDER_NAME:Kupanga}
 
