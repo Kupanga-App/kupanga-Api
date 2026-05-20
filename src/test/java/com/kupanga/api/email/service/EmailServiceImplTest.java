@@ -18,7 +18,7 @@ class EmailServiceImplTest {
 
     private final EmailServiceImpl emailService = new EmailServiceImpl(
             brevoClient,
-            "noreply@kupanga.fr",
+            "noreplydevback@gmail.com",
             "Kupanga",
             "http://localhost:4200/auth/reset-password?token=",
             "http://localhost:4200/auth/login",
