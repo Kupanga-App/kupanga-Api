@@ -30,4 +30,10 @@ public class PasswordResetTokenServiceImpl implements PasswordResetTokenService 
 
         passwordResetTokenRepository.delete(passwordResetToken);
     }
+
+    @Override
+    public void deleteIfExist(Long userId) {
+        passwordResetTokenRepository.findByUser_Id(userId)
+                .ifPresent(passwordResetTokenRepository::delete);
+    }
 }

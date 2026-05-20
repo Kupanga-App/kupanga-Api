@@ -22,4 +22,10 @@ public interface PasswordResetTokenService {
      * @param passwordResetToken PasswordResetToken
      */
     void delete(PasswordResetToken passwordResetToken);
+
+    /**
+     * Efface le token si l'utilisateur demande à nouveau
+     * @param userId id user
+     */
+    void deleteIfExist(Long userId);
 }

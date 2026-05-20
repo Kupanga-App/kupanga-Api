@@ -147,6 +147,8 @@ public class AuthServiceImpl implements AuthService {
 
         User user = userService.getUserByEmail(email);
 
+        passwordResetTokenService.deleteIfExist(user.getId());
+
         PasswordResetToken passwordResetToken = PasswordResetToken.builder()
                 .token(UUID.randomUUID().toString())
                 .user(user)
