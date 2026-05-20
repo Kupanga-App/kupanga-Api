@@ -68,12 +68,6 @@
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
 
-        <!-- Brevo Java SDK (transactional email API) -->
-        <dependency>
-            <groupId>com.brevo</groupId>
-            <artifactId>brevo-java</artifactId>
-            <version>1.0.0</version>
-        </dependency>
 
         <!-- MinIO -->
         <dependency>
