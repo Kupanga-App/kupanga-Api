@@ -43,10 +43,11 @@ public class EmailServiceImpl implements EmailService {
     @Async
     public void sendWelcomeMessage(String destinataire, String prenom) {
 
+        log.info(">>> SEND WELCOME EMAIL START pour l'utilisateur{}", destinataire);
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-
+            helper.setFrom("noreplydevback@gmail.com");
             helper.setTo(destinataire);
 
             // Sujet avec prénom
@@ -79,7 +80,7 @@ public class EmailServiceImpl implements EmailService {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper =
                     new MimeMessageHelper(message, true, "UTF-8");
-
+            helper.setFrom("noreplydevback@gmail.com");
             helper.setTo(destinataire);
             helper.setSubject(SUJET_MAIL_REINITIALISATION_MOT_DE_PASSE);
 
@@ -103,7 +104,7 @@ public class EmailServiceImpl implements EmailService {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper =
                     new MimeMessageHelper(message, true, "UTF-8");
-
+            helper.setFrom("noreplydevback@gmail.com");
             helper.setTo(destinataire);
             helper.setSubject(SUJET_MAIL_CONFIRMATION_MOT_DE_PASSE);
             String htmlContent =
@@ -132,6 +133,7 @@ public class EmailServiceImpl implements EmailService {
             String prenomProprietaire = contrat.getProprietaire().getFirstName()
                     + " " + contrat.getProprietaire().getLastName();
 
+            helper.setFrom("noreplydevback@gmail.com");
             helper.setTo(contrat.getLocataire().getMail());
             helper.setSubject(SUJET_MAIL_INVITATION_SIGNATURE);
 
@@ -199,6 +201,7 @@ public class EmailServiceImpl implements EmailService {
         MimeMessageHelper helper =
                 new MimeMessageHelper(message, true, "UTF-8");
 
+        helper.setFrom("noreplydevback@gmail.com");
         helper.setTo(destinataire);
         helper.setSubject(SUJET_MAIL_CONTRAT_SIGNE);
 
@@ -250,6 +253,7 @@ public class EmailServiceImpl implements EmailService {
             String dateRealisation       = edl.getDateRealisation().toString();
             String lienSignature         = app_url + "edl/signer/" + token;
 
+            helper.setFrom("noreplydevback@gmail.com");
             helper.setTo(edl.getLocataire().getMail());
             helper.setSubject(SUJET_MAIL_INVITATION_SIGNATURE_EDL);
 
@@ -343,6 +347,7 @@ public class EmailServiceImpl implements EmailService {
                 + quittance.getBien().getCodePostal() + " "
                 + quittance.getBien().getVille();
 
+        helper.setFrom("noreplydevback@gmail.com");
         helper.setTo(quittance.getLocataire().getMail());
         helper.setSubject(SUJET_MAIL_QUITTANCE);
         helper.setText(String.format(
@@ -383,6 +388,7 @@ public class EmailServiceImpl implements EmailService {
                 ? "État des lieux d'entrée"
                 : "État des lieux de sortie";
 
+        helper.setFrom("noreplydevback@gmail.com");
         helper.setTo(destinataire);
         helper.setSubject(SUJET_MAIL_EDL_SIGNE);
 

@@ -24,16 +24,16 @@ spring:
     type: redis
 
   mail:
-    host: smtp.gmail.com
-    port: 465
-    username: ${MAIL_USERNAME}
-    password: ${MAIL_PASSWORD}
+    host: smtp-relay.brevo.com
+    port: 587
+    username: ${BREVO_USERNAME}
+    password: ${BREVO_SMTP_KEY}
 
     properties:
       mail:
         smtp:
           auth: true
-          ssl:
+          starttls:
             enable: true
           connectiontimeout: 5000
           timeout: 5000

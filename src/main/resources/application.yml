@@ -7,16 +7,20 @@ spring:
     import: optional:file:.env.dev[.properties]
 
   mail:
-    host: smtp.gmail.com
+    host: smtp-relay.brevo.com
     port: 587
-    username: ${MAIL_USERNAME}
-    password: ${MAIL_PASSWORD}
+    username: ${BREVO_USERNAME}
+    password: ${BREVO_SMTP_KEY}
+
     properties:
       mail:
         smtp:
           auth: true
           starttls:
             enable: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
   websocket:
     allowed-origins: "http://localhost:4200 , https://kupanga.lespacelibellule.com"
 
