@@ -6,21 +6,6 @@ spring:
   config:
     import: optional:file:.env.dev[.properties]
 
-  mail:
-    host: smtp-relay.brevo.com
-    port: 587
-    username: ${BREVO_USERNAME}
-    password: ${BREVO_SMTP_KEY}
-
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
-          connectiontimeout: 5000
-          timeout: 5000
-          writetimeout: 5000
   websocket:
     allowed-origins: "http://localhost:4200 , https://kupanga.lespacelibellule.com"
 
@@ -32,6 +17,11 @@ springdoc:
     path: /v3/api-docs
   swagger-ui:
     path: /swagger-ui.html
+
+brevo:
+  api-key: ${BREVO_API_KEY}
+  sender-email: ${BREVO_SENDER_EMAIL:noreplydevback@gmail.com}
+  sender-name: ${BREVO_SENDER_NAME:Kupanga}
 
 app:
   feature-flags:

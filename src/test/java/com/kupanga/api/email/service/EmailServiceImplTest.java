@@ -1,162 +1,112 @@
 package com.kupanga.api.email.service;
 
+import com.kupanga.api.email.client.BrevoEmailClient;
+import com.kupanga.api.email.dto.BrevoEmail;
 import com.kupanga.api.email.service.impl.EmailServiceImpl;
-import jakarta.mail.MessagingException;
-import jakarta.mail.Session;
-import jakarta.mail.internet.MimeMessage;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @DisplayName("Tests unitaires pour EmailServiceImpl")
 class EmailServiceImplTest {
 
-    private final JavaMailSender mailSender = mock(JavaMailSender.class);
-    private final EmailServiceImpl emailService = new EmailServiceImpl(mailSender , "reset_link" , "url_login" ,"url");
+    private final BrevoEmailClient brevoClient = mock(BrevoEmailClient.class);
 
-    @BeforeEach
-    void setUp() {
-        // crée un MimeMessage “réel” pour le test
-        MimeMessage mimeMessage = new MimeMessage((Session) null);
+    private final EmailServiceImpl emailService = new EmailServiceImpl(
+            brevoClient,
+            "noreply@kupanga.fr",
+            "Kupanga",
+            "http://localhost:4200/auth/reset-password?token=",
+            "http://localhost:4200/auth/login",
+            "http://localhost:4200/"
+    );
 
-        // quand le service appelle createMimeMessage(), retourne ce MimeMessage
-        when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
+    @Test
+    @DisplayName("sendWelcomeMessage — appelle BrevoEmailClient.send() une fois")
+    void sendWelcomeMessage_shouldCallBrevoClientOnce() {
+        emailService.sendWelcomeMessage("test@example.com", "Alice");
+
+        verify(brevoClient, times(1)).send(any(BrevoEmail.class));
     }
 
     @Test
-    @DisplayName(" Doit envoyer un email pour la confirmation de création du compte correctement")
-    void testSendWelcomeMessage() throws MessagingException {
-        String destinataire = "test@example.com";
-        String prenom = "123456";
+    @DisplayName("sendWelcomeMessage — l'email est adressé au bon destinataire")
+    void sendWelcomeMessage_shouldSendToCorrectRecipient() {
+        String destinataire = "alice@example.com";
 
-        // Création d'un faux MimeMessage
-        MimeMessage mimeMessage = mock(MimeMessage.class);
-        when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
+        emailService.sendWelcomeMessage(destinataire, "Alice");
 
-        // Appel du service
-        emailService.sendWelcomeMessage(destinataire , prenom);
+        ArgumentCaptor<BrevoEmail> captor = ArgumentCaptor.forClass(BrevoEmail.class);
+        verify(brevoClient).send(captor.capture());
 
-        // Vérifie que l'email a été créé et envoyé
-        verify(mailSender, times(1)).send(mimeMessage);
+        BrevoEmail sent = captor.getValue();
+        assertThat(sent.to()).hasSize(1);
+        assertThat(sent.to().get(0).email()).isEqualTo(destinataire);
+        assertThat(sent.subject()).contains("Alice");
+        assertThat(sent.attachment()).isNull();
     }
 
     @Test
-    @DisplayName("Doit lancer RuntimeException si JavaMailSender.send() échoue")
-    void testSendWelcomeMessageRuntimeException() throws MessagingException {
-        String destinataire = "test@example.com";
-        String prenom = "123456";
+    @DisplayName("sendWelcomeMessage — propage la RuntimeException du client Brevo")
+    void sendWelcomeMessage_shouldPropagateException() {
+        doThrow(new RuntimeException("Brevo KO")).when(brevoClient).send(any());
 
-        MimeMessage mimeMessage = mock(MimeMessage.class);
-        when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
+        RuntimeException ex = assertThrows(RuntimeException.class,
+                () -> emailService.sendWelcomeMessage("test@example.com", "Alice"));
 
-        // On simule une exception lors de l'envoi de l'email
-        doThrow(new RuntimeException("Erreur lors de l'envoi de l'email")).when(mailSender).send(mimeMessage);
-
-        // Vérifie que RuntimeException est levée
-        RuntimeException exception = assertThrows(RuntimeException.class, () ->
-                emailService.sendWelcomeMessage(destinataire , prenom)
-        );
-
-        assertThat(exception.getMessage()).contains("Erreur lors de l'envoi de l'email");
-    }
-
-
-    @Test
-    @DisplayName(" Vérifie que le destinataire et le contenu sont correctement définis")
-    void testContenuEmail() throws MessagingException {
-        String destinataire = "user@example.com";
-        String prenom = "tempPassword";
-
-        MimeMessage mimeMessage = mock(MimeMessage.class);
-        when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
-
-        MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
-        EmailServiceImpl emailSpy = spy(emailService);
-
-        emailSpy.sendWelcomeMessage(destinataire , prenom );
-
-        // On peut capturer l'argument envoyé à mailSender.send
-        ArgumentCaptor<MimeMessage> captor = ArgumentCaptor.forClass(MimeMessage.class);
-        verify(mailSender).send(captor.capture());
-
-        MimeMessage sentMessage = captor.getValue();
-        assertThat(sentMessage).isNotNull();
-    }
-
-
-    @Test
-    @DisplayName("sendPasswordResetMail — envoie un mail avec le lien de réinitialisation")
-    void sendPasswordResetMail_shouldSendEmail() throws Exception {
-        String destinataire = "user@kupanga.com";
-        String resetLink = "http://localhost:8081/reset?token=123";
-
-        // Appel réel
-        emailService.sendPasswordResetMail(destinataire, resetLink);
-
-        // Vérifie que le MimeMessage a été créé
-        verify(mailSender).createMimeMessage();
-
-        // Vérifie que le mail a été envoyé
-        verify(mailSender).send(any(MimeMessage.class));
+        assertThat(ex.getMessage()).contains("Brevo KO");
     }
 
     @Test
-    @DisplayName("sendPasswordUpdatedConfirmation — envoie un mail de confirmation")
-    void sendPasswordUpdatedConfirmation_shouldSendEmail() throws Exception {
-        String destinataire = "user@kupanga.com";
+    @DisplayName("sendPasswordResetMail — appelle BrevoEmailClient.send() une fois")
+    void sendPasswordResetMail_shouldCallBrevoClientOnce() {
+        emailService.sendPasswordResetMail("user@kupanga.com", "abc123");
 
-        emailService.sendPasswordUpdatedConfirmation(destinataire);
-
-        verify(mailSender).createMimeMessage();
-        verify(mailSender).send(any(MimeMessage.class));
+        verify(brevoClient, times(1)).send(any(BrevoEmail.class));
     }
 
     @Test
-    @DisplayName("sendPasswordResetMail — lance une exception si problème mail")
-    void sendPasswordResetMail_shouldThrowException_whenRuntimeException() throws Exception {
-        String destinataire = "user@kupanga.com";
-        String resetLink = "http://localhost:8081/reset?token=123";
+    @DisplayName("sendPasswordResetMail — le lien de reset est dans le contenu HTML")
+    void sendPasswordResetMail_shouldContainResetLink() {
+        emailService.sendPasswordResetMail("user@kupanga.com", "TOKEN_XYZ");
 
-        // Création d'un MimeMessage réel pour que MimeMessageHelper fonctionne
-        MimeMessage message = new MimeMessage((Session) null);
-        when(mailSender.createMimeMessage()).thenReturn(message);
+        ArgumentCaptor<BrevoEmail> captor = ArgumentCaptor.forClass(BrevoEmail.class);
+        verify(brevoClient).send(captor.capture());
 
-        // Simule un problème d'envoi avec RuntimeException (pas MessagingException)
-        doThrow(new RuntimeException("Mail KO")).when(mailSender).send(message);
-
-        // Vérifie qu'une RuntimeException est bien levée
-        RuntimeException exception = assertThrows(RuntimeException.class,
-                () -> emailService.sendPasswordResetMail(destinataire, resetLink));
-
-        // Vérifie le message exact attendu
-        assertEquals("Mail KO", exception.getMessage());
+        assertThat(captor.getValue().htmlContent()).contains("TOKEN_XYZ");
     }
 
     @Test
-    @DisplayName("sendPasswordUpdatedConfirmation — lance une exception si problème mail")
-    void sendPasswordUpdatedConfirmation_shouldThrowException_whenRuntimeException() throws Exception {
-        String destinataire = "user@kupanga.com";
+    @DisplayName("sendPasswordResetMail — propage la RuntimeException du client Brevo")
+    void sendPasswordResetMail_shouldPropagateException() {
+        doThrow(new RuntimeException("Mail KO")).when(brevoClient).send(any());
 
-        // MimeMessage réel
-        MimeMessage message = new MimeMessage((Session) null);
-        when(mailSender.createMimeMessage()).thenReturn(message);
+        RuntimeException ex = assertThrows(RuntimeException.class,
+                () -> emailService.sendPasswordResetMail("user@kupanga.com", "token"));
 
-        // Simule une RuntimeException sur l'envoi (Mockito ne permet pas MessagingException ici)
-        doThrow(new RuntimeException("Mail KO")).when(mailSender).send(message);
-
-        RuntimeException exception = assertThrows(RuntimeException.class,
-                () -> emailService.sendPasswordUpdatedConfirmation(destinataire));
-
-        // Vérifie le message réel levé
-        assertEquals("Mail KO", exception.getMessage());
+        assertThat(ex.getMessage()).isEqualTo("Mail KO");
     }
 
+    @Test
+    @DisplayName("sendPasswordUpdatedConfirmation — appelle BrevoEmailClient.send() une fois")
+    void sendPasswordUpdatedConfirmation_shouldCallBrevoClientOnce() {
+        emailService.sendPasswordUpdatedConfirmation("user@kupanga.com");
+
+        verify(brevoClient, times(1)).send(any(BrevoEmail.class));
+    }
+
+    @Test
+    @DisplayName("sendPasswordUpdatedConfirmation — propage la RuntimeException du client Brevo")
+    void sendPasswordUpdatedConfirmation_shouldPropagateException() {
+        doThrow(new RuntimeException("Mail KO")).when(brevoClient).send(any());
+
+        RuntimeException ex = assertThrows(RuntimeException.class,
+                () -> emailService.sendPasswordUpdatedConfirmation("user@kupanga.com"));
+
+        assertThat(ex.getMessage()).isEqualTo("Mail KO");
+    }
 }
-
