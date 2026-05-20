@@ -23,11 +23,8 @@ import static com.kupanga.api.authentification.constant.AuthConstant.BEARER;
 
 /**
  * Filtre JWT exécuté une seule fois par requête.
- *
- * <p>
  * Récupère le token JWT soit depuis le header "Authorization: Bearer <token>",
  * Si le token est valide, l'utilisateur est authentifié dans Spring Security.
- * </p>
  */
 @Component
 @RequiredArgsConstructor

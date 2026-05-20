@@ -25,9 +25,7 @@ import java.util.List;
 
 /**
  * Configuration de la sécurité de l'application.
- * <p>
  * Configure l'authentification, les filtres JWT, la gestion CORS et les règles d'accès aux endpoints.
- * </p>
  */
 @Configuration
 @EnableWebSecurity
@@ -43,7 +41,6 @@ public class SecurityConfig {
 
     /**
      * Bean pour encoder les mots de passe avec BCrypt.
-     *
      * @return un PasswordEncoder utilisant BCrypt
      */
     @Bean
@@ -73,11 +70,8 @@ public class SecurityConfig {
 
     /**
      * Bean définissant la chaîne de filtres de sécurité.
-     * <p>
      * Configure CORS, CSRF, les règles d'accès et ajoute le filtre JWT avant
      * UsernamePasswordAuthenticationFilter.
-     * </p>
-     *
      * @param http HttpSecurity fourni par Spring
      * @return SecurityFilterChain configurée
      * @throws Exception en cas d'erreur de configuration
@@ -111,7 +105,6 @@ public class SecurityConfig {
     /**
      * Bean de configuration CORS pour autoriser Angular (localhost:4200)
      * et le domaine de production.
-     *
      * @return CorsConfigurationSource configuré
      */
     @Bean

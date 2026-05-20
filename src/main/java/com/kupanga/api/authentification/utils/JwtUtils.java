@@ -16,15 +16,11 @@ import java.util.Map;
 import java.util.function.Function;
 
 /**
- * <p>
  * Classe utilitaire pour la gestion des tokens JWT :
- * </p>
- * <ul>
- *     <li>Génération de l'Access Token</li>
- *     <li>Génération du Refresh Token</li>
- *     <li>Validation et lecture des claims</li>
- *     <li>Vérification de l'expiration</li>
- * </ul>
+ * Génération de l'Access Token
+ * Génération du Refresh Token
+ * Validation et lecture des claims
+ * Vérification de l'expiration
  */
 @Component
 public class JwtUtils {
@@ -56,7 +52,6 @@ public class JwtUtils {
 
     /**
      * Extrait l'email (subject) du token.
-     *
      * @param token JWT
      * @return Email utilisateur
      */
@@ -66,7 +61,6 @@ public class JwtUtils {
 
     /**
      * Génère un Access Token JWT.
-     *
      * @param email Email de l'utilisateur
      * @return Access Token JWT
      */
@@ -89,7 +83,6 @@ public class JwtUtils {
 
     /**
      * Crée un token JWT signé.
-     *
      * @param claims           Claims personnalisées
      * @param subject          Sujet du token (email)
      * @param expirationTime   Durée de validité du token
@@ -115,7 +108,6 @@ public class JwtUtils {
 
     /**
      * Génère la clé de signature à partir de la clé secrète.
-     *
      * @return Clé de signature
      */
     private Key getSignKey() {
@@ -125,7 +117,6 @@ public class JwtUtils {
 
     /**
      * Vérifie si un token est expiré.
-     *
      * @param token JWT
      * @return true si expiré
      */
@@ -135,7 +126,6 @@ public class JwtUtils {
 
     /**
      * Extrait la date d'expiration du token.
-     *
      * @param token JWT
      * @return Date d'expiration
      */
@@ -145,7 +135,6 @@ public class JwtUtils {
 
     /**
      * Extrait une claim spécifique à partir d'une fonction.
-     *
      * @param token           JWT
      * @param claimsResolver  Fonction d'extraction
      * @param <T>             Type de retour
@@ -159,7 +148,6 @@ public class JwtUtils {
     /**
      * Extrait toutes les claims du token.
      * Vérifie automatiquement la signature JWT.
-     *
      * @param token JWT
      * @return Claims contenues dans le token
      */
