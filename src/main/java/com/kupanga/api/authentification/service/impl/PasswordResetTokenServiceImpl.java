@@ -3,6 +3,7 @@ package com.kupanga.api.authentification.service.impl;
 import com.kupanga.api.authentification.entity.PasswordResetToken;
 import com.kupanga.api.authentification.repository.PasswordResetTokenRepository;
 import com.kupanga.api.authentification.service.PasswordResetTokenService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -32,8 +33,8 @@ public class PasswordResetTokenServiceImpl implements PasswordResetTokenService 
     }
 
     @Override
+    @Transactional
     public void deleteIfExist(Long userId) {
-        passwordResetTokenRepository.findByUser_Id(userId)
-                .ifPresent(passwordResetTokenRepository::delete);
+        passwordResetTokenRepository.deleteByUserId(userId);
     }
 }
