@@ -13,6 +13,7 @@ public interface UserRepository extends JpaRepository<User, Long> , JpaSpecifica
 
     boolean existsByMail(String mail);
     Optional<User> findByMail(String mail);
+    Optional<User> findByGoogleId(String googleId);
 
     long countByRole(Role role);
 }

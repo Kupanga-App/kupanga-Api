@@ -1,6 +1,8 @@
 package com.kupanga.api.authentification.controller;
 
 import com.kupanga.api.authentification.dto.AuthResponseDTO;
+import com.kupanga.api.authentification.dto.CompleteGoogleProfileDTO;
+import com.kupanga.api.authentification.dto.GoogleLoginDTO;
 import com.kupanga.api.authentification.dto.LoginDTO;
 import com.kupanga.api.authentification.service.AuthService;
 import com.kupanga.api.user.dto.formDTO.UserFormDTO;
@@ -390,6 +392,62 @@ public class AuthController {
     public ResponseEntity<String> resetPassword(@RequestParam String token,
                                                 @RequestParam String newPassword) {
         return ResponseEntity.ok(authService.resetPassword(token, newPassword));
+    }
+
+    // =========================================
+    // GOOGLE LOGIN
+    // =========================================
+    @Operation(
+            summary = "Connexion via Google OAuth2",
+            description = """
+                    Vérifie l'ID token Google fourni par le front-end.
+                    - Si l'utilisateur existe → connexion normale, `requiresRoleSelection: false`.
+                    - Si l'utilisateur est nouveau → compte créé sans rôle, `requiresRoleSelection: true`.
+                    Dans ce cas, le front doit appeler `PATCH /auth/complete-profile` avec le rôle choisi.
+                    """
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Connexion réussie",
+                    content = @Content(mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    { "accessToken": "eyJ...", "requiresRoleSelection": false }
+                                    """))),
+            @ApiResponse(responseCode = "401", description = "Token Google invalide ou expiré")
+    })
+    @PostMapping("/google")
+    public ResponseEntity<AuthResponseDTO> loginWithGoogle(
+            @Valid @RequestBody GoogleLoginDTO dto,
+            HttpServletResponse response
+    ) {
+        return ResponseEntity.ok(authService.loginWithGoogle(dto, response));
+    }
+
+    // =========================================
+    // COMPLÉTER PROFIL GOOGLE (choix du rôle)
+    // =========================================
+    @Operation(
+            summary = "Compléter le profil après connexion Google",
+            description = """
+                    Appelé uniquement lorsque `requiresRoleSelection: true` a été retourné par `POST /auth/google`.
+                    Assigne le rôle choisi au compte Google et retourne un nouveau JWT avec le rôle.
+                    """
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Profil complété, nouveau JWT retourné",
+                    content = @Content(mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    { "accessToken": "eyJ...", "requiresRoleSelection": false }
+                                    """))),
+            @ApiResponse(responseCode = "400", description = "Rôle invalide ou profil déjà complété"),
+            @ApiResponse(responseCode = "401", description = "Non authentifié")
+    })
+    @PatchMapping("/complete-profile")
+    public ResponseEntity<AuthResponseDTO> completeProfile(
+            @Valid @RequestBody CompleteGoogleProfileDTO dto,
+            HttpServletResponse response
+    ) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return ResponseEntity.ok(authService.completeGoogleProfile(dto, auth.getName(), response));
     }
 
 }

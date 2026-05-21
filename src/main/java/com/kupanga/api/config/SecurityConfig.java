@@ -13,6 +13,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -86,6 +87,9 @@ public class SecurityConfig {
 
                 //  CSRF désactivé pour API REST
                 .csrf(AbstractHttpConfigurer::disable)
+
+                //  Pas de session HTTP — chaque requête est authentifiée via JWT uniquement
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
                 //  Règles d'autorisation
                 .authorizeHttpRequests(auth -> auth

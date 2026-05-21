@@ -36,14 +36,15 @@ La gestion locative immobilière implique aujourd'hui une multiplication d'outil
 
 | Module | Couverture |
 |:---|:---|
-| Authentification | Inscription, connexion, refresh JWT, réinitialisation mot de passe par email |
+| Authentification | Inscription, connexion classique (email/mot de passe), connexion Google OAuth2, refresh JWT, réinitialisation mot de passe par email |
 | Gestion des biens | CRUD complet, géolocalisation, photos, points d'intérêt à proximité |
 | Recherche avancée | Filtres multi-critères, rayon géographique, cache des résultats |
 | Contrats de location | Création, workflow de signature bipartite, génération PDF |
 | États des lieux | EDL d'entrée/sortie, inventaire par pièce et élément, signature bipartite |
 | Quittances | Génération automatique, signature, suivi de paiement |
 | Messagerie | Conversations temps réel entre propriétaire et locataire (WebSocket STOMP) |
-| Notifications | Emails transactionnels (reset password, alertes) |
+| Notifications in-app | Notifications persistées en base + push WebSocket temps réel ; récupération des notifications manquées à la reconnexion |
+| Notifications email | Emails transactionnels (reset password, bienvenue, confirmation, alertes) |
 | Back-Office | Interface admin web embarquée (Thymeleaf), tableau de bord, modération |
 
 ### 1.3 Utilisateurs cibles
@@ -64,6 +65,7 @@ La gestion locative immobilière implique aujourd'hui une multiplication d'outil
 | **Framework** | Spring Boot 3.2.2 | Conteneur IoC, auto-configuration, écosystème mature |
 | **ORM** | Spring Data JPA + Hibernate Spatial | Accès base de données, support géospatial natif |
 | **Sécurité** | Spring Security 6 + JWT (jjwt 0.11.5) | Authentification stateless, RBAC, double chaîne |
+| **Google OAuth2** | google-api-client 2.2.0 (`GoogleIdTokenVerifier`) | Vérification côté serveur des ID tokens Google (flux initié par le front) |
 | **Base de données** | PostgreSQL 15 + PostGIS | Données relationnelles + géospatiales |
 | **Migrations** | Flyway 10 | Versioning du schéma, traçabilité |
 | **Cache** | Redis (Spring Cache) | Géocodage, sessions WebSocket |
@@ -263,6 +265,7 @@ Kupanga fait coexister deux mécanismes d'authentification totalement séparés 
 graph TD
     classDef chainA fill:#e8eaf6,stroke:#3949ab,stroke-width:2px,color:black;
     classDef chainB fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:black;
+    classDef googleNode fill:#fce4ec,stroke:#c62828,stroke-width:2px,color:black;
     classDef infra fill:#fff9c4,stroke:#f9a825,stroke-width:2px,color:black;
 
     Request["Requête HTTP entrante"]
@@ -273,10 +276,18 @@ graph TD
         BackControllers["Controllers Back-Office · Dashboard · Users · Biens"]:::chainA
     end
 
-    subgraph Chain2["SecurityFilterChain @Order(2) — API REST"]
+    subgraph Chain2["SecurityFilterChain @Order(2) — API REST (STATELESS)"]
         Matcher2["Toutes les autres routes"]:::chainB
         JwtFilter["Filtre JWT · Stateless · UserDetailsService → BDD · CSRF désactivé"]:::chainB
-        ApiControllers["Controllers API REST · Auth · Biens · Users · Chat"]:::chainB
+        ApiControllers["Controllers API REST · Auth · Biens · Users · Chat · Notifications"]:::chainB
+    end
+
+    subgraph GoogleFlow["Flux Google OAuth2 (initié par le front-end)"]
+        direction LR
+        FrontGoogle["Front-end Angular<br/>Google Identity Services SDK"]:::googleNode
+        GoogleAPI["Google API<br/>(vérification ID token)"]:::googleNode
+        GoogleVerifier["GoogleTokenVerifierImpl<br/>POST /auth/google"]:::googleNode
+        CompleteProfile["PATCH /auth/complete-profile<br/>(premier login — choix du rôle)"]:::googleNode
     end
 
     Request --> Matcher1
@@ -286,6 +297,12 @@ graph TD
     Matcher1 -->|"Autre route"| Matcher2
     Matcher2 --> JwtFilter
     JwtFilter --> ApiControllers
+
+    FrontGoogle -->|"idToken Google"| GoogleVerifier
+    GoogleVerifier -->|"verify(idToken)"| GoogleAPI
+    GoogleAPI -->|"payload vérifié"| GoogleVerifier
+    GoogleVerifier -->|"requiresRoleSelection: true"| CompleteProfile
+    GoogleVerifier -->|"JWT + refreshToken cookie"| FrontGoogle
 ```
 
 ### 4.2 Authentification JWT (API REST)
@@ -293,26 +310,50 @@ graph TD
 **Caractéristiques du token :**
 - Algorithme : HMAC-SHA256 (HS256)
 - Durée de vie : 5 minutes (300 000 ms)
-- Payload : `sub` (email), `role`, `iat`, `exp`
+- Payload : `sub` (email), `role` (vide `""` pour les nouveaux utilisateurs Google), `iat`, `exp`
 - Clé de signature : variable d'environnement `JWT_SECRET_KEY`
 
-**Flux complet :**
+**Flux classique (email / mot de passe) :**
 1. Le client envoie ses credentials (`POST /auth/login`)
 2. `AuthServiceImpl` vérifie via `BCryptPasswordEncoder`
 3. `JwtUtils.generateAccessToken(email, role)` signe le token HS256
-4. Un `RefreshToken` (longue durée) est persisté en base
-5. Les deux tokens sont retournés dans `AuthResponseDTO`
+4. Un `RefreshToken` (longue durée, 14 jours) est persisté en base et envoyé dans un cookie HttpOnly
+5. L'`accessToken` est retourné dans `AuthResponseDTO`
 6. À chaque requête, `JwtFilter` extrait le Bearer, valide signature + expiration, charge `UserDetails` depuis la BDD, alimente le `SecurityContext`
 
+**Comportement du JwtFilter avec un token sans rôle :**
+Lors du flux Google OAuth2, le token temporaire ne contient pas de rôle (`role: ""`). `UserDetailsServiceImpl.loadUserByUsername()` retourne un `UserDetails` avec une liste d'authorities vide (au lieu de lever une exception). Le JwtFilter accepte ce token et construit l'`Authentication` normalement — permettant l'accès à `PATCH /auth/complete-profile`.
+
 **Refresh token :**
-- Entité `RefreshToken` persistée en PostgreSQL
-- Échange via `POST /auth/refresh`
+- Entité `RefreshToken` persistée en PostgreSQL (contrainte UNIQUE sur `user_id`)
+- Échange via `POST /auth/refresh` (cookie HttpOnly `refreshToken`)
+- Rotation du token : l'ancien est supprimé avant l'insertion du nouveau (flush JPA explicite pour respecter la contrainte UNIQUE)
 - Permet des sessions longues sans stocker l'access token côté serveur
 
 **Sécurité WebSocket :**
 - `JwtChannelInterceptor` valide le JWT lors de la connexion STOMP sur `/ws`
 - Déconnexion immédiate si token invalide ou expiré
 - Token transmis en header ou query param lors de la handshake
+
+### 4.5 Authentification Google OAuth2 (flux initié par le front-end)
+
+Kupanga supporte la connexion via Google en mode **Frontend-Initiated Flow** : le front-end obtient l'ID token auprès de Google Identity Services, puis l'envoie au back-end pour vérification.
+
+**Étape 1 — `POST /auth/google`**
+1. Le front-end envoie `{ idToken: "eyJ..." }` (ID token Google)
+2. `GoogleTokenVerifierImpl` appelle `GoogleIdTokenVerifier` (bibliothèque `google-api-client`) pour valider la signature et l'audience (`GOOGLE_CLIENT_ID`)
+3. L'utilisateur est retrouvé par `googleId`, puis par email (liaison automatique d'un compte existant), ou créé sans rôle
+4. Un JWT temporaire (sans rôle) et un cookie `refreshToken` sont émis
+5. `AuthResponseDTO.requiresRoleSelection: true` signale au front qu'un rôle doit être choisi
+
+**Étape 2 — `PATCH /auth/complete-profile`** *(uniquement si premier login)*
+1. Le front-end envoie `{ role: "ROLE_LOCATAIRE" | "ROLE_PROPRIETAIRE" }` avec le JWT temporaire
+2. Le back-end assigne le rôle, met `hasCompleteProfil: true`, émet un nouveau JWT complet
+3. `requiresRoleSelection: false` — l'utilisateur est pleinement authentifié
+
+**Cas de liaison automatique :** si un compte email/mot de passe préexiste avec le même email Google, le `googleId` est automatiquement lié au compte existant lors du premier `POST /auth/google`.
+
+**Interface `GoogleTokenVerifier` :** découple la vérification réelle (appel Google API) du code métier, permettant son mock complet en tests unitaires sans appel réseau.
 
 ### 4.3 Contrôle d'accès (RBAC)
 
@@ -343,13 +384,27 @@ erDiagram
     User {
         Long id PK
         String email
-        String password
+        String password "nullable — comptes Google purs"
+        String googleId "nullable — lié au compte Google"
         String firstName
         String lastName
-        Role role
+        Role role "nullable — attribué à l'onboarding Google"
+        Boolean hasCompleteProfil
         String profilePictureUrl
         Timestamp createdAt
         Timestamp updatedAt
+    }
+
+    Notification {
+        Long id PK
+        Long destinataireId FK
+        NotificationType type
+        String titre
+        String message
+        Boolean lue
+        String lien "nullable"
+        Long referenceId "nullable"
+        Timestamp createdAt
     }
 
     Bien {
@@ -444,6 +499,7 @@ erDiagram
         Timestamp createdAt
     }
 
+    User ||--o{ Notification : "destinataire"
     User ||--o{ Bien : "proprietaire"
     User ||--o{ Bien : "locataire"
     Bien ||--o{ BienImage : "a"
@@ -461,7 +517,7 @@ erDiagram
 **Géolocalisation :**  
 Les biens stockent leurs coordonnées comme un `Point` JTS (Java Topology Suite) en WGS84 (`SRID 4326`), persisté nativement via Hibernate Spatial. Les requêtes géospatiales (recherche dans un rayon) utilisent les fonctions PostGIS `ST_DWithin` et `ST_Distance` directement depuis les Specifications JPA, sans besoin d'une couche géospatiale externe.
 
-**Flyway — 32 migrations :**  
+**Flyway — 34 migrations :**  
 Le schéma évolue exclusivement via Flyway. Chaque version est irréversible et tracée en base (`flyway_schema_history`). Le DDL Hibernate est configuré en mode `validate` : Hibernate ne modifie jamais le schéma, il se contente de valider la cohérence avec les entités.
 
 | Plage | Domaine |
@@ -470,6 +526,8 @@ Le schéma évolue exclusivement via Flyway. Chaque version est irréversible et
 | V11–V15 | Enrichissement : images, POI, caractéristiques techniques des biens |
 | V16–V22 | EDL détaillé : pièces, éléments, compteurs, clés, tokens signature |
 | V23–V32 | Refonte quittances, messagerie vers conversations, champs email |
+| V33 | Notifications in-app : table `notifications` (destinataire FK, type, titre, message, lue, lien, referenceId, createdAt) + index composite `(destinataire_id, lue)` |
+| V34 | Google OAuth2 : colonne `google_id VARCHAR(255)` nullable sur `utilisateurs` + index `idx_utilisateurs_google_id` + `mot_de_passe` rendu nullable (comptes Google purs) |
 
 ### 5.3 Redis — Stratégie de cache
 
@@ -549,7 +607,59 @@ sequenceDiagram
     AuthController-->>Client: 200 Mot de passe mis à jour
 ```
 
-### 6.2 Upload et affichage d'une photo de bien
+### 6.2 Authentification Google OAuth2 (flux complet)
+
+```mermaid
+sequenceDiagram
+    participant Front as Front-end Angular
+    participant Google as Google Identity Services
+    participant AuthController
+    participant GoogleVerifier as GoogleTokenVerifierImpl
+    participant AuthService as AuthServiceImpl
+    participant DB as PostgreSQL
+
+    Note over Front,DB: ① Premier login Google (utilisateur inconnu)
+    Front->>Google: Initialise Google Sign-In SDK (client_id)
+    Google-->>Front: Sélecteur de compte Google
+    Front->>Google: L'utilisateur choisit son compte
+    Google-->>Front: credential.credential (ID token signé)
+    Front->>AuthController: POST /auth/google { idToken: "eyJ..." }
+    AuthController->>AuthService: loginWithGoogle(dto, response)
+    AuthService->>GoogleVerifier: verify(idToken)
+    GoogleVerifier->>Google: GoogleIdTokenVerifier.verify(token)
+    Google-->>GoogleVerifier: payload (sub, email, given_name, family_name, picture)
+    GoogleVerifier-->>AuthService: GoogleUserInfo
+    AuthService->>DB: findByGoogleId(googleId) → absent
+    AuthService->>DB: findByMail(email) → absent
+    AuthService->>DB: save(User { googleId, mail, firstName, lastName, urlProfile, role=null })
+    AuthService->>DB: createRefreshToken(user) → cookie HttpOnly 14j
+    AuthService-->>AuthController: AuthResponseDTO { accessToken, requiresRoleSelection: true }
+    AuthController-->>Front: 200 { accessToken (rôle vide), requiresRoleSelection: true }
+
+    Note over Front,DB: ② Choix du rôle (page onboarding)
+    Front->>Front: Affiche sélecteur PROPRIETAIRE / LOCATAIRE
+    Front->>AuthController: PATCH /auth/complete-profile { role: "ROLE_LOCATAIRE" }\n Authorization: Bearer <token temporaire>
+    AuthController->>AuthService: completeGoogleProfile(dto, email, response)
+    AuthService->>DB: getUserByEmail(email)
+    AuthService->>DB: verifyIfRoleValid(role)
+    AuthService->>DB: user.setRole(ROLE_LOCATAIRE), hasCompleteProfil=true, save
+    AuthService->>DB: createRefreshToken(user) → nouveau cookie
+    AuthService-->>AuthController: AuthResponseDTO { accessToken (avec rôle), requiresRoleSelection: false }
+    AuthController-->>Front: 200 { accessToken définitif, requiresRoleSelection: false }
+    Front->>Front: Redirige vers /dashboard
+
+    Note over Front,DB: ③ Connexions suivantes (utilisateur existant)
+    Front->>Google: Sign-In SDK
+    Google-->>Front: nouveau ID token
+    Front->>AuthController: POST /auth/google { idToken }
+    AuthController->>AuthService: loginWithGoogle(dto, response)
+    AuthService->>GoogleVerifier: verify(idToken)
+    AuthService->>DB: findByGoogleId(googleId) → User trouvé (avec rôle)
+    AuthService-->>AuthController: AuthResponseDTO { accessToken, requiresRoleSelection: false }
+    AuthController-->>Front: 200 — connexion directe
+```
+
+### 6.3 Upload et affichage d'une photo de bien
 
 ```mermaid
 sequenceDiagram
@@ -587,7 +697,7 @@ sequenceDiagram
     BienController-->>Client: 200 BienDTO
 ```
 
-### 6.3 Génération PDF d'un contrat et workflow de signature
+### 6.4 Génération PDF d'un contrat et workflow de signature
 
 ```mermaid
 sequenceDiagram
@@ -644,7 +754,7 @@ sequenceDiagram
     ContratController-->>Locataire: 200 ContratDTO (ACTIF)
 ```
 
-### 6.4 Recherche géospatiale de biens
+### 6.5 Recherche géospatiale de biens
 
 ```mermaid
 sequenceDiagram
@@ -678,7 +788,7 @@ sequenceDiagram
     BienController-->>Client: 200 (biens, total, page)
 ```
 
-### 6.5 Chat temps réel (WebSocket STOMP)
+### 6.6 Chat temps réel (WebSocket STOMP)
 
 ```mermaid
 sequenceDiagram
@@ -802,6 +912,7 @@ push/PR
 | `MINIO_ENDPOINT` / `MINIO_ACCESS_KEY` / `MINIO_SECRET_KEY` | Stockage fichiers |
 | `REDIS_URL` | Upstash Redis (`rediss://`) |
 | `ADMIN_EMAIL` / `ADMIN_PASSWORD` | Credentials back-office admin |
+| `GOOGLE_CLIENT_ID` | Client ID Google OAuth2 — doit correspondre à celui déclaré dans Google Cloud Console |
 | `SENTRY_DSN` | Endpoint Sentry |
 | `RENDER_DEPLOY_HOOK` | GitHub Secret — webhook Render |
 
@@ -813,10 +924,10 @@ push/PR
 
 L'objectif de couverture est fixé à **80 % minimum** (branches métier critiques), avec exclusion des DTOs, entités, configs, code MapStruct/Lombok et **contrôleurs back-office Thymeleaf** — configuré dans le plugin JaCoCo.
 
-La suite compte **40 classes de test** pour **291 tests** (2 désactivés), construite en 4 sprints.
+La suite compte **43 classes de test** pour **328 tests**, construite en 4 sprints + extensions fonctionnelles.
 
 ```
-Tests (40 classes)
+Tests (43 classes)
 │
 ├── Sprint 1 & 2 — Socle (25 classes)
 │   ├── Tests unitaires services/utils/exceptions (12 classes)
@@ -839,10 +950,16 @@ Tests (40 classes)
 │   ├── BienAdminSpecificationTest   ← 4 filtres admin
 │   └── UserAdminSpecificationTest   ← 5 filtres admin
 │
-└── Sprint 4 — Tests unitaires services admin (3 classes)
-    ├── BienAdminServiceTest         ← 7 tests (recherche, stats, agrégations)
-    ├── UserAdminServiceTest         ← 6 tests (suppression ordonnée, compteurs)
-    └── DocumentAdminServiceTest     ← 8 tests (compteurs, agrégations par bien)
+├── Sprint 4 — Tests unitaires services admin (3 classes)
+│   ├── BienAdminServiceTest         ← 7 tests (recherche, stats, agrégations)
+│   ├── UserAdminServiceTest         ← 6 tests (suppression ordonnée, compteurs)
+│   └── DocumentAdminServiceTest     ← 8 tests (compteurs, agrégations par bien)
+│
+└── Extensions fonctionnelles (3 classes)
+    ├── NotificationServiceImplTest  ← 7 tests (persistance, push WS, marquer lue/toutes)
+    ├── NotificationControllerWebMvcTest ← 5 tests (GET non lues, PATCH lire, PATCH lire-toutes)
+    └── AuthServiceImplTest (étendu) ← +7 tests Google OAuth2 (loginWithGoogle, completeGoogleProfile)
+        AuthControllerWebMvcTest (étendu) ← +6 tests Google endpoints (POST /google, PATCH /complete-profile)
 ```
 
 ### 8.2 Sprint 1 & 2 — Socle (25 classes)
@@ -1124,6 +1241,35 @@ Les contrôleurs back-office sont exclus car ils retournent des vues Thymeleaf d
 
 ---
 
+### ADR-009 : Google OAuth2 — Flux initié par le front-end
+
+**Contexte :** Kupanga souhaite proposer la connexion via Google pour réduire la friction à l'inscription. Deux architectures sont possibles : flux initié par le serveur (Spring OAuth2 Client, redirections) ou flux initié par le front-end (le front obtient l'ID token, l'envoie au back).
+
+**Décision :** Flux initié par le front-end — le front Angular obtient l'ID token via Google Identity Services SDK et l'envoie à `POST /auth/google`. Le back-end vérifie le token avec `GoogleIdTokenVerifier` et émet un JWT interne.
+
+**Alternatives considérées :**
+- *Spring Security OAuth2 Client (flux serveur)* : intégration native Spring, mais impose des redirections HTTP côté serveur incompatibles avec une SPA Angular (la SPA ne contrôle pas le flux de redirection). Nécessite la gestion des callbacks OAuth côté back-end.
+- *Firebase Authentication* : gère l'OAuth côté client et émet des tokens Firebase, mais introduit une dépendance Google Firebase dans toute la pile — contraire au principe de minimiser les dépendances externes pour des fonctions critiques.
+
+**Justification :** L'architecture SPA (Angular) possède déjà un SDK Google Identity Services (`accounts.google.com/gsi/client`) qui gère le flux OAuth côté navigateur. Le back-end n'a besoin que de vérifier la validité du token reçu — rôle exactement couvert par `GoogleIdTokenVerifier`. L'interface `GoogleTokenVerifier` découple la vérification réelle du code métier, permettant un mock complet en tests unitaires sans appel réseau. La gestion en deux étapes (login → choix du rôle) via `requiresRoleSelection` est propre et extensible.
+
+---
+
+### ADR-010 : Notifications in-app — Persistance + Push WebSocket
+
+**Contexte :** Des événements métier critiques (invitation à signer un contrat, EDL signé, quittance disponible, bien assigné) doivent informer l'utilisateur en temps réel s'il est connecté, et rester accessibles s'il était hors ligne.
+
+**Décision :** Stratégie hybride — chaque notification est **d'abord persistée en base** (`notifications` table), puis **pushée via WebSocket** sur `/queue/app-notifications`. Si le push WebSocket échoue (utilisateur hors ligne), la notification reste en base avec `lue = false` et est récupérée au prochain login via `GET /notifications`.
+
+**Alternatives considérées :**
+- *WebSocket seul (sans persistance)* : notifications perdues si l'utilisateur est hors ligne.
+- *Email uniquement* : déjà en place, mais ne gère pas l'interface in-app.
+- *SSE (Server-Sent Events)* : push unidirectionnel, mais WebSocket est déjà dans la stack (chat). Évite d'introduire un second mécanisme.
+
+**Justification :** La persistance garantit qu'aucune notification n'est perdue. Le push WebSocket offre l'immédiateté en temps réel. L'échec du push WebSocket est silencieusement ignoré (`try/catch` dans `NotificationServiceImpl`) — la persistance est le seul mécanisme fiable. Les destinations WebSocket sont séparées : `/queue/messages` (chat), `/queue/notifications` (alerte chat), `/queue/app-notifications` (notifications applicatives), évitant toute confusion de format côté front.
+
+---
+
 ## 11. Roadmap technique
 
 ### Court terme (en cours)
@@ -1134,6 +1280,9 @@ Les contrôleurs back-office sont exclus car ils retournent des vues Thymeleaf d
 | Documentation Swagger complète (tous les endpoints) | Fait |
 | JaCoCo — rapport de couverture | Intégré au build |
 | Javadoc APIs publiques | Fait |
+| Notifications in-app temps réel (WebSocket + persistance base) | Fait |
+| Connexion Google OAuth2 (flux initié front-end, deux étapes) | Fait |
+| `SessionCreationPolicy.STATELESS` sur la chaîne API REST | Fait |
 
 ### Moyen terme
 

@@ -30,3 +30,6 @@ app:
 jwt:
   secret-key: ${JWT_SECRET_KEY}
   expiration-time: 300000
+
+google:
+  client-id: ${GOOGLE_CLIENT_ID:YOUR_GOOGLE_CLIENT_ID}

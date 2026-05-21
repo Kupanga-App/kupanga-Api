@@ -3,6 +3,7 @@ package com.kupanga.api.backoffice.service;
 import com.kupanga.api.authentification.entity.RefreshToken;
 import com.kupanga.api.authentification.repository.PasswordResetTokenRepository;
 import com.kupanga.api.authentification.repository.RefreshTokenRepository;
+import com.kupanga.api.notification.repository.NotificationRepository;
 import com.kupanga.api.backoffice.dto.UserAdminDTO;
 import com.kupanga.api.backoffice.dto.UserAdminPageDTO;
 import com.kupanga.api.backoffice.dto.UserAdminSearchDTO;
@@ -30,6 +31,7 @@ public class UserAdminService {
     private final UserAdminSpecification    userAdminSpecification;
     private final RefreshTokenRepository    refreshTokenRepository;
     private final PasswordResetTokenRepository passwordResetTokenRepository;
+    private final NotificationRepository   notificationRepository;
 
     /**
      * Recherche paginée des utilisateurs selon les critères admin.
@@ -67,6 +69,8 @@ public class UserAdminService {
 
         passwordResetTokenRepository.findByUser_Id(id)
                 .ifPresent(passwordResetTokenRepository::delete);
+
+        notificationRepository.deleteByDestinataireId(id);
 
         userRepository.deleteById(id);
     }

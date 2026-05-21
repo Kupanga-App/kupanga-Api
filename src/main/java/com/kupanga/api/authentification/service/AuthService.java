@@ -1,6 +1,8 @@
 package com.kupanga.api.authentification.service;
 
 import com.kupanga.api.authentification.dto.AuthResponseDTO;
+import com.kupanga.api.authentification.dto.CompleteGoogleProfileDTO;
+import com.kupanga.api.authentification.dto.GoogleLoginDTO;
 import com.kupanga.api.authentification.dto.LoginDTO;
 import com.kupanga.api.user.dto.formDTO.UserFormDTO;
 import com.kupanga.api.user.dto.readDTO.UserDTO;
@@ -64,4 +66,23 @@ public interface AuthService {
      * @return les infos de l'utilisateur
      */
     UserDTO getUserInfos(String email);
+
+    /**
+     * Connexion via Google OAuth2.
+     * Si l'utilisateur n'existe pas, il est créé sans rôle et requiresRoleSelection=true est retourné.
+     * Si l'utilisateur existe, connexion normale avec requiresRoleSelection=false.
+     * @param dto dto contenant l'ID token Google
+     * @param response HttpServletResponse pour le cookie refresh
+     * @return AuthResponseDTO avec accessToken et requiresRoleSelection
+     */
+    AuthResponseDTO loginWithGoogle(GoogleLoginDTO dto, HttpServletResponse response);
+
+    /**
+     * Complète le profil d'un utilisateur Google en assignant son rôle.
+     * @param dto dto contenant le rôle choisi
+     * @param email email de l'utilisateur (extrait du JWT)
+     * @param response HttpServletResponse pour le cookie refresh
+     * @return AuthResponseDTO avec accessToken et requiresRoleSelection=false
+     */
+    AuthResponseDTO completeGoogleProfile(CompleteGoogleProfileDTO dto, String email, HttpServletResponse response);
 }

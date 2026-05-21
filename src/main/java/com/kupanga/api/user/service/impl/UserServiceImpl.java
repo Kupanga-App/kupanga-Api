@@ -88,4 +88,14 @@ public class UserServiceImpl implements UserService {
                         HttpStatus.NOT_FOUND)
         );
     }
+
+    @Override
+    public java.util.Optional<User> findOptionalByGoogleId(String googleId) {
+        return userRepository.findByGoogleId(googleId);
+    }
+
+    @Override
+    public java.util.Optional<User> findOptionalByMail(String mail) {
+        return userRepository.findByMail(mail);
+    }
 }

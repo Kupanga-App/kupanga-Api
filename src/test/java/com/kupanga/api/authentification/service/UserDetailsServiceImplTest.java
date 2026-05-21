@@ -100,25 +100,23 @@ class UserDetailsServiceImplTest {
     }
 
     @Test
-    @DisplayName("Exception levée si le rôle est inconnu")
-    void shouldThrowExceptionWhenRoleUnknown() {
-        // Création d'un utilisateur avec un rôle null (inconnu)
-        User inconnu = User.builder()
-                .mail("inconnu@mail.com")
-                .password("encodedPassword")
-                .role(null)  // rôle inconnu
+    @DisplayName("Utilisateur sans rôle (Google onboarding) → authorities vides, pas d'exception")
+    void shouldReturnEmptyAuthoritiesWhenRoleIsNull() {
+        User googleUser = User.builder()
+                .mail("google@gmail.com")
+                .password(null)
+                .role(null)
                 .build();
 
-        when(userRepository.findByMail("inconnu@mail.com"))
-                .thenReturn(Optional.of(inconnu));
+        when(userRepository.findByMail("google@gmail.com"))
+                .thenReturn(Optional.of(googleUser));
 
-        // Ici on peut lever IllegalArgumentException ou UsernameNotFoundException selon ton choix
-        Exception exception = assertThrows(
-                IllegalArgumentException.class,
-                () -> userDetailsService.loadUserByUsername("inconnu@mail.com")
-        );
+        UserDetails result = userDetailsService.loadUserByUsername("google@gmail.com");
 
-        assertEquals("L'utilisateur a un rôle invalide", exception.getMessage());
+        assertNotNull(result);
+        assertTrue(result.getAuthorities().isEmpty());
+        assertEquals("google@gmail.com", result.getUsername());
+        assertEquals("", result.getPassword());
     }
 }
 

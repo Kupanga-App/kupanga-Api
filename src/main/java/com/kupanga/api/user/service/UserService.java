@@ -6,6 +6,8 @@ import com.kupanga.api.exception.business.UserNotFoundException;
 import com.kupanga.api.user.entity.Role;
 import com.kupanga.api.user.entity.User;
 
+import java.util.Optional;
+
 
 public interface UserService {
 
@@ -75,4 +77,18 @@ public interface UserService {
      * @return User.
      */
     User findById(Long userId);
+
+    /**
+     * Recherche un utilisateur par son Google ID sans lever d'exception s'il est absent.
+     * @param googleId identifiant Google
+     * @return Optional contenant l'utilisateur ou vide
+     */
+    Optional<User> findOptionalByGoogleId(String googleId);
+
+    /**
+     * Recherche un utilisateur par son email sans lever d'exception s'il est absent.
+     * @param mail email
+     * @return Optional contenant l'utilisateur ou vide
+     */
+    Optional<User> findOptionalByMail(String mail);
 }

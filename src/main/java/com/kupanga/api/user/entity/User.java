@@ -44,6 +44,9 @@ public class User {
     @Column(name = "url_photo_profil")
     private String urlProfile;
 
+    @Column(name = "google_id")
+    private String googleId;
+
     // relations
     @OneToMany(mappedBy = "proprietaire" , fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Bien> biensProprietes;

@@ -3,6 +3,7 @@ package com.kupanga.api.backoffice.service;
 import com.kupanga.api.authentification.entity.RefreshToken;
 import com.kupanga.api.authentification.repository.PasswordResetTokenRepository;
 import com.kupanga.api.authentification.repository.RefreshTokenRepository;
+import com.kupanga.api.notification.repository.NotificationRepository;
 import com.kupanga.api.backoffice.dto.UserAdminPageDTO;
 import com.kupanga.api.backoffice.dto.UserAdminSearchDTO;
 import com.kupanga.api.backoffice.specification.UserAdminSpecification;
@@ -32,6 +33,7 @@ class UserAdminServiceTest {
     @Mock private UserAdminSpecification        userAdminSpecification;
     @Mock private RefreshTokenRepository        refreshTokenRepository;
     @Mock private PasswordResetTokenRepository  passwordResetTokenRepository;
+    @Mock private NotificationRepository        notificationRepository;
 
     @InjectMocks
     private UserAdminService userAdminService;

@@ -4,7 +4,7 @@ import lombok.Builder;
 
 @Builder
 public record AuthResponseDTO(
-
-        String accessToken
+        String accessToken,
+        boolean requiresRoleSelection
 ) {}
 

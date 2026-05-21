@@ -1,15 +1,19 @@
 package com.kupanga.api.authentification.service.impl;
 
-import com.kupanga.api.email.service.EmailService;
-import com.kupanga.api.exception.business.KupangaBusinessException;
 import com.kupanga.api.authentification.dto.AuthResponseDTO;
+import com.kupanga.api.authentification.dto.CompleteGoogleProfileDTO;
+import com.kupanga.api.authentification.dto.GoogleLoginDTO;
 import com.kupanga.api.authentification.dto.LoginDTO;
 import com.kupanga.api.authentification.entity.PasswordResetToken;
 import com.kupanga.api.authentification.entity.RefreshToken;
+import com.kupanga.api.authentification.google.GoogleTokenVerifier;
+import com.kupanga.api.authentification.google.GoogleUserInfo;
 import com.kupanga.api.authentification.service.AuthService;
 import com.kupanga.api.authentification.service.PasswordResetTokenService;
 import com.kupanga.api.authentification.service.RefreshTokenService;
 import com.kupanga.api.authentification.utils.JwtUtils;
+import com.kupanga.api.email.service.EmailService;
+import com.kupanga.api.exception.business.KupangaBusinessException;
 import com.kupanga.api.minio.service.MinioService;
 import com.kupanga.api.user.dto.formDTO.UserFormDTO;
 import com.kupanga.api.user.dto.readDTO.UserDTO;
@@ -27,8 +31,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.multipart.MultipartFile;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -42,14 +46,15 @@ import static com.kupanga.api.minio.constant.MinioConstant.PHOTO_PROFIL_BUCKET;
 public class AuthServiceImpl implements AuthService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AuthServiceImpl.class);
-    private final UserService userService;
-    private final EmailService emailService;
-    private final UserMapper userMapper;
-    private final PasswordEncoder passwordEncoder;
-    private final JwtUtils jwtUtils;
-    private final RefreshTokenService refreshTokenService;
-    private final PasswordResetTokenService passwordResetTokenService ;
-    private final MinioService minioService;
+    private final UserService          userService;
+    private final EmailService         emailService;
+    private final UserMapper           userMapper;
+    private final PasswordEncoder      passwordEncoder;
+    private final JwtUtils             jwtUtils;
+    private final RefreshTokenService  refreshTokenService;
+    private final PasswordResetTokenService passwordResetTokenService;
+    private final MinioService         minioService;
+    private final GoogleTokenVerifier  googleTokenVerifier;
     @Value("${app.cookie.secure}")
     private boolean cookieSecure;
 
@@ -79,21 +84,14 @@ public class AuthServiceImpl implements AuthService {
         String refreshToken = refreshTokenService.createRefreshToken(utilisateur);
 
         // 5. Envoyer le refresh token dans un cookie httpOnly
-        ResponseCookie refreshCookie = ResponseCookie.from(REFRESHTOKEN, refreshToken)
-                .httpOnly(true)
-                .secure(cookieSecure)       // false en local, true en prod
-                .sameSite(cookieSameSite)   // "Lax" en local, "None" en prod
-                .path("/")
-                .maxAge(Duration.ofDays(14))
-                .build();
-
-        response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
+        addRefreshCookie(response, refreshToken);
 
         LOGGER.info("Service de connexion terminé");
 
         // 6. Retourner access token
         return AuthResponseDTO.builder()
                 .accessToken(accessToken)
+                .requiresRoleSelection(false)
                 .build();
     }
 
@@ -116,6 +114,7 @@ public class AuthServiceImpl implements AuthService {
 
         return AuthResponseDTO.builder()
                 .accessToken(newAccessToken)
+                .requiresRoleSelection(false)
                 .build();
     }
 
@@ -221,5 +220,92 @@ public class AuthServiceImpl implements AuthService {
     public UserDTO getUserInfos(String email){
 
         return userMapper.toDTO(userService.getUserByEmail(email)) ;
+    }
+
+    @Override
+    @Transactional
+    public AuthResponseDTO loginWithGoogle(GoogleLoginDTO dto, HttpServletResponse response) {
+
+        GoogleUserInfo googleInfo = googleTokenVerifier.verify(dto.idToken());
+
+        // Cherche par googleId → puis par email (compte existant à lier) → sinon crée
+        User user = userService.findOptionalByGoogleId(googleInfo.googleId())
+                .orElseGet(() -> userService.findOptionalByMail(googleInfo.email())
+                        .map(existing -> {
+                            existing.setGoogleId(googleInfo.googleId());
+                            userService.save(existing);
+                            return existing;
+                        })
+                        .orElseGet(() -> {
+                            User newUser = User.builder()
+                                    .googleId(googleInfo.googleId())
+                                    .mail(googleInfo.email())
+                                    .firstName(googleInfo.firstName())
+                                    .lastName(googleInfo.lastName())
+                                    .urlProfile(googleInfo.pictureUrl())
+                                    .hasCompleteProfil(false)
+                                    .build();
+                            userService.save(newUser);
+                            return newUser;
+                        })
+                );
+
+        boolean requiresRoleSelection = (user.getRole() == null);
+        String roleStr = user.getRole() != null ? String.valueOf(user.getRole()) : "";
+
+        String accessToken  = jwtUtils.generateAccessToken(user.getMail(), roleStr);
+        String refreshToken = refreshTokenService.createRefreshToken(user);
+        addRefreshCookie(response, refreshToken);
+
+        LOGGER.info("[GOOGLE-AUTH] Connexion réussie pour {} — sélection rôle requise : {}", user.getMail(), requiresRoleSelection);
+
+        return AuthResponseDTO.builder()
+                .accessToken(accessToken)
+                .requiresRoleSelection(requiresRoleSelection)
+                .build();
+    }
+
+    @Override
+    @Transactional
+    public AuthResponseDTO completeGoogleProfile(CompleteGoogleProfileDTO dto, String email, HttpServletResponse response) {
+
+        User user = userService.getUserByEmail(email);
+
+        if (user.getGoogleId() == null) {
+            throw new KupangaBusinessException(
+                    "Cet endpoint est réservé aux comptes Google", HttpStatus.BAD_REQUEST);
+        }
+        if (user.getRole() != null) {
+            throw new KupangaBusinessException(
+                    "Le profil est déjà complété", HttpStatus.BAD_REQUEST);
+        }
+
+        userService.verifyIfRoleOfUserValid(dto.role());
+
+        user.setRole(dto.role());
+        user.setHasCompleteProfil(true);
+        userService.save(user);
+
+        String accessToken  = jwtUtils.generateAccessToken(user.getMail(), String.valueOf(user.getRole()));
+        String refreshToken = refreshTokenService.createRefreshToken(user);
+        addRefreshCookie(response, refreshToken);
+
+        LOGGER.info("[GOOGLE-AUTH] Profil complété pour {} — rôle : {}", email, dto.role());
+
+        return AuthResponseDTO.builder()
+                .accessToken(accessToken)
+                .requiresRoleSelection(false)
+                .build();
+    }
+
+    private void addRefreshCookie(HttpServletResponse response, String refreshToken) {
+        ResponseCookie cookie = ResponseCookie.from(REFRESHTOKEN, refreshToken)
+                .httpOnly(true)
+                .secure(cookieSecure)
+                .sameSite(cookieSameSite)
+                .path("/")
+                .maxAge(Duration.ofDays(14))
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
     }
 }

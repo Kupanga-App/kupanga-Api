@@ -1,15 +1,19 @@
 package com.kupanga.api.authentification.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.kupanga.api.exception.business.KupangaBusinessException;
 import com.kupanga.api.exception.business.TokenExpiredException;
 import com.kupanga.api.exception.business.UserNotFoundException;
 import com.kupanga.api.authentification.dto.AuthResponseDTO;
+import com.kupanga.api.authentification.dto.CompleteGoogleProfileDTO;
+import com.kupanga.api.authentification.dto.GoogleLoginDTO;
 import com.kupanga.api.authentification.dto.LoginDTO;
 import com.kupanga.api.authentification.service.AuthService;
 import com.kupanga.api.authentification.service.impl.UserDetailsServiceImpl;
 import com.kupanga.api.authentification.utils.JwtUtils;
 import com.kupanga.api.user.dto.formDTO.UserFormDTO;
 import com.kupanga.api.user.dto.readDTO.UserDTO;
+import com.kupanga.api.user.entity.Role;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.DisplayName;
@@ -19,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import com.kupanga.api.config.SecurityConfig;
 import org.springframework.context.annotation.Import;
@@ -29,6 +34,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -92,7 +98,10 @@ class AuthControllerWebMvcTest {
                 "fake-image-content".getBytes()
         );
 
-        AuthResponseDTO responseDTO = new AuthResponseDTO("token123");
+        AuthResponseDTO responseDTO = AuthResponseDTO.builder()
+                .accessToken("token123")
+                .requiresRoleSelection(false)
+                .build();
 
         when(authService.createAndCompleteUserProfil(any(), any(), any()))
                 .thenReturn(responseDTO);
@@ -120,7 +129,10 @@ class AuthControllerWebMvcTest {
                 objectMapper.writeValueAsBytes(userFormDTO)
         );
 
-        AuthResponseDTO responseDTO = new AuthResponseDTO("token123");
+        AuthResponseDTO responseDTO = AuthResponseDTO.builder()
+                .accessToken("token123")
+                .requiresRoleSelection(false)
+                .build();
 
         when(authService.createAndCompleteUserProfil(any(), isNull(), any()))
                 .thenReturn(responseDTO);
@@ -336,6 +348,113 @@ class AuthControllerWebMvcTest {
 
         mockMvc.perform(get("/auth/me"))
                 .andExpect(status().isNotFound());
+    }
+
+    // =============================
+    // TESTS GOOGLE OAUTH2
+    // =============================
+
+    @Test
+    @DisplayName("POST /auth/google : utilisateur existant — connexion normale, requiresRoleSelection=false")
+    void loginWithGoogle_existingUser_shouldReturnToken() throws Exception {
+        GoogleLoginDTO dto = new GoogleLoginDTO("valid-google-id-token");
+
+        AuthResponseDTO responseDTO = AuthResponseDTO.builder()
+                .accessToken("google-access-token")
+                .requiresRoleSelection(false)
+                .build();
+
+        when(authService.loginWithGoogle(any(GoogleLoginDTO.class), any()))
+                .thenReturn(responseDTO);
+
+        mockMvc.perform(post("/auth/google")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.accessToken").value("google-access-token"))
+                .andExpect(jsonPath("$.requiresRoleSelection").value(false));
+    }
+
+    @Test
+    @DisplayName("POST /auth/google : nouvel utilisateur — requiresRoleSelection=true")
+    void loginWithGoogle_newUser_shouldRequireRoleSelection() throws Exception {
+        GoogleLoginDTO dto = new GoogleLoginDTO("new-user-google-token");
+
+        AuthResponseDTO responseDTO = AuthResponseDTO.builder()
+                .accessToken("google-access-token")
+                .requiresRoleSelection(true)
+                .build();
+
+        when(authService.loginWithGoogle(any(GoogleLoginDTO.class), any()))
+                .thenReturn(responseDTO);
+
+        mockMvc.perform(post("/auth/google")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.requiresRoleSelection").value(true));
+    }
+
+    @Test
+    @DisplayName("POST /auth/google : token Google invalide — 401")
+    void loginWithGoogle_invalidToken_shouldReturn401() throws Exception {
+        GoogleLoginDTO dto = new GoogleLoginDTO("invalid-google-token");
+
+        when(authService.loginWithGoogle(any(GoogleLoginDTO.class), any()))
+                .thenThrow(new KupangaBusinessException("Token Google invalide ou expiré", HttpStatus.UNAUTHORIZED));
+
+        mockMvc.perform(post("/auth/google")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("POST /auth/google : idToken absent — 400")
+    void loginWithGoogle_missingToken_shouldReturn400() throws Exception {
+        String body = "{\"idToken\": \"\"}";
+
+        mockMvc.perform(post("/auth/google")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("PATCH /auth/complete-profile : succès — rôle assigné, nouveau JWT retourné")
+    @WithMockUser(username = "google-user@gmail.com")
+    void completeProfile_success_shouldReturnToken() throws Exception {
+        CompleteGoogleProfileDTO dto = new CompleteGoogleProfileDTO(Role.ROLE_LOCATAIRE);
+
+        AuthResponseDTO responseDTO = AuthResponseDTO.builder()
+                .accessToken("completed-access-token")
+                .requiresRoleSelection(false)
+                .build();
+
+        when(authService.completeGoogleProfile(any(CompleteGoogleProfileDTO.class), any(), any()))
+                .thenReturn(responseDTO);
+
+        mockMvc.perform(patch("/auth/complete-profile")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.accessToken").value("completed-access-token"))
+                .andExpect(jsonPath("$.requiresRoleSelection").value(false));
+    }
+
+    @Test
+    @DisplayName("PATCH /auth/complete-profile : profil déjà complété — 400")
+    @WithMockUser(username = "google-user@gmail.com")
+    void completeProfile_alreadyCompleted_shouldReturn400() throws Exception {
+        CompleteGoogleProfileDTO dto = new CompleteGoogleProfileDTO(Role.ROLE_LOCATAIRE);
+
+        when(authService.completeGoogleProfile(any(CompleteGoogleProfileDTO.class), any(), any()))
+                .thenThrow(new KupangaBusinessException("Le profil est déjà complété", HttpStatus.BAD_REQUEST));
+
+        mockMvc.perform(patch("/auth/complete-profile")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isBadRequest());
     }
 
 }

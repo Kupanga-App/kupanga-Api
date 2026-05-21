@@ -71,36 +71,19 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                         )
                 );
 
-        // Vérification que l'utilisateur a bien un rôle défini
+        // Utilisateur Google sans rôle encore attribué → authorities vides (phase d'onboarding)
         Role role = user.getRole();
-        if (role == null) {
-            throw new IllegalArgumentException("L'utilisateur a un rôle invalide");
-        }
+        var authorities = role != null
+                ? Collections.singleton(new SimpleGrantedAuthority(role.name()))
+                : Collections.<GrantedAuthority>emptySet();
 
-        /*
-         * Construction de l'objet UserDetails attendu par Spring Security.
-         *
-         * 1. email
-         *    → Identifiant de l'utilisateur (username).
-         *
-         * 2. password
-         *    → Mot de passe déjà encodé en base (ex: BCrypt).
-         *
-         * 3. authorities
-         *    → Rôles / permissions de l'utilisateur.
-         *      Exemple : ROLE_PROPRIETAIRE, ROLE_LOCATAIRE, etc.
-         *
-         * Important :
-         * Si tu utilises hasRole("PROPRIETAIRE") ou hasRole("LOCATAIRE") dans
-         * ta configuration, le rôle doit être stocké sous la forme "ROLE_PROPRIETAIRE",
-         * "ROLE_LOCATAIRE".
-         */
+        // Utilisateur Google sans mot de passe → chaîne vide pour satisfaire Spring Security
+        String password = user.getPassword() != null ? user.getPassword() : "";
+
         return new org.springframework.security.core.userdetails.User(
                 user.getMail(),
-                user.getPassword(),
-                Collections.singleton(
-                        new SimpleGrantedAuthority(role.name())
-                )
+                password,
+                authorities
         );
     }
 }

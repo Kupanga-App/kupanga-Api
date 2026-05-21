@@ -27,6 +27,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
         if(refreshToken != null){
 
             refreshTokenRepository.delete(refreshToken);
+            refreshTokenRepository.flush();
         }
 
         String token = UUID.randomUUID().toString();

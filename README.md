@@ -29,13 +29,14 @@ L'API est construite avec Spring Boot selon une architecture modulaire, sécuris
 
 | Module | Description |
 | :--- | :--- |
-| 🔐 **Authentification & Sécurité** | Inscription, connexion, JWT, refresh token, contrôle d'accès par rôle (RBAC) |
+| 🔐 **Authentification & Sécurité** | Inscription, connexion classique (email/mot de passe) et **connexion Google OAuth2**, JWT, refresh token (cookie HttpOnly), contrôle d'accès par rôle (RBAC) |
 | 🏠 **Gestion des Biens** | CRUD complet des biens immobiliers, géolocalisation PostGIS, photos via MinIO |
 | 🔍 **Recherche Avancée** | Filtres multi-critères, recherche géographique par rayon, recherche par points d'intérêt (POI) — proximité écoles, crèches, pharmacies, hôpitaux, etc., cache Redis des résultats |
 | 💬 **Messagerie Temps Réel** | Conversations propriétaire ↔ locataire via WebSocket STOMP |
 | 📋 **États des Lieux** | Création, édition et validation bipartite des EDL avec pièces jointes |
 | 📄 **Documents Administratifs** | Génération PDF automatisée : contrats de location, quittances de loyer, EDL signés |
-| 🔔 **Notifications** | Alertes système et emails transactionnels |
+| 🔔 **Notifications in-app** | Notifications persistées en base + push WebSocket temps réel (signature contrat, EDL, quittances, assignation bien) — notifications manquées récupérées à la reconnexion |
+| 📧 **Emails transactionnels** | Bienvenue, reset mot de passe, confirmation de signature, alertes |
 | 👤 **Gestion Utilisateurs** | Profils propriétaires et locataires, gestion des documents d'identité |
 | 🖥️ **Back-Office Administration** | Interface web dédiée (Thymeleaf + Bootstrap 5) — reporting, modération et gestion des utilisateurs & biens |
 
@@ -249,14 +250,15 @@ resources/templates/backoffice/
 └── fragments/layout.html              ← Sidebar, topbar, styles Bootstrap 5 (fragments réutilisables)
 ```
 
-### 🔐 Double chaîne de sécurité
+### 🔐 Double chaîne de sécurité + Google OAuth2
 
-L'application fait coexister deux `SecurityFilterChain` Spring Security sans conflit, grâce à `securityMatcher` et `@Order` :
+L'application fait coexister deux `SecurityFilterChain` Spring Security sans conflit, grâce à `securityMatcher` et `@Order`. La chaîne API est **strictement stateless** (`SessionCreationPolicy.STATELESS`) : les cookies de session du back-office ne peuvent jamais interférer avec les requêtes JWT de l'API.
 
 ```mermaid
 graph TD
     classDef chainA fill:#e8eaf6,stroke:#3949ab,stroke-width:2px,color:black;
     classDef chainB fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:black;
+    classDef googleNode fill:#fce4ec,stroke:#c62828,stroke-width:2px,color:black;
     classDef infra fill:#fff9c4,stroke:#f9a825,stroke-width:2px,color:black;
 
     Request["Requête HTTP entrante"]
@@ -268,11 +270,19 @@ graph TD
         BackControllers["Controllers Back-Office<br/>Dashboard · Users · Biens"]:::chainA
     end
 
-    subgraph Chain2["SecurityFilterChain @Order(2) — API REST"]
+    subgraph Chain2["SecurityFilterChain @Order(2) — API REST (STATELESS)"]
         direction TB
         Matcher2["Toutes les autres routes"]:::chainB
-        JwtFilter["Filtre JWT · Stateless<br/>UserDetailsService → BDD<br/>CSRF désactivé"]:::chainB
-        ApiControllers["Controllers API REST<br/>Auth · Biens · Users · Chat…"]:::chainB
+        JwtFilter["Filtre JWT · Stateless<br/>UserDetailsService → BDD (rôle null accepté)<br/>CSRF désactivé"]:::chainB
+        ApiControllers["Controllers API REST<br/>Auth · Biens · Users · Chat · Notifications"]:::chainB
+    end
+
+    subgraph GoogleOAuth["Flux Google OAuth2"]
+        direction TB
+        FrontGoogle["Front-end Angular<br/>Google Identity Services SDK"]:::googleNode
+        GoogleAPI["Google API<br/>(vérification ID token)"]:::googleNode
+        PostGoogle["POST /auth/google<br/>GoogleTokenVerifierImpl"]:::googleNode
+        PatchProfile["PATCH /auth/complete-profile<br/>(premier login — choix du rôle)"]:::googleNode
     end
 
     subgraph Shared["Couche données partagée"]
@@ -292,7 +302,20 @@ graph TD
     JwtFilter --> ApiControllers
     ApiControllers --> DB
     ApiControllers --> Minio
+
+    FrontGoogle -->|"idToken Google"| PostGoogle
+    PostGoogle -->|"verify(idToken)"| GoogleAPI
+    GoogleAPI -->|"payload vérifié"| PostGoogle
+    PostGoogle -->|"requiresRoleSelection: true\n+ JWT temporaire (sans rôle)"| FrontGoogle
+    FrontGoogle -->|"Bearer JWT temporaire\n{ role: ROLE_LOCATAIRE }"| PatchProfile
+    PatchProfile -->|"JWT définitif avec rôle"| FrontGoogle
 ```
+
+**Comportement clé du JwtFilter avec un token Google temporaire :**
+- Les nouveaux utilisateurs Google reçoivent un JWT avec `role: ""` (vide)
+- `UserDetailsServiceImpl` retourne un `UserDetails` avec authorities vides plutôt que de lever une exception
+- Le JwtFilter accepte ce token — `PATCH /auth/complete-profile` est accessible
+- Une fois le rôle attribué, un JWT complet est émis
 
 ---
 

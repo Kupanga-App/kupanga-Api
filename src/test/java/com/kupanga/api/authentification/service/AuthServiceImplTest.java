@@ -1,12 +1,17 @@
 package com.kupanga.api.authentification.service;
 
-import com.kupanga.api.email.service.EmailService;
-import com.kupanga.api.exception.business.KupangaBusinessException;
 import com.kupanga.api.authentification.dto.AuthResponseDTO;
+import com.kupanga.api.authentification.dto.CompleteGoogleProfileDTO;
+import com.kupanga.api.authentification.dto.GoogleLoginDTO;
 import com.kupanga.api.authentification.dto.LoginDTO;
 import com.kupanga.api.authentification.entity.PasswordResetToken;
+import com.kupanga.api.authentification.entity.RefreshToken;
+import com.kupanga.api.authentification.google.GoogleTokenVerifier;
+import com.kupanga.api.authentification.google.GoogleUserInfo;
 import com.kupanga.api.authentification.service.impl.AuthServiceImpl;
 import com.kupanga.api.authentification.utils.JwtUtils;
+import com.kupanga.api.email.service.EmailService;
+import com.kupanga.api.exception.business.KupangaBusinessException;
 import com.kupanga.api.minio.service.MinioService;
 import com.kupanga.api.user.dto.formDTO.UserFormDTO;
 import com.kupanga.api.user.dto.readDTO.UserDTO;
@@ -14,8 +19,8 @@ import com.kupanga.api.user.entity.Role;
 import com.kupanga.api.user.entity.User;
 import com.kupanga.api.user.mapper.UserMapper;
 import com.kupanga.api.user.service.UserService;
-import com.kupanga.api.authentification.entity.RefreshToken;
 import jakarta.servlet.http.HttpServletResponse;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -62,6 +67,9 @@ class AuthServiceImplTest {
 
     @Mock
     private MinioService minioService;
+
+    @Mock
+    private GoogleTokenVerifier googleTokenVerifier;
 
     @InjectMocks
     private AuthServiceImpl loginService;
@@ -324,5 +332,164 @@ class AuthServiceImplTest {
 
         verify(userService).getUserByEmail(email);
         verify(userMapper).toDTO(user);
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // loginWithGoogle
+    // ══════════════════════════════════════════════════════════════
+
+    @Test
+    @DisplayName("loginWithGoogle() — utilisateur existant par googleId → connexion sans sélection rôle")
+    void loginWithGoogle_existingUserByGoogleId_returnsNoRoleSelection() {
+        GoogleLoginDTO dto = new GoogleLoginDTO("google-id-token");
+        GoogleUserInfo googleInfo = new GoogleUserInfo("g-123", "user@example.com", "Jean", "Dupont", null);
+
+        User existingUser = User.builder()
+                .mail("user@example.com")
+                .googleId("g-123")
+                .role(Role.ROLE_LOCATAIRE)
+                .build();
+
+        when(googleTokenVerifier.verify("google-id-token")).thenReturn(googleInfo);
+        when(userService.findOptionalByGoogleId("g-123")).thenReturn(Optional.of(existingUser));
+        when(jwtUtils.generateAccessToken(existingUser.getMail(), String.valueOf(existingUser.getRole())))
+                .thenReturn("accessToken");
+        when(refreshTokenService.createRefreshToken(existingUser)).thenReturn("refreshToken");
+
+        AuthResponseDTO result = loginService.loginWithGoogle(dto, response);
+
+        assertThat(result.accessToken()).isEqualTo("accessToken");
+        assertThat(result.requiresRoleSelection()).isFalse();
+    }
+
+    @Test
+    @DisplayName("loginWithGoogle() — nouvel utilisateur → compte créé, requiresRoleSelection=true")
+    void loginWithGoogle_newUser_createsAccountAndRequiresRoleSelection() {
+        GoogleLoginDTO dto = new GoogleLoginDTO("google-id-token");
+        GoogleUserInfo googleInfo = new GoogleUserInfo("g-999", "new@example.com", "Marie", "Curie", null);
+
+        User newUser = User.builder()
+                .mail("new@example.com")
+                .googleId("g-999")
+                .build(); // role = null
+
+        when(googleTokenVerifier.verify("google-id-token")).thenReturn(googleInfo);
+        when(userService.findOptionalByGoogleId("g-999")).thenReturn(Optional.empty());
+        when(userService.findOptionalByMail("new@example.com")).thenReturn(Optional.empty());
+        doNothing().when(userService).save(any(User.class));
+        when(jwtUtils.generateAccessToken("new@example.com", "")).thenReturn("pendingToken");
+        when(refreshTokenService.createRefreshToken(any(User.class))).thenReturn("refreshToken");
+
+        AuthResponseDTO result = loginService.loginWithGoogle(dto, response);
+
+        assertThat(result.requiresRoleSelection()).isTrue();
+        verify(userService).save(any(User.class));
+    }
+
+    @Test
+    @DisplayName("loginWithGoogle() — email existant (compte classique) → Google ID lié, connexion normale")
+    void loginWithGoogle_existingEmailAccount_linksGoogleId() {
+        GoogleLoginDTO dto = new GoogleLoginDTO("google-id-token");
+        GoogleUserInfo googleInfo = new GoogleUserInfo("g-456", "existing@example.com", "Paul", "Martin", null);
+
+        User existingUser = User.builder()
+                .mail("existing@example.com")
+                .role(Role.ROLE_PROPRIETAIRE)
+                .build(); // googleId = null
+
+        when(googleTokenVerifier.verify("google-id-token")).thenReturn(googleInfo);
+        when(userService.findOptionalByGoogleId("g-456")).thenReturn(Optional.empty());
+        when(userService.findOptionalByMail("existing@example.com")).thenReturn(Optional.of(existingUser));
+        doNothing().when(userService).save(existingUser);
+        when(jwtUtils.generateAccessToken(existingUser.getMail(), String.valueOf(existingUser.getRole())))
+                .thenReturn("accessToken");
+        when(refreshTokenService.createRefreshToken(existingUser)).thenReturn("refreshToken");
+
+        AuthResponseDTO result = loginService.loginWithGoogle(dto, response);
+
+        assertThat(result.requiresRoleSelection()).isFalse();
+        assertThat(existingUser.getGoogleId()).isEqualTo("g-456");
+        verify(userService).save(existingUser);
+    }
+
+    @Test
+    @DisplayName("loginWithGoogle() — token Google invalide → KupangaBusinessException 401")
+    void loginWithGoogle_invalidToken_throwsException() {
+        GoogleLoginDTO dto = new GoogleLoginDTO("invalid-token");
+
+        when(googleTokenVerifier.verify("invalid-token"))
+                .thenThrow(new KupangaBusinessException("Token Google invalide ou expiré", org.springframework.http.HttpStatus.UNAUTHORIZED));
+
+        assertThrows(KupangaBusinessException.class, () -> loginService.loginWithGoogle(dto, response));
+        verifyNoInteractions(userService, refreshTokenService);
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // completeGoogleProfile
+    // ══════════════════════════════════════════════════════════════
+
+    @Test
+    @DisplayName("completeGoogleProfile() — succès : rôle assigné, nouveau JWT retourné")
+    void completeGoogleProfile_success_assignsRoleAndReturnsToken() {
+        CompleteGoogleProfileDTO dto = new CompleteGoogleProfileDTO(Role.ROLE_LOCATAIRE);
+
+        User user = User.builder()
+                .mail("new@example.com")
+                .googleId("g-999")
+                .build(); // role = null
+
+        when(userService.getUserByEmail("new@example.com")).thenReturn(user);
+        doNothing().when(userService).verifyIfRoleOfUserValid(Role.ROLE_LOCATAIRE);
+        doNothing().when(userService).save(user);
+        when(jwtUtils.generateAccessToken("new@example.com", String.valueOf(Role.ROLE_LOCATAIRE)))
+                .thenReturn("finalToken");
+        when(refreshTokenService.createRefreshToken(user)).thenReturn("refreshToken");
+
+        AuthResponseDTO result = loginService.completeGoogleProfile(dto, "new@example.com", response);
+
+        assertThat(result.accessToken()).isEqualTo("finalToken");
+        assertThat(result.requiresRoleSelection()).isFalse();
+        assertThat(user.getRole()).isEqualTo(Role.ROLE_LOCATAIRE);
+        assertThat(user.getHasCompleteProfil()).isTrue();
+        verify(userService).save(user);
+    }
+
+    @Test
+    @DisplayName("completeGoogleProfile() — utilisateur non Google → KupangaBusinessException 400")
+    void completeGoogleProfile_nonGoogleUser_throwsBadRequest() {
+        CompleteGoogleProfileDTO dto = new CompleteGoogleProfileDTO(Role.ROLE_LOCATAIRE);
+
+        User user = User.builder()
+                .mail("classic@example.com")
+                .password("encodedPwd")
+                .role(Role.ROLE_PROPRIETAIRE)
+                .build(); // googleId = null
+
+        when(userService.getUserByEmail("classic@example.com")).thenReturn(user);
+
+        KupangaBusinessException ex = assertThrows(KupangaBusinessException.class,
+                () -> loginService.completeGoogleProfile(dto, "classic@example.com", response));
+
+        assertThat(ex.getStatus()).isEqualTo(org.springframework.http.HttpStatus.BAD_REQUEST);
+    }
+
+    @Test
+    @DisplayName("completeGoogleProfile() — profil déjà complété → KupangaBusinessException 400")
+    void completeGoogleProfile_alreadyCompleted_throwsBadRequest() {
+        CompleteGoogleProfileDTO dto = new CompleteGoogleProfileDTO(Role.ROLE_LOCATAIRE);
+
+        User user = User.builder()
+                .mail("new@example.com")
+                .googleId("g-999")
+                .role(Role.ROLE_LOCATAIRE) // déjà un rôle
+                .build();
+
+        when(userService.getUserByEmail("new@example.com")).thenReturn(user);
+
+        KupangaBusinessException ex = assertThrows(KupangaBusinessException.class,
+                () -> loginService.completeGoogleProfile(dto, "new@example.com", response));
+
+        assertThat(ex.getStatus()).isEqualTo(org.springframework.http.HttpStatus.BAD_REQUEST);
+        verify(userService, never()).save(any());
     }
 }
