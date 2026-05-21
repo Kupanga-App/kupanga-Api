@@ -2,6 +2,8 @@ package com.kupanga.api.immobilier.service.impl;
 
 import com.kupanga.api.email.service.EmailService;
 import com.kupanga.api.exception.business.KupangaBusinessException;
+import com.kupanga.api.notification.enums.NotificationType;
+import com.kupanga.api.notification.service.NotificationService;
 import com.kupanga.api.immobilier.dto.formDTO.EtatDesLieuxFormDTO;
 import com.kupanga.api.immobilier.dto.readDTO.EtatDesLieuxDTO;
 import com.kupanga.api.immobilier.entity.*;
@@ -34,6 +36,7 @@ public class EtatDesLieuxServiceImpl implements EtatDesLieuxService {
     private final EtatDesLieuxMapper      edlMapper;
     private final BienService             bienService;
     private final UserService             userService;
+    private final NotificationService     notificationService;
 
     // ─────────────────────────────────────────────────────────────────────────
     // Création
@@ -106,6 +109,19 @@ public class EtatDesLieuxServiceImpl implements EtatDesLieuxService {
 
         emailService.envoyerInvitationSignature(edl, token);
 
+        // Notification temps réel au locataire
+        notificationService.saveAndSend(
+                edl.getLocataire(),
+                NotificationType.INVITATION_SIGNATURE_EDL,
+                "Vous êtes invité à signer un état des lieux",
+                "Le propriétaire " + edl.getProprietaire().getFirstName() + " "
+                        + edl.getProprietaire().getLastName()
+                        + " vous invite à signer l'état des lieux pour le bien : "
+                        + edl.getBien().getAdresse() + ", " + edl.getBien().getVille(),
+                token,
+                edl.getId()
+        );
+
         log.info("EDL {} signé par le propriétaire, invitation envoyée à {}",
                 edlId, edl.getLocataire().getMail());
     }
@@ -146,6 +162,29 @@ public class EtatDesLieuxServiceImpl implements EtatDesLieuxService {
         edlRepository.save(edl);
 
         emailService.envoyerConfirmationEdlSigne(edl);
+
+        // Notifications de confirmation aux deux parties
+        notificationService.saveAndSend(
+                edl.getLocataire(),
+                NotificationType.EDL_SIGNE,
+                "État des lieux signé",
+                "L'état des lieux pour le bien "
+                        + edl.getBien().getAdresse() + ", " + edl.getBien().getVille()
+                        + " a été signé par les deux parties.",
+                null,
+                edl.getId()
+        );
+        notificationService.saveAndSend(
+                edl.getProprietaire(),
+                NotificationType.EDL_SIGNE,
+                "État des lieux signé",
+                "Le locataire " + edl.getLocataire().getFirstName() + " "
+                        + edl.getLocataire().getLastName()
+                        + " vient de signer l'état des lieux pour le bien "
+                        + edl.getBien().getAdresse() + ", " + edl.getBien().getVille() + ".",
+                null,
+                edl.getId()
+        );
 
         log.info("EDL {} signé par les deux parties — statut : SIGNE", edl.getId());
     }

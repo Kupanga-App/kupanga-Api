@@ -8,6 +8,8 @@ import com.kupanga.api.immobilier.entity.*;
 import com.kupanga.api.immobilier.mapper.BienMapper;
 import com.kupanga.api.immobilier.repository.BienRepository;
 import com.kupanga.api.immobilier.service.impl.BienServiceImpl;
+import com.kupanga.api.notification.enums.NotificationType;
+import com.kupanga.api.notification.service.NotificationService;
 import com.kupanga.api.user.entity.Role;
 import com.kupanga.api.user.entity.User;
 import com.kupanga.api.user.service.UserService;
@@ -34,13 +36,14 @@ import static org.mockito.Mockito.*;
 @DisplayName("Tests unitaires — BienServiceImpl")
 class BienServiceImplTest {
 
-    @Mock private UserService      userService;
-    @Mock private BienImageService bienImageService;
-    @Mock private GeocodingService geocodingService;
-    @Mock private BienRepository   bienRepository;
-    @Mock private BienMapper       bienMapper;
-    @Mock private BienPoiService   bienPoiService;
-    @Mock private Authentication   auth;
+    @Mock private UserService         userService;
+    @Mock private BienImageService    bienImageService;
+    @Mock private GeocodingService    geocodingService;
+    @Mock private BienRepository      bienRepository;
+    @Mock private BienMapper          bienMapper;
+    @Mock private BienPoiService      bienPoiService;
+    @Mock private NotificationService notificationService;
+    @Mock private Authentication      auth;
 
     @InjectMocks
     private BienServiceImpl bienService;
@@ -368,6 +371,12 @@ class BienServiceImplTest {
 
         assertThat(bien.getLocataire()).isEqualTo(locataire);
         verify(bienRepository).save(bien);
+        verify(notificationService).saveAndSend(
+                eq(locataire), eq(NotificationType.BIEN_ASSIGNE),
+                anyString(), anyString(), isNull(), eq(bien.getId()));
+        verify(notificationService).saveAndSend(
+                eq(proprietaire), eq(NotificationType.BIEN_ASSIGNATION_CONFIRMEE),
+                anyString(), anyString(), isNull(), eq(bien.getId()));
     }
 
     @Test

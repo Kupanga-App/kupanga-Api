@@ -2,6 +2,8 @@ package com.kupanga.api.immobilier.service.impl;
 
 import com.kupanga.api.email.service.EmailService;
 import com.kupanga.api.exception.business.KupangaBusinessException;
+import com.kupanga.api.notification.enums.NotificationType;
+import com.kupanga.api.notification.service.NotificationService;
 import com.kupanga.api.immobilier.dto.formDTO.QuittanceFormDTO;
 import com.kupanga.api.immobilier.dto.readDTO.QuittanceDTO;
 import com.kupanga.api.immobilier.entity.*;
@@ -29,13 +31,14 @@ import java.util.List;
 @Transactional
 public class QuittanceServiceImpl implements QuittanceService {
 
-    private final QuittanceRepository quittanceRepository;
+    private final QuittanceRepository  quittanceRepository;
     private final QuittancePdfService  quittancePdfService;
     private final QuittanceMapper      quittanceMapper;
     private final BienService          bienService;
     private final UserService          userService;
     private final ContratRepository    contratRepository;
     private final EmailService         emailService;
+    private final NotificationService  notificationService;
 
     // ─────────────────────────────────────────────────────────────────────────
     // Création
@@ -131,6 +134,18 @@ public class QuittanceServiceImpl implements QuittanceService {
 
         // ─── Envoie la quittance signée par email au locataire ────────────────────
         emailService.envoyerQuittance(quittance);
+
+        // Notification temps réel au locataire
+        notificationService.saveAndSend(
+                quittance.getLocataire(),
+                NotificationType.QUITTANCE_DISPONIBLE,
+                "Quittance de loyer disponible",
+                "Votre quittance de loyer de " + quittance.getMois() + "/" + quittance.getAnnee()
+                        + " pour le bien " + quittance.getBien().getAdresse()
+                        + " est disponible.",
+                null,
+                quittance.getId()
+        );
 
         log.info("Quittance {} marquée payée et signée — email envoyé à {}",
                 quittanceId, quittance.getLocataire().getMail());

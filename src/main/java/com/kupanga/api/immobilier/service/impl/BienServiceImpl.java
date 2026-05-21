@@ -11,6 +11,8 @@ import com.kupanga.api.immobilier.service.BienImageService;
 import com.kupanga.api.immobilier.service.BienPoiService;
 import com.kupanga.api.immobilier.service.BienService;
 import com.kupanga.api.immobilier.service.GeocodingService;
+import com.kupanga.api.notification.enums.NotificationType;
+import com.kupanga.api.notification.service.NotificationService;
 import com.kupanga.api.user.dto.readDTO.UserDTO;
 import com.kupanga.api.user.entity.User;
 import com.kupanga.api.user.service.UserService;
@@ -33,12 +35,13 @@ import static com.kupanga.api.minio.constant.MinioConstant.PHOTO_IMO_BUCKET;
 @Slf4j
 public class BienServiceImpl implements BienService {
 
-    private final UserService userService;
-    private final BienImageService bienImageService;
-    private final GeocodingService geocodingService;
-    private final BienRepository bienRepository;
-    private final BienMapper bienMapper;
-    private final BienPoiService bienPoiService;
+    private final UserService        userService;
+    private final BienImageService   bienImageService;
+    private final GeocodingService   geocodingService;
+    private final BienRepository     bienRepository;
+    private final BienMapper         bienMapper;
+    private final BienPoiService     bienPoiService;
+    private final NotificationService notificationService;
 
     public void createBien(Authentication auth, BienFormDTO dto, List<MultipartFile> files) {
 
@@ -306,5 +309,29 @@ public class BienServiceImpl implements BienService {
         bien.setLocataire(locataire);
         bienRepository.save(bien);
 
+        // Notification au locataire
+        notificationService.saveAndSend(
+                locataire,
+                NotificationType.BIEN_ASSIGNE,
+                "Un bien vous a été assigné",
+                "Le propriétaire " + proprietaire.getFirstName() + " "
+                        + proprietaire.getLastName()
+                        + " vous a assigné le bien : "
+                        + bien.getAdresse() + ", " + bien.getVille(),
+                null,
+                bien.getId()
+        );
+
+        // Confirmation au propriétaire
+        notificationService.saveAndSend(
+                proprietaire,
+                NotificationType.BIEN_ASSIGNATION_CONFIRMEE,
+                "Locataire assigné avec succès",
+                locataire.getFirstName() + " " + locataire.getLastName()
+                        + " a été assigné au bien "
+                        + bien.getAdresse() + ", " + bien.getVille() + ".",
+                null,
+                bien.getId()
+        );
     }
 }

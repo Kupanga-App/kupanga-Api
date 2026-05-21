@@ -12,6 +12,8 @@ import com.kupanga.api.immobilier.pdf.ContratPdfService;
 import com.kupanga.api.immobilier.repository.ContratRepository;
 import com.kupanga.api.immobilier.service.BienService;
 import com.kupanga.api.immobilier.service.ContratService;
+import com.kupanga.api.notification.enums.NotificationType;
+import com.kupanga.api.notification.service.NotificationService;
 import com.kupanga.api.user.entity.User;
 import com.kupanga.api.user.service.UserService;
 import jakarta.transaction.Transactional;
@@ -29,12 +31,13 @@ import java.util.UUID;
 @Transactional
 public class ContratServiceImpl implements ContratService {
 
-    private final ContratRepository contratRepository;
-    private final ContratPdfService contratPdfService;
-    private final EmailService emailService;
-    private final UserService userService;
-    private final BienService bienService;
-    private final ContratMapper contratMapper;
+    private final ContratRepository  contratRepository;
+    private final ContratPdfService  contratPdfService;
+    private final EmailService       emailService;
+    private final UserService        userService;
+    private final BienService        bienService;
+    private final ContratMapper      contratMapper;
+    private final NotificationService notificationService;
 
     @Override
     public void creerContrat(ContratFormDTO dto, String emailProprietaire) {
@@ -110,6 +113,19 @@ public class ContratServiceImpl implements ContratService {
 
         // Envoie l'email au locataire
         emailService.envoyerInvitationSignature(contrat, token);
+
+        // Notification temps réel au locataire
+        notificationService.saveAndSend(
+                contrat.getLocataire(),
+                NotificationType.INVITATION_SIGNATURE_CONTRAT,
+                "Vous êtes invité à signer un contrat",
+                "Le propriétaire " + contrat.getProprietaire().getFirstName() + " "
+                        + contrat.getProprietaire().getLastName()
+                        + " vous invite à signer le contrat pour le bien : "
+                        + contrat.getAdresseBien(),
+                token,
+                contrat.getId()
+        );
     }
 
     @Override
@@ -140,6 +156,28 @@ public class ContratServiceImpl implements ContratService {
 
         // Envoie les emails de confirmation aux deux parties
         emailService.envoyerConfirmationContratSigne(contrat);
+
+        // Notifications de confirmation aux deux parties
+        notificationService.saveAndSend(
+                contrat.getLocataire(),
+                NotificationType.CONTRAT_SIGNE,
+                "Contrat signé avec succès",
+                "Votre contrat pour le bien " + contrat.getAdresseBien()
+                        + " a été signé par les deux parties.",
+                null,
+                contrat.getId()
+        );
+        notificationService.saveAndSend(
+                contrat.getProprietaire(),
+                NotificationType.CONTRAT_SIGNE,
+                "Contrat signé",
+                "Le locataire " + contrat.getLocataire().getFirstName() + " "
+                        + contrat.getLocataire().getLastName()
+                        + " vient de signer le contrat pour le bien "
+                        + contrat.getAdresseBien() + ".",
+                null,
+                contrat.getId()
+        );
     }
 
     /**

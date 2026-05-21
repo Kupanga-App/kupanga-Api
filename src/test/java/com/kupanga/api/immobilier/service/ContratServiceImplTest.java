@@ -11,6 +11,8 @@ import com.kupanga.api.immobilier.mapper.ContratMapper;
 import com.kupanga.api.immobilier.pdf.ContratPdfService;
 import com.kupanga.api.immobilier.repository.ContratRepository;
 import com.kupanga.api.immobilier.service.impl.ContratServiceImpl;
+import com.kupanga.api.notification.enums.NotificationType;
+import com.kupanga.api.notification.service.NotificationService;
 import com.kupanga.api.user.entity.User;
 import com.kupanga.api.user.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,12 +32,13 @@ import static org.mockito.Mockito.*;
 @DisplayName("Tests unitaires — ContratServiceImpl")
 class ContratServiceImplTest {
 
-    @Mock private ContratRepository  contratRepository;
-    @Mock private ContratPdfService  contratPdfService;
-    @Mock private EmailService       emailService;
-    @Mock private UserService        userService;
-    @Mock private BienService        bienService;
-    @Mock private ContratMapper      contratMapper;
+    @Mock private ContratRepository   contratRepository;
+    @Mock private ContratPdfService   contratPdfService;
+    @Mock private EmailService        emailService;
+    @Mock private UserService         userService;
+    @Mock private BienService         bienService;
+    @Mock private ContratMapper       contratMapper;
+    @Mock private NotificationService notificationService;
 
     @InjectMocks
     private ContratServiceImpl contratService;
@@ -195,6 +198,9 @@ class ContratServiceImplTest {
         assertThat(contrat.getTokenSignature()).isNotNull();
         assertThat(contrat.getUrlPdf()).isEqualTo("http://minio/signed.pdf");
         verify(emailService).envoyerInvitationSignature(any(Contrat.class), anyString());
+        verify(notificationService).saveAndSend(
+                eq(locataire), eq(NotificationType.INVITATION_SIGNATURE_CONTRAT),
+                anyString(), anyString(), anyString(), eq(contrat.getId()));
     }
 
     @Test
@@ -241,6 +247,9 @@ class ContratServiceImplTest {
         assertThat(contrat.getTokenSignature()).isNull();
         assertThat(contrat.getUrlPdf()).isEqualTo("http://minio/final.pdf");
         verify(emailService).envoyerConfirmationContratSigne(contrat);
+        verify(notificationService, times(2)).saveAndSend(
+                any(User.class), eq(NotificationType.CONTRAT_SIGNE),
+                anyString(), anyString(), isNull(), eq(contrat.getId()));
     }
 
     @Test

@@ -9,6 +9,8 @@ import com.kupanga.api.immobilier.mapper.EtatDesLieuxMapper;
 import com.kupanga.api.immobilier.pdf.EtatDesLieuxPdfService;
 import com.kupanga.api.immobilier.repository.EtatDesLieuxRepository;
 import com.kupanga.api.immobilier.service.impl.EtatDesLieuxServiceImpl;
+import com.kupanga.api.notification.enums.NotificationType;
+import com.kupanga.api.notification.service.NotificationService;
 import com.kupanga.api.user.entity.User;
 import com.kupanga.api.user.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,12 +30,13 @@ import static org.mockito.Mockito.*;
 @DisplayName("Tests unitaires — EtatDesLieuxServiceImpl")
 class EtatDesLieuxServiceImplTest {
 
-    @Mock private EtatDesLieuxRepository edlRepository;
+    @Mock private EtatDesLieuxRepository  edlRepository;
     @Mock private EtatDesLieuxPdfService  edlPdfService;
     @Mock private EmailService            emailService;
     @Mock private EtatDesLieuxMapper      edlMapper;
     @Mock private BienService             bienService;
     @Mock private UserService             userService;
+    @Mock private NotificationService     notificationService;
 
     @InjectMocks
     private EtatDesLieuxServiceImpl edlService;
@@ -134,6 +137,9 @@ class EtatDesLieuxServiceImplTest {
         assertThat(edl.getTokenSignature()).isNotNull();
         assertThat(edl.getUrlPdf()).isEqualTo("http://minio/edl-signed.pdf");
         verify(emailService).envoyerInvitationSignature(any(EtatDesLieux.class), anyString());
+        verify(notificationService).saveAndSend(
+                eq(locataire), eq(NotificationType.INVITATION_SIGNATURE_EDL),
+                anyString(), anyString(), anyString(), eq(edl.getId()));
     }
 
     @Test
@@ -181,6 +187,9 @@ class EtatDesLieuxServiceImplTest {
         assertThat(edl.getTokenExpiration()).isNull();
         assertThat(edl.getUrlPdf()).isEqualTo("http://minio/edl-final.pdf");
         verify(emailService).envoyerConfirmationEdlSigne(edl);
+        verify(notificationService, times(2)).saveAndSend(
+                any(User.class), eq(NotificationType.EDL_SIGNE),
+                anyString(), anyString(), isNull(), eq(edl.getId()));
     }
 
     @Test

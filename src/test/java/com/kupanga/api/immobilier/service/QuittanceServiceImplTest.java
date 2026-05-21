@@ -10,6 +10,8 @@ import com.kupanga.api.immobilier.pdf.QuittancePdfService;
 import com.kupanga.api.immobilier.repository.ContratRepository;
 import com.kupanga.api.immobilier.repository.QuittanceRepository;
 import com.kupanga.api.immobilier.service.impl.QuittanceServiceImpl;
+import com.kupanga.api.notification.enums.NotificationType;
+import com.kupanga.api.notification.service.NotificationService;
 import com.kupanga.api.user.entity.User;
 import com.kupanga.api.user.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,13 +31,14 @@ import static org.mockito.Mockito.*;
 @DisplayName("Tests unitaires — QuittanceServiceImpl")
 class QuittanceServiceImplTest {
 
-    @Mock private QuittanceRepository quittanceRepository;
+    @Mock private QuittanceRepository  quittanceRepository;
     @Mock private QuittancePdfService  quittancePdfService;
     @Mock private QuittanceMapper      quittanceMapper;
     @Mock private BienService          bienService;
     @Mock private UserService          userService;
     @Mock private ContratRepository    contratRepository;
     @Mock private EmailService         emailService;
+    @Mock private NotificationService  notificationService;
 
     @InjectMocks
     private QuittanceServiceImpl quittanceService;
@@ -211,6 +214,9 @@ class QuittanceServiceImplTest {
         assertThat(quittance.getSignatureProprietaire()).isEqualTo("sig-proprio");
         assertThat(quittance.getUrlPdf()).isEqualTo("http://minio/signed.pdf");
         verify(emailService).envoyerQuittance(quittance);
+        verify(notificationService).saveAndSend(
+                eq(locataire), eq(NotificationType.QUITTANCE_DISPONIBLE),
+                anyString(), anyString(), isNull(), eq(quittance.getId()));
     }
 
     @Test
