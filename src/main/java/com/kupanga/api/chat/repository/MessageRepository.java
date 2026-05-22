@@ -21,7 +21,7 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
             UPDATE Message m SET m.lu = true
             WHERE m.destinataire.mail = :emailDestinataire
               AND m.expediteur.mail   = :emailExpediteur
-              AND m.lu = false
+              AND (m.lu = false OR m.lu IS NULL)
             """)
     void marquerConversationLue(@Param("emailDestinataire") String emailDestinataire,
                                 @Param("emailExpediteur")   String emailExpediteur);
@@ -31,8 +31,8 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
      */
     @Query("""
             SELECT COUNT(m) FROM Message m
-            WHERE m.expediteur.mail = :email
-              AND m.lu = false
+            WHERE m.destinataire.mail = :email
+              AND (m.lu = false OR m.lu IS NULL)
             """)
     Long countMessagesNonLus(@Param("email") String email);
 
@@ -40,7 +40,7 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
             SELECT COUNT(m) FROM Message m
             WHERE m.conversation.id = :conversationId
               AND m.destinataire.mail = :email
-              AND m.lu = false
+              AND (m.lu = false OR m.lu IS NULL)
             """)
     long countNonLuByConversationAndDestinataire(@Param("conversationId") Long conversationId,
                                                  @Param("email") String email);

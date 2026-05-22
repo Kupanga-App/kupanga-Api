@@ -33,3 +33,7 @@ jwt:
 
 google:
   client-id: ${GOOGLE_CLIENT_ID:YOUR_GOOGLE_CLIENT_ID}
+
+logging:
+  level:
+    com.kupanga.api.chat.controller: DEBUG

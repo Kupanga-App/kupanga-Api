@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -24,6 +25,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
+@Slf4j
 @Tag(name = "Messagerie", description = "Messagerie temps réel entre propriétaire et locataire")
 public class MessageController {
 
@@ -141,7 +143,11 @@ public class MessageController {
     })
     @GetMapping("/messages/non-lus")
     public ResponseEntity<Long> countNonLus(Principal principal) {
-        return ResponseEntity.ok(messageService.countMessagesNonLus(principal.getName()));
+        String email = principal.getName();
+        log.debug(">>> [non-lus] principal.getName() = '{}'", email);
+        Long count = messageService.countMessagesNonLus(email);
+        log.debug(">>> [non-lus] count = {}", count);
+        return ResponseEntity.ok(count);
     }
 
     // ─────────────────────────────────────────────────────────────────────────

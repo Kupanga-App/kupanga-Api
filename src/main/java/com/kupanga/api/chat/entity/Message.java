@@ -26,6 +26,7 @@ public class Message {
     private String contenu;
 
     // ─── Statut lecture ───────────────────────────────────────────────────────
+    @Builder.Default
     @Column(nullable = false)
     private Boolean lu = false;
 
