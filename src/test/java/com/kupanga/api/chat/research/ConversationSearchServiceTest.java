@@ -40,6 +40,7 @@ class ConversationSearchServiceTest {
     private ConversationSearchService conversationSearchService;
 
     private User user;
+    private User userBob;
     private Conversation conversation;
     private ConversationDTO baseDTO;
 
@@ -50,6 +51,15 @@ class ConversationSearchServiceTest {
         user = User.builder()
                 .id(1L)
                 .mail("alice@test.com")
+                .firstName("Alice")
+                .lastName("Martin")
+                .build();
+
+        userBob = User.builder()
+                .id(2L)
+                .mail("bob@test.com")
+                .firstName("Bob")
+                .lastName("Dupont")
                 .build();
 
         conversation = Conversation.builder()
@@ -62,6 +72,8 @@ class ConversationSearchServiceTest {
 
         baseDTO = new ConversationDTO(10L, 1L, "Appart T3",
                 "alice@test.com", "bob@test.com",
+                "Alice Martin", "Bob Dupont",
+                null, null,
                 "Bonjour", LocalDateTime.now(), LocalDateTime.now(), 0L);
     }
 
@@ -72,11 +84,12 @@ class ConversationSearchServiceTest {
                 0, 10, null, Sort.Direction.ASC);
 
         when(userService.getUserByEmail("alice@test.com")).thenReturn(user);
+        when(userService.getUserByEmail("bob@test.com")).thenReturn(userBob);
         when(conversationSpecification.build(eq("alice@test.com"), eq(dto)))
                 .thenReturn(mock(Specification.class));
         when(conversationRepository.findAll(any(Specification.class), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of(conversation)));
-        when(conversationMapper.toDto(conversation)).thenReturn(baseDTO);
+        when(conversationMapper.toDto(conversation, user, userBob)).thenReturn(baseDTO);
         when(messageRepository.countNonLuByConversationAndDestinataire(10L, "alice@test.com"))
                 .thenReturn(3L);
 
