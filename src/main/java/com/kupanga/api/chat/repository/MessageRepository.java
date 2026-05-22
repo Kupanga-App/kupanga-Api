@@ -31,7 +31,7 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
      */
     @Query("""
             SELECT COUNT(m) FROM Message m
-            WHERE m.destinataire.mail = :email
+            WHERE m.expediteur.mail = :email
               AND m.lu = false
             """)
     Long countMessagesNonLus(@Param("email") String email);
