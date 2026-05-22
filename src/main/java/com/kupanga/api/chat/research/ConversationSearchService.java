@@ -55,11 +55,15 @@ public class ConversationSearchService {
         Page<ConversationDTO> page = conversationRepository
                 .findAll(conversationSpecification.build(email, dto), pageable)
                 .map(conv -> {
-                    ConversationDTO base = conversationMapper.toDto(conv);
+                    var expediteur = userService.getUserByEmail(conv.getEmailExpediteur());
+                    var destinataire = userService.getUserByEmail(conv.getEmailDestinataire());
+                    ConversationDTO base = conversationMapper.toDto(conv, expediteur, destinataire);
                     long count = messageRepository.countNonLuByConversationAndDestinataire(conv.getId(), email);
                     return new ConversationDTO(
                             base.id(), base.bienId(), base.bienTitre(),
                             base.emailExpediteur(), base.emailDestinataire(),
+                            base.expediteurName(), base.destinataireName(),
+                            base.expediteurPhotoUrl(), base.destinatairePhotoUrl(),
                             base.lastMessage(), base.lastMessageAt(), base.createdAt(),
                             count
                     );
