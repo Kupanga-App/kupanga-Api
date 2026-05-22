@@ -292,6 +292,8 @@ public class AuthServiceImpl implements AuthService {
 
         LOGGER.info("[GOOGLE-AUTH] Profil complété pour {} — rôle : {}", email, dto.role());
 
+        emailService.sendWelcomeMessage(user.getMail() , user.getFirstName());
+
         return AuthResponseDTO.builder()
                 .accessToken(accessToken)
                 .requiresRoleSelection(false)
