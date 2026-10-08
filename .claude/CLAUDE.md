@@ -185,6 +185,7 @@ Légende : `[ ]` à faire · `[~]` en cours · `[x]` fait (préciser date + comm
   - Bloquants mise en ligne déjà planifiés : W1, W3, B1, B3, D2, D8, RGPD (D12/D13), recette prod (IP réelle, URL présignée, `CORS_ALLOWED_ORIGINS`, compte MinIO de service).
   - [MINEUR] `Retry-After` non exposé en CORS (`setExposedHeaders`) ; `@Size(max=255)` manquant sur `LoginDTO.email` / `ForgotPasswordDTO.email` ; e-mails dans les logs INFO et stacktraces des exceptions métier en WARN (avec W10) ; timing de `forgotPassword` (énumération freinée par A3) ; Prometheus plus exposé en prod ; `traces-sample-rate: 1.0` en prod (→ 0.1, D5) ; e-mails personnels en exemples Swagger (`EtatDesLieuxController`, `AuthController`) à remplacer par des adresses fictives.
   - Non planifiés : A6 (refresh token en clair, sans rotation), A9, A12, CSRF de `/auth/refresh`/`/auth/logout`.
+- **MinIO n'est plus distribué en image Docker officielle** (dépôt communautaire archivé) : la CI et le dev utilisent l'image Chainguard figée par digest (pas de mises à jour de sécurité automatiques). Pour la prod (D1-D8) : choisir entre cette image (digest mis à jour régulièrement), un fork maintenu, ou une alternative S3 (Garage, RustFS, S3 managé).
 - Prod : renseigner `CORS_ALLOWED_ORIGINS` si le front n'est pas servi depuis `https://kupanga.lespacelibellule.com`.
 - Front `kupanga-front` : vérifier qu'aucune recherche n'envoie `size > 50` (désormais 400 depuis VALID).
 - `codePostal` reste obligatoire dans `BienFormDTO` (vrai blocage dès VALID) : à rendre facultatif selon la juridiction en J4.
@@ -192,6 +193,8 @@ Légende : `[ ]` à faire · `[~]` en cours · `[x]` fait (préciser date + comm
 ## 8. Journal des modifications
 
 > Format : `AAAA-MM-JJ — quoi (fichiers / commit)`. Le plus récent en haut.
+
+- 2026-10-08 — CI cassée (`pull access denied for minio/minio` : MinIO a retiré ses images de Docker Hub) : image remplacée par `cgr.dev/chainguard/minio` figée par digest + `--user 0:0` (image non root, sinon `file access denied` sur `/data`) dans `.github/workflows/ci.yml` (2 jobs) et `docker-compose-dev.yml` (`user: "0:0"`) ; démarrage + `/minio/health/live` vérifiés en local — non commité
 
 - 2026-10-08 — **Sprint 1 terminé** : revue de fin de sprint (`git diff 502b82e`) « prêt pour le sprint 2 », `verify` 442 tests VERT (dont `RateLimitRedisTest`) ; points à arbitrer notés en §7 — non commité
 - 2026-10-08 — P0-8 : rotation des secrets fuités (`d39d993`) et purge de l'historique si nécessaire, faites par l'utilisateur (confirmé le 2026-10-08) ; checklist en §5

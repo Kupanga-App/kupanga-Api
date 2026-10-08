@@ -75,7 +75,10 @@ services:
   # 3️. MinIO Storage
   # ------------------------
   minio:
-    image: minio/minio:latest
+    # minio/minio n'existe plus sur Docker Hub : image Chainguard figée par digest (comme la CI).
+    # user 0:0 : l'image est non root par défaut et le volume existant appartient à root.
+    image: cgr.dev/chainguard/minio@sha256:59667194421209c2c1eacbe761e24787e047985c5dfa96b15da9b59fe9b55cd0
+    user: "0:0"
     container_name: minio-dev
     env_file:
       - .env.dev
