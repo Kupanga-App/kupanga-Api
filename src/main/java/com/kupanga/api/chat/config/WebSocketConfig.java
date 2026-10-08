@@ -4,7 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.kupanga.api.chat.security.JwtChannelInterceptor;
+import com.kupanga.api.config.CorsProperties;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.converter.DefaultContentTypeResolver;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
@@ -20,10 +22,12 @@ import java.util.List;
 
 @Configuration
 @EnableWebSocketMessageBroker
+@EnableConfigurationProperties(CorsProperties.class)
 @RequiredArgsConstructor
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     private final JwtChannelInterceptor jwtChannelInterceptor;
+    private final CorsProperties corsProperties;
 
     /**
      * Configure le broker de messages.
@@ -41,11 +45,12 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     /**
      * Endpoint de connexion WebSocket avec fallback SockJS.
      * Le front se connecte sur : ws://localhost:8089/ws
+     * Seules les origines de {@code app.cors.allowed-origins} sont acceptées (W5).
      */
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws")
-                .setAllowedOriginPatterns("*")  // à restreindre en prod
+                .setAllowedOrigins(corsProperties.allowedOrigins().toArray(String[]::new))
                 .withSockJS();
     }
 

@@ -74,7 +74,7 @@ public class JwtChannelInterceptor implements ChannelInterceptor {
 
             } catch (Exception e) {
                 log.error("Erreur validation JWT WebSocket : {}", e.getMessage());
-                throw new IllegalArgumentException("Token JWT invalide : " + e.getMessage());
+                throw new IllegalArgumentException("Token JWT invalide ou expiré");
             }
         }
 

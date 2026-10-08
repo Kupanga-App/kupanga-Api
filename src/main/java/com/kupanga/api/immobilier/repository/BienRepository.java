@@ -20,7 +20,7 @@ public interface BienRepository extends JpaRepository<Bien, Long>, JpaSpecificat
             left join fetch b.quittances
             left join fetch b.etatsDesLieux
             left join fetch b.documents
-            inner join fetch b.images
+            left join fetch b.images
             where b.id = :id
             """
     )

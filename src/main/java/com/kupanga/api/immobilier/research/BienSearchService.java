@@ -1,6 +1,6 @@
 package com.kupanga.api.immobilier.research;
 
-import com.kupanga.api.immobilier.dto.readDTO.BienDTO;
+import com.kupanga.api.immobilier.dto.readDTO.BienPublicDTO;
 import com.kupanga.api.immobilier.mapper.BienMapper;
 import com.kupanga.api.immobilier.repository.BienRepository;
 import com.kupanga.api.immobilier.research.dto.BienPageDTO;
@@ -41,7 +41,7 @@ public class BienSearchService {
                 Sort.by(pagination.direction(), pagination.sortBy())
         );
 
-        Page<BienDTO> page = bienRepository
+        Page<BienPublicDTO> page = bienRepository
                 .findAll(bienSpecification.build(dto), pageable)
                 .map(bienMapper::toPublicDTO);
 

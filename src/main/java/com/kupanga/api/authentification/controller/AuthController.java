@@ -2,8 +2,10 @@ package com.kupanga.api.authentification.controller;
 
 import com.kupanga.api.authentification.dto.AuthResponseDTO;
 import com.kupanga.api.authentification.dto.CompleteGoogleProfileDTO;
+import com.kupanga.api.authentification.dto.ForgotPasswordDTO;
 import com.kupanga.api.authentification.dto.GoogleLoginDTO;
 import com.kupanga.api.authentification.dto.LoginDTO;
+import com.kupanga.api.authentification.dto.ResetPasswordDTO;
 import com.kupanga.api.authentification.service.AuthService;
 import com.kupanga.api.user.dto.formDTO.UserFormDTO;
 import com.kupanga.api.user.dto.readDTO.UserDTO;
@@ -15,8 +17,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import com.kupanga.api.authentification.ratelimit.LimiteurTentatives;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +29,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import static com.kupanga.api.authentification.ratelimit.LimiteTentatives.*;
+
 @Tag(name = "Auth" , description = "Pour la gestion des login/logout + Sécurité")
 @RestController
 @RequiredArgsConstructor
@@ -32,6 +38,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class AuthController {
 
     private final AuthService authService;
+    private final LimiteurTentatives limiteurTentatives;
 
     // =============================================================================
     //  CREATION UTILISATEUR + COMPLETER LE PROFIL UTILISATEUR + AJOUT PHOTO PROFIL
@@ -93,7 +100,7 @@ public class AuthController {
                     description = "JSON contenant les informations utilisateur obligatoires",
                     required = true
             )
-            @RequestPart("userFormDTO") UserFormDTO userFormDTO,
+            @Valid @RequestPart("userFormDTO") UserFormDTO userFormDTO,
 
             @Parameter(
                     description = "Image de profil optionnelle de l'utilisateur (fichier)",
@@ -101,8 +108,10 @@ public class AuthController {
             )
             @RequestPart(value = "imageProfil", required = false) MultipartFile imageProfil,
 
-            HttpServletResponse response
+            HttpServletResponse response,
+            HttpServletRequest request
     ) {
+        limiteurTentatives.verifierIp(REGISTER_PAR_IP, request);
         return ResponseEntity.ok(authService.createAndCompleteUserProfil(userFormDTO , imageProfil ,response));
     }
 
@@ -129,32 +138,24 @@ public class AuthController {
                     )
             ),
             @ApiResponse(
-                    responseCode = "404",
-                    description = "Utilisateur non trouvé",
-                    content = @Content(
-                            mediaType = "application/json",
-                            examples = @ExampleObject(value = """
-                                    {
-                                        "error": "Utilisateur non trouvé"
-                                    }
-                                    """)
-                    )
-            ),
-            @ApiResponse(
                     responseCode = "401",
-                    description = "Mot de passe incorrect",
+                    description = "E-mail inconnu ou mot de passe incorrect (même réponse dans les deux cas)",
                     content = @Content(
                             mediaType = "application/json",
                             examples = @ExampleObject(value = """
                                     {
-                                        "error": "Mot de passe incorrect"
+                                        "error": "E-mail ou mot de passe incorrect"
                                     }
                                     """)
                     )
             )
     })
     @PostMapping("/login")
-    public ResponseEntity<AuthResponseDTO> login(@Valid @RequestBody LoginDTO loginDTO, HttpServletResponse response) {
+    public ResponseEntity<AuthResponseDTO> login(@Valid @RequestBody LoginDTO loginDTO, HttpServletResponse response,
+                                                 HttpServletRequest request) {
+        limiteurTentatives.verifierIp(LOGIN_PAR_IP, request);
+        limiteurTentatives.verifierEmailEtIp(LOGIN_PAR_EMAIL_ET_IP, loginDTO.email(), request);
+        limiteurTentatives.verifierEmail(LOGIN_PAR_EMAIL, loginDTO.email());
         return ResponseEntity.ok(authService.login(loginDTO, response));
     }
 
@@ -179,7 +180,6 @@ public class AuthController {
                     "firstName": "John",
                     "lastName": "Doe",
                     "mail": "kbg.al.pr@gmail.com",
-                    "password": "$2a$10$vsVhkaAc3xSXEjwWRn1/y.47LEcuQ0SrlL6qlyRtezJVQZauUVVtS",
                     "role": "ROLE_LOCATAIRE",
                     "urlProfile": "http://localhost:9000/bucket-photo-profil/e8676ed7-0a81-4a67-bfd0-af07d9ec3e8a_avecbeaucoupplusd'espacemongrand.jpg",
                     "hasCompleteProfil": true
@@ -320,37 +320,25 @@ public class AuthController {
 
     @Operation(
             summary = "Réinitialisation du mot de passe",
-            description = "Génère un token temporaire pour réinitialiser le mot de passe et envoie un email contenant le lien de réinitialisation."
+            description = "Si un compte existe pour l'e-mail fourni, génère un token temporaire et envoie un e-mail " +
+                    "contenant le lien de réinitialisation. La réponse est toujours la même, que le compte existe ou non."
     )
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
-                    description = "Email de réinitialisation envoyé avec succès",
+                    description = "Demande prise en compte (réponse identique que le compte existe ou non)",
                     content = @Content(
-                            mediaType = "application/json",
-                            examples = @ExampleObject(value = """
-                                {
-                                    "message": "Lien de réinitialisation envoyé à l'adresse email"
-                                }
-                                """)
+                            mediaType = "text/plain",
+                            examples = @ExampleObject(value = "Si un compte existe pour cet e-mail, un lien de réinitialisation vient d'être envoyé")
                     )
             ),
-            @ApiResponse(
-                    responseCode = "400",
-                    description = "Email inexistant ou invalide",
-                    content = @Content(
-                            mediaType = "application/json",
-                            examples = @ExampleObject(value = """
-                                {
-                                    "error": "Utilisateur introuvable"
-                                }
-                                """)
-                    )
-            )
+            @ApiResponse(responseCode = "400", description = "E-mail absent ou mal formé")
     })
     @PostMapping("/forgot-password")
-    public ResponseEntity<String> forgotPassword(@RequestParam String email) {
-        return ResponseEntity.ok(authService.forgotPassword(email));
+    public ResponseEntity<String> forgotPassword(@Valid @RequestBody ForgotPasswordDTO dto, HttpServletRequest request) {
+        limiteurTentatives.verifierIp(FORGOT_PASSWORD_PAR_IP, request);
+        limiteurTentatives.verifierEmail(FORGOT_PASSWORD_PAR_EMAIL, dto.email());
+        return ResponseEntity.ok(authService.forgotPassword(dto.email()));
     }
 
     // =========================================
@@ -377,21 +365,20 @@ public class AuthController {
             ),
             @ApiResponse(
                     responseCode = "400",
-                    description = "Token invalide ou expiré",
+                    description = "Token invalide ou expiré, ou mot de passe trop faible",
                     content = @Content(
                             mediaType = "application/json",
                             examples = @ExampleObject(value = """
                                 {
-                                    "error": "Token expiré ou invalide"
+                                    "error": "Lien de réinitialisation invalide ou expiré"
                                 }
                                 """)
                     )
             )
     })
     @PostMapping("/reset-password")
-    public ResponseEntity<String> resetPassword(@RequestParam String token,
-                                                @RequestParam String newPassword) {
-        return ResponseEntity.ok(authService.resetPassword(token, newPassword));
+    public ResponseEntity<String> resetPassword(@Valid @RequestBody ResetPasswordDTO dto) {
+        return ResponseEntity.ok(authService.resetPassword(dto.token(), dto.newPassword()));
     }
 
     // =========================================
@@ -417,8 +404,10 @@ public class AuthController {
     @PostMapping("/google")
     public ResponseEntity<AuthResponseDTO> loginWithGoogle(
             @Valid @RequestBody GoogleLoginDTO dto,
-            HttpServletResponse response
+            HttpServletResponse response,
+            HttpServletRequest request
     ) {
+        limiteurTentatives.verifierIp(GOOGLE_PAR_IP, request);
         return ResponseEntity.ok(authService.loginWithGoogle(dto, response));
     }
 

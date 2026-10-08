@@ -32,8 +32,9 @@ public class Contrat {
     private String    adresseBien;
 
     // ─── Stockage PDF ─────────────────────────────────────────────────────────
-    @Column(length = 500)
-    private String urlPdf;
+    /** Clé de l'objet dans le bucket MinIO privé (jamais une URL publique — P0-7). */
+    @Column(name = "cle_pdf", length = 500)
+    private String clePdf;
 
     // ─── Signatures ───────────────────────────────────────────────────────────
     @Column(columnDefinition = "TEXT")

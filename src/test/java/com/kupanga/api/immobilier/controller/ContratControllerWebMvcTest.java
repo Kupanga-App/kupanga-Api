@@ -56,7 +56,7 @@ class ContratControllerWebMvcTest {
 
     @Test
     @DisplayName("POST /contrats — succès : contrat créé (204)")
-    @WithMockUser(username = "proprio@test.com")
+    @WithMockUser(username = "proprio@test.com", roles = "PROPRIETAIRE")
     void creerContrat_success_shouldReturn204() throws Exception {
         doNothing().when(contratService).creerContrat(any(), anyString());
 
@@ -94,7 +94,7 @@ class ContratControllerWebMvcTest {
 
     @Test
     @DisplayName("POST /contrats/{id}/signer-proprio — succès : 204")
-    @WithMockUser(username = "proprio@test.com")
+    @WithMockUser(username = "proprio@test.com", roles = "PROPRIETAIRE")
     void signerProprietaire_success_shouldReturn204() throws Exception {
         doNothing().when(contratService).signerProprietaire(eq(1L), anyString(), anyString());
 
@@ -109,7 +109,7 @@ class ContratControllerWebMvcTest {
 
     @Test
     @DisplayName("POST /contrats/{id}/signer-proprio — contrat introuvable : 404")
-    @WithMockUser(username = "proprio@test.com")
+    @WithMockUser(username = "proprio@test.com", roles = "PROPRIETAIRE")
     void signerProprietaire_notFound_shouldReturn404() throws Exception {
         doThrow(new KupangaBusinessException("Contrat introuvable", HttpStatus.NOT_FOUND))
                 .when(contratService).signerProprietaire(eq(99L), anyString(), anyString());
@@ -189,5 +189,19 @@ class ContratControllerWebMvcTest {
                         .content("{}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalElements").value(0));
+    }
+
+    @Test
+    @DisplayName("POST /contrats/search — pagination hors bornes (size=0, size=10000, page=-1) : 400, aucune recherche (VALID)")
+    @WithMockUser(username = "user@test.com")
+    void search_paginationHorsBornes_shouldReturn400() throws Exception {
+        for (String body : new String[] {"{\"size\": 0}", "{\"size\": 10000}", "{\"page\": -1}"}) {
+            mockMvc.perform(post("/contrats/search")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(body))
+                    .andExpect(status().isBadRequest());
+        }
+
+        verify(contratSearchService, never()).rechercher(any(), anyString());
     }
 }

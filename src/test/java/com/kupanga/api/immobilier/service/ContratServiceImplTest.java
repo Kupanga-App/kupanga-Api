@@ -92,8 +92,8 @@ class ContratServiceImplTest {
         ContratFormDTO dto = buildValidContratFormDTO();
 
         when(userService.getUserByEmail(proprietaire.getMail())).thenReturn(proprietaire);
-        when(userService.getUserByEmail(locataire.getMail())).thenReturn(locataire);
-        when(bienService.findWithAllProperties(1L)).thenReturn(bien);
+        when(bienService.verifierProprietaire(1L, proprietaire.getMail())).thenReturn(bien);
+        when(bienService.verifierLocataireDuBien(bien, locataire.getMail())).thenReturn(locataire);
         when(contratPdfService.genererEtUploaderPdf(any(Contrat.class))).thenReturn("http://minio/contrat.pdf");
         when(contratRepository.save(any(Contrat.class))).thenReturn(contrat);
 
@@ -109,14 +109,47 @@ class ContratServiceImplTest {
         ContratFormDTO dto = buildValidContratFormDTO();
 
         when(userService.getUserByEmail(proprietaire.getMail())).thenReturn(proprietaire);
-        when(userService.getUserByEmail(locataire.getMail())).thenReturn(locataire);
-        when(bienService.findWithAllProperties(1L))
+        when(bienService.verifierProprietaire(1L, proprietaire.getMail()))
                 .thenThrow(new KupangaBusinessException("Bien introuvable", HttpStatus.NOT_FOUND));
 
         KupangaBusinessException ex = assertThrows(KupangaBusinessException.class,
                 () -> contratService.creerContrat(dto, proprietaire.getMail()));
 
         assertThat(ex.getStatus()).isEqualTo(HttpStatus.NOT_FOUND);
+        verify(contratRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("creerContrat() — bien d'un autre propriétaire → 403, aucun contrat créé (P0-5)")
+    void creerContrat_bienDAutrui_throwsForbidden() {
+        ContratFormDTO dto = buildValidContratFormDTO();
+
+        when(userService.getUserByEmail("autre@test.com")).thenReturn(User.builder().id(9L).mail("autre@test.com").build());
+        when(bienService.verifierProprietaire(1L, "autre@test.com"))
+                .thenThrow(new KupangaBusinessException("Accès refusé", HttpStatus.FORBIDDEN));
+
+        KupangaBusinessException ex = assertThrows(KupangaBusinessException.class,
+                () -> contratService.creerContrat(dto, "autre@test.com"));
+
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.FORBIDDEN);
+        verify(contratPdfService, never()).genererEtUploaderPdf(any());
+        verify(contratRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("creerContrat() — e-mail locataire différent du locataire du bien → 400 (P0-5)")
+    void creerContrat_mauvaisLocataire_throwsBadRequest() {
+        ContratFormDTO dto = buildValidContratFormDTO();
+
+        when(userService.getUserByEmail(proprietaire.getMail())).thenReturn(proprietaire);
+        when(bienService.verifierProprietaire(1L, proprietaire.getMail())).thenReturn(bien);
+        when(bienService.verifierLocataireDuBien(bien, locataire.getMail()))
+                .thenThrow(new KupangaBusinessException("Mauvais locataire", HttpStatus.BAD_REQUEST));
+
+        KupangaBusinessException ex = assertThrows(KupangaBusinessException.class,
+                () -> contratService.creerContrat(dto, proprietaire.getMail()));
+
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
         verify(contratRepository, never()).save(any());
     }
 
@@ -168,14 +201,15 @@ class ContratServiceImplTest {
     }
 
     @Test
-    @DisplayName("getContratParToken() — statut != EN_ATTENTE_SIGNATURE_LOCATAIRE → IllegalStateException")
-    void getContratParToken_wrongStatut_throwsIllegalState() {
+    @DisplayName("getContratParToken() — statut != EN_ATTENTE_SIGNATURE_LOCATAIRE → 409 métier")
+    void getContratParToken_wrongStatut_throwsConflict() {
         contrat.setStatut(StatutContrat.SIGNE);
 
         when(contratRepository.findByTokenSignature("token-valide")).thenReturn(Optional.of(contrat));
 
-        assertThrows(IllegalStateException.class,
+        KupangaBusinessException ex = assertThrows(KupangaBusinessException.class,
                 () -> contratService.getContratParToken("token-valide"));
+        assertEquals(HttpStatus.CONFLICT, ex.getStatus());
     }
 
     // ══════════════════════════════════════════════════════════════
@@ -196,7 +230,7 @@ class ContratServiceImplTest {
         assertThat(contrat.getSignatureProprietaire()).isEqualTo("sig-base64");
         assertThat(contrat.getStatut()).isEqualTo(StatutContrat.EN_ATTENTE_SIGNATURE_LOCATAIRE);
         assertThat(contrat.getTokenSignature()).isNotNull();
-        assertThat(contrat.getUrlPdf()).isEqualTo("http://minio/signed.pdf");
+        assertThat(contrat.getClePdf()).isEqualTo("http://minio/signed.pdf");
         verify(emailService).envoyerInvitationSignature(any(Contrat.class), anyString());
         verify(notificationService).saveAndSend(
                 eq(locataire), eq(NotificationType.INVITATION_SIGNATURE_CONTRAT),
@@ -215,14 +249,14 @@ class ContratServiceImplTest {
     }
 
     @Test
-    @DisplayName("signerProprietaire() — email proprio incorrect → KupangaBusinessException 401")
+    @DisplayName("signerProprietaire() — email proprio incorrect → KupangaBusinessException 403")
     void signerProprietaire_wrongEmail_throwsException() {
         when(contratRepository.findById(1L)).thenReturn(Optional.of(contrat));
 
         KupangaBusinessException ex = assertThrows(KupangaBusinessException.class,
                 () -> contratService.signerProprietaire(1L, "sig", "inconnu@test.com"));
 
-        assertThat(ex.getStatus()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.FORBIDDEN);
         verify(emailService, never()).envoyerInvitationSignature(any(Contrat.class), any());
     }
 
@@ -245,7 +279,7 @@ class ContratServiceImplTest {
         assertThat(contrat.getSignatureLocataire()).isEqualTo("sig-locataire");
         assertThat(contrat.getStatut()).isEqualTo(StatutContrat.SIGNE);
         assertThat(contrat.getTokenSignature()).isNull();
-        assertThat(contrat.getUrlPdf()).isEqualTo("http://minio/final.pdf");
+        assertThat(contrat.getClePdf()).isEqualTo("http://minio/final.pdf");
         verify(emailService).envoyerConfirmationContratSigne(contrat);
         verify(notificationService, times(2)).saveAndSend(
                 any(User.class), eq(NotificationType.CONTRAT_SIGNE),

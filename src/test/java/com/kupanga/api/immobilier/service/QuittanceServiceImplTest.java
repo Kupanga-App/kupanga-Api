@@ -104,8 +104,8 @@ class QuittanceServiceImplTest {
         QuittanceFormDTO dto = buildValidFormDTO(null);
 
         when(userService.getUserByEmail(proprietaire.getMail())).thenReturn(proprietaire);
-        when(userService.getUserByEmail(locataire.getMail())).thenReturn(locataire);
-        when(bienService.findWithAllProperties(1L)).thenReturn(bien);
+        when(bienService.verifierProprietaire(eq(1L), any())).thenReturn(bien);
+        when(bienService.verifierLocataireDuBien(eq(bien), any())).thenReturn(locataire);
         when(quittanceRepository.findByBienIdAndMoisAndAnnee(1L, "janvier", 2025))
                 .thenReturn(Optional.empty());
         when(quittanceRepository.save(any(Quittance.class))).thenReturn(quittance);
@@ -125,8 +125,8 @@ class QuittanceServiceImplTest {
         dto.setChargesMensuelles(null);
 
         when(userService.getUserByEmail(proprietaire.getMail())).thenReturn(proprietaire);
-        when(userService.getUserByEmail(locataire.getMail())).thenReturn(locataire);
-        when(bienService.findWithAllProperties(1L)).thenReturn(bien);
+        when(bienService.verifierProprietaire(eq(1L), any())).thenReturn(bien);
+        when(bienService.verifierLocataireDuBien(eq(bien), any())).thenReturn(locataire);
         when(quittanceRepository.findByBienIdAndMoisAndAnnee(1L, "janvier", 2025))
                 .thenReturn(Optional.empty());
         when(contratRepository.findById(10L)).thenReturn(Optional.of(contrat));
@@ -144,8 +144,8 @@ class QuittanceServiceImplTest {
         QuittanceFormDTO dto = buildValidFormDTO(null);
 
         when(userService.getUserByEmail(proprietaire.getMail())).thenReturn(proprietaire);
-        when(userService.getUserByEmail(locataire.getMail())).thenReturn(locataire);
-        when(bienService.findWithAllProperties(1L)).thenReturn(bien);
+        when(bienService.verifierProprietaire(eq(1L), any())).thenReturn(bien);
+        when(bienService.verifierLocataireDuBien(eq(bien), any())).thenReturn(locataire);
         when(quittanceRepository.findByBienIdAndMoisAndAnnee(1L, "janvier", 2025))
                 .thenReturn(Optional.of(quittance));
 
@@ -164,8 +164,8 @@ class QuittanceServiceImplTest {
         dto.setChargesMensuelles(null);
 
         when(userService.getUserByEmail(proprietaire.getMail())).thenReturn(proprietaire);
-        when(userService.getUserByEmail(locataire.getMail())).thenReturn(locataire);
-        when(bienService.findWithAllProperties(1L)).thenReturn(bien);
+        when(bienService.verifierProprietaire(eq(1L), any())).thenReturn(bien);
+        when(bienService.verifierLocataireDuBien(eq(bien), any())).thenReturn(locataire);
         when(quittanceRepository.findByBienIdAndMoisAndAnnee(1L, "janvier", 2025))
                 .thenReturn(Optional.empty());
 
@@ -183,8 +183,8 @@ class QuittanceServiceImplTest {
         dto.setChargesMensuelles(null);
 
         when(userService.getUserByEmail(proprietaire.getMail())).thenReturn(proprietaire);
-        when(userService.getUserByEmail(locataire.getMail())).thenReturn(locataire);
-        when(bienService.findWithAllProperties(1L)).thenReturn(bien);
+        when(bienService.verifierProprietaire(eq(1L), any())).thenReturn(bien);
+        when(bienService.verifierLocataireDuBien(eq(bien), any())).thenReturn(locataire);
         when(quittanceRepository.findByBienIdAndMoisAndAnnee(1L, "janvier", 2025))
                 .thenReturn(Optional.empty());
         when(contratRepository.findById(99L)).thenReturn(Optional.empty());
@@ -212,7 +212,7 @@ class QuittanceServiceImplTest {
 
         assertThat(quittance.getStatut()).isEqualTo(StatutQuittance.PAYEE);
         assertThat(quittance.getSignatureProprietaire()).isEqualTo("sig-proprio");
-        assertThat(quittance.getUrlPdf()).isEqualTo("http://minio/signed.pdf");
+        assertThat(quittance.getClePdf()).isEqualTo("http://minio/signed.pdf");
         verify(emailService).envoyerQuittance(quittance);
         verify(notificationService).saveAndSend(
                 eq(locataire), eq(NotificationType.QUITTANCE_DISPONIBLE),
@@ -234,14 +234,14 @@ class QuittanceServiceImplTest {
     }
 
     @Test
-    @DisplayName("marquerPayee() — email proprio incorrect → KupangaBusinessException 401")
+    @DisplayName("marquerPayee() — email proprio incorrect → KupangaBusinessException 403")
     void marquerPayee_wrongEmail_throwsUnauthorized() {
         when(quittanceRepository.findWithAllRelations(1L)).thenReturn(Optional.of(quittance));
 
         KupangaBusinessException ex = assertThrows(KupangaBusinessException.class,
                 () -> quittanceService.marquerPayee(1L, "sig", "inconnu@test.com"));
 
-        assertThat(ex.getStatus()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.FORBIDDEN);
     }
 
     // ══════════════════════════════════════════════════════════════
@@ -316,14 +316,14 @@ class QuittanceServiceImplTest {
     }
 
     @Test
-    @DisplayName("getQuittanceById() — utilisateur non autorisé → KupangaBusinessException 401")
+    @DisplayName("getQuittanceById() — utilisateur non autorisé → KupangaBusinessException 403")
     void getQuittanceById_unauthorized_throwsException() {
         when(quittanceRepository.findWithAllRelations(1L)).thenReturn(Optional.of(quittance));
 
         KupangaBusinessException ex = assertThrows(KupangaBusinessException.class,
                 () -> quittanceService.getQuittanceById(1L, "tiers@test.com"));
 
-        assertThat(ex.getStatus()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.FORBIDDEN);
     }
 
     @Test
@@ -340,6 +340,42 @@ class QuittanceServiceImplTest {
     // ══════════════════════════════════════════════════════════════
     // Fixture
     // ══════════════════════════════════════════════════════════════
+
+    @Test
+    @DisplayName("creerQuittance() — contrat d'un autre bien → 400, aucune quittance (P0-5)")
+    void creerQuittance_contratAutreBien_throwsBadRequest() {
+        Bien autreBien = Bien.builder().id(2L).build();
+        Contrat contratAutreBien = Contrat.builder().id(5L).bien(autreBien)
+                .loyerMensuel(500.0).chargesMensuelles(20.0).build();
+        QuittanceFormDTO dto = buildValidFormDTO(5L);
+
+        when(userService.getUserByEmail(any())).thenReturn(proprietaire);
+        when(bienService.verifierProprietaire(eq(1L), any())).thenReturn(bien);
+        when(bienService.verifierLocataireDuBien(eq(bien), any())).thenReturn(locataire);
+        when(contratRepository.findById(5L)).thenReturn(Optional.of(contratAutreBien));
+
+        KupangaBusinessException ex = assertThrows(KupangaBusinessException.class,
+                () -> quittanceService.creerQuittance(dto, proprietaire.getMail()));
+
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
+        verify(quittanceRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("creerQuittance() — bien d'un autre propriétaire → 403 (P0-5)")
+    void creerQuittance_bienDAutrui_throwsForbidden() {
+        QuittanceFormDTO dto = buildValidFormDTO(null);
+
+        when(userService.getUserByEmail(any())).thenReturn(proprietaire);
+        when(bienService.verifierProprietaire(eq(1L), any()))
+                .thenThrow(new KupangaBusinessException("Accès refusé", HttpStatus.FORBIDDEN));
+
+        KupangaBusinessException ex = assertThrows(KupangaBusinessException.class,
+                () -> quittanceService.creerQuittance(dto, "autre@test.com"));
+
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.FORBIDDEN);
+        verify(quittanceRepository, never()).save(any());
+    }
 
     private QuittanceFormDTO buildValidFormDTO(Long contratId) {
         QuittanceFormDTO dto = new QuittanceFormDTO();

@@ -1,5 +1,7 @@
 package com.kupanga.api.user.controller;
 
+import jakarta.validation.Valid;
+import org.springframework.security.access.prepost.PreAuthorize;
 import com.kupanga.api.immobilier.dto.readDTO.BienDTO;
 import com.kupanga.api.immobilier.service.BienService;
 import com.kupanga.api.user.research.LocataireSearchService;
@@ -133,6 +135,33 @@ public class UserController {
     }
 
     // =========================================
+    // DÉTAIL PRIVÉ D'UN BIEN
+    // =========================================
+    @Operation(
+            summary = "Détail privé d'un bien (propriétaire ou locataire)",
+            description = """
+                    Vue complète d'un bien : parties avec e-mail, contrats, quittances, documents.
+                    Réservée au propriétaire du bien et à son locataire. Un locataire ne voit que ses propres
+                    contrats et quittances. La vue publique (`GET /biens/{id}`) ne contient aucune donnée personnelle.
+                    """
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Bien retourné",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = BienDTO.class))),
+            @ApiResponse(responseCode = "401", description = "Utilisateur non authentifié"),
+            @ApiResponse(responseCode = "403", description = "Ni propriétaire ni locataire du bien"),
+            @ApiResponse(responseCode = "404", description = "Bien introuvable")
+    })
+    @GetMapping("/biens/{bienId}")
+    ResponseEntity<BienDTO> getBienPrive(
+            @Parameter(description = "Identifiant du bien", required = true)
+            @PathVariable Long bienId
+    ) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return ResponseEntity.ok(bienService.getBienPrive(bienId, auth.getName()));
+    }
+
+    // =========================================
     // RECHERCHER UN LOCATAIRE
     // =========================================
     @Operation(
@@ -234,11 +263,12 @@ public class UserController {
                     }
             )
     )
+    @PreAuthorize("hasAuthority('ROLE_PROPRIETAIRE')")
     @PostMapping("/{bienId}/recherche-locataire")
     public ResponseEntity<LocatairePageDTO> rechercherLocataires(
             @Parameter(description = "Identifiant du bien pour lequel on cherche un locataire", required = true)
             @PathVariable Long bienId,
-            @RequestBody(required = false) LocataireSearchDTO dto
+            @Valid @RequestBody(required = false) LocataireSearchDTO dto
     ) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 

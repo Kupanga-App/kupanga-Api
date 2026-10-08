@@ -20,11 +20,27 @@ public interface MinioService {
     String uploadImage(MultipartFile file, String bucketName);
 
     /**
-     * Uploader un pdf
+     * Uploader un pdf dans un bucket <b>privé</b> (contrats, EDL, quittances — P0-7).
      * @param pdf le pdf
      * @param originalName nom du pdf
      * @param bucketName nom du bucket
-     * @return url du pdf
+     * @return la clé de l'objet dans le bucket (jamais une URL publique)
      */
     String uploadPdf(byte[] pdf, String originalName , String bucketName);
+
+    /**
+     * Génère une URL présignée de lecture, valable {@code DUREE_URL_PRESIGNEE_MINUTES} minutes.
+     * @param bucketName nom du bucket
+     * @param cle clé de l'objet
+     * @return l'URL présignée, ou {@code null} si la clé est vide
+     */
+    String urlPresignee(String bucketName, String cle);
+
+    /**
+     * Télécharge un objet (ex. PDF à joindre à un e-mail).
+     * @param bucketName nom du bucket
+     * @param cle clé de l'objet
+     * @return le contenu du fichier
+     */
+    byte[] telecharger(String bucketName, String cle);
 }

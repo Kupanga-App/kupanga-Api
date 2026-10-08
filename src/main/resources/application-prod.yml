@@ -30,6 +30,8 @@ minio:
 
 app:
   url: ${FRONTEND_URL:https://kupanga.lespacelibellule.com/}
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:https://kupanga.lespacelibellule.com}
   reset-link: ${FRONTEND_URL:https://kupanga.lespacelibellule.com/}auth/reset-password?token=
   url-login: ${FRONTEND_URL:https://kupanga.lespacelibellule.com/}auth/login
   url-mino: ${MINIO_PUBLIC_URL:https://minio-backend.duckdns.org}
@@ -41,17 +43,31 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,prometheus
+        include: health,info
 
   endpoint:
     health:
-      show-details: always
+      # /actuator/health est public (P0-1) : ne jamais exposer l'état de la BDD, Redis, MinIO…
+      show-details: never
 
 sentry:
   dsn: ${SENTRY_DSN}
-  # Add data like request headers and IP for users,
-  # see https://docs.sentry.io/platforms/java/guides/spring-boot/data-management/data-collected/ for more info
-  send-default-pii: true
+  # false : Sentry n'envoie ni cookies (refresh token), ni en-têtes sensibles (Authorization: Bearer <JWT>),
+  # ni l'IP ou l'utilisateur. Ne jamais repasser à true (données personnelles + jetons de session).
+  # cf. https://docs.sentry.io/platforms/java/guides/spring-boot/data-management/data-collected/
+  send-default-pii: false
   # Set traces-sample-rate to 1.0 to capture 100% of transactions for tracing.
   # We recommend adjusting this value in production.
   traces-sample-rate: 1.0
+
+# Swagger désactivé en production (décision P0-1)
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
+# IP réelle du client derrière le reverse proxy (X-Forwarded-For lu par Tomcat RemoteIpValve,
+# seulement depuis des proxys internes) : utilisée par la limite de tentatives (A3)
+server:
+  forward-headers-strategy: native

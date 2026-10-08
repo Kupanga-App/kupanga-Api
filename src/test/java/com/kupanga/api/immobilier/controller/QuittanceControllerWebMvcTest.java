@@ -53,7 +53,7 @@ class QuittanceControllerWebMvcTest {
 
     @Test
     @DisplayName("POST /quittances — succès : quittance créée (204)")
-    @WithMockUser(username = "proprio@test.com")
+    @WithMockUser(username = "proprio@test.com", roles = "PROPRIETAIRE")
     void creerQuittance_success_shouldReturn204() throws Exception {
         doNothing().when(quittanceService).creerQuittance(any(), anyString());
 
@@ -85,13 +85,39 @@ class QuittanceControllerWebMvcTest {
                 .andExpect(status().isBadRequest());
     }
 
+    @Test
+    @DisplayName("POST /quittances — sans token : 401 (P0-1)")
+    void creerQuittance_withoutToken_shouldReturn401() throws Exception {
+        mockMvc.perform(post("/quittances")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isUnauthorized());
+
+        verify(quittanceService, never()).creerQuittance(any(), any());
+    }
+
+    @Test
+    @DisplayName("GET /quittances/mes-quittances — propriétaire : 403 (P0-1)")
+    @WithMockUser(username = "proprio@test.com", roles = "PROPRIETAIRE")
+    void getMesQuittances_asProprietaire_shouldReturn403() throws Exception {
+        mockMvc.perform(get("/quittances/mes-quittances"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("GET /quittances/{id} — sans token : 401 (P0-1)")
+    void getQuittanceById_withoutToken_shouldReturn401() throws Exception {
+        mockMvc.perform(get("/quittances/1"))
+                .andExpect(status().isUnauthorized());
+    }
+
     // ─────────────────────────────────────────────────────────────
     // POST /quittances/{id}/marquer-payee
     // ─────────────────────────────────────────────────────────────
 
     @Test
     @DisplayName("POST /quittances/{id}/marquer-payee — succès : 204")
-    @WithMockUser(username = "proprio@test.com")
+    @WithMockUser(username = "proprio@test.com", roles = "PROPRIETAIRE")
     void marquerPayee_success_shouldReturn204() throws Exception {
         doNothing().when(quittanceService).marquerPayee(eq(1L), anyString(), anyString());
 
@@ -106,7 +132,7 @@ class QuittanceControllerWebMvcTest {
 
     @Test
     @DisplayName("POST /quittances/{id}/marquer-payee — quittance introuvable : 404")
-    @WithMockUser(username = "proprio@test.com")
+    @WithMockUser(username = "proprio@test.com", roles = "PROPRIETAIRE")
     void marquerPayee_notFound_shouldReturn404() throws Exception {
         doThrow(new KupangaBusinessException("Quittance introuvable", HttpStatus.NOT_FOUND))
                 .when(quittanceService).marquerPayee(eq(99L), anyString(), anyString());
@@ -126,7 +152,7 @@ class QuittanceControllerWebMvcTest {
 
     @Test
     @DisplayName("GET /quittances/bien/{bienId} — succès : liste quittances (200)")
-    @WithMockUser(username = "proprio@test.com")
+    @WithMockUser(username = "proprio@test.com", roles = "PROPRIETAIRE")
     void getQuittancesParBien_success_shouldReturn200() throws Exception {
         QuittanceDTO dto = new QuittanceDTO();
         dto.setId(1L);
@@ -144,7 +170,7 @@ class QuittanceControllerWebMvcTest {
 
     @Test
     @DisplayName("GET /quittances/bien/{bienId} — bien introuvable : 404")
-    @WithMockUser(username = "proprio@test.com")
+    @WithMockUser(username = "proprio@test.com", roles = "PROPRIETAIRE")
     void getQuittancesParBien_notFound_shouldReturn404() throws Exception {
         when(quittanceService.getQuittancesParBien(eq(99L), anyString()))
                 .thenThrow(new KupangaBusinessException("Bien introuvable", HttpStatus.NOT_FOUND));
@@ -159,7 +185,7 @@ class QuittanceControllerWebMvcTest {
 
     @Test
     @DisplayName("GET /quittances/mes-quittances — succès : liste (200)")
-    @WithMockUser(username = "locataire@test.com")
+    @WithMockUser(username = "locataire@test.com", roles = "LOCATAIRE")
     void getMesQuittances_success_shouldReturn200() throws Exception {
         when(quittanceService.getQuittancesParLocataire(anyString()))
                 .thenReturn(Collections.emptyList());
@@ -216,5 +242,19 @@ class QuittanceControllerWebMvcTest {
                         .content("{}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalElements").value(0));
+    }
+
+    @Test
+    @DisplayName("POST /quittances/search — pagination hors bornes (size=0, size=10000, page=-1) : 400, aucune recherche (VALID)")
+    @WithMockUser(username = "user@test.com")
+    void search_paginationHorsBornes_shouldReturn400() throws Exception {
+        for (String body : new String[] {"{\"size\": 0}", "{\"size\": 10000}", "{\"page\": -1}"}) {
+            mockMvc.perform(post("/quittances/search")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(body))
+                    .andExpect(status().isBadRequest());
+        }
+
+        verify(quittanceSearchService, never()).rechercher(any(), anyString());
     }
 }

@@ -2,25 +2,55 @@ package com.kupanga.api.minio.service.impl;
 
 import com.kupanga.api.minio.service.MinioService;
 import io.minio.*;
+import io.minio.http.Method;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
+import static com.kupanga.api.minio.constant.MinioConstant.BUCKETS_PRIVES;
+import static com.kupanga.api.minio.constant.MinioConstant.DUREE_URL_PRESIGNEE_MINUTES;
+
+@Slf4j
 @Service
 public class MinioServiceImpl implements MinioService {
 
     private final MinioClient minioClient;
 
+    private final MinioClient minioPresignClient;
 
     private final String url_minio;
 
-    public MinioServiceImpl(MinioClient minioClient , @Value("${app.url-mino}")String url_minio ) {
+    public MinioServiceImpl(MinioClient minioClient ,
+                            @Qualifier("minioPresignClient") MinioClient minioPresignClient,
+                            @Value("${app.url-mino}")String url_minio ) {
 
         this.minioClient = minioClient;
+        this.minioPresignClient = minioPresignClient;
         this.url_minio = url_minio;
+    }
+
+    /**
+     * Au démarrage, retire toute politique publique des buckets de documents (contrats, EDL, quittances),
+     * y compris sur les buckets créés publics avant P0-7. Ne bloque pas le démarrage si MinIO est indisponible.
+     */
+    @EventListener(ApplicationReadyEvent.class)
+    public void rendreBucketsPrives() {
+        for (String bucket : BUCKETS_PRIVES) {
+            try {
+                createBucketIfNotExists(bucket, false);
+            } catch (Exception e) {
+                log.warn("Impossible de rendre le bucket {} privé au démarrage : {}", bucket, e.getMessage());
+            }
+        }
     }
 
     @Override
@@ -31,7 +61,10 @@ public class MinioServiceImpl implements MinioService {
                 minioClient.makeBucket(MakeBucketArgs.builder().bucket(bucketName).build());
             }
 
-            if (publicRead) {
+            if (!publicRead) {
+                // Bucket privé : supprime une éventuelle politique publique existante
+                minioClient.deleteBucketPolicy(DeleteBucketPolicyArgs.builder().bucket(bucketName).build());
+            } else {
                 String policyJson = "{\n" +
                         "  \"Version\": \"2012-10-17\",\n" +
                         "  \"Statement\": [\n" +
@@ -86,7 +119,7 @@ public class MinioServiceImpl implements MinioService {
         try {
 
             // Crée le bucket si nécessaire
-            createBucketIfNotExists(bucketName, true);
+            createBucketIfNotExists(bucketName, false); // privé : données personnelles (P0-7)
 
             String fileName = UUID.randomUUID() + "_" + (originalName != null ?
                     originalName.replaceAll("\\s+", "") : "file");
@@ -105,10 +138,38 @@ public class MinioServiceImpl implements MinioService {
                             .build()
             );
 
-            return url_minio + "/" + bucketName + "/" + fileName;
+            // On stocke la clé, jamais une URL : l'accès passe par une URL présignée
+            return fileName;
 
         } catch (Exception e) {
             throw new RuntimeException("Erreur upload PDF MinIO", e);
+        }
+    }
+
+    @Override
+    public String urlPresignee(String bucketName, String cle) {
+        if (cle == null || cle.isBlank()) return null;
+        try {
+            return minioPresignClient.getPresignedObjectUrl(
+                    GetPresignedObjectUrlArgs.builder()
+                            .method(Method.GET)
+                            .bucket(bucketName)
+                            .object(cle)
+                            .expiry(DUREE_URL_PRESIGNEE_MINUTES, TimeUnit.MINUTES)
+                            .build()
+            );
+        } catch (Exception e) {
+            throw new RuntimeException("Erreur génération URL présignée MinIO", e);
+        }
+    }
+
+    @Override
+    public byte[] telecharger(String bucketName, String cle) {
+        try (InputStream in = minioClient.getObject(
+                GetObjectArgs.builder().bucket(bucketName).object(cle).build())) {
+            return in.readAllBytes();
+        } catch (Exception e) {
+            throw new RuntimeException("Erreur téléchargement MinIO", e);
         }
     }
 }

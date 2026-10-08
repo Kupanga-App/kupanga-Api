@@ -3,9 +3,13 @@ package com.kupanga.api.authentification.service.impl;
 import com.kupanga.api.authentification.entity.PasswordResetToken;
 import com.kupanga.api.authentification.repository.PasswordResetTokenRepository;
 import com.kupanga.api.authentification.service.PasswordResetTokenService;
+import com.kupanga.api.exception.business.KupangaBusinessException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+
+import static com.kupanga.api.authentification.constant.AuthConstant.TOKEN_REINITIALISATION_INVALIDE;
 
 @Service
 @RequiredArgsConstructor
@@ -17,7 +21,7 @@ public class PasswordResetTokenServiceImpl implements PasswordResetTokenService 
     public PasswordResetToken getByToken(String token){
 
         return passwordResetTokenRepository.findByToken(token)
-                .orElseThrow(()-> new RuntimeException("Token invalide"));
+                .orElseThrow(()-> new KupangaBusinessException(TOKEN_REINITIALISATION_INVALIDE, HttpStatus.BAD_REQUEST));
     }
 
     @Override

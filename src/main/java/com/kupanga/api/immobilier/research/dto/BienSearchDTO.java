@@ -3,6 +3,9 @@ package com.kupanga.api.immobilier.research.dto;
 import com.kupanga.api.immobilier.entity.*;
 import com.kupanga.api.immobilier.research.sort.BienSortEnum;
 import com.kupanga.api.pagination.Pagination;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Size;
 import org.springframework.data.domain.Sort;
 
 import java.time.LocalDate;
@@ -11,13 +14,13 @@ import java.util.List;
 public record BienSearchDTO(
 
         // ─── Localisation ─────────────────────────────────────────────────────
-        List<String>        villes,
-        List<String>        pays,
-        List<String>        codesPostaux,
+        @Size(max = 20) List<@Size(max = 100) String> villes,
+        @Size(max = 20) List<@Size(max = 100) String> pays,
+        @Size(max = 20) List<@Size(max = 100) String> codesPostaux,
 
         // ─── Type de bien ─────────────────────────────────────────────────────
-        List<TypeBien>      typesBien,
-        String              titre,
+        @Size(max = 20) List<TypeBien> typesBien,
+        @Size(max = 100) String titre,
 
         // ─── Conditions de location ───────────────────────────────────────────
         Double              loyerMin,
@@ -35,17 +38,20 @@ public record BienSearchDTO(
         Integer             etageMax,
 
         // ─── Diagnostic énergétique ───────────────────────────────────────────
-        List<ClasseEnergie> classesEnergie,
-        List<ClasseGes>     classesGes,
+        @Size(max = 20) List<ClasseEnergie> classesEnergie,
+        @Size(max = 20) List<ClasseGes> classesGes,
 
         // ─── Chauffage ────────────────────────────────────────────────────────
-        List<ModeChauffage> modesChauffage,
+        @Size(max = 20) List<ModeChauffage> modesChauffage,
 
         // ─── POI ──────────────────────────────────────────────────────────────
-        List<PoiType>       poisRequis,
+        @Size(max = 20) List<PoiType> poisRequis,
 
         // ─── Pagination + tri ─────────────────────────────────────────────────
+        @Min(value = 0, message = "La page doit être positive ou nulle")
         Integer             page,
+        @Min(value = 1, message = "La taille de page doit être comprise entre 1 et 50")
+        @Max(value = 50, message = "La taille de page doit être comprise entre 1 et 50")
         Integer             size,
         String              sortBy,
         Sort.Direction      sortDirection

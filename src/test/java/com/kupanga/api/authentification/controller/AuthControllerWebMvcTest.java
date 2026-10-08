@@ -1,13 +1,18 @@
 package com.kupanga.api.authentification.controller;
 
+import com.kupanga.api.authentification.ratelimit.LimiteTentatives;
+import com.kupanga.api.authentification.ratelimit.LimiteurTentatives;
+import com.kupanga.api.exception.business.TropDeTentativesException;
+import java.util.List;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kupanga.api.exception.business.KupangaBusinessException;
-import com.kupanga.api.exception.business.TokenExpiredException;
 import com.kupanga.api.exception.business.UserNotFoundException;
 import com.kupanga.api.authentification.dto.AuthResponseDTO;
 import com.kupanga.api.authentification.dto.CompleteGoogleProfileDTO;
+import com.kupanga.api.authentification.dto.ForgotPasswordDTO;
 import com.kupanga.api.authentification.dto.GoogleLoginDTO;
 import com.kupanga.api.authentification.dto.LoginDTO;
+import com.kupanga.api.authentification.dto.ResetPasswordDTO;
 import com.kupanga.api.authentification.service.AuthService;
 import com.kupanga.api.authentification.service.impl.UserDetailsServiceImpl;
 import com.kupanga.api.authentification.utils.JwtUtils;
@@ -31,7 +36,11 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static com.kupanga.api.authentification.constant.AuthConstant.MAIL_REINITIALISATION_ENVOYE;
+import static com.kupanga.api.authentification.constant.AuthConstant.TOKEN_REINITIALISATION_INVALIDE;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -68,6 +77,9 @@ class AuthControllerWebMvcTest {
     @MockBean
     private UserDetailsServiceImpl userDetailsService;
 
+    @MockBean
+    private LimiteurTentatives limiteurTentatives;
+
     // Filet de sécurité indispensable si une config globale traîne
     @MockBean
     private EntityManagerFactory entityManagerFactory;
@@ -80,8 +92,11 @@ class AuthControllerWebMvcTest {
     void createUser_withImage_shouldReturn200() throws Exception {
 
         UserFormDTO userFormDTO = UserFormDTO.builder()
+                .firstName("Jean")
+                .lastName("Dupont")
                 .mail("test@mail.com")
-                .password("password123")
+                .password("Password123")
+                .role(Role.ROLE_LOCATAIRE)
                 .build();
 
         MockMultipartFile userFormPart = new MockMultipartFile(
@@ -114,12 +129,66 @@ class AuthControllerWebMvcTest {
     }
 
     @Test
+    @DisplayName("POST /auth/register — prénom avec balises HTML ou mot de passe > 72 caractères : 400 (VALID)")
+    void createUser_nomHtmlOuMotDePasseTropLong_shouldReturn400() throws Exception {
+
+        UserFormDTO nomHtml = UserFormDTO.builder()
+                .firstName("<b>Jean</b>")
+                .lastName("Dupont")
+                .mail("jean@test.com")
+                .password("Password1")
+                .role(Role.ROLE_LOCATAIRE)
+                .build();
+        UserFormDTO motDePasseLong = UserFormDTO.builder()
+                .firstName("Jean-Pierre")
+                .lastName("N'Goma")
+                .mail("jean@test.com")
+                .password("Aa1" + "a".repeat(70))
+                .role(Role.ROLE_LOCATAIRE)
+                .build();
+
+        for (UserFormDTO dto : List.of(nomHtml, motDePasseLong)) {
+            MockMultipartFile userFormPart = new MockMultipartFile(
+                    "userFormDTO", "", "application/json", objectMapper.writeValueAsBytes(dto));
+
+            mockMvc.perform(multipart("/auth/register").file(userFormPart))
+                    .andExpect(status().isBadRequest());
+        }
+
+        verify(authService, never()).createAndCompleteUserProfil(any(), any(), any());
+    }
+
+    @Test
+    @DisplayName("POST /auth/register — mot de passe faible / e-mail invalide : 400, aucun compte créé (A1)")
+    void createUser_invalidForm_shouldReturn400() throws Exception {
+
+        UserFormDTO userFormDTO = UserFormDTO.builder()
+                .firstName("Jean")
+                .lastName("Dupont")
+                .mail("pas-un-email")
+                .password("faible")
+                .role(Role.ROLE_LOCATAIRE)
+                .build();
+
+        MockMultipartFile userFormPart = new MockMultipartFile(
+                "userFormDTO", "", "application/json", objectMapper.writeValueAsBytes(userFormDTO));
+
+        mockMvc.perform(multipart("/auth/register").file(userFormPart))
+                .andExpect(status().isBadRequest());
+
+        verify(authService, never()).createAndCompleteUserProfil(any(), any(), any());
+    }
+
+    @Test
     @DisplayName("Doit créer un utilisateur sans image de profil")
     void createUser_withoutImage_shouldReturn200() throws Exception {
 
         UserFormDTO userFormDTO = UserFormDTO.builder()
+                .firstName("Jean")
+                .lastName("Dupont")
                 .mail("test@mail.com")
-                .password("password123")
+                .password("Password123")
+                .role(Role.ROLE_LOCATAIRE)
                 .build();
 
         MockMultipartFile userFormPart = new MockMultipartFile(
@@ -177,6 +246,50 @@ class AuthControllerWebMvcTest {
 
 
     // =============================
+    // LIMITE DE TENTATIVES (A3)
+    // =============================
+    @Test
+    @DisplayName("POST /auth/login — limite atteinte : 429 + Retry-After, aucune vérification du mot de passe (A3)")
+    void login_limiteAtteinte_shouldReturn429() throws Exception {
+        doThrow(new TropDeTentativesException(600))
+                .when(limiteurTentatives).verifierEmail(LimiteTentatives.LOGIN_PAR_EMAIL, "alice@test.com");
+
+        mockMvc.perform(post("/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\": \"alice@test.com\", \"password\": \"Abcd1234\"}"))
+                .andExpect(status().isTooManyRequests())
+                .andExpect(header().string("Retry-After", "600"));
+
+        verify(authService, never()).login(any(), any());
+    }
+
+    @Test
+    @DisplayName("Routes limitées : login (IP, e-mail+IP, e-mail), forgot-password (IP, e-mail), register (IP), google (IP) (A3)")
+    void routesAuth_appellentLeLimiteur() throws Exception {
+        mockMvc.perform(post("/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"email\": \"alice@test.com\", \"password\": \"Abcd1234\"}"));
+        mockMvc.perform(post("/auth/forgot-password")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"email\": \"alice@test.com\"}"));
+        mockMvc.perform(post("/auth/google")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"idToken\": \"token-google\"}"));
+        mockMvc.perform(multipart("/auth/register").file(new MockMultipartFile(
+                "userFormDTO", "", "application/json", objectMapper.writeValueAsBytes(UserFormDTO.builder()
+                        .firstName("Alice").lastName("Martin").mail("alice@test.com")
+                        .password("Password1").role(Role.ROLE_LOCATAIRE).build()))));
+
+        verify(limiteurTentatives).verifierIp(eq(LimiteTentatives.LOGIN_PAR_IP), any());
+        verify(limiteurTentatives).verifierEmailEtIp(eq(LimiteTentatives.LOGIN_PAR_EMAIL_ET_IP), eq("alice@test.com"), any());
+        verify(limiteurTentatives).verifierEmail(LimiteTentatives.LOGIN_PAR_EMAIL, "alice@test.com");
+        verify(limiteurTentatives).verifierIp(eq(LimiteTentatives.FORGOT_PASSWORD_PAR_IP), any());
+        verify(limiteurTentatives).verifierEmail(LimiteTentatives.FORGOT_PASSWORD_PAR_EMAIL, "alice@test.com");
+        verify(limiteurTentatives).verifierIp(eq(LimiteTentatives.GOOGLE_PAR_IP), any());
+        verify(limiteurTentatives).verifierIp(eq(LimiteTentatives.REGISTER_PAR_IP), any());
+    }
+
+    // =============================
     // TEST LOGIN
     // =============================
     @Test
@@ -207,6 +320,28 @@ class AuthControllerWebMvcTest {
     // =============================
     // TEST REFRESH TOKEN
     // =============================
+    @Test
+    @DisplayName("POST /auth/refresh sans cookie : 401 et non 500 (A8)")
+    void refresh_sansCookie_shouldReturn401() throws Exception {
+        mockMvc.perform(post("/auth/refresh"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.message").value("Session expirée, veuillez vous reconnecter"));
+
+        verify(authService, never()).refresh(anyString());
+    }
+
+    @Test
+    @DisplayName("POST /auth/refresh depuis un site inconnu (cookie envoyé) : 403, aucun token émis (A11)")
+    void refresh_origineInconnue_shouldReturn403() throws Exception {
+        mockMvc.perform(post("/auth/refresh")
+                        .header("Origin", "https://site-pirate.example")
+                        .cookie(new Cookie("refreshToken", "refresh-token")))
+                .andExpect(status().isForbidden())
+                .andExpect(header().doesNotExist("Access-Control-Allow-Origin"));
+
+        verify(authService, never()).refresh(anyString());
+    }
+
     @Test
     @DisplayName("POST /auth/refresh : succès refresh token")
     void testRefreshTokenSuccess() throws Exception {
@@ -250,40 +385,48 @@ class AuthControllerWebMvcTest {
     }
 
     @Test
-    @DisplayName("POST /forgot-password — succès : email de réinitialisation envoyé")
-    void forgotPassword_shouldReturnOk() throws Exception {
+    @DisplayName("POST /forgot-password — e-mail dans le body JSON, message générique (P0-2)")
+    void forgotPassword_shouldReturnGenericMessage() throws Exception {
 
         String email = "test@kupanga.com";
 
         when(authService.forgotPassword(email))
-                .thenReturn("Email de réinitialisation envoyé");
+                .thenReturn(MAIL_REINITIALISATION_ENVOYE);
 
         mockMvc.perform(post("/auth/forgot-password")
-                        .param("email", email))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new ForgotPasswordDTO(email))))
                 .andExpect(status().isOk())
-                .andExpect(content().string("Email de réinitialisation envoyé"));
+                .andExpect(content().string(MAIL_REINITIALISATION_ENVOYE));
 
         verify(authService).forgotPassword(email);
     }
 
     @Test
-    @DisplayName("POST /forgot-password — erreur : email inexistant")
-    void forgotPassword_shouldReturnNotFound_whenEmailDoesNotExist() throws Exception {
-
-        String email = "invalide@kupanga.com";
-
-        when(authService.forgotPassword(email))
-                .thenThrow(new UserNotFoundException(email));
+    @DisplayName("POST /forgot-password — e-mail en query string refusé (P0-2)")
+    void forgotPassword_shouldRejectQueryParam() throws Exception {
 
         mockMvc.perform(post("/auth/forgot-password")
-                        .param("email", email))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.message")
-                        .value("Aucun utilisateur trouvé pour l'email : " + email));
+                        .param("email", "test@kupanga.com"))
+                .andExpect(status().is4xxClientError());
+
+        verify(authService, never()).forgotPassword(any());
     }
 
     @Test
-    @DisplayName("POST /reset-password — succès : mot de passe mis à jour")
+    @DisplayName("POST /forgot-password — e-mail mal formé : 400")
+    void forgotPassword_shouldReturnBadRequest_whenEmailInvalid() throws Exception {
+
+        mockMvc.perform(post("/auth/forgot-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new ForgotPasswordDTO("pas-un-email"))))
+                .andExpect(status().isBadRequest());
+
+        verify(authService, never()).forgotPassword(any());
+    }
+
+    @Test
+    @DisplayName("POST /reset-password — succès : token et mot de passe dans le body JSON")
     void resetPassword_shouldReturnOk() throws Exception {
 
         String token = "valid-token";
@@ -293,12 +436,36 @@ class AuthControllerWebMvcTest {
                 .thenReturn("Mot de passe mis à jour");
 
         mockMvc.perform(post("/auth/reset-password")
-                        .param("token", token)
-                        .param("newPassword", newPassword))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new ResetPasswordDTO(token, newPassword))))
                 .andExpect(status().isOk())
                 .andExpect(content().string("Mot de passe mis à jour"));
 
         verify(authService).resetPassword(token, newPassword);
+    }
+
+    @Test
+    @DisplayName("POST /reset-password — token et mot de passe en query string refusés (P0-2)")
+    void resetPassword_shouldRejectQueryParams() throws Exception {
+
+        mockMvc.perform(post("/auth/reset-password")
+                        .param("token", "valid-token")
+                        .param("newPassword", "NewPassword@123"))
+                .andExpect(status().is4xxClientError());
+
+        verify(authService, never()).resetPassword(any(), any());
+    }
+
+    @Test
+    @DisplayName("POST /reset-password — mot de passe trop faible : 400 (P0-2)")
+    void resetPassword_shouldReturnBadRequest_whenPasswordWeak() throws Exception {
+
+        mockMvc.perform(post("/auth/reset-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new ResetPasswordDTO("valid-token", "faible"))))
+                .andExpect(status().isBadRequest());
+
+        verify(authService, never()).resetPassword(any(), any());
     }
 
     @Test
@@ -309,11 +476,11 @@ class AuthControllerWebMvcTest {
         String newPassword = "NewPassword@123";
 
         when(authService.resetPassword(token, newPassword))
-                .thenThrow(new TokenExpiredException());
+                .thenThrow(new KupangaBusinessException(TOKEN_REINITIALISATION_INVALIDE, HttpStatus.BAD_REQUEST));
 
         mockMvc.perform(post("/auth/reset-password")
-                        .param("token", token)
-                        .param("newPassword", newPassword))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new ResetPasswordDTO(token, newPassword))))
                 .andExpect(status().isBadRequest());
     }
 
@@ -335,7 +502,8 @@ class AuthControllerWebMvcTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.mail").value("test@mail.com"))
                 .andExpect(jsonPath("$.firstName").value("John"))
-                .andExpect(jsonPath("$.lastName").value("Doe"));
+                .andExpect(jsonPath("$.lastName").value("Doe"))
+                .andExpect(jsonPath("$.password").doesNotExist());
     }
 
     @Test

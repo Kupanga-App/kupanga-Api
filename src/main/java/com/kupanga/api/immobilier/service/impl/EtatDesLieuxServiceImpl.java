@@ -46,8 +46,9 @@ public class EtatDesLieuxServiceImpl implements EtatDesLieuxService {
     public void creerEtatDesLieux(EtatDesLieuxFormDTO dto, String emailProprietaire) {
 
         User proprietaire = userService.getUserByEmail(emailProprietaire);
-        User locataire    = userService.getUserByEmail(dto.getEmailLocataire());
-        Bien bien         = bienService.findWithAllProperties(dto.getBienId());
+        // Contrôle IDOR : bien du propriétaire connecté + locataire assigné au bien
+        Bien bien         = bienService.verifierProprietaire(dto.getBienId(), emailProprietaire);
+        User locataire    = bienService.verifierLocataireDuBien(bien, dto.getEmailLocataire());
 
         EtatDesLieux edl = EtatDesLieux.builder()
                 .bien(bien)
@@ -79,8 +80,8 @@ public class EtatDesLieuxServiceImpl implements EtatDesLieuxService {
         }
 
         EtatDesLieux saved = edlRepository.save(edl);
-        String urlPdf = edlPdfService.genererEtUploaderPdf(saved);
-        saved.setUrlPdf(urlPdf);
+        String clePdf = edlPdfService.genererEtUploaderPdf(saved);
+        saved.setClePdf(clePdf);
         edlRepository.save(saved);
 
         log.info("EDL {} créé pour le bien {}", saved.getId(), bien.getId());
@@ -103,8 +104,8 @@ public class EtatDesLieuxServiceImpl implements EtatDesLieuxService {
         edl.setTokenSignature(token);
         edl.setTokenExpiration(LocalDateTime.now().plusHours(72));
 
-        String urlPdf = edlPdfService.genererEtUploaderPdf(edl);
-        edl.setUrlPdf(urlPdf);
+        String clePdf = edlPdfService.genererEtUploaderPdf(edl);
+        edl.setClePdf(clePdf);
         edlRepository.save(edl);
 
         emailService.envoyerInvitationSignature(edl, token);
@@ -154,8 +155,8 @@ public class EtatDesLieuxServiceImpl implements EtatDesLieuxService {
         edl.setDateSignatureLocataire(LocalDateTime.now());
         edl.setStatut(StatutEdl.SIGNE);
 
-        String urlPdf = edlPdfService.genererEtUploaderPdf(edl);
-        edl.setUrlPdf(urlPdf);
+        String clePdf = edlPdfService.genererEtUploaderPdf(edl);
+        edl.setClePdf(clePdf);
 
         edl.setTokenSignature(null);
         edl.setTokenExpiration(null);
@@ -226,7 +227,7 @@ public class EtatDesLieuxServiceImpl implements EtatDesLieuxService {
                         "État des lieux introuvable", HttpStatus.NOT_FOUND));
         if (!edl.getProprietaire().getMail().equals(email)) {
             throw new KupangaBusinessException(
-                    "Accès non autorisé", HttpStatus.UNAUTHORIZED);
+                    "Accès non autorisé", HttpStatus.FORBIDDEN);
         }
         return edl;
     }

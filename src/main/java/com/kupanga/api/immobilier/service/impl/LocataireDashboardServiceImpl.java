@@ -57,6 +57,8 @@ public class LocataireDashboardServiceImpl implements LocataireDashboardService 
 
         Contrat contratActif = contratRepository.findByBienId(bienId).stream()
                 .filter(c -> c.getStatut() == StatutContrat.SIGNE)
+                // Seulement le bail du locataire connecté (pas celui d'un locataire précédent)
+                .filter(c -> c.getLocataire() != null && c.getLocataire().getId().equals(locataire.getId()))
                 .findFirst()
                 .orElse(null);
 

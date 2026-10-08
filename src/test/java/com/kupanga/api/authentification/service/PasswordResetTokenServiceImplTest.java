@@ -60,7 +60,7 @@ class PasswordResetTokenServiceImplTest {
                 () -> passwordResetTokenService.getByToken(tokenValue)
         );
 
-        assertEquals("Token invalide", exception.getMessage());
+        assertEquals("Lien de réinitialisation invalide ou expiré", exception.getMessage());
 
         verify(passwordResetTokenRepository).findByToken(tokenValue);
     }

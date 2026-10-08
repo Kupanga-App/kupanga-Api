@@ -6,7 +6,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = DocumentPdfUrlMapper.class)
 public interface QuittanceMapper {
 
     @Mapping(target = "moisLabel", source = ".", qualifiedByName = "buildMoisLabel")
@@ -16,6 +16,7 @@ public interface QuittanceMapper {
     @Mapping(target = "emailLocataire", source = "locataire.mail")
     @Mapping(target = "adresseBien", source = "bien", qualifiedByName = "buildAdresseBien")
     @Mapping(target = "typeBien", source = "bien", qualifiedByName = "buildTypeBien")
+    @Mapping(target = "urlPdf", source = "clePdf", qualifiedByName = "urlQuittance")
     QuittanceDTO toDTO(Quittance q);
 
     // -------------------------

@@ -11,6 +11,7 @@ import com.kupanga.api.authentification.google.GoogleUserInfo;
 import com.kupanga.api.authentification.service.impl.AuthServiceImpl;
 import com.kupanga.api.authentification.utils.JwtUtils;
 import com.kupanga.api.email.service.EmailService;
+import com.kupanga.api.exception.business.InvalidPasswordException;
 import com.kupanga.api.exception.business.KupangaBusinessException;
 import com.kupanga.api.minio.service.MinioService;
 import com.kupanga.api.user.dto.formDTO.UserFormDTO;
@@ -27,12 +28,15 @@ import org.junit.jupiter.api.Test;
 import org.mockito.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
 
+import static com.kupanga.api.authentification.constant.AuthConstant.MAIL_REINITIALISATION_ENVOYE;
 import static com.kupanga.api.authentification.constant.AuthConstant.MOT_DE_PASSE_A_JOUR;
+import static com.kupanga.api.authentification.constant.AuthConstant.TOKEN_REINITIALISATION_INVALIDE;
 import static com.kupanga.api.minio.constant.MinioConstant.PHOTO_PROFIL_BUCKET;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
@@ -95,7 +99,7 @@ class AuthServiceImplTest {
     void testLoginSuccess() {
         LoginDTO loginDTO = new LoginDTO("user@example.com", "password");
 
-        when(userService.getUserByEmail(loginDTO.email())).thenReturn(utilisateur);
+        when(userService.findOptionalByMail(loginDTO.email())).thenReturn(Optional.of(utilisateur));
         doNothing().when(userService).isCorrectPassword(loginDTO.password(), utilisateur.getPassword());
         when(jwtUtils.generateAccessToken(utilisateur.getMail(), String.valueOf(utilisateur.getRole())))
                 .thenReturn("accessToken");
@@ -114,11 +118,31 @@ class AuthServiceImplTest {
     @DisplayName("login() : mot de passe incorrect lance exception")
     void testLoginIncorrectPassword() {
         LoginDTO loginDTO = new LoginDTO("user@example.com", "wrongpassword");
-        when(userService.getUserByEmail(loginDTO.email())).thenReturn(utilisateur);
-        doThrow(new RuntimeException("Mot de passe incorrect"))
+        when(userService.findOptionalByMail(loginDTO.email())).thenReturn(Optional.of(utilisateur));
+        doThrow(new InvalidPasswordException())
                 .when(userService).isCorrectPassword(loginDTO.password(), utilisateur.getPassword());
 
-        assertThrows(RuntimeException.class, () -> loginService.login(loginDTO, response));
+        InvalidPasswordException ex = assertThrows(InvalidPasswordException.class,
+                () -> loginService.login(loginDTO, response));
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        verify(response, never()).addHeader(any(), any());
+    }
+
+    @Test
+    @DisplayName("login() : e-mail inconnu → même 401 générique qu'un mauvais mot de passe (A2)")
+    void testLoginUnknownEmailSameErrorAsWrongPassword() {
+        LoginDTO loginDTO = new LoginDTO("inconnu@example.com", "Password1");
+        when(userService.findOptionalByMail(loginDTO.email())).thenReturn(Optional.empty());
+
+        InvalidPasswordException ex = assertThrows(InvalidPasswordException.class,
+                () -> loginService.login(loginDTO, response));
+
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        assertThat(ex.getMessage()).isEqualTo(new InvalidPasswordException().getMessage())
+                .doesNotContain("inconnu@example.com");
+        verify(userService, never()).getUserByEmail(any());
+        // BCrypt est calculé quand même : pas d'énumération par le temps de réponse
+        verify(passwordEncoder).matches(eq("Password1"), any());
         verify(response, never()).addHeader(any(), any());
     }
 
@@ -127,6 +151,7 @@ class AuthServiceImplTest {
     @Test
     @DisplayName("refresh() : token valide génère nouvel access token")
     void testRefreshSuccess() {
+        utilisateur.setRole(Role.ROLE_PROPRIETAIRE);
         RefreshToken refreshToken = RefreshToken.builder()
                 .token("validToken")
                 .user(utilisateur)
@@ -135,12 +160,57 @@ class AuthServiceImplTest {
                 .build();
 
         when(refreshTokenService.getByToken("validToken")).thenReturn(refreshToken);
-        when(jwtUtils.generateAccessToken(utilisateur.getMail(), utilisateur.getPassword()))
+        when(jwtUtils.generateAccessToken(utilisateur.getMail(), String.valueOf(utilisateur.getRole())))
                 .thenReturn("newAccessToken");
 
         AuthResponseDTO result = loginService.refresh("validToken");
 
         assertThat(result.accessToken()).isEqualTo("newAccessToken");
+    }
+
+    @Test
+    @DisplayName("refresh() : le claim role contient le rôle, jamais le hash du mot de passe (P0-3)")
+    void testRefreshPutsRoleNotPasswordInToken() {
+        utilisateur.setRole(Role.ROLE_PROPRIETAIRE);
+        utilisateur.setPassword("$2a$10$hashBcryptDuMotDePasse");
+        RefreshToken refreshToken = RefreshToken.builder()
+                .token("validToken")
+                .user(utilisateur)
+                .expiration(Instant.now().plusSeconds(3600))
+                .revoked(false)
+                .build();
+
+        when(refreshTokenService.getByToken("validToken")).thenReturn(refreshToken);
+        when(jwtUtils.generateAccessToken(any(), any())).thenReturn("newAccessToken");
+
+        loginService.refresh("validToken");
+
+        ArgumentCaptor<String> roleCaptor = ArgumentCaptor.forClass(String.class);
+        verify(jwtUtils).generateAccessToken(eq(utilisateur.getMail()), roleCaptor.capture());
+        assertThat(roleCaptor.getValue())
+                .isEqualTo(String.valueOf(Role.ROLE_PROPRIETAIRE))
+                .doesNotContain("$2a$");
+    }
+
+    @Test
+    @DisplayName("refresh() : compte Google sans rôle → claim role vide et sélection du rôle requise")
+    void testRefreshUserWithoutRoleRequiresRoleSelection() {
+        utilisateur.setRole(null);
+        RefreshToken refreshToken = RefreshToken.builder()
+                .token("validToken")
+                .user(utilisateur)
+                .expiration(Instant.now().plusSeconds(3600))
+                .revoked(false)
+                .build();
+
+        when(refreshTokenService.getByToken("validToken")).thenReturn(refreshToken);
+        when(jwtUtils.generateAccessToken(utilisateur.getMail(), "")).thenReturn("pendingToken");
+
+        AuthResponseDTO result = loginService.refresh("validToken");
+
+        assertThat(result.accessToken()).isEqualTo("pendingToken");
+        assertThat(result.requiresRoleSelection()).isTrue();
+        verify(jwtUtils, never()).generateAccessToken(any(), eq("null"));
     }
 
     @Test
@@ -197,27 +267,29 @@ class AuthServiceImplTest {
     // ======================
 
     @Test
-    @DisplayName("forgotPassword — retourne un token valide et envoie un mail")
-    void forgotPassword_shouldReturnToken_andSendMail() {
-        when(userService.getUserByEmail("user@kupanga.com")).thenReturn(utilisateur);
+    @DisplayName("forgotPassword — envoie le token par mail et ne le renvoie jamais (P0-2)")
+    void forgotPassword_shouldSendTokenByMail_andNeverReturnIt() {
+        when(userService.findOptionalByMail("user@example.com")).thenReturn(Optional.of(utilisateur));
 
-        String token = loginService.forgotPassword("user@kupanga.com");
+        String result = loginService.forgotPassword("user@example.com");
 
-        assertNotNull(token);
-        verify(passwordResetTokenService, times(1)).save(any(PasswordResetToken.class));
-        verify(emailService, times(1)).sendPasswordResetMail(eq("user@kupanga.com"), contains(token));
+        ArgumentCaptor<PasswordResetToken> tokenCaptor = ArgumentCaptor.forClass(PasswordResetToken.class);
+        verify(passwordResetTokenService, times(1)).save(tokenCaptor.capture());
+        String token = tokenCaptor.getValue().getToken();
+
+        assertEquals(MAIL_REINITIALISATION_ENVOYE, result);
+        assertThat(result).doesNotContain(token);
+        verify(emailService, times(1)).sendPasswordResetMail("user@example.com", token);
     }
 
     @Test
-    @DisplayName("forgotPassword — lance une exception si l'email n'existe pas")
-    void forgotPassword_shouldThrowException_whenEmailDoesNotExist() {
-        when(userService.getUserByEmail("invalide@kupanga.com"))
-                .thenThrow(new RuntimeException("Utilisateur introuvable"));
+    @DisplayName("forgotPassword — e-mail inconnu : même message générique, aucun mail (P0-2 / A2)")
+    void forgotPassword_shouldReturnSameMessage_whenEmailDoesNotExist() {
+        when(userService.findOptionalByMail("invalide@kupanga.com")).thenReturn(Optional.empty());
 
-        RuntimeException exception = assertThrows(RuntimeException.class,
-                () -> loginService.forgotPassword("invalide@kupanga.com"));
+        String result = loginService.forgotPassword("invalide@kupanga.com");
 
-        assertEquals("Utilisateur introuvable", exception.getMessage());
+        assertEquals(MAIL_REINITIALISATION_ENVOYE, result);
         verify(passwordResetTokenService, never()).save(any());
         verify(emailService, never()).sendPasswordResetMail(any(), any());
     }
@@ -244,7 +316,23 @@ class AuthServiceImplTest {
         assertEquals("encodedPassword", utilisateur.getPassword());
         verify(userService, times(1)).save(utilisateur);
         verify(passwordResetTokenService, times(1)).delete(token);
+        verify(refreshTokenService, times(1)).revokeAllForUser(utilisateur);
         verify(emailService, times(1)).sendPasswordUpdatedConfirmation(utilisateur.getMail());
+    }
+
+    @Test
+    @DisplayName("resetPassword — token inconnu : 400 avec le même message qu'un token expiré")
+    void resetPassword_shouldThrowSameError_whenTokenUnknown() {
+        when(passwordResetTokenService.getByToken("inconnu"))
+                .thenThrow(new KupangaBusinessException(TOKEN_REINITIALISATION_INVALIDE, HttpStatus.BAD_REQUEST));
+
+        KupangaBusinessException exception = assertThrows(KupangaBusinessException.class,
+                () -> loginService.resetPassword("inconnu", "NewPassword1"));
+
+        assertEquals(TOKEN_REINITIALISATION_INVALIDE, exception.getMessage());
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
+        verify(userService, never()).save(any());
+        verify(refreshTokenService, never()).revokeAllForUser(any());
     }
 
     @Test
@@ -258,11 +346,13 @@ class AuthServiceImplTest {
 
         when(passwordResetTokenService.getByToken("123")).thenReturn(token);
 
-        RuntimeException exception = assertThrows(RuntimeException.class,
+        KupangaBusinessException exception = assertThrows(KupangaBusinessException.class,
                 () -> loginService.resetPassword("123", "newPassword"));
 
-        assertEquals("Token expiré", exception.getMessage());
+        assertEquals(TOKEN_REINITIALISATION_INVALIDE, exception.getMessage());
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
         verify(userService, never()).save(any());
+        verify(refreshTokenService, never()).revokeAllForUser(any());
         verify(passwordResetTokenService, never()).delete(any());
         verify(emailService, never()).sendPasswordUpdatedConfirmation(any());
     }
@@ -292,8 +382,8 @@ class AuthServiceImplTest {
         doNothing().when(userService).save(userCaptor.capture());
 
         // login() va chercher l'utilisateur -> on renvoie celui sauvegardé
-        when(userService.getUserByEmail(any()))
-                .thenAnswer(inv -> userCaptor.getValue());
+        when(userService.findOptionalByMail(any()))
+                .thenAnswer(inv -> Optional.of(userCaptor.getValue()));
 
         doNothing().when(userService)
                 .isCorrectPassword(any(), any());

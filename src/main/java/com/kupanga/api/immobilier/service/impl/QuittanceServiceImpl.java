@@ -48,8 +48,9 @@ public class QuittanceServiceImpl implements QuittanceService {
     public void creerQuittance(QuittanceFormDTO dto, String emailProprietaire) {
 
         User proprietaire = userService.getUserByEmail(emailProprietaire);
-        User locataire    = userService.getUserByEmail(dto.getEmailLocataire());
-        Bien bien         = bienService.findWithAllProperties(dto.getBienId());
+        // Contrôle IDOR : bien du propriétaire connecté + locataire assigné au bien
+        Bien bien         = bienService.verifierProprietaire(dto.getBienId(), emailProprietaire);
+        User locataire    = bienService.verifierLocataireDuBien(bien, dto.getEmailLocataire());
 
         // Vérifie qu'une quittance n'existe pas déjà pour ce bien / mois / année
         quittanceRepository.findByBienIdAndMoisAndAnnee(dto.getBienId(), dto.getMois(), dto.getAnnee())
@@ -67,6 +68,11 @@ public class QuittanceServiceImpl implements QuittanceService {
             contrat = contratRepository.findById(dto.getContratId())
                     .orElseThrow(() -> new KupangaBusinessException(
                             "Contrat introuvable : " + dto.getContratId(), HttpStatus.NOT_FOUND));
+            // Le contrat doit concerner le même bien que la quittance
+            if (contrat.getBien() == null || !contrat.getBien().getId().equals(bien.getId())) {
+                throw new KupangaBusinessException(
+                        "Ce contrat ne correspond pas à ce bien", HttpStatus.BAD_REQUEST);
+            }
             loyer   = contrat.getLoyerMensuel();
             charges = contrat.getChargesMensuelles();
         }
@@ -97,8 +103,8 @@ public class QuittanceServiceImpl implements QuittanceService {
         Quittance saved = quittanceRepository.save(quittance);
 
         // Génère le PDF
-        String urlPdf = quittancePdfService.genererEtUploaderPdf(saved);
-        saved.setUrlPdf(urlPdf);
+        String clePdf = quittancePdfService.genererEtUploaderPdf(saved);
+        saved.setClePdf(clePdf);
         quittanceRepository.save(saved);
 
         log.info("Quittance {} créée pour le bien {} — {}/{}",
@@ -128,8 +134,8 @@ public class QuittanceServiceImpl implements QuittanceService {
         quittance.setDateSignatureProprietaire(LocalDateTime.now());
 
         // ─── Régénère le PDF avec signature + date de paiement ───────────────────
-        String urlPdf = quittancePdfService.genererEtUploaderPdf(quittance);
-        quittance.setUrlPdf(urlPdf);
+        String clePdf = quittancePdfService.genererEtUploaderPdf(quittance);
+        quittance.setClePdf(clePdf);
         quittanceRepository.save(quittance);
 
         // ─── Envoie la quittance signée par email au locataire ────────────────────
@@ -158,6 +164,7 @@ public class QuittanceServiceImpl implements QuittanceService {
     @Override
     public List<QuittanceDTO> getQuittancesParBien(Long bienId, String emailProprietaire) {
         User proprietaire = userService.getUserByEmail(emailProprietaire);
+        bienService.verifierProprietaire(bienId, emailProprietaire);
         return quittanceRepository.findByBienId(bienId)
                 .stream()
                 .filter(q -> q.getProprietaire().getId().equals(proprietaire.getId()))
@@ -193,7 +200,7 @@ public class QuittanceServiceImpl implements QuittanceService {
         boolean estLocataire    = quittance.getLocataire().getMail().equals(emailUtilisateur);
 
         if (!estProprietaire && !estLocataire) {
-            throw new KupangaBusinessException("Accès non autorisé", HttpStatus.UNAUTHORIZED);
+            throw new KupangaBusinessException("Accès non autorisé", HttpStatus.FORBIDDEN);
         }
 
         return quittanceMapper.toDTO(quittance);
@@ -208,7 +215,7 @@ public class QuittanceServiceImpl implements QuittanceService {
                 .orElseThrow(() -> new KupangaBusinessException(
                         "Quittance introuvable : " + quittanceId, HttpStatus.NOT_FOUND));
         if (!quittance.getProprietaire().getMail().equals(email)) {
-            throw new KupangaBusinessException("Accès non autorisé", HttpStatus.UNAUTHORIZED);
+            throw new KupangaBusinessException("Accès non autorisé", HttpStatus.FORBIDDEN);
         }
         return quittance;
     }

@@ -44,9 +44,10 @@ public class ContratServiceImpl implements ContratService {
 
         User proprietaire = userService.getUserByEmail(emailProprietaire);
 
-        User locataire = userService.getUserByEmail(dto.getEmailLocataire());
-
-        Bien bien = bienService.findWithAllProperties(dto.getBienId());
+        // Contrôle IDOR : le bien doit appartenir au propriétaire connecté,
+        // et le locataire doit être celui assigné au bien
+        Bien bien = bienService.verifierProprietaire(dto.getBienId(), emailProprietaire);
+        User locataire = bienService.verifierLocataireDuBien(bien, dto.getEmailLocataire());
 
         Contrat contrat = Contrat.builder()
                 .bien(bien)
@@ -63,8 +64,8 @@ public class ContratServiceImpl implements ContratService {
                 .build();
 
         // Génère le PDF initial (sans signatures)
-        String urlPdf = contratPdfService.genererEtUploaderPdf(contrat);
-        contrat.setUrlPdf(urlPdf);
+        String clePdf = contratPdfService.genererEtUploaderPdf(contrat);
+        contrat.setClePdf(clePdf);
         contratRepository.save(contrat);
 
     }
@@ -83,9 +84,7 @@ public class ContratServiceImpl implements ContratService {
 
         // Vérifie que le contrat est bien en attente de signature locataire
         if (contrat.getStatut() != StatutContrat.EN_ATTENTE_SIGNATURE_LOCATAIRE) {
-            throw new IllegalStateException(
-                    "Ce contrat ne peut plus être signé — statut actuel : " + contrat.getStatut()
-            );
+            throw new KupangaBusinessException("Ce contrat ne peut plus être signé", HttpStatus.CONFLICT);
         }
 
         return contratMapper.toDTO(contrat);
@@ -107,8 +106,8 @@ public class ContratServiceImpl implements ContratService {
         contrat.setTokenExpiration(LocalDateTime.now().plusHours(72));
 
         // Regénère le PDF avec la signature du proprio
-        String urlPdf = contratPdfService.genererEtUploaderPdf(contrat);
-        contrat.setUrlPdf(urlPdf);
+        String clePdf = contratPdfService.genererEtUploaderPdf(contrat);
+        contrat.setClePdf(clePdf);
         contratRepository.save(contrat);
 
         // Envoie l'email au locataire
@@ -146,8 +145,8 @@ public class ContratServiceImpl implements ContratService {
         contrat.setStatut(StatutContrat.SIGNE);
 
         // Génère le PDF final avec les deux signatures
-        String urlPdf = contratPdfService.genererEtUploaderPdf(contrat);
-        contrat.setUrlPdf(urlPdf);
+        String clePdf = contratPdfService.genererEtUploaderPdf(contrat);
+        contrat.setClePdf(clePdf);
 
         // Invalide le token
         contrat.setTokenSignature(null);
@@ -190,7 +189,7 @@ public class ContratServiceImpl implements ContratService {
         Contrat contrat = contratRepository.findById(contratId)
                 .orElseThrow(() -> new KupangaBusinessException("Aucun contrat trouvé " , HttpStatus.NOT_FOUND));
         if (!contrat.getProprietaire().getMail().equals(email)) {
-            throw new KupangaBusinessException(" Email du propriétaire incorrect " , HttpStatus.UNAUTHORIZED);
+            throw new KupangaBusinessException("Accès refusé : ce contrat ne vous appartient pas" , HttpStatus.FORBIDDEN);
         }
         return contrat;
     }

@@ -1,6 +1,6 @@
 package com.kupanga.api.immobilier.research;
 
-import com.kupanga.api.immobilier.dto.readDTO.BienDTO;
+import com.kupanga.api.immobilier.dto.readDTO.BienPublicDTO;
 import com.kupanga.api.immobilier.entity.Bien;
 import com.kupanga.api.immobilier.entity.TypeBien;
 import com.kupanga.api.immobilier.mapper.BienMapper;
@@ -36,7 +36,7 @@ class BienSearchServiceTest {
     private BienSearchService bienSearchService;
 
     private Bien bien;
-    private BienDTO bienDTO;
+    private BienPublicDTO bienDTO;
 
     @BeforeEach
     void setUp() {
@@ -49,7 +49,7 @@ class BienSearchServiceTest {
                 .ville("Nantes")
                 .build();
 
-        bienDTO = BienDTO.builder()
+        bienDTO = BienPublicDTO.builder()
                 .id(1L)
                 .titre("Appartement T3")
                 .typeBien(TypeBien.APPARTEMENT)
@@ -61,7 +61,7 @@ class BienSearchServiceTest {
     // ══════════════════════════════════════════════════════════════
 
     @Test
-    @DisplayName("rechercher() — retourne page de BienDTO depuis le repository")
+    @DisplayName("rechercher() — retourne page de BienPublicDTO depuis le repository")
     void rechercher_returnsBienPage() {
         BienSearchDTO dto = new BienSearchDTO(null, null, null, null, null,
                 null, null, null, null, null,

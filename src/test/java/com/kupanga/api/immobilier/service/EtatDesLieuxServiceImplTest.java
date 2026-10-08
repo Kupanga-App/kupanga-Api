@@ -89,8 +89,8 @@ class EtatDesLieuxServiceImplTest {
         EtatDesLieuxFormDTO dto = buildValidEdlFormDTO();
 
         when(userService.getUserByEmail(proprietaire.getMail())).thenReturn(proprietaire);
-        when(userService.getUserByEmail(locataire.getMail())).thenReturn(locataire);
-        when(bienService.findWithAllProperties(1L)).thenReturn(bien);
+        when(bienService.verifierProprietaire(eq(1L), any())).thenReturn(bien);
+        when(bienService.verifierLocataireDuBien(eq(bien), any())).thenReturn(locataire);
         when(edlRepository.save(any(EtatDesLieux.class))).thenReturn(edl);
         when(edlPdfService.genererEtUploaderPdf(edl)).thenReturn("http://minio/edl.pdf");
 
@@ -106,8 +106,7 @@ class EtatDesLieuxServiceImplTest {
         EtatDesLieuxFormDTO dto = buildValidEdlFormDTO();
 
         when(userService.getUserByEmail(proprietaire.getMail())).thenReturn(proprietaire);
-        when(userService.getUserByEmail(locataire.getMail())).thenReturn(locataire);
-        when(bienService.findWithAllProperties(1L))
+        when(bienService.verifierProprietaire(eq(1L), any()))
                 .thenThrow(new KupangaBusinessException("Bien introuvable", HttpStatus.NOT_FOUND));
 
         KupangaBusinessException ex = assertThrows(KupangaBusinessException.class,
@@ -115,6 +114,41 @@ class EtatDesLieuxServiceImplTest {
 
         assertThat(ex.getStatus()).isEqualTo(HttpStatus.NOT_FOUND);
         verify(edlRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("creerEtatDesLieux() — bien d'un autre propriétaire → 403, aucun EDL (P0-5)")
+    void creerEtatDesLieux_bienDAutrui_throwsForbidden() {
+        EtatDesLieuxFormDTO dto = buildValidEdlFormDTO();
+
+        when(userService.getUserByEmail("autre@test.com")).thenReturn(User.builder().id(9L).mail("autre@test.com").build());
+        when(bienService.verifierProprietaire(eq(1L), eq("autre@test.com")))
+                .thenThrow(new KupangaBusinessException("Accès refusé", HttpStatus.FORBIDDEN));
+
+        KupangaBusinessException ex = assertThrows(KupangaBusinessException.class,
+                () -> edlService.creerEtatDesLieux(dto, "autre@test.com"));
+
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.FORBIDDEN);
+        verify(edlRepository, never()).save(any());
+        verify(edlPdfService, never()).genererEtUploaderPdf(any());
+    }
+
+    @Test
+    @DisplayName("creerEtatDesLieux() — e-mail locataire différent du locataire du bien → 400 (P0-5)")
+    void creerEtatDesLieux_mauvaisLocataire_throwsBadRequest() {
+        EtatDesLieuxFormDTO dto = buildValidEdlFormDTO();
+
+        when(userService.getUserByEmail(proprietaire.getMail())).thenReturn(proprietaire);
+        when(bienService.verifierProprietaire(eq(1L), any())).thenReturn(bien);
+        when(bienService.verifierLocataireDuBien(eq(bien), any()))
+                .thenThrow(new KupangaBusinessException("Mauvais locataire", HttpStatus.BAD_REQUEST));
+
+        KupangaBusinessException ex = assertThrows(KupangaBusinessException.class,
+                () -> edlService.creerEtatDesLieux(dto, proprietaire.getMail()));
+
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
+        verify(edlRepository, never()).save(any());
+        verify(edlPdfService, never()).genererEtUploaderPdf(any());
     }
 
     // ══════════════════════════════════════════════════════════════
@@ -135,7 +169,7 @@ class EtatDesLieuxServiceImplTest {
         assertThat(edl.getSignatureProprietaire()).isEqualTo("sig-proprio");
         assertThat(edl.getStatut()).isEqualTo(StatutEdl.EN_ATTENTE_SIGNATURE_LOCATAIRE);
         assertThat(edl.getTokenSignature()).isNotNull();
-        assertThat(edl.getUrlPdf()).isEqualTo("http://minio/edl-signed.pdf");
+        assertThat(edl.getClePdf()).isEqualTo("http://minio/edl-signed.pdf");
         verify(emailService).envoyerInvitationSignature(any(EtatDesLieux.class), anyString());
         verify(notificationService).saveAndSend(
                 eq(locataire), eq(NotificationType.INVITATION_SIGNATURE_EDL),
@@ -154,14 +188,14 @@ class EtatDesLieuxServiceImplTest {
     }
 
     @Test
-    @DisplayName("signerProprietaire() — email incorrect → KupangaBusinessException 401")
+    @DisplayName("signerProprietaire() — email incorrect → KupangaBusinessException 403")
     void signerProprietaire_wrongEmail_throwsException() {
         when(edlRepository.findWithAllRelations(1L)).thenReturn(Optional.of(edl));
 
         KupangaBusinessException ex = assertThrows(KupangaBusinessException.class,
                 () -> edlService.signerProprietaire(1L, "sig", "inconnu@test.com"));
 
-        assertThat(ex.getStatus()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.FORBIDDEN);
         verify(emailService, never()).envoyerInvitationSignature(any(EtatDesLieux.class), any());
     }
 
@@ -185,7 +219,7 @@ class EtatDesLieuxServiceImplTest {
         assertThat(edl.getStatut()).isEqualTo(StatutEdl.SIGNE);
         assertThat(edl.getTokenSignature()).isNull();
         assertThat(edl.getTokenExpiration()).isNull();
-        assertThat(edl.getUrlPdf()).isEqualTo("http://minio/edl-final.pdf");
+        assertThat(edl.getClePdf()).isEqualTo("http://minio/edl-final.pdf");
         verify(emailService).envoyerConfirmationEdlSigne(edl);
         verify(notificationService, times(2)).saveAndSend(
                 any(User.class), eq(NotificationType.EDL_SIGNE),

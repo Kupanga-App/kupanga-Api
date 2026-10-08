@@ -49,7 +49,7 @@ public class LocataireSearchService {
 
         if( !bienService.existsByIdAndProprietaireId(bienId , user.getId())){
             throw new KupangaBusinessException("Ce bien ne vous appartient pas." ,
-                    HttpStatus.UNAUTHORIZED);
+                    HttpStatus.FORBIDDEN);
         }
 
         Pagination pagination = dto.toPagination();

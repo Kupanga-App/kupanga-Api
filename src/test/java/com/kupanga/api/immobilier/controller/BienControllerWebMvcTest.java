@@ -9,6 +9,8 @@ import com.kupanga.api.exception.business.KupangaBusinessException;
 import com.kupanga.api.immobilier.dto.formDTO.BienFormDTO;
 import com.kupanga.api.immobilier.dto.formDTO.BienUpdateDTO;
 import com.kupanga.api.immobilier.dto.readDTO.BienDTO;
+import com.kupanga.api.immobilier.dto.readDTO.BienPublicDTO;
+import com.kupanga.api.immobilier.dto.readDTO.ProprietairePublicDTO;
 import com.kupanga.api.immobilier.entity.TypeBien;
 import com.kupanga.api.immobilier.research.BienSearchService;
 import com.kupanga.api.immobilier.research.dto.BienPageDTO;
@@ -66,22 +68,7 @@ class BienControllerWebMvcTest {
     void createBien_success_shouldReturn204() throws Exception {
         doNothing().when(bienService).createBien(any(), any(), any());
 
-        BienFormDTO dto = BienFormDTO.builder()
-                .titre("Appartement T3")
-                .typeBien(TypeBien.APPARTEMENT)
-                .adresse("12 rue des Tests")
-                .ville("Nantes")
-                .codePostal("44000")
-                .pays("France")
-                .surfaceHabitable(65.0)
-                .nombrePieces(3)
-                .loyerMensuel(850.0)
-                .chargesMensuelles(50.0)
-                .depotGarantie(1700.0)
-                .meuble(false)
-                .colocation(false)
-                .disponibleDe(java.time.LocalDate.of(2030, 1, 1))
-                .build();
+        BienFormDTO dto = bienFormValide();
 
         MockMultipartFile bienPart = new MockMultipartFile(
                 "bienFormDTO", "", "application/json",
@@ -96,16 +83,118 @@ class BienControllerWebMvcTest {
 
     @Test
     @DisplayName("POST /biens — sans image : 204 quand required=false")
-    @WithMockUser(username = "proprietaire@test.com")
+    @WithMockUser(username = "proprietaire@test.com", roles = "PROPRIETAIRE")
     void createBien_withoutFiles_shouldReturn204() throws Exception {
         doNothing().when(bienService).createBien(any(), any(), any());
 
         MockMultipartFile bienPart = new MockMultipartFile(
                 "bienFormDTO", "", "application/json",
-                objectMapper.writeValueAsBytes(new BienFormDTO()));
+                objectMapper.writeValueAsBytes(bienFormValide()));
 
         mockMvc.perform(multipart("/biens").file(bienPart))
                 .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @DisplayName("POST /biens — formulaire invalide : 400, aucun bien créé (B4)")
+    @WithMockUser(username = "proprietaire@test.com", roles = "PROPRIETAIRE")
+    void createBien_invalidForm_shouldReturn400() throws Exception {
+        MockMultipartFile bienPart = new MockMultipartFile(
+                "bienFormDTO", "", "application/json",
+                objectMapper.writeValueAsBytes(new BienFormDTO()));
+
+        mockMvc.perform(multipart("/biens").file(bienPart))
+                .andExpect(status().isBadRequest());
+
+        verify(bienService, never()).createBien(any(), any(), any());
+    }
+
+    @Test
+    @DisplayName("POST /biens — adresse contenant « < » refusée : 400, aucun bien créé (C3)")
+    @WithMockUser(username = "proprietaire@test.com", roles = "PROPRIETAIRE")
+    void createBien_adresseAvecChevron_shouldReturn400() throws Exception {
+        BienFormDTO dto = bienFormValide();
+        dto.setAdresse("12 rue <script>alert(1)</script>");
+
+        MockMultipartFile bienPart = new MockMultipartFile(
+                "bienFormDTO", "", "application/json", objectMapper.writeValueAsBytes(dto));
+
+        mockMvc.perform(multipart("/biens").file(bienPart))
+                .andExpect(status().isBadRequest());
+
+        verify(bienService, never()).createBien(any(), any(), any());
+    }
+
+    @Test
+    @DisplayName("POST /biens — adresse congolaise « N° 12, Av. Kasa-Vubu, Q/Matonge » acceptée (C3)")
+    @WithMockUser(username = "proprietaire@test.com", roles = "PROPRIETAIRE")
+    void createBien_adresseCongolaise_shouldReturn204() throws Exception {
+        BienFormDTO dto = bienFormValide();
+        dto.setAdresse("N° 12, Av. Kasa-Vubu, Q/Matonge, C/Kalamu #3 & 4");
+
+        MockMultipartFile bienPart = new MockMultipartFile(
+                "bienFormDTO", "", "application/json", objectMapper.writeValueAsBytes(dto));
+
+        mockMvc.perform(multipart("/biens").file(bienPart))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @DisplayName("POST /biens — sans token : 401 (P0-1)")
+    void createBien_withoutToken_shouldReturn401() throws Exception {
+        MockMultipartFile bienPart = new MockMultipartFile(
+                "bienFormDTO", "", "application/json",
+                objectMapper.writeValueAsBytes(bienFormValide()));
+
+        mockMvc.perform(multipart("/biens").file(bienPart))
+                .andExpect(status().isUnauthorized());
+
+        verify(bienService, never()).createBien(any(), any(), any());
+    }
+
+    @Test
+    @DisplayName("POST /biens — locataire : 403 (P0-1)")
+    @WithMockUser(username = "locataire@test.com", roles = "LOCATAIRE")
+    void createBien_asLocataire_shouldReturn403() throws Exception {
+        MockMultipartFile bienPart = new MockMultipartFile(
+                "bienFormDTO", "", "application/json",
+                objectMapper.writeValueAsBytes(bienFormValide()));
+
+        mockMvc.perform(multipart("/biens").file(bienPart))
+                .andExpect(status().isForbidden())
+                // EXC : corps ApiErrorResponse, pas une 500
+                .andExpect(jsonPath("$.status").value(403))
+                .andExpect(jsonPath("$.message").value("Accès refusé"));
+
+        verify(bienService, never()).createBien(any(), any(), any());
+    }
+
+    @Test
+    @DisplayName("POST /biens/{id}/assigne-locataire — sans token : 401 (P0-1)")
+    void assignLocataire_withoutToken_shouldReturn401() throws Exception {
+        mockMvc.perform(post("/biens/1/assigne-locataire/2"))
+                .andExpect(status().isUnauthorized());
+
+        verify(bienService, never()).affectLocataire(any(), any(), any());
+    }
+
+    @Test
+    @DisplayName("GET /biens/{id} — public : accessible sans token (P0-1)")
+    void getBienInfos_withoutToken_shouldReturn200() throws Exception {
+        when(bienService.getBienInfos(1L)).thenReturn(BienPublicDTO.builder().id(1L).build());
+
+        mockMvc.perform(get("/biens/1"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("POST /biens/search — public : accessible sans token (P0-1)")
+    void rechercher_withoutToken_shouldNotReturn401() throws Exception {
+        mockMvc.perform(post("/biens/search")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(result -> org.assertj.core.api.Assertions
+                        .assertThat(result.getResponse().getStatus()).isNotIn(401, 403));
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -116,11 +205,12 @@ class BienControllerWebMvcTest {
     @DisplayName("GET /biens/{id} — succès : retourne le bien (200)")
     @WithMockUser(username = "user@test.com")
     void getBienInfos_success_shouldReturn200() throws Exception {
-        BienDTO dto = BienDTO.builder()
+        BienPublicDTO dto = BienPublicDTO.builder()
                 .id(1L)
                 .titre("Appartement T3")
                 .typeBien(TypeBien.APPARTEMENT)
                 .ville("Nantes")
+                .proprietaire(new ProprietairePublicDTO("Jean", "D.", null))
                 .build();
 
         when(bienService.getBienInfos(1L)).thenReturn(dto);
@@ -128,7 +218,45 @@ class BienControllerWebMvcTest {
         mockMvc.perform(get("/biens/1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))
-                .andExpect(jsonPath("$.titre").value("Appartement T3"));
+                .andExpect(jsonPath("$.titre").value("Appartement T3"))
+                // P0-6 : aucune donnée personnelle dans la vue publique
+                .andExpect(jsonPath("$.proprietaire.initialeNom").value("D."))
+                .andExpect(jsonPath("$.proprietaire.mail").doesNotExist())
+                .andExpect(jsonPath("$.locataire").doesNotExist())
+                .andExpect(jsonPath("$.contrats").doesNotExist())
+                .andExpect(jsonPath("$.quittances").doesNotExist());
+    }
+
+    @Test
+    @DisplayName("GET /biens/abc — identifiant non numérique : 400 et non 500 (EXC)")
+    void getBienInfos_idNonNumerique_shouldReturn400() throws Exception {
+        mockMvc.perform(get("/biens/abc"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400));
+    }
+
+    @Test
+    @DisplayName("GET /biens/{id} — erreur technique : 500 générique, aucun détail interne ni stacktrace (EXC)")
+    void getBienInfos_erreurTechnique_shouldReturn500Generique() throws Exception {
+        when(bienService.getBienInfos(1L))
+                .thenThrow(new RuntimeException("org.postgresql.util.PSQLException: relation \"bien\" does not exist"));
+
+        mockMvc.perform(get("/biens/1"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.message").value("Une erreur interne est survenue"))
+                .andExpect(content().string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("PSQLException"))))
+                .andExpect(jsonPath("$.trace").doesNotExist());
+    }
+
+    @Test
+    @DisplayName("GET /biens/{id} — exception métier : statut et message métier conservés (priorité de GlobalExceptionHandler)")
+    void getBienInfos_exceptionMetier_resteMetier() throws Exception {
+        when(bienService.getBienInfos(1L))
+                .thenThrow(new KupangaBusinessException("Bien introuvable", HttpStatus.NOT_FOUND));
+
+        mockMvc.perform(get("/biens/1"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("Bien introuvable"));
     }
 
     @Test
@@ -160,13 +288,37 @@ class BienControllerWebMvcTest {
                 .andExpect(jsonPath("$.totalElements").value(0));
     }
 
+    @Test
+    @DisplayName("POST /biens/search — pagination hors bornes (size=0, size=10000, page=-1) : 400, aucune recherche (VALID)")
+    void rechercher_paginationHorsBornes_shouldReturn400() throws Exception {
+        for (String body : List.of("{\"size\": 0}", "{\"size\": 10000}", "{\"page\": -1}")) {
+            mockMvc.perform(post("/biens/search")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(body))
+                    .andExpect(status().isBadRequest());
+        }
+
+        verify(bienSearchService, never()).rechercher(any());
+    }
+
+    @Test
+    @DisplayName("POST /biens/search — filtre texte trop long : 400 (VALID)")
+    void rechercher_titreTropLong_shouldReturn400() throws Exception {
+        mockMvc.perform(post("/biens/search")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"titre\": \"" + "a".repeat(101) + "\"}"))
+                .andExpect(status().isBadRequest());
+
+        verify(bienSearchService, never()).rechercher(any());
+    }
+
     // ─────────────────────────────────────────────────────────────
     // PATCH /biens/{id}
     // ─────────────────────────────────────────────────────────────
 
     @Test
     @DisplayName("PATCH /biens/{id} — succès : retourne bien mis à jour (200)")
-    @WithMockUser(username = "proprietaire@test.com")
+    @WithMockUser(username = "proprietaire@test.com", roles = "PROPRIETAIRE")
     void updateBien_success_shouldReturn200() throws Exception {
         BienDTO updated = BienDTO.builder()
                 .id(1L)
@@ -203,7 +355,7 @@ class BienControllerWebMvcTest {
 
     @Test
     @DisplayName("POST /biens/{bienId}/assigne-locataire/{userId} — succès : 204")
-    @WithMockUser(username = "proprietaire@test.com")
+    @WithMockUser(username = "proprietaire@test.com", roles = "PROPRIETAIRE")
     void assignLocataire_success_shouldReturn204() throws Exception {
         doNothing().when(bienService).affectLocataire(any(), eq(1L), eq(2L));
 
@@ -213,12 +365,31 @@ class BienControllerWebMvcTest {
 
     @Test
     @DisplayName("POST /biens/{bienId}/assigne-locataire/{userId} — bien introuvable : 404")
-    @WithMockUser(username = "proprietaire@test.com")
+    @WithMockUser(username = "proprietaire@test.com", roles = "PROPRIETAIRE")
     void assignLocataire_notFound_shouldReturn404() throws Exception {
         doThrow(new KupangaBusinessException("Bien introuvable", HttpStatus.NOT_FOUND))
                 .when(bienService).affectLocataire(any(), eq(99L), eq(2L));
 
         mockMvc.perform(post("/biens/99/assigne-locataire/2"))
                 .andExpect(status().isNotFound());
+    }
+
+    private BienFormDTO bienFormValide() {
+        return BienFormDTO.builder()
+                .titre("Appartement T3")
+                .typeBien(TypeBien.APPARTEMENT)
+                .adresse("12 rue des Tests")
+                .ville("Nantes")
+                .codePostal("44000")
+                .pays("France")
+                .surfaceHabitable(65.0)
+                .nombrePieces(3)
+                .loyerMensuel(850.0)
+                .chargesMensuelles(50.0)
+                .depotGarantie(1700.0)
+                .meuble(false)
+                .colocation(false)
+                .disponibleDe(java.time.LocalDate.of(2030, 1, 1))
+                .build();
     }
 }

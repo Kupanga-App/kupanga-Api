@@ -1,5 +1,14 @@
 package com.kupanga.api.chat.controller;
 
+import lombok.extern.slf4j.Slf4j;
+import java.util.Map;
+import com.kupanga.api.exception.business.BusinessException;
+import com.kupanga.api.exception.business.UserNotFoundException;
+import org.springframework.validation.FieldError;
+import org.springframework.messaging.simp.annotation.SendToUser;
+import org.springframework.messaging.handler.annotation.support.MethodArgumentNotValidException;
+import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
+import jakarta.validation.Valid;
 import com.kupanga.api.chat.dto.MessageDTO;
 import com.kupanga.api.chat.dto.MessagePayload;
 import com.kupanga.api.chat.service.MessageService;
@@ -20,6 +29,7 @@ import org.springframework.web.bind.annotation.*;
 import java.security.Principal;
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @Tag(name = "Messagerie", description = "Messagerie temps réel entre propriétaire et locataire")
@@ -38,8 +48,34 @@ public class MessageController {
      * Le destinataire reçoit sur /user/{email}/queue/messages
      */
     @MessageMapping("/chat.send")
-    public void sendMessage(@Payload MessagePayload payload, Principal principal) {
+    public void sendMessage(@Valid @Payload MessagePayload payload, Principal principal) {
         messageService.envoyerMessage(payload, principal.getName());
+    }
+
+    /**
+     * Erreurs du WebSocket renvoyées à l'expéditeur seul, sur {@code /user/queue/errors} (W2).
+     * Message lisible pour les erreurs de validation et métier ({@link BusinessException}),
+     * générique pour {@link UserNotFoundException} et les erreurs techniques (jamais de stacktrace).
+     */
+    @MessageExceptionHandler
+    @SendToUser(destinations = "/queue/errors", broadcast = false)
+    public Map<String, String> handleErreurMessage(Exception e) {
+        String message;
+        if (e instanceof MethodArgumentNotValidException invalide && invalide.getBindingResult() != null) {
+            message = invalide.getBindingResult().getFieldErrors().stream()
+                    .map(FieldError::getDefaultMessage)
+                    .findFirst()
+                    .orElse("Message invalide.");
+        } else if (e instanceof UserNotFoundException) {
+            // Message générique : ne pas révéler si un compte existe
+            message = "Le message n'a pas pu être envoyé.";
+        } else if (e instanceof BusinessException metier) {
+            message = metier.getMessage();
+        } else {
+            log.error("Erreur lors de l'envoi d'un message WebSocket", e);
+            message = "Le message n'a pas pu être envoyé.";
+        }
+        return Map.of("message", message);
     }
 
     // ─────────────────────────────────────────────────────────────────────────

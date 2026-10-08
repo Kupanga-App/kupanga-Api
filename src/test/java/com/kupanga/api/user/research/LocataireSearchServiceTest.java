@@ -88,8 +88,8 @@ class LocataireSearchServiceTest {
     }
 
     @Test
-    @DisplayName("rechercher() — bien n'appartient pas au proprio → KupangaBusinessException 401")
-    void rechercher_bienNotOwned_throwsUnauthorized() {
+    @DisplayName("rechercher() — bien n'appartient pas au proprio → KupangaBusinessException 403")
+    void rechercher_bienNotOwned_throwsForbidden() {
         LocataireSearchDTO dto = new LocataireSearchDTO(null, null, null,
                 0, 10, null, Sort.Direction.ASC);
 
@@ -99,7 +99,7 @@ class LocataireSearchServiceTest {
         KupangaBusinessException ex = assertThrows(KupangaBusinessException.class,
                 () -> locataireSearchService.rechercher(proprietaire.getMail(), 1L, dto));
 
-        assertThat(ex.getStatus()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.FORBIDDEN);
         verify(userRepository, never()).findAll(any(Specification.class), any(Pageable.class));
     }
 

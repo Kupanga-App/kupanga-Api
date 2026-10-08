@@ -10,7 +10,6 @@ public interface UserMapper {
 
     UserDTO toDTO(User user);
 
-    @Mapping(target = "password", ignore = true)
     @Mapping(target = "role",     ignore = true)
     UserDTO toDTOWithoutCredentials(User user);
 }

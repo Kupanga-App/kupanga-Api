@@ -13,6 +13,7 @@ import com.kupanga.api.authentification.service.PasswordResetTokenService;
 import com.kupanga.api.authentification.service.RefreshTokenService;
 import com.kupanga.api.authentification.utils.JwtUtils;
 import com.kupanga.api.email.service.EmailService;
+import com.kupanga.api.exception.business.InvalidPasswordException;
 import com.kupanga.api.exception.business.KupangaBusinessException;
 import com.kupanga.api.minio.service.MinioService;
 import com.kupanga.api.user.dto.formDTO.UserFormDTO;
@@ -20,6 +21,7 @@ import com.kupanga.api.user.dto.readDTO.UserDTO;
 import com.kupanga.api.user.entity.User;
 import com.kupanga.api.user.mapper.UserMapper;
 import com.kupanga.api.user.service.UserService;
+import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -61,15 +63,28 @@ public class AuthServiceImpl implements AuthService {
     @Value("${app.cookie.same-site}")
     private String cookieSameSite;
 
+    /** Hash BCrypt factice : comparé quand l'e-mail est inconnu, pour que le login prenne le même temps (A2). */
+    private String hashFactice;
+
+    @PostConstruct
+    void initHashFactice() {
+        hashFactice = passwordEncoder.encode(UUID.randomUUID().toString());
+    }
+
 
     @Override
     public AuthResponseDTO login(LoginDTO loginDTO, HttpServletResponse response) {
 
         LOGGER.info("Service pour la connexion d'un utilisateur démarré");
 
-        // 1. Récupérer l'utilisateur
-        User utilisateur = userService.getUserByEmail(loginDTO.email());
-        LOGGER.debug("Utilisateur {} récupéré avec succès", utilisateur);
+        // 1. Récupérer l'utilisateur (même erreur 401 que pour un mauvais mot de passe : pas d'énumération des comptes)
+        User utilisateur = userService.findOptionalByMail(loginDTO.email())
+                .orElseThrow(() -> {
+                    // Calcul BCrypt quand même : même temps de réponse que pour un mauvais mot de passe
+                    passwordEncoder.matches(loginDTO.password(), hashFactice);
+                    return new InvalidPasswordException();
+                });
+        LOGGER.debug("Utilisateur id={} récupéré avec succès", utilisateur.getId());
 
         // 2. Vérifier le mot de passe
         userService.isCorrectPassword(loginDTO.password(), utilisateur.getPassword());
@@ -105,16 +120,17 @@ public class AuthServiceImpl implements AuthService {
             throw  new KupangaBusinessException("token expiré ou non autorisé " , HttpStatus.UNAUTHORIZED);
         }
 
-        // Génère un nouvel access token
+        // Génère un nouvel access token (rôle vide tant qu'un compte Google n'a pas choisi son rôle)
 
-        String newAccessToken = jwtUtils.generateAccessToken(
-                refreshToken.getUser().getMail() ,
-                refreshToken.getUser().getPassword()
-        );
+        User user = refreshToken.getUser();
+        boolean requiresRoleSelection = (user.getRole() == null);
+        String roleStr = user.getRole() != null ? String.valueOf(user.getRole()) : "";
+
+        String newAccessToken = jwtUtils.generateAccessToken(user.getMail(), roleStr);
 
         return AuthResponseDTO.builder()
                 .accessToken(newAccessToken)
-                .requiresRoleSelection(false)
+                .requiresRoleSelection(requiresRoleSelection)
                 .build();
     }
 
@@ -144,7 +160,12 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public String forgotPassword(String email){
 
-        User user = userService.getUserByEmail(email);
+        // Même réponse que le compte existe ou non : pas d'énumération des comptes
+        User user = userService.findOptionalByMail(email).orElse(null);
+        if (user == null) {
+            LOGGER.info("Demande de réinitialisation pour un e-mail inconnu, ignorée");
+            return MAIL_REINITIALISATION_ENVOYE;
+        }
 
         passwordResetTokenService.deleteIfExist(user.getId());
 
@@ -155,9 +176,9 @@ public class AuthServiceImpl implements AuthService {
                 .build();
         passwordResetTokenService.save(passwordResetToken);
 
-        emailService.sendPasswordResetMail(email , passwordResetToken.getToken());
+        emailService.sendPasswordResetMail(user.getMail() , passwordResetToken.getToken());
 
-        return passwordResetToken.getToken();
+        return MAIL_REINITIALISATION_ENVOYE;
     }
 
     @Transactional
@@ -168,13 +189,16 @@ public class AuthServiceImpl implements AuthService {
 
         if(passwordResetToken.getExpirationDate().isBefore(LocalDateTime.now())){
 
-            throw new RuntimeException("Token expiré");
+            throw new KupangaBusinessException(TOKEN_REINITIALISATION_INVALIDE, HttpStatus.BAD_REQUEST);
         }
 
         User user = passwordResetToken.getUser();
         user.setPassword(passwordEncoder.encode(newPassword));
         userService.save(user);
         passwordResetTokenService.delete(passwordResetToken);
+
+        // Déconnecte toutes les sessions existantes (un attaquant éventuel perd son refresh token)
+        refreshTokenService.revokeAllForUser(user);
 
         emailService.sendPasswordUpdatedConfirmation(user.getMail());
 

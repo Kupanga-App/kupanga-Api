@@ -39,7 +39,7 @@ public class BackOfficeUserController {
         model.addAttribute("lastName",   lastName);
         model.addAttribute("mail",       mail);
         model.addAttribute("role",       role);
-        model.addAttribute("size",       size);
+        model.addAttribute("size",       dto.size());
         return "backoffice/users/list";
     }
 

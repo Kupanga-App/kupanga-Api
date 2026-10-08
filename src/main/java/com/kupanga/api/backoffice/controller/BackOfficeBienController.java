@@ -37,7 +37,7 @@ public class BackOfficeBienController {
         model.addAttribute("titre",      titre);
         model.addAttribute("ville",      ville);
         model.addAttribute("typeBien",   typeBien);
-        model.addAttribute("size",       size);
+        model.addAttribute("size",       dto.size());
         return "backoffice/biens/list";
     }
 

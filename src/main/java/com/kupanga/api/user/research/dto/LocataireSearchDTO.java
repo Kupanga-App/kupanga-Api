@@ -2,17 +2,23 @@ package com.kupanga.api.user.research.dto;
 
 import com.kupanga.api.pagination.Pagination;
 import com.kupanga.api.user.research.sort.LocataireSortEnum;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Size;
 import org.springframework.data.domain.Sort;
 
 public record LocataireSearchDTO(
 
         // ─── Filtres dynamiques ───────────────────────────────────────────────
-        String firstName,
-        String lastName,
-        String mail,
+        @Size(max = 100) String firstName,
+        @Size(max = 100) String lastName,
+        @Size(max = 100) String mail,
 
         // ─── Pagination + tri ─────────────────────────────────────────────────
+        @Min(value = 0, message = "La page doit être positive ou nulle")
         Integer        page,
+        @Min(value = 1, message = "La taille de page doit être comprise entre 1 et 50")
+        @Max(value = 50, message = "La taille de page doit être comprise entre 1 et 50")
         Integer        size,
         String         sortBy,
         Sort.Direction sortDirection

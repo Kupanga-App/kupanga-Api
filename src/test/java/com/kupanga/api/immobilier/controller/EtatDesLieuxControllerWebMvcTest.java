@@ -54,7 +54,7 @@ class EtatDesLieuxControllerWebMvcTest {
 
     @Test
     @DisplayName("POST /etats-des-lieux — succès : EDL créé (201)")
-    @WithMockUser(username = "proprio@test.com")
+    @WithMockUser(username = "proprio@test.com", roles = "PROPRIETAIRE")
     void creerEdl_success_shouldReturn201() throws Exception {
         doNothing().when(edlService).creerEtatDesLieux(any(), anyString());
 
@@ -89,7 +89,7 @@ class EtatDesLieuxControllerWebMvcTest {
 
     @Test
     @DisplayName("POST /etats-des-lieux/{id}/signer-proprietaire — succès : 204")
-    @WithMockUser(username = "proprio@test.com")
+    @WithMockUser(username = "proprio@test.com", roles = "PROPRIETAIRE")
     void signerProprietaire_success_shouldReturn204() throws Exception {
         doNothing().when(edlService).signerProprietaire(eq(1L), anyString(), anyString());
 
@@ -104,7 +104,7 @@ class EtatDesLieuxControllerWebMvcTest {
 
     @Test
     @DisplayName("POST /etats-des-lieux/{id}/signer-proprietaire — EDL introuvable : 404")
-    @WithMockUser(username = "proprio@test.com")
+    @WithMockUser(username = "proprio@test.com", roles = "PROPRIETAIRE")
     void signerProprietaire_notFound_shouldReturn404() throws Exception {
         doThrow(new KupangaBusinessException("EDL introuvable", HttpStatus.NOT_FOUND))
                 .when(edlService).signerProprietaire(eq(99L), anyString(), anyString());
@@ -182,5 +182,19 @@ class EtatDesLieuxControllerWebMvcTest {
                         .content("{}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalElements").value(0));
+    }
+
+    @Test
+    @DisplayName("POST /etats-des-lieux/search — pagination hors bornes (size=0, size=10000, page=-1) : 400, aucune recherche (VALID)")
+    @WithMockUser(username = "user@test.com")
+    void search_paginationHorsBornes_shouldReturn400() throws Exception {
+        for (String body : new String[] {"{\"size\": 0}", "{\"size\": 10000}", "{\"page\": -1}"}) {
+            mockMvc.perform(post("/etats-des-lieux/search")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(body))
+                    .andExpect(status().isBadRequest());
+        }
+
+        verify(edlSearchService, never()).rechercher(any(), anyString());
     }
 }

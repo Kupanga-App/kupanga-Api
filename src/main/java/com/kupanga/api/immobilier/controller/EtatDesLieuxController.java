@@ -1,5 +1,6 @@
 package com.kupanga.api.immobilier.controller;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import com.kupanga.api.immobilier.dto.formDTO.EtatDesLieuxFormDTO;
 import com.kupanga.api.immobilier.dto.formDTO.SignatureDTO;
 import com.kupanga.api.immobilier.dto.readDTO.EtatDesLieuxDTO;
@@ -240,6 +241,7 @@ public class EtatDesLieuxController {
                     }
             )
     )
+    @PreAuthorize("hasAuthority('ROLE_PROPRIETAIRE')")
     @PostMapping
     public ResponseEntity<Void> creerEtatDesLieux(
             @Valid @RequestBody EtatDesLieuxFormDTO dto
@@ -311,6 +313,7 @@ public class EtatDesLieuxController {
                             """)
             )
     )
+    @PreAuthorize("hasAuthority('ROLE_PROPRIETAIRE')")
     @PostMapping("/{id}/signer-proprietaire")
     public ResponseEntity<Void> signerProprietaire(
             @Parameter(description = "Identifiant de l'état des lieux", required = true)
@@ -357,7 +360,7 @@ public class EtatDesLieuxController {
                                         "nomLocataire": "Marie Martin",
                                         "emailLocataire": "moiseaganze76@gmail.com",
                                         "observations": "État général satisfaisant.",
-                                        "urlPdf": "https://minio.kupanga.com/edl/edl_entree_1_2026-03-19.pdf"
+                                        "urlPdf": "https://minio.kupanga.com/bucket-etats-des-lieux/3f2a…_edl_entree_1.pdf?X-Amz-Expires=300&X-Amz-Signature=…"
                                     }
                                     """)
                     )
@@ -471,7 +474,7 @@ public class EtatDesLieuxController {
     })
     @PostMapping("/search")
     public ResponseEntity<EtatDesLieuxPageDTO> search(
-            @RequestBody EtatDesLieuxSearchDTO dto
+            @Valid @RequestBody EtatDesLieuxSearchDTO dto
     ) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         return ResponseEntity.ok(edlSearchService.rechercher(dto, auth.getName()));

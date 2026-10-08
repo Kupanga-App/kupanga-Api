@@ -1,5 +1,6 @@
 package com.kupanga.api.immobilier.controller;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import com.kupanga.api.immobilier.dto.formDTO.QuittanceFormDTO;
 import com.kupanga.api.immobilier.dto.formDTO.SignatureDTO;
 import com.kupanga.api.immobilier.dto.readDTO.QuittanceDTO;
@@ -107,6 +108,7 @@ public class QuittanceController {
                     }
             )
     )
+    @PreAuthorize("hasAuthority('ROLE_PROPRIETAIRE')")
     @PostMapping
     public ResponseEntity<Void> creerQuittance(
             @Valid @RequestBody QuittanceFormDTO dto
@@ -176,6 +178,7 @@ public class QuittanceController {
                             """)
             )
     )
+    @PreAuthorize("hasAuthority('ROLE_PROPRIETAIRE')")
     @PostMapping("/{id}/marquer-payee")
     public ResponseEntity<Void> marquerPayee(
             @Parameter(description = "Identifiant de la quittance", required = true)
@@ -223,6 +226,7 @@ public class QuittanceController {
             @ApiResponse(responseCode = "401", description = "Non authentifié"),
             @ApiResponse(responseCode = "404", description = "Bien introuvable")
     })
+    @PreAuthorize("hasAuthority('ROLE_PROPRIETAIRE')")
     @GetMapping("/bien/{bienId}")
     public ResponseEntity<List<QuittanceDTO>> getQuittancesParBien(
             @Parameter(description = "Identifiant du bien", required = true)
@@ -244,6 +248,7 @@ public class QuittanceController {
             @ApiResponse(responseCode = "200", description = "Liste des quittances du locataire"),
             @ApiResponse(responseCode = "401", description = "Non authentifié")
     })
+    @PreAuthorize("hasAuthority('ROLE_LOCATAIRE')")
     @GetMapping("/mes-quittances")
     public ResponseEntity<List<QuittanceDTO>> getMesQuittances() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -298,7 +303,7 @@ public class QuittanceController {
     })
     @PostMapping("/search")
     public ResponseEntity<QuittancePageDTO> search(
-            @RequestBody QuittanceSearchDTO dto
+            @Valid @RequestBody QuittanceSearchDTO dto
     ) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         return ResponseEntity.ok(quittanceSearchService.rechercher(dto, auth.getName()));

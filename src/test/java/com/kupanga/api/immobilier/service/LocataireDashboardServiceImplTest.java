@@ -95,6 +95,7 @@ class LocataireDashboardServiceImplTest {
         contratActif = Contrat.builder()
                 .id(100L)
                 .statut(StatutContrat.SIGNE)
+                .locataire(locataire)
                 .dateDebut(LocalDate.of(2023, 9, 1))
                 .dateFin(LocalDate.of(2024, 8, 31))
                 .dureeBailMois(12)
@@ -128,6 +129,23 @@ class LocataireDashboardServiceImplTest {
     // ══════════════════════════════════════════════════════════════
     // getDashboard — cas nominal
     // ══════════════════════════════════════════════════════════════
+
+    @Test
+    @DisplayName("getDashboard() — bail signé d'un ancien locataire : jamais renvoyé (P0-5)")
+    void getDashboard_contratAncienLocataire_notReturned() {
+        Contrat contratAncien = Contrat.builder()
+                .id(101L)
+                .statut(StatutContrat.SIGNE)
+                .locataire(User.builder().id(999L).mail("ancien@test.com").build())
+                .dateDebut(LocalDate.of(2020, 1, 1))
+                .build();
+
+        stubDependencies(List.of(contratAncien), List.of(), List.of());
+
+        LocataireDashboardDTO result = dashboardService.getDashboard(auth, 10L);
+
+        assertThat(result.getContrat()).isNull();
+    }
 
     @Test
     @DisplayName("getDashboard() — succès avec contrat actif : toutes les sections renseignées")
@@ -231,6 +249,7 @@ class LocataireDashboardServiceImplTest {
         contratActif = Contrat.builder()
                 .id(100L)
                 .statut(StatutContrat.SIGNE)
+                .locataire(locataire)
                 .dateDebut(dateDebut)
                 .dureeBailMois(12)
                 .loyerMensuel(850.0)

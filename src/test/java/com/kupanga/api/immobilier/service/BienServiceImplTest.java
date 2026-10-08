@@ -1,11 +1,15 @@
 package com.kupanga.api.immobilier.service;
 
+import com.kupanga.api.chat.entity.Conversation;
+import com.kupanga.api.chat.repository.ConversationRepository;
 import com.kupanga.api.exception.business.KupangaBusinessException;
 import com.kupanga.api.immobilier.dto.formDTO.BienFormDTO;
 import com.kupanga.api.immobilier.dto.formDTO.BienUpdateDTO;
 import com.kupanga.api.immobilier.dto.readDTO.BienDTO;
+import com.kupanga.api.immobilier.dto.readDTO.BienPublicDTO;
 import com.kupanga.api.immobilier.entity.*;
 import com.kupanga.api.immobilier.mapper.BienMapper;
+import com.kupanga.api.immobilier.mapper.DocumentPdfUrlMapper;
 import com.kupanga.api.immobilier.repository.BienRepository;
 import com.kupanga.api.immobilier.service.impl.BienServiceImpl;
 import com.kupanga.api.notification.enums.NotificationType;
@@ -43,7 +47,11 @@ class BienServiceImplTest {
     @Mock private BienMapper          bienMapper;
     @Mock private BienPoiService      bienPoiService;
     @Mock private NotificationService notificationService;
+    @Mock private ConversationRepository conversationRepository;
     @Mock private Authentication      auth;
+
+    @Mock
+    private DocumentPdfUrlMapper documentPdfUrlMapper;
 
     @InjectMocks
     private BienServiceImpl bienService;
@@ -166,12 +174,12 @@ class BienServiceImplTest {
     @Test
     @DisplayName("getBienInfos() — bien trouvé → BienDTO retourné")
     void getBienInfos_found_returnsDTO() {
-        BienDTO dto = BienDTO.builder().id(1L).titre("Appartement T3").build();
+        BienPublicDTO dto = BienPublicDTO.builder().id(1L).titre("Appartement T3").build();
 
         when(bienRepository.findWithAllProperties(1L)).thenReturn(Optional.of(bien));
         when(bienMapper.toPublicDTO(bien)).thenReturn(dto);
 
-        BienDTO result = bienService.getBienInfos(1L);
+        BienPublicDTO result = bienService.getBienInfos(1L);
 
         assertThat(result.id()).isEqualTo(1L);
         assertThat(result.titre()).isEqualTo("Appartement T3");
@@ -267,6 +275,47 @@ class BienServiceImplTest {
         assertThat(result).isEmpty();
     }
 
+    @Test
+    @DisplayName("findAllPropertiesAssociateToUser() — un locataire ne voit que ses propres contrats et quittances (P0-5)")
+    void findAllPropertiesAssociateToUser_locataire_seesOnlyOwnDocuments() {
+        User ancienLocataire = User.builder().id(7L).mail("ancien@test.com").role(Role.ROLE_LOCATAIRE).build();
+        bien.setLocataire(locataire);
+        bien.setContrats(new java.util.HashSet<>(List.of(
+                Contrat.builder().id(1L).locataire(locataire).clePdf("contrat-actuel.pdf").build(),
+                Contrat.builder().id(2L).locataire(ancienLocataire).clePdf("contrat-ancien.pdf").build())));
+        bien.setQuittances(new java.util.HashSet<>(List.of(
+                Quittance.builder().id(1L).locataire(locataire).clePdf("quittance-actuelle.pdf").build(),
+                Quittance.builder().id(2L).locataire(ancienLocataire).clePdf("quittance-ancienne.pdf").build())));
+
+        when(documentPdfUrlMapper.urlContrat(anyString())).thenAnswer(i -> "signe:" + i.getArgument(0));
+        when(documentPdfUrlMapper.urlQuittance(anyString())).thenAnswer(i -> "signe:" + i.getArgument(0));
+        when(userService.getUserByEmail(locataire.getMail())).thenReturn(locataire);
+        when(bienRepository.findAllPropertiesAssociateToUser(locataire.getId())).thenReturn(List.of(bien));
+
+        BienDTO dto = bienService.findAllPropertiesAssociateToUser(locataire.getMail()).get(0);
+
+        assertThat(dto.contrats()).containsExactly("signe:contrat-actuel.pdf");
+        assertThat(dto.quittances()).containsExactly("signe:quittance-actuelle.pdf");
+    }
+
+    @Test
+    @DisplayName("findAllPropertiesAssociateToUser() — le propriétaire voit tous les documents du bien")
+    void findAllPropertiesAssociateToUser_proprietaire_seesAllDocuments() {
+        User ancienLocataire = User.builder().id(7L).mail("ancien@test.com").role(Role.ROLE_LOCATAIRE).build();
+        bien.setContrats(new java.util.HashSet<>(List.of(
+                Contrat.builder().id(1L).locataire(locataire).clePdf("contrat-actuel.pdf").build(),
+                Contrat.builder().id(2L).locataire(ancienLocataire).clePdf("contrat-ancien.pdf").build())));
+
+        when(documentPdfUrlMapper.urlContrat(anyString())).thenAnswer(i -> "signe:" + i.getArgument(0));
+        when(documentPdfUrlMapper.urlQuittance(anyString())).thenAnswer(i -> "signe:" + i.getArgument(0));
+        when(userService.getUserByEmail(proprietaire.getMail())).thenReturn(proprietaire);
+        when(bienRepository.findAllPropertiesAssociateToUser(proprietaire.getId())).thenReturn(List.of(bien));
+
+        BienDTO dto = bienService.findAllPropertiesAssociateToUser(proprietaire.getMail()).get(0);
+
+        assertThat(dto.contrats()).containsExactlyInAnyOrder("signe:contrat-actuel.pdf", "signe:contrat-ancien.pdf");
+    }
+
     // ══════════════════════════════════════════════════════════════
     // existsByIdAndProprietaireId
     // ══════════════════════════════════════════════════════════════
@@ -293,12 +342,9 @@ class BienServiceImplTest {
         dto.setTypeBien(TypeBien.STUDIO);
         dto.setLoyerMensuel(900.0);
 
-        BienDTO expectedDTO = BienDTO.builder().id(1L).titre("Nouveau titre").build();
-
         when(userService.getUserByEmail(proprietaire.getMail())).thenReturn(proprietaire);
         when(bienRepository.findById(1L)).thenReturn(Optional.of(bien));
         when(bienRepository.save(bien)).thenReturn(bien);
-        when(bienMapper.toPublicDTO(bien)).thenReturn(expectedDTO);
 
         BienDTO result = bienService.updateBien(auth, 1L, dto);
 
@@ -318,7 +364,6 @@ class BienServiceImplTest {
 
         when(userService.getUserByEmail(proprietaire.getMail())).thenReturn(proprietaire);
         when(bienRepository.findById(1L)).thenReturn(Optional.of(bien));
-        when(bienMapper.toPublicDTO(bien)).thenReturn(BienDTO.builder().build());
 
         bienService.updateBien(auth, 1L, dto);
 
@@ -365,6 +410,8 @@ class BienServiceImplTest {
         doNothing().when(userService).verifyIfUserIsOwner(proprietaire.getRole());
         when(userService.findById(2L)).thenReturn(locataire);
         when(bienRepository.findWithAllProperties(1L)).thenReturn(Optional.of(bien));
+        when(conversationRepository.findConversationWithBienIdAndEmailExpediteur(
+                1L, proprietaire.getMail(), locataire.getMail())).thenReturn(Optional.of(new Conversation()));
         when(bienRepository.save(bien)).thenReturn(bien);
 
         assertDoesNotThrow(() -> bienService.affectLocataire(auth, 1L, 2L));
@@ -377,6 +424,41 @@ class BienServiceImplTest {
         verify(notificationService).saveAndSend(
                 eq(proprietaire), eq(NotificationType.BIEN_ASSIGNATION_CONFIRMEE),
                 anyString(), anyString(), isNull(), eq(bien.getId()));
+    }
+
+    @Test
+    @DisplayName("affectLocataire() — locataire sans conversation sur ce bien → 404, rien n'est assigné (TESTS-SECU)")
+    void affectLocataire_pasCandidat_refuse() {
+        when(userService.getUserByEmail(proprietaire.getMail())).thenReturn(proprietaire);
+        doNothing().when(userService).verifyIfUserIsOwner(proprietaire.getRole());
+        when(userService.findById(2L)).thenReturn(locataire);
+        when(bienRepository.findWithAllProperties(1L)).thenReturn(Optional.of(bien));
+        when(conversationRepository.findConversationWithBienIdAndEmailExpediteur(
+                1L, proprietaire.getMail(), locataire.getMail())).thenReturn(Optional.empty());
+
+        KupangaBusinessException ex = assertThrows(KupangaBusinessException.class,
+                () -> bienService.affectLocataire(auth, 1L, 2L));
+
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(ex.getMessage()).doesNotContain(locataire.getMail());
+        assertThat(bien.getLocataire()).isNull();
+        verify(bienRepository, never()).save(any());
+        verifyNoInteractions(notificationService);
+    }
+
+    @Test
+    @DisplayName("affectLocataire() — id inconnu → même 404 qu'un non-candidat (pas d'énumération des comptes)")
+    void affectLocataire_idInconnu_memeReponse() {
+        when(userService.getUserByEmail(proprietaire.getMail())).thenReturn(proprietaire);
+        doNothing().when(userService).verifyIfUserIsOwner(proprietaire.getRole());
+        when(bienRepository.findWithAllProperties(1L)).thenReturn(Optional.of(bien));
+        when(userService.findById(999L)).thenThrow(
+                new KupangaBusinessException("Aucun utilisateur trouvé pour l'Id : 999", HttpStatus.NOT_FOUND));
+
+        KupangaBusinessException ex = assertThrows(KupangaBusinessException.class,
+                () -> bienService.affectLocataire(auth, 1L, 999L));
+
+        assertThat(ex.getMessage()).isEqualTo("Locataire introuvable pour ce bien");
     }
 
     @Test
@@ -405,6 +487,142 @@ class BienServiceImplTest {
                 () -> bienService.affectLocataire(auth, 1L, 2L));
 
         verify(bienRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("affectLocataire() — bien d'un autre propriétaire → 403, rien n'est assigné (P0-5)")
+    void affectLocataire_bienDAutrui_throwsForbidden() {
+        User autre = User.builder().id(9L).mail("autre@test.com").role(Role.ROLE_PROPRIETAIRE).build();
+        when(auth.getName()).thenReturn(autre.getMail());
+        when(userService.getUserByEmail(autre.getMail())).thenReturn(autre);
+        when(bienRepository.findWithAllProperties(1L)).thenReturn(Optional.of(bien));
+
+        KupangaBusinessException ex = assertThrows(KupangaBusinessException.class,
+                () -> bienService.affectLocataire(auth, 1L, 2L));
+
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.FORBIDDEN);
+        assertThat(bien.getLocataire()).isNull();
+        verify(bienRepository, never()).save(any());
+        verifyNoInteractions(notificationService);
+    }
+
+    @Test
+    @DisplayName("affectLocataire() — l'utilisateur assigné n'est pas un locataire → 400 (P0-5)")
+    void affectLocataire_userNotLocataire_throwsBadRequest() {
+        User autreProprio = User.builder().id(3L).mail("p2@test.com").role(Role.ROLE_PROPRIETAIRE).build();
+        when(userService.getUserByEmail(proprietaire.getMail())).thenReturn(proprietaire);
+        when(bienRepository.findWithAllProperties(1L)).thenReturn(Optional.of(bien));
+        when(userService.findById(3L)).thenReturn(autreProprio);
+        when(conversationRepository.findConversationWithBienIdAndEmailExpediteur(
+                1L, proprietaire.getMail(), autreProprio.getMail())).thenReturn(Optional.of(new Conversation()));
+
+        KupangaBusinessException ex = assertThrows(KupangaBusinessException.class,
+                () -> bienService.affectLocataire(auth, 1L, 3L));
+
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
+        verify(bienRepository, never()).save(any());
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // getBienPrive (P0-6)
+    // ══════════════════════════════════════════════════════════════
+
+    @Test
+    @DisplayName("getBienPrive() — propriétaire : vue privée avec e-mail du locataire")
+    void getBienPrive_proprietaire_returnsPrivateView() {
+        bien.setLocataire(locataire);
+        when(userService.getUserByEmail(proprietaire.getMail())).thenReturn(proprietaire);
+        when(bienRepository.findWithAllProperties(1L)).thenReturn(Optional.of(bien));
+
+        BienDTO dto = bienService.getBienPrive(1L, proprietaire.getMail());
+
+        assertThat(dto.locataire().mail()).isEqualTo(locataire.getMail());
+    }
+
+    @Test
+    @DisplayName("getBienPrive() — locataire du bien : autorisé")
+    void getBienPrive_locataire_allowed() {
+        bien.setLocataire(locataire);
+        when(userService.getUserByEmail(locataire.getMail())).thenReturn(locataire);
+        when(bienRepository.findWithAllProperties(1L)).thenReturn(Optional.of(bien));
+
+        assertThat(bienService.getBienPrive(1L, locataire.getMail()).id()).isEqualTo(1L);
+    }
+
+    @Test
+    @DisplayName("getBienPrive() — autre utilisateur : 403")
+    void getBienPrive_autreUtilisateur_throwsForbidden() {
+        User autre = User.builder().id(9L).mail("autre@test.com").role(Role.ROLE_LOCATAIRE).build();
+        bien.setLocataire(locataire);
+        when(userService.getUserByEmail(autre.getMail())).thenReturn(autre);
+        when(bienRepository.findWithAllProperties(1L)).thenReturn(Optional.of(bien));
+
+        KupangaBusinessException ex = assertThrows(KupangaBusinessException.class,
+                () -> bienService.getBienPrive(1L, autre.getMail()));
+
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.FORBIDDEN);
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // verifierProprietaire / verifierLocataireDuBien (P0-5)
+    // ══════════════════════════════════════════════════════════════
+
+    @Test
+    @DisplayName("verifierProprietaire() — propriétaire du bien : renvoie le bien")
+    void verifierProprietaire_owner_returnsBien() {
+        when(bienRepository.findWithAllProperties(1L)).thenReturn(Optional.of(bien));
+
+        assertThat(bienService.verifierProprietaire(1L, proprietaire.getMail())).isEqualTo(bien);
+    }
+
+    @Test
+    @DisplayName("verifierProprietaire() — autre utilisateur : 403")
+    void verifierProprietaire_notOwner_throwsForbidden() {
+        when(bienRepository.findWithAllProperties(1L)).thenReturn(Optional.of(bien));
+
+        KupangaBusinessException ex = assertThrows(KupangaBusinessException.class,
+                () -> bienService.verifierProprietaire(1L, "autre@test.com"));
+
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.FORBIDDEN);
+    }
+
+    @Test
+    @DisplayName("verifierProprietaire() — bien introuvable : 404")
+    void verifierProprietaire_bienNotFound_throwsNotFound() {
+        when(bienRepository.findWithAllProperties(99L)).thenReturn(Optional.empty());
+
+        KupangaBusinessException ex = assertThrows(KupangaBusinessException.class,
+                () -> bienService.verifierProprietaire(99L, proprietaire.getMail()));
+
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("verifierLocataireDuBien() — locataire assigné : renvoie le locataire")
+    void verifierLocataireDuBien_assigned_returnsLocataire() {
+        bien.setLocataire(locataire);
+
+        assertThat(bienService.verifierLocataireDuBien(bien, "LOCATAIRE@test.com")).isEqualTo(locataire);
+    }
+
+    @Test
+    @DisplayName("verifierLocataireDuBien() — autre e-mail : 400")
+    void verifierLocataireDuBien_otherEmail_throwsBadRequest() {
+        bien.setLocataire(locataire);
+
+        KupangaBusinessException ex = assertThrows(KupangaBusinessException.class,
+                () -> bienService.verifierLocataireDuBien(bien, "victime@test.com"));
+
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
+    }
+
+    @Test
+    @DisplayName("verifierLocataireDuBien() — aucun locataire assigné : 400")
+    void verifierLocataireDuBien_noLocataire_throwsBadRequest() {
+        KupangaBusinessException ex = assertThrows(KupangaBusinessException.class,
+                () -> bienService.verifierLocataireDuBien(bien, locataire.getMail()));
+
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
 
     // ══════════════════════════════════════════════════════════════

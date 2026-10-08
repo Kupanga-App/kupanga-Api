@@ -9,7 +9,6 @@ public record UserDTO(
         String firstName,
         String lastName,
         String mail ,
-        String password ,
         Role role,
         String urlProfile,
         Boolean hasCompleteProfil

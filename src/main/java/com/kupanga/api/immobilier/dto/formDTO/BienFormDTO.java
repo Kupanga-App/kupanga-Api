@@ -35,7 +35,8 @@ public class BienFormDTO {
 
     @NotBlank(message = "L'adresse est obligatoire")
     @Size(min = 5, max = 200, message = "Entre 5 et 200 caractères")
-    @Pattern(regexp = "^[\\p{L}0-9 ,.'\\-]+$", message = "Caractères non autorisés")
+    // C3 : accepte aussi °, /, #, & (« N° 12, Av. Kasa-Vubu, Q/Matonge, C/Kalamu »)
+    @Pattern(regexp = "^[\\p{L}0-9 ,.'°/#&\\-]+$", message = "Caractères non autorisés")
     @NoUrl
     private String adresse;
 

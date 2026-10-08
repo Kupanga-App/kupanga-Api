@@ -6,7 +6,7 @@ import com.kupanga.api.user.entity.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = DocumentPdfUrlMapper.class)
 public interface EtatDesLieuxMapper {
 
     // ─────────────────────────────────────────────────────────────
@@ -23,6 +23,7 @@ public interface EtatDesLieuxMapper {
     @Mapping(target = "typeBien", expression =
             "java(edl.getBien() != null && edl.getBien().getTypeBien() != null ? edl.getBien().getTypeBien().name() : null)"
     )
+    @Mapping(target = "urlPdf", source = "clePdf", qualifiedByName = "urlEtatDesLieux")
 
     EtatDesLieuxDTO toDTO(EtatDesLieux edl);
 

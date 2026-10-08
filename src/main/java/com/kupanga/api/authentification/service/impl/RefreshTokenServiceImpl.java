@@ -56,4 +56,14 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
 
     }
 
+    @Override
+    public void revokeAllForUser(User user){
+
+        RefreshToken refreshToken = refreshTokenRepository.findByUserId(user.getId());
+
+        if(refreshToken != null){
+            refreshTokenRepository.delete(refreshToken);
+        }
+    }
+
 }

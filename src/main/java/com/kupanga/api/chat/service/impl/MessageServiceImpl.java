@@ -36,6 +36,7 @@ public class MessageServiceImpl implements MessageService {
     private final UserService   userService;
     private final ConversationService conversationService;
     private final SimpMessagingTemplate messagingTemplate;  // pour le push WebSocket
+    private final BienService bienService;
 
     // ─────────────────────────────────────────────────────────────────────────
     // Envoi d'un message
@@ -45,17 +46,22 @@ public class MessageServiceImpl implements MessageService {
     public void envoyerMessage(MessagePayload payload, String emailExpediteur) {
 
         User expediteur   = userService.getUserByEmail(emailExpediteur);
-        User destinataire = userService.getUserByEmail(payload.emailDestinataire());
+        // Sans e-mail (premier contact depuis une annonce publique, qui n'expose plus l'e-mail) :
+        // le destinataire est le propriétaire du bien
+        User destinataire = (payload.emailDestinataire() == null || payload.emailDestinataire().isBlank())
+                ? bienService.findById(payload.bienId()).getProprietaire()
+                : userService.getUserByEmail(payload.emailDestinataire());
+        String emailDestinataire = destinataire.getMail();
 
         if (expediteur.getMail().equals(destinataire.getMail())) {
             throw new KupangaBusinessException(
                     "Impossible d'envoyer un message à soi-même", HttpStatus.BAD_REQUEST);
         }
 
-        Conversation conversation = conversationService.findConversationWithBienIdAndEmailExpediteur(payload.bienId(), emailExpediteur , payload.emailDestinataire() );
+        Conversation conversation = conversationService.findConversationWithBienIdAndEmailExpediteur(payload.bienId(), emailExpediteur , emailDestinataire );
         if( conversation == null){
 
-            conversation = conversationService.createConversation(payload.bienId(),  emailExpediteur , payload.emailDestinataire());
+            conversation = conversationService.createConversation(payload.bienId(),  emailExpediteur , emailDestinataire);
 
         }
 
@@ -116,7 +122,7 @@ public class MessageServiceImpl implements MessageService {
         }
 
         log.info("Message {} envoyé de {} à {}",
-                saved.getId(), emailExpediteur, payload.emailDestinataire());
+                saved.getId(), emailExpediteur, emailDestinataire);
 
     }
 

@@ -1,5 +1,6 @@
 package com.kupanga.api.immobilier.controller;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import com.kupanga.api.immobilier.dto.formDTO.ContratFormDTO;
 import com.kupanga.api.immobilier.dto.formDTO.SignatureDTO;
 import com.kupanga.api.immobilier.dto.readDTO.ContratDTO;
@@ -116,6 +117,7 @@ public class ContratController {
                             """)
             )
     )
+    @PreAuthorize("hasAuthority('ROLE_PROPRIETAIRE')")
     @PostMapping
     public ResponseEntity<Void> creerContrat(
             @Valid @RequestBody ContratFormDTO dto
@@ -187,6 +189,7 @@ public class ContratController {
                             """)
             )
     )
+    @PreAuthorize("hasAuthority('ROLE_PROPRIETAIRE')")
     @PostMapping("/{id}/signer-proprio")
     public ResponseEntity<Void> signerProprietaire(
             @Parameter(description = "Identifiant du contrat", required = true)
@@ -353,7 +356,7 @@ public class ContratController {
     })
     @PostMapping("/search")
     public ResponseEntity<ContratPageDTO> search(
-            @RequestBody ContratSearchDTO dto
+            @Valid @RequestBody ContratSearchDTO dto
     ) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         return ResponseEntity.ok(contratSearchService.rechercher(dto, auth.getName()));

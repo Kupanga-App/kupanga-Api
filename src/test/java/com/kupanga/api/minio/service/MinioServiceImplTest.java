@@ -6,6 +6,9 @@ import io.minio.PutObjectArgs;
 import io.minio.BucketExistsArgs;
 import io.minio.MakeBucketArgs;
 import io.minio.SetBucketPolicyArgs;
+import io.minio.DeleteBucketPolicyArgs;
+import io.minio.GetPresignedObjectUrlArgs;
+import io.minio.http.Method;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -20,12 +23,54 @@ import static org.mockito.Mockito.*;
 class MinioServiceImplTest {
 
     private MinioClient minioClient;
+    private MinioClient minioPresignClient;
     private MinioServiceImpl minioService;
 
     @BeforeEach
     void setUp() {
         minioClient = mock(MinioClient.class);
-        minioService = new MinioServiceImpl(minioClient , "http://localhost:9000");
+        minioPresignClient = mock(MinioClient.class);
+        minioService = new MinioServiceImpl(minioClient , minioPresignClient, "http://localhost:9000");
+    }
+
+    // =======================
+    // P0-7 : PDF privés
+    // =======================
+
+    @Test
+    @DisplayName("uploadPdf : bucket rendu privé (politique publique supprimée), renvoie une clé et pas une URL")
+    void uploadPdf_shouldUsePrivateBucketAndReturnKey() throws Exception {
+        when(minioClient.bucketExists(any(BucketExistsArgs.class))).thenReturn(true);
+
+        String cle = minioService.uploadPdf("pdf".getBytes(), "contrat_1.pdf", "contrat-de-bail");
+
+        assertFalse(cle.startsWith("http"), "On stocke une clé, jamais une URL");
+        assertTrue(cle.endsWith("_contrat_1.pdf"));
+        verify(minioClient).deleteBucketPolicy(any(DeleteBucketPolicyArgs.class));
+        verify(minioClient, never()).setBucketPolicy(any(SetBucketPolicyArgs.class));
+    }
+
+    @Test
+    @DisplayName("urlPresignee : URL GET signée par le client public, valable 5 minutes")
+    void urlPresignee_shouldSignWithPublicClientFor5Minutes() throws Exception {
+        when(minioPresignClient.getPresignedObjectUrl(any(GetPresignedObjectUrlArgs.class)))
+                .thenReturn("http://localhost:9000/contrat-de-bail/cle.pdf?X-Amz-Signature=abc");
+
+        String url = minioService.urlPresignee("contrat-de-bail", "cle.pdf");
+
+        ArgumentCaptor<GetPresignedObjectUrlArgs> captor = ArgumentCaptor.forClass(GetPresignedObjectUrlArgs.class);
+        verify(minioPresignClient).getPresignedObjectUrl(captor.capture());
+        assertEquals(5 * 60, captor.getValue().expiry());
+        assertEquals(Method.GET, captor.getValue().method());
+        assertEquals("cle.pdf", captor.getValue().object());
+        assertTrue(url.contains("X-Amz-Signature"));
+    }
+
+    @Test
+    @DisplayName("urlPresignee : clé vide → null, aucun appel MinIO")
+    void urlPresignee_nullKey_returnsNull() {
+        assertNull(minioService.urlPresignee("contrat-de-bail", null));
+        verifyNoInteractions(minioPresignClient);
     }
 
     // =======================

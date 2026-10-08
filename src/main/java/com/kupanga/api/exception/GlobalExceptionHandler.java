@@ -2,9 +2,13 @@ package com.kupanga.api.exception;
 
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.kupanga.api.exception.business.BusinessException;
+import com.kupanga.api.exception.business.TropDeTentativesException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -21,8 +25,10 @@ import java.util.Map;
  * Gestionnaire global des exceptions pour l'application.
  * Intercepte les {@link BusinessException} et les erreurs de validation
  * pour renvoyer des réponses HTTP structurées via {@link ApiErrorResponse}.
+ * Prioritaire sur {@link TechnicalExceptionHandler}, qui traite tout le reste (EXC).
  */
 @RestControllerAdvice
+@Order(Ordered.HIGHEST_PRECEDENCE)
 public class GlobalExceptionHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
@@ -46,6 +52,24 @@ public class GlobalExceptionHandler {
                 ex.getMessage(),
                 request
         );
+    }
+
+    /**
+     * Limite de tentatives atteinte (A3) : 429 avec l'en-tête {@code Retry-After} (en secondes).
+     *
+     * @param ex      l'exception levée
+     * @param request la requête HTTP ayant causé l'exception
+     * @return {@link ResponseEntity} contenant {@link ApiErrorResponse}
+     */
+    @ExceptionHandler(TropDeTentativesException.class)
+    public ResponseEntity<ApiErrorResponse> handleTropDeTentatives(
+            TropDeTentativesException ex,
+            HttpServletRequest request
+    ) {
+        ResponseEntity<ApiErrorResponse> reponse = buildResponse(ex.getStatus(), ex.getMessage(), request);
+        return ResponseEntity.status(reponse.getStatusCode())
+                .header(HttpHeaders.RETRY_AFTER, String.valueOf(ex.getRetryAfterSecondes()))
+                .body(reponse.getBody());
     }
 
     /** Intercepte toutes les exceptions liées à la validation {@link MethodArgumentNotValidException}

@@ -2,6 +2,8 @@ package com.kupanga.api.chat.service;
 
 import com.kupanga.api.chat.dto.MessageDTO;
 import com.kupanga.api.chat.dto.MessagePayload;
+import com.kupanga.api.immobilier.entity.Bien;
+import com.kupanga.api.immobilier.service.BienService;
 import com.kupanga.api.chat.entity.Conversation;
 import com.kupanga.api.chat.entity.Message;
 import com.kupanga.api.chat.mapper.MessageMapper;
@@ -32,6 +34,7 @@ class MessageServiceImplTest {
     @Mock private UserService            userService;
     @Mock private ConversationService    conversationService;
     @Mock private SimpMessagingTemplate  messagingTemplate;
+    @Mock private BienService            bienService;
 
     @InjectMocks
     private MessageServiceImpl messageService;
@@ -99,6 +102,58 @@ class MessageServiceImplTest {
         verify(messageRepository).save(any(Message.class));
         verify(messagingTemplate).convertAndSendToUser(eq("bob@test.com"), eq("/queue/messages"), eq(messageDTO));
         verify(conversationService, never()).createConversation(anyLong(), anyString(), anyString());
+    }
+
+    @Test
+    @DisplayName("envoyerMessage() — sans e-mail destinataire : envoyé au propriétaire du bien (P0-6)")
+    void envoyerMessage_sansEmail_envoieAuProprietaireDuBien() {
+        MessagePayload payload = new MessagePayload("Bonjour", null, 1L);
+        Bien bien = Bien.builder().id(1L).proprietaire(destinataire).build();
+
+        when(userService.getUserByEmail("alice@test.com")).thenReturn(expediteur);
+        when(bienService.findById(1L)).thenReturn(bien);
+        when(conversationService.findConversationWithBienIdAndEmailExpediteur(1L, "alice@test.com", "bob@test.com"))
+                .thenReturn(conversation);
+        when(messageRepository.save(any(Message.class))).thenReturn(savedMessage);
+        when(messageMapper.toDTO(savedMessage)).thenReturn(messageDTO);
+
+        assertDoesNotThrow(() -> messageService.envoyerMessage(payload, "alice@test.com"));
+
+        verify(userService, never()).getUserByEmail("bob@test.com");
+        verify(messagingTemplate).convertAndSendToUser(eq("bob@test.com"), eq("/queue/messages"), eq(messageDTO));
+    }
+
+    @Test
+    @DisplayName("envoyerMessage() — sans e-mail, le propriétaire s'écrit à lui-même → 400")
+    void envoyerMessage_sansEmail_proprietaireLuiMeme_throwsBadRequest() {
+        MessagePayload payload = new MessagePayload("Bonjour", null, 1L);
+        Bien bien = Bien.builder().id(1L).proprietaire(expediteur).build();
+
+        when(userService.getUserByEmail("alice@test.com")).thenReturn(expediteur);
+        when(bienService.findById(1L)).thenReturn(bien);
+
+        KupangaBusinessException ex = assertThrows(KupangaBusinessException.class,
+                () -> messageService.envoyerMessage(payload, "alice@test.com"));
+
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
+        verify(messageRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("envoyerMessage() — sans e-mail et bien inexistant → 404, rien enregistré")
+    void envoyerMessage_sansEmail_bienInexistant_throwsNotFound() {
+        MessagePayload payload = new MessagePayload("Bonjour", null, 99L);
+
+        when(userService.getUserByEmail("alice@test.com")).thenReturn(expediteur);
+        when(bienService.findById(99L))
+                .thenThrow(new KupangaBusinessException("Aucun bien", HttpStatus.NOT_FOUND));
+
+        KupangaBusinessException ex = assertThrows(KupangaBusinessException.class,
+                () -> messageService.envoyerMessage(payload, "alice@test.com"));
+
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.NOT_FOUND);
+        verify(messageRepository, never()).save(any());
+        verifyNoInteractions(messagingTemplate);
     }
 
     @Test

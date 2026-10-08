@@ -6,9 +6,6 @@ spring:
   config:
     import: optional:file:.env.dev[.properties]
 
-  websocket:
-    allowed-origins: "http://localhost:4200 , https://kupanga.lespacelibellule.com"
-
 server:
   port: ${PORT:8089}
 

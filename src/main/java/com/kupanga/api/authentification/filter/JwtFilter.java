@@ -13,7 +13,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
-import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -26,7 +25,8 @@ import static com.kupanga.api.authentification.constant.AuthConstant.BEARER;
  * Récupère le token JWT soit depuis le header "Authorization: Bearer <token>",
  * Si le token est valide, l'utilisateur est authentifié dans Spring Security.
  */
-@Component
+// Pas de @Component : le filtre est ajouté uniquement à la chaîne API (SecurityConfig), sinon Spring Boot
+// l'enregistrerait aussi comme filtre servlet global (exécuté deux fois, et aussi sur /backoffice/**).
 @RequiredArgsConstructor
 public class JwtFilter extends OncePerRequestFilter {
 
