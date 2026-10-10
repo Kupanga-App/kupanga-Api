@@ -1,5 +1,6 @@
 package com.kupanga.api.immobilier.research;
 
+import com.kupanga.api.juridiction.Pays;
 import com.kupanga.api.immobilier.dto.readDTO.EtatDesLieuxDTO;
 import com.kupanga.api.immobilier.entity.EtatDesLieux;
 import com.kupanga.api.immobilier.entity.TypeEtat;
@@ -54,7 +55,7 @@ class EtatDesLieuxSearchServiceTest {
                 .role(Role.ROLE_PROPRIETAIRE)
                 .build();
 
-        edl = EtatDesLieux.builder()
+        edl = EtatDesLieux.builder().pays(Pays.FR).modeleVersion("fr-v1")
                 .id(1L)
                 .type(TypeEtat.ENTREE)
                 .dateRealisation(LocalDate.now())

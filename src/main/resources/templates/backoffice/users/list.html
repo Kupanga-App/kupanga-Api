@@ -20,6 +20,9 @@
             </div>
         </div>
 
+        <!-- ── Message après une action (B12) ──────── -->
+        <div th:if="${message}" class="alert alert-info small py-2" role="status" th:text="${message}"></div>
+
         <!-- ── Formulaire de recherche ──────────────── -->
         <div class="search-card">
             <form th:action="@{/backoffice/users}" method="get">
@@ -115,6 +118,7 @@
                                             <div class="text-muted small"
                                                  style="font-family:'DM Mono',monospace;font-size:0.75rem;"
                                                  th:text="${user.mail}">—</div>
+                                            <span th:if="${user.anonymise}" class="badge-default small">Anonymisé</span>
                                         </div>
                                     </div>
                                 </td>
@@ -143,7 +147,8 @@
                                 </td>
 
                                 <td class="text-end">
-                                    <button class="btn btn-danger btn-sm d-inline-flex align-items-center gap-1"
+                                    <button th:unless="${user.anonymise}"
+                                            class="btn btn-danger btn-sm d-inline-flex align-items-center gap-1"
                                             title="Supprimer"
                                             data-bs-toggle="modal"
                                             data-bs-target="#deleteModal"
@@ -222,7 +227,8 @@
                 <h6 class="mb-1">Confirmer la suppression</h6>
                 <p class="text-muted small mb-4">
                     Supprimer <strong id="deleteTargetName" style="color:var(--mint);"></strong> ?
-                    Cette action est irréversible.
+                    Cette action est irréversible. S'il a des biens, des baux, des quittances ou des états des lieux,
+                    le compte est anonymisé (documents conservés, biens archivés).
                 </p>
                 <form id="deleteForm" th:action="@{/backoffice/users/0/supprimer}" method="post">
                     <div class="d-flex gap-2 justify-content-center">

@@ -1,5 +1,6 @@
 package com.kupanga.api.immobilier.dto.formDTO;
 
+import com.kupanga.api.juridiction.Devise;
 import com.kupanga.api.immobilier.entity.ClasseEnergie;
 import com.kupanga.api.immobilier.entity.ClasseGes;
 import com.kupanga.api.immobilier.entity.ModeChauffage;
@@ -10,6 +11,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 /**
@@ -75,20 +77,24 @@ public class BienUpdateDTO {
 
     // ─── Conditions de location ───────────────────────────────────────────────
 
-    @DecimalMin(value = "1.0",      message = "Le loyer doit être supérieur à 0")
-    @DecimalMax(value = "100000.0", message = "Le loyer semble invalide")
-    @Digits(integer = 8, fraction = 2, message = "Format invalide (ex: 850.00)")
-    private Double loyerMensuel;
+    // C5 : plafond selon la devise du bien (JuridictionRegistry.verifierMontants)
+    @DecimalMin(value = "0.01",     message = "Le loyer doit être supérieur à 0")
+    @DecimalMax(value = "9999999999.99", message = "Montant trop élevé") // technique (NUMERIC(12,2)), avant les plafonds C5
+    @Digits(integer = 10, fraction = 2, message = "Format invalide (ex: 850.00)")
+    private BigDecimal loyerMensuel;
 
     @DecimalMin(value = "0.0",     message = "Les charges ne peuvent pas être négatives")
-    @DecimalMax(value = "10000.0", message = "Les charges semblent invalides")
-    @Digits(integer = 6, fraction = 2, message = "Format invalide (ex: 50.00)")
-    private Double chargesMensuelles;
+    @DecimalMax(value = "9999999999.99", message = "Montant trop élevé") // technique (NUMERIC(12,2)), avant les plafonds C5
+    @Digits(integer = 10, fraction = 2, message = "Format invalide (ex: 50.00)")
+    private BigDecimal chargesMensuelles;
 
     @DecimalMin(value = "0.0",      message = "Le dépôt ne peut pas être négatif")
-    @DecimalMax(value = "100000.0", message = "Le dépôt semble invalide")
-    @Digits(integer = 8, fraction = 2, message = "Format invalide (ex: 1700.00)")
-    private Double depotGarantie;
+    @DecimalMax(value = "9999999999.99", message = "Montant trop élevé") // technique (NUMERIC(12,2)), avant les plafonds C5
+    @Digits(integer = 10, fraction = 2, message = "Format invalide (ex: 1700.00)")
+    private BigDecimal depotGarantie;
+
+    /** J3 : nouvelle devise (parmi celles du pays) ; les documents existants gardent la leur. */
+    private Devise devise;
 
     private Boolean meuble;
     private Boolean colocation;

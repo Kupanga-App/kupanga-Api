@@ -24,7 +24,7 @@ public class AppConfig {
     @Bean
     public RedisCacheConfiguration redisCacheConfiguration() {
         return RedisCacheConfiguration.defaultCacheConfig()
-                .entryTtl(Duration.ofDays(30))   // les coordonnées d'une ville ne changent pas
+                .entryTtl(Duration.ofDays(30))   // les coordonnées d'une adresse ne changent pas (clé : GeocodingService.cleCache)
                 .disableCachingNullValues();
     }
 }

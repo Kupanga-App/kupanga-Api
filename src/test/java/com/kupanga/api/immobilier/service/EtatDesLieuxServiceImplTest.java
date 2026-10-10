@@ -1,5 +1,8 @@
 package com.kupanga.api.immobilier.service;
 
+import com.kupanga.api.juridiction.JuridictionRegistry;
+import com.kupanga.api.juridiction.JuridictionsDeTest;
+import com.kupanga.api.juridiction.Pays;
 import com.kupanga.api.email.service.EmailService;
 import com.kupanga.api.exception.business.KupangaBusinessException;
 import com.kupanga.api.immobilier.dto.formDTO.EtatDesLieuxFormDTO;
@@ -37,6 +40,8 @@ class EtatDesLieuxServiceImplTest {
     @Mock private BienService             bienService;
     @Mock private UserService             userService;
     @Mock private NotificationService     notificationService;
+    /** J5 : vrai registre (version du modèle figée sur l'EDL). */
+    @Spy  private JuridictionRegistry     juridictionRegistry = JuridictionsDeTest.registre();
 
     @InjectMocks
     private EtatDesLieuxServiceImpl edlService;
@@ -60,13 +65,13 @@ class EtatDesLieuxServiceImplTest {
                 .mail("locataire@test.com")
                 .build();
 
-        bien = Bien.builder()
+        bien = Bien.builder().pays(Pays.FR)
                 .id(1L)
                 .adresse("12 rue des Tests")
                 .ville("Nantes")
                 .build();
 
-        edl = EtatDesLieux.builder()
+        edl = EtatDesLieux.builder().pays(Pays.FR).modeleVersion("fr-v1")
                 .id(1L)
                 .bien(bien)
                 .proprietaire(proprietaire)
@@ -101,6 +106,24 @@ class EtatDesLieuxServiceImplTest {
     }
 
     @Test
+    @DisplayName("J5 : creerEtatDesLieux() — pays du bien et version courante du modèle figés sur l'EDL")
+    void creerEtatDesLieux_figeJuridiction() {
+        bien.setPays(Pays.CD);
+        EtatDesLieuxFormDTO dto = buildValidEdlFormDTO();
+        when(userService.getUserByEmail(proprietaire.getMail())).thenReturn(proprietaire);
+        when(bienService.verifierProprietaire(eq(1L), any())).thenReturn(bien);
+        when(bienService.verifierLocataireDuBien(eq(bien), any())).thenReturn(locataire);
+        when(edlRepository.save(any(EtatDesLieux.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        edlService.creerEtatDesLieux(dto, proprietaire.getMail());
+
+        ArgumentCaptor<EtatDesLieux> captor = ArgumentCaptor.forClass(EtatDesLieux.class);
+        verify(edlRepository, atLeastOnce()).save(captor.capture());
+        assertThat(captor.getAllValues().get(0).getPays()).isEqualTo(Pays.CD);
+        assertThat(captor.getAllValues().get(0).getModeleVersion()).isEqualTo("cd-v1");
+    }
+
+    @Test
     @DisplayName("creerEtatDesLieux() — bien introuvable → KupangaBusinessException 404")
     void creerEtatDesLieux_bienNotFound_throwsException() {
         EtatDesLieuxFormDTO dto = buildValidEdlFormDTO();
@@ -114,6 +137,7 @@ class EtatDesLieuxServiceImplTest {
 
         assertThat(ex.getStatus()).isEqualTo(HttpStatus.NOT_FOUND);
         verify(edlRepository, never()).save(any());
+        verify(edlRepository, never()).saveAndFlush(any());
     }
 
     @Test
@@ -130,6 +154,7 @@ class EtatDesLieuxServiceImplTest {
 
         assertThat(ex.getStatus()).isEqualTo(HttpStatus.FORBIDDEN);
         verify(edlRepository, never()).save(any());
+        verify(edlRepository, never()).saveAndFlush(any());
         verify(edlPdfService, never()).genererEtUploaderPdf(any());
     }
 
@@ -148,6 +173,7 @@ class EtatDesLieuxServiceImplTest {
 
         assertThat(ex.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
         verify(edlRepository, never()).save(any());
+        verify(edlRepository, never()).saveAndFlush(any());
         verify(edlPdfService, never()).genererEtUploaderPdf(any());
     }
 
@@ -227,18 +253,18 @@ class EtatDesLieuxServiceImplTest {
     }
 
     @Test
-    @DisplayName("signerLocataire() — token introuvable → KupangaBusinessException 401")
+    @DisplayName("signerLocataire() — token introuvable → KupangaBusinessException 404 (B7)")
     void signerLocataire_tokenNotFound_throwsException() {
         when(edlRepository.findByTokenSignature("mauvais")).thenReturn(Optional.empty());
 
         KupangaBusinessException ex = assertThrows(KupangaBusinessException.class,
                 () -> edlService.signerLocataire("mauvais", "sig"));
 
-        assertThat(ex.getStatus()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 
     @Test
-    @DisplayName("signerLocataire() — token expiré → statut EXPIRE + KupangaBusinessException 401")
+    @DisplayName("signerLocataire() — token expiré → passage à EXPIRE + KupangaBusinessException 410 (B7)")
     void signerLocataire_expired_setsExpiredAndThrows() {
         edl.setTokenExpiration(LocalDateTime.now().minusMinutes(1));
 
@@ -248,14 +274,15 @@ class EtatDesLieuxServiceImplTest {
         KupangaBusinessException ex = assertThrows(KupangaBusinessException.class,
                 () -> edlService.signerLocataire("token-edl", "sig"));
 
-        assertThat(ex.getStatus()).isEqualTo(HttpStatus.UNAUTHORIZED);
-        assertThat(edl.getStatut()).isEqualTo(StatutEdl.EXPIRE);
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.GONE);
+        // EXPIRE enregistré dans sa propre transaction (sinon annulé avec le refus)
+        verify(edlRepository).marquerExpire(edl.getId(), edl.getVersion());
         verify(emailService, never()).envoyerConfirmationEdlSigne(any());
     }
 
     @Test
-    @DisplayName("signerLocataire() — statut != EN_ATTENTE_SIGNATURE_LOCATAIRE → KupangaBusinessException 400")
-    void signerLocataire_wrongStatut_throwsBadRequest() {
+    @DisplayName("signerLocataire() — statut != EN_ATTENTE_SIGNATURE_LOCATAIRE → 409, rien d'enregistré (B6)")
+    void signerLocataire_wrongStatut_throwsConflict() {
         edl.setStatut(StatutEdl.SIGNE);
 
         when(edlRepository.findByTokenSignature("token-edl")).thenReturn(Optional.of(edl));
@@ -263,7 +290,28 @@ class EtatDesLieuxServiceImplTest {
         KupangaBusinessException ex = assertThrows(KupangaBusinessException.class,
                 () -> edlService.signerLocataire("token-edl", "sig"));
 
-        assertThat(ex.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.CONFLICT);
+        assertThat(ex.getMessage()).doesNotContain("SIGNE");
+        verify(edlRepository, never()).save(any());
+        verify(edlRepository, never()).saveAndFlush(any());
+    }
+
+    @Test
+    @DisplayName("signerProprietaire() — EDL déjà SIGNE → 409, statut et signatures inchangés (B6)")
+    void signerProprietaire_dejaSigne_throwsConflict() {
+        edl.setStatut(StatutEdl.SIGNE);
+        edl.setSignatureProprietaire("sig-origine");
+        when(edlRepository.findWithAllRelations(1L)).thenReturn(Optional.of(edl));
+
+        KupangaBusinessException ex = assertThrows(KupangaBusinessException.class,
+                () -> edlService.signerProprietaire(1L, "sig-nouvelle", proprietaire.getMail()));
+
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.CONFLICT);
+        assertThat(edl.getStatut()).isEqualTo(StatutEdl.SIGNE);
+        assertThat(edl.getSignatureProprietaire()).isEqualTo("sig-origine");
+        verify(edlRepository, never()).save(any());
+        verify(edlRepository, never()).saveAndFlush(any());
+        verify(edlPdfService, never()).genererEtUploaderPdf(any());
     }
 
     // ══════════════════════════════════════════════════════════════
@@ -286,18 +334,18 @@ class EtatDesLieuxServiceImplTest {
     }
 
     @Test
-    @DisplayName("getEdlParToken() — token introuvable → KupangaBusinessException 401")
+    @DisplayName("getEdlParToken() — token introuvable → KupangaBusinessException 404 (B7)")
     void getEdlParToken_tokenNotFound_throwsException() {
         when(edlRepository.findByTokenSignature("inconnu")).thenReturn(Optional.empty());
 
         KupangaBusinessException ex = assertThrows(KupangaBusinessException.class,
                 () -> edlService.getEdlParToken("inconnu"));
 
-        assertThat(ex.getStatus()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 
     @Test
-    @DisplayName("getEdlParToken() — token expiré → statut EXPIRE + KupangaBusinessException 401")
+    @DisplayName("getEdlParToken() — token expiré → passage à EXPIRE + KupangaBusinessException 410 (B7)")
     void getEdlParToken_expired_setsExpiredAndThrows() {
         edl.setTokenExpiration(LocalDateTime.now().minusMinutes(5));
         edl.setStatut(StatutEdl.EN_ATTENTE_SIGNATURE_LOCATAIRE);
@@ -308,13 +356,14 @@ class EtatDesLieuxServiceImplTest {
         KupangaBusinessException ex = assertThrows(KupangaBusinessException.class,
                 () -> edlService.getEdlParToken("token-edl"));
 
-        assertThat(ex.getStatus()).isEqualTo(HttpStatus.UNAUTHORIZED);
-        assertThat(edl.getStatut()).isEqualTo(StatutEdl.EXPIRE);
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.GONE);
+        // EXPIRE enregistré dans sa propre transaction (sinon annulé avec le refus)
+        verify(edlRepository).marquerExpire(edl.getId(), edl.getVersion());
     }
 
     @Test
-    @DisplayName("getEdlParToken() — statut != EN_ATTENTE_SIGNATURE_LOCATAIRE → KupangaBusinessException 400")
-    void getEdlParToken_wrongStatut_throwsBadRequest() {
+    @DisplayName("getEdlParToken() — statut != EN_ATTENTE_SIGNATURE_LOCATAIRE → 409 (B7)")
+    void getEdlParToken_wrongStatut_throwsConflict() {
         edl.setStatut(StatutEdl.SIGNE);
 
         when(edlRepository.findByTokenSignature("token-edl")).thenReturn(Optional.of(edl));
@@ -322,7 +371,7 @@ class EtatDesLieuxServiceImplTest {
         KupangaBusinessException ex = assertThrows(KupangaBusinessException.class,
                 () -> edlService.getEdlParToken("token-edl"));
 
-        assertThat(ex.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.CONFLICT);
     }
 
     // ══════════════════════════════════════════════════════════════
@@ -336,5 +385,40 @@ class EtatDesLieuxServiceImplTest {
         dto.setType(TypeEtat.ENTREE);
         dto.setDateRealisation(LocalDate.now());
         return dto;
+    }
+
+    @Test
+    @DisplayName("B12 : creerEtatDesLieux() — bien archivé → 409, aucun document créé")
+    void creerEtatDesLieux_bienArchive_409() {
+        EtatDesLieuxFormDTO dto = buildValidEdlFormDTO();
+
+        when(userService.getUserByEmail(proprietaire.getMail())).thenReturn(proprietaire);
+        when(bienService.verifierProprietaire(1L, proprietaire.getMail())).thenReturn(bien);
+        doThrow(new KupangaBusinessException("Ce bien est archivé", HttpStatus.CONFLICT))
+                .when(bienService).verifierBienActif(bien);
+
+        KupangaBusinessException ex = assertThrows(KupangaBusinessException.class,
+                () -> edlService.creerEtatDesLieux(dto, proprietaire.getMail()));
+
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.CONFLICT);
+        verify(bienService, never()).verifierLocataireDuBien(any(), any());
+        verify(edlRepository, never()).save(any());
+        verify(edlRepository, never()).saveAndFlush(any());
+    }
+
+    @Test
+    @DisplayName("B12 : signerProprietaire() — bien archivé ou partie anonymisée → 409, ni PDF ni invitation")
+    void signerProprietaire_documentFige_409() {
+        when(edlRepository.findWithAllRelations(1L)).thenReturn(Optional.of(edl));
+        doThrow(new KupangaBusinessException("Ce bien est archivé", HttpStatus.CONFLICT))
+                .when(bienService).verifierDocumentModifiable(any(), any(), any());
+
+        KupangaBusinessException ex = assertThrows(KupangaBusinessException.class,
+                () -> edlService.signerProprietaire(1L, "sig-proprio", proprietaire.getMail()));
+
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.CONFLICT);
+        verify(edlPdfService, never()).genererEtUploaderPdf(any());
+        verify(emailService, never()).envoyerInvitationSignature(any(EtatDesLieux.class), anyString());
+        verifyNoInteractions(notificationService);
     }
 }

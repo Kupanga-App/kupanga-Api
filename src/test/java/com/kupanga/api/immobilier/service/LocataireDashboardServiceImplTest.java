@@ -1,5 +1,6 @@
 package com.kupanga.api.immobilier.service;
 
+import com.kupanga.api.juridiction.Pays;
 import com.kupanga.api.exception.business.KupangaBusinessException;
 import com.kupanga.api.immobilier.dto.readDTO.EtatDesLieuxDTO;
 import com.kupanga.api.immobilier.dto.readDTO.LocataireDashboardDTO;
@@ -35,6 +36,7 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import java.math.BigDecimal;
 
 @DisplayName("Tests unitaires — LocataireDashboardServiceImpl")
 class LocataireDashboardServiceImplTest {
@@ -81,7 +83,7 @@ class LocataireDashboardServiceImplTest {
                 .adresse("12 rue des Tests")
                 .ville("Nantes")
                 .codePostal("44000")
-                .pays("France")
+                .pays(Pays.FR)
                 .surfaceHabitable(65.0)
                 .nombrePieces(3)
                 .typeBien(TypeBien.APPARTEMENT)
@@ -99,23 +101,23 @@ class LocataireDashboardServiceImplTest {
                 .dateDebut(LocalDate.of(2023, 9, 1))
                 .dateFin(LocalDate.of(2024, 8, 31))
                 .dureeBailMois(12)
-                .loyerMensuel(850.0)
-                .chargesMensuelles(80.0)
-                .depotGarantie(1700.0)
+                .loyerMensuel(new BigDecimal("850.0"))
+                .chargesMensuelles(new BigDecimal("80.0"))
+                .depotGarantie(new BigDecimal("1700.0"))
                 .build();
 
         quittance = Quittance.builder()
                 .id(200L)
                 .mois("Mars")
                 .annee(2024)
-                .loyerMensuel(850.0)
-                .chargesMensuelles(80.0)
-                .montantTotal(930.0)
+                .loyerMensuel(new BigDecimal("850.0"))
+                .chargesMensuelles(new BigDecimal("80.0"))
+                .montantTotal(new BigDecimal("930.0"))
                 .statut(StatutQuittance.PAYEE)
                 .createdAt(LocalDateTime.of(2024, 3, 1, 0, 0))
                 .build();
 
-        edl = EtatDesLieux.builder()
+        edl = EtatDesLieux.builder().pays(Pays.FR).modeleVersion("fr-v1")
                 .id(300L)
                 .type(TypeEtat.ENTREE)
                 .statut(StatutEdl.SIGNE)
@@ -178,9 +180,9 @@ class LocataireDashboardServiceImplTest {
         assertThat(result.getContrat()).isNotNull();
         assertThat(result.getContrat().getId()).isEqualTo(100L);
         assertThat(result.getContrat().getType()).isEqualTo("MEUBLE");
-        assertThat(result.getContrat().getLoyerMensuel()).isEqualTo(850.0);
-        assertThat(result.getContrat().getCharges()).isEqualTo(80.0);
-        assertThat(result.getContrat().getDepotGarantie()).isEqualTo(1700.0);
+        assertThat(result.getContrat().getLoyerMensuel()).isEqualByComparingTo("850.0");
+        assertThat(result.getContrat().getCharges()).isEqualByComparingTo("80.0");
+        assertThat(result.getContrat().getDepotGarantie()).isEqualByComparingTo("1700.0");
         assertThat(result.getContrat().getStatut()).isEqualTo(StatutContrat.SIGNE);
         assertThat(result.getContrat().getDureeTotale()).isEqualTo(12);
         assertThat(result.getContrat().getMoisEcoules()).isGreaterThanOrEqualTo(0);
@@ -252,9 +254,9 @@ class LocataireDashboardServiceImplTest {
                 .locataire(locataire)
                 .dateDebut(dateDebut)
                 .dureeBailMois(12)
-                .loyerMensuel(850.0)
-                .chargesMensuelles(80.0)
-                .depotGarantie(1700.0)
+                .loyerMensuel(new BigDecimal("850.0"))
+                .chargesMensuelles(new BigDecimal("80.0"))
+                .depotGarantie(new BigDecimal("1700.0"))
                 .build();
 
         stubDependencies(List.of(contratActif), List.of(), List.of());

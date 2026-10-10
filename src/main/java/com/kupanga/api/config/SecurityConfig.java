@@ -104,10 +104,13 @@ public class SecurityConfig {
                         // Authentification
                         .requestMatchers(HttpMethod.POST,
                                 "/auth/login", "/auth/register", "/auth/google", "/auth/refresh",
-                                "/auth/forgot-password", "/auth/reset-password", "/auth/logout").permitAll()
+                                "/auth/forgot-password", "/auth/reset-password", "/auth/logout",
+                                "/auth/verifier-email", "/auth/renvoyer-verification").permitAll()
                         // Consultation publique des biens
                         .requestMatchers(HttpMethod.GET, "/biens/*").permitAll()
                         .requestMatchers(HttpMethod.POST, "/biens/search").permitAll()
+                        // J6 : configuration du formulaire de bien par pays (lecture seule, sans donnée personnelle)
+                        .requestMatchers(HttpMethod.GET, "/juridictions", "/juridictions/*").permitAll()
                         // Signature par le locataire via le lien reçu par e-mail (le token sert d'autorisation)
                         .requestMatchers("/contrats/signer/*", "/etats-des-lieux/signer/*").permitAll()
                         // WebSocket : l'authentification se fait sur la trame STOMP CONNECT (JwtChannelInterceptor)

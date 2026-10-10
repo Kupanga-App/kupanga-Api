@@ -1,12 +1,22 @@
 package com.kupanga.api.backoffice.service;
 
 import com.kupanga.api.authentification.entity.RefreshToken;
+import com.kupanga.api.authentification.repository.JetonVerificationEmailRepository;
 import com.kupanga.api.authentification.repository.PasswordResetTokenRepository;
 import com.kupanga.api.authentification.repository.RefreshTokenRepository;
 import com.kupanga.api.notification.repository.NotificationRepository;
 import com.kupanga.api.backoffice.dto.UserAdminPageDTO;
 import com.kupanga.api.backoffice.dto.UserAdminSearchDTO;
 import com.kupanga.api.backoffice.specification.UserAdminSpecification;
+import com.kupanga.api.chat.repository.ConversationRepository;
+import com.kupanga.api.chat.repository.MessageRepository;
+import com.kupanga.api.immobilier.repository.BienRepository;
+import com.kupanga.api.immobilier.repository.ContratRepository;
+import com.kupanga.api.immobilier.repository.EtatDesLieuxRepository;
+import com.kupanga.api.immobilier.entity.StatutContrat;
+import com.kupanga.api.immobilier.entity.StatutEdl;
+import com.kupanga.api.immobilier.repository.QuittanceRepository;
+import com.kupanga.api.minio.service.MinioService;
 import com.kupanga.api.user.entity.Role;
 import com.kupanga.api.user.entity.User;
 import com.kupanga.api.user.repository.UserRepository;
@@ -34,6 +44,14 @@ class UserAdminServiceTest {
     @Mock private RefreshTokenRepository        refreshTokenRepository;
     @Mock private PasswordResetTokenRepository  passwordResetTokenRepository;
     @Mock private NotificationRepository        notificationRepository;
+    @Mock private JetonVerificationEmailRepository jetonVerificationEmailRepository;
+    @Mock private BienRepository                bienRepository;
+    @Mock private ContratRepository             contratRepository;
+    @Mock private QuittanceRepository           quittanceRepository;
+    @Mock private EtatDesLieuxRepository        etatDesLieuxRepository;
+    @Mock private MessageRepository             messageRepository;
+    @Mock private ConversationRepository        conversationRepository;
+    @Mock private MinioService                  minioService;
 
     @InjectMocks
     private UserAdminService userAdminService;
@@ -62,30 +80,111 @@ class UserAdminServiceTest {
     }
 
     @Test
-    @DisplayName("supprimer() — supprime refresh token, password reset token puis l'utilisateur")
-    void supprimer_withTokens_deletesTokensThenUser() {
+    @DisplayName("B12 : supprimer() — sans donnée liée → jetons, notifications, messages, conversations puis compte supprimés")
+    void supprimer_sansDonneesLiees_supprime() {
         RefreshToken refreshToken = mock(RefreshToken.class);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
         when(refreshTokenRepository.findByUserId(1L)).thenReturn(refreshToken);
-        when(passwordResetTokenRepository.findByUser_Id(1L)).thenReturn(Optional.of(mock(com.kupanga.api.authentification.entity.PasswordResetToken.class)));
 
-        userAdminService.supprimer(1L);
+        assertThat(userAdminService.supprimer(1L)).isEqualTo(ResultatSuppressionCompte.SUPPRIME);
 
-        InOrder order = inOrder(refreshTokenRepository, passwordResetTokenRepository, userRepository);
+        InOrder order = inOrder(refreshTokenRepository, passwordResetTokenRepository, notificationRepository,
+                messageRepository, conversationRepository, userRepository);
         order.verify(refreshTokenRepository).delete(refreshToken);
-        order.verify(passwordResetTokenRepository).findByUser_Id(1L);
+        order.verify(passwordResetTokenRepository).deleteByUserId(1L);
+        order.verify(notificationRepository).deleteByDestinataireId(1L);
+        order.verify(messageRepository).supprimerParUtilisateur(1L);
+        order.verify(conversationRepository).supprimerParEmail("alice@test.com");
         order.verify(userRepository).deleteById(1L);
+        verify(jetonVerificationEmailRepository).deleteByUserId(1L);
+        verify(bienRepository, never()).archiverParProprietaire(anyLong(), any());
+        verifyNoInteractions(minioService);
     }
 
     @Test
-    @DisplayName("supprimer() — sans refresh token → suppression directe de l'utilisateur")
-    void supprimer_noRefreshToken_deletesUserDirectly() {
-        when(refreshTokenRepository.findByUserId(1L)).thenReturn(null);
-        when(passwordResetTokenRepository.findByUser_Id(1L)).thenReturn(Optional.empty());
+    @DisplayName("B12 : supprimer() — photo de profil supprimée de MinIO, sauf si un autre compte l'utilise")
+    void supprimer_photoDeProfil() {
+        user.setUrlProfile("http://minio/bucket-photo-profil/a.jpg");
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
 
         userAdminService.supprimer(1L);
+        verify(minioService).supprimerParUrl("http://minio/bucket-photo-profil/a.jpg", "bucket-photo-profil");
 
-        verify(refreshTokenRepository, never()).delete(any(RefreshToken.class));
-        verify(userRepository).deleteById(1L);
+        User autre = User.builder().id(2L).mail("bob@test.com").urlProfile("http://minio/bucket-photo-profil/b.jpg").build();
+        when(userRepository.findById(2L)).thenReturn(Optional.of(autre));
+        when(userRepository.existsByUrlProfileAndIdNot("http://minio/bucket-photo-profil/b.jpg", 2L)).thenReturn(true);
+
+        userAdminService.supprimer(2L);
+        verify(minioService, never()).supprimerParUrl(eq("http://minio/bucket-photo-profil/b.jpg"), anyString());
+    }
+
+    @Test
+    @DisplayName("B12 : supprimer() — avec un bail → compte anonymisé, jamais supprimé ; biens archivés, documents conservés")
+    void supprimer_avecDonneesLiees_anonymise() {
+        user.setFirstName("Alice");
+        user.setLastName("Martin");
+        user.setPassword("hash-bcrypt");
+        user.setGoogleId("google-123");
+        user.setUrlProfile("http://minio/photo.jpg");
+        user.setEmailVerifie(true);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(contratRepository.existsByProprietaire_IdOrLocataire_Id(1L, 1L)).thenReturn(true);
+
+        assertThat(userAdminService.supprimer(1L)).isEqualTo(ResultatSuppressionCompte.ANONYMISE);
+
+        verify(userRepository, never()).deleteById(any());
+        verify(userRepository, never()).delete(any(User.class));
+        verify(messageRepository, never()).supprimerParUtilisateur(anyLong());
+        verify(conversationRepository, never()).supprimerParEmail(anyString());
+        verify(bienRepository).archiverParProprietaire(eq(1L), any());
+        verify(bienRepository).retirerLocataire(1L);
+        ArgumentCaptor<String> mailAnonyme = ArgumentCaptor.forClass(String.class);
+        verify(conversationRepository).remplacerEmail(eq("alice@test.com"), mailAnonyme.capture());
+        verify(contratRepository).expirerNonSignesDeUtilisateur(1L, StatutContrat.SIGNE, StatutContrat.EXPIRE);
+        verify(etatDesLieuxRepository).expirerNonSignesDeUtilisateur(1L, StatutEdl.SIGNE, StatutEdl.EXPIRE);
+        verify(minioService).supprimerParUrl("http://minio/photo.jpg", "bucket-photo-profil");
+        verify(notificationRepository).deleteByDestinataireId(1L);
+        verify(passwordResetTokenRepository).deleteByUserId(1L);
+        verify(userRepository).save(user);
+
+        assertThat(user.isAnonymise()).isTrue();
+        assertThat(user.getDateAnonymisation()).isNotNull();
+        // Partie locale aléatoire : un tiers ne peut pas inscrire l'adresse à l'avance
+        assertThat(user.getMail()).isEqualTo(mailAnonyme.getValue())
+                .matches("supprime-[0-9a-f-]{36}@anonyme\\.invalid");
+        assertThat(user.getFirstName()).isEqualTo("Utilisateur");
+        assertThat(user.getLastName()).isEqualTo("supprimé");
+        assertThat(user.getPassword()).isNull();
+        assertThat(user.getGoogleId()).isNull();
+        assertThat(user.getUrlProfile()).isNull();
+        assertThat(user.isEmailVerifie()).isFalse();
+    }
+
+    @Test
+    @DisplayName("B12 : supprimer() — propriétaire d'un bien sans document → anonymisé aussi (le bien est archivé)")
+    void supprimer_proprietaireSansDocument_anonymise() {
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(bienRepository.existsByProprietaire_IdOrLocataire_Id(1L, 1L)).thenReturn(true);
+
+        assertThat(userAdminService.supprimer(1L)).isEqualTo(ResultatSuppressionCompte.ANONYMISE);
+
+        verify(bienRepository).archiverParProprietaire(eq(1L), any());
+        verify(userRepository, never()).deleteById(any());
+    }
+
+    @Test
+    @DisplayName("B12 : supprimer() — compte déjà anonymisé ou introuvable → rien n'est modifié")
+    void supprimer_dejaAnonymiseOuIntrouvable_rienNeChange() {
+        user.setAnonymise(true);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(userRepository.findById(2L)).thenReturn(Optional.empty());
+
+        assertThat(userAdminService.supprimer(1L)).isEqualTo(ResultatSuppressionCompte.DEJA_ANONYMISE);
+        assertThat(userAdminService.supprimer(2L)).isEqualTo(ResultatSuppressionCompte.INTROUVABLE);
+
+        verify(userRepository, never()).deleteById(any());
+        verify(userRepository, never()).save(any());
+        verifyNoInteractions(notificationRepository, messageRepository, conversationRepository, bienRepository);
     }
 
     @Test

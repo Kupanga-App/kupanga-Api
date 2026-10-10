@@ -27,6 +27,8 @@ app:
     allowed-origins: http://localhost:4200
   rate-limit:
     stockage: memoire   # pas de Redis en test / CI
+  juridictions:
+    verifier-biens-au-demarrage: false   # base partagée sans Flyway (JuridictionConfig)
   reset-link: http://localhost:4200/auth/reset-password?token=
   url-login: http://localhost:4200/auth/login
   url-mino: http://localhost:9000

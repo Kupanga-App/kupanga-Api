@@ -31,12 +31,13 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import com.kupanga.api.config.SecurityConfig;
+import com.kupanga.api.authentification.service.VerificationEmailService;
 import org.springframework.context.annotation.Import;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static com.kupanga.api.authentification.constant.AuthConstant.MAIL_REINITIALISATION_ENVOYE;
+import static com.kupanga.api.authentification.constant.AuthConstant.*;
 import static com.kupanga.api.authentification.constant.AuthConstant.TOKEN_REINITIALISATION_INVALIDE;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -67,6 +68,9 @@ class AuthControllerWebMvcTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @MockBean
+    private VerificationEmailService verificationEmailService;
 
     @MockBean
     private AuthService authService;
@@ -113,19 +117,15 @@ class AuthControllerWebMvcTest {
                 "fake-image-content".getBytes()
         );
 
-        AuthResponseDTO responseDTO = AuthResponseDTO.builder()
-                .accessToken("token123")
-                .requiresRoleSelection(false)
-                .build();
+        when(authService.createAndCompleteUserProfil(any(), any()))
+                .thenReturn(COMPTE_CREE_VERIFIER_EMAIL);
 
-        when(authService.createAndCompleteUserProfil(any(), any(), any()))
-                .thenReturn(responseDTO);
-
+        // A14 : 201 + message, plus de jeton (connexion après confirmation de l'e-mail)
         mockMvc.perform(multipart("/auth/register")
                         .file(userFormPart)
                         .file(imagePart))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.accessToken").value("token123"));
+                .andExpect(status().isCreated())
+                .andExpect(content().string(COMPTE_CREE_VERIFIER_EMAIL));
     }
 
     @Test
@@ -155,7 +155,7 @@ class AuthControllerWebMvcTest {
                     .andExpect(status().isBadRequest());
         }
 
-        verify(authService, never()).createAndCompleteUserProfil(any(), any(), any());
+        verify(authService, never()).createAndCompleteUserProfil(any(), any());
     }
 
     @Test
@@ -176,7 +176,7 @@ class AuthControllerWebMvcTest {
         mockMvc.perform(multipart("/auth/register").file(userFormPart))
                 .andExpect(status().isBadRequest());
 
-        verify(authService, never()).createAndCompleteUserProfil(any(), any(), any());
+        verify(authService, never()).createAndCompleteUserProfil(any(), any());
     }
 
     @Test
@@ -198,18 +198,13 @@ class AuthControllerWebMvcTest {
                 objectMapper.writeValueAsBytes(userFormDTO)
         );
 
-        AuthResponseDTO responseDTO = AuthResponseDTO.builder()
-                .accessToken("token123")
-                .requiresRoleSelection(false)
-                .build();
-
-        when(authService.createAndCompleteUserProfil(any(), isNull(), any()))
-                .thenReturn(responseDTO);
+        when(authService.createAndCompleteUserProfil(any(), isNull()))
+                .thenReturn(COMPTE_CREE_VERIFIER_EMAIL);
 
         mockMvc.perform(multipart("/auth/register")
                         .file(userFormPart))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.accessToken").value("token123"));
+                .andExpect(status().isCreated())
+                .andExpect(content().string(COMPTE_CREE_VERIFIER_EMAIL));
     }
 
     @Test
@@ -264,7 +259,7 @@ class AuthControllerWebMvcTest {
     }
 
     @Test
-    @DisplayName("Routes limitées : login (IP, e-mail+IP, e-mail), forgot-password (IP, e-mail), register (IP), google (IP) (A3)")
+    @DisplayName("Routes limitées : login (IP, e-mail+IP, e-mail), forgot-password (IP, e-mail), register (IP, e-mail), google (IP) (A3)")
     void routesAuth_appellentLeLimiteur() throws Exception {
         mockMvc.perform(post("/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -287,6 +282,7 @@ class AuthControllerWebMvcTest {
         verify(limiteurTentatives).verifierEmail(LimiteTentatives.FORGOT_PASSWORD_PAR_EMAIL, "alice@test.com");
         verify(limiteurTentatives).verifierIp(eq(LimiteTentatives.GOOGLE_PAR_IP), any());
         verify(limiteurTentatives).verifierIp(eq(LimiteTentatives.REGISTER_PAR_IP), any());
+        verify(limiteurTentatives).verifierEmail(LimiteTentatives.REGISTER_PAR_EMAIL, "alice@test.com");
     }
 
     // =============================
@@ -625,4 +621,43 @@ class AuthControllerWebMvcTest {
                 .andExpect(status().isBadRequest());
     }
 
+
+    // ─── A14 : confirmation de l'adresse e-mail ─────────────────────────────
+
+    @Test
+    @DisplayName("POST /auth/verifier-email — route publique, jeton dans le corps : 200")
+    void verifierEmail_ok() throws Exception {
+        when(verificationEmailService.verifier("jeton-123")).thenReturn(EMAIL_VERIFIE);
+
+        mockMvc.perform(post("/auth/verifier-email")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"token\": \"jeton-123\"}"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(EMAIL_VERIFIE));
+    }
+
+    @Test
+    @DisplayName("POST /auth/verifier-email — jeton vide ou trop long : 400, aucune vérification")
+    void verifierEmail_jetonInvalide_400() throws Exception {
+        for (String corps : new String[] {"{}", "{\"token\": \"\"}", "{\"token\": \"" + "a".repeat(65) + "\"}"}) {
+            mockMvc.perform(post("/auth/verifier-email").contentType(MediaType.APPLICATION_JSON).content(corps))
+                    .andExpect(status().isBadRequest());
+        }
+        verifyNoInteractions(verificationEmailService);
+    }
+
+    @Test
+    @DisplayName("POST /auth/renvoyer-verification — route publique limitée (A3) par IP puis par e-mail : 200 générique")
+    void renvoyerVerification_limiteEtReponseGenerique() throws Exception {
+        when(verificationEmailService.renvoyer("alice@test.com")).thenReturn(LIEN_VERIFICATION_ENVOYE);
+
+        mockMvc.perform(post("/auth/renvoyer-verification")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\": \"alice@test.com\"}"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(LIEN_VERIFICATION_ENVOYE));
+
+        verify(limiteurTentatives).verifierIp(eq(LimiteTentatives.RENVOI_VERIFICATION_PAR_IP), any());
+        verify(limiteurTentatives).verifierEmail(LimiteTentatives.RENVOI_VERIFICATION_PAR_EMAIL, "alice@test.com");
+    }
 }

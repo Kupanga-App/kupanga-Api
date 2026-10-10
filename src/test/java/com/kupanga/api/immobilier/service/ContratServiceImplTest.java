@@ -1,5 +1,9 @@
 package com.kupanga.api.immobilier.service;
 
+import com.kupanga.api.juridiction.Devise;
+import com.kupanga.api.juridiction.JuridictionRegistry;
+import com.kupanga.api.juridiction.JuridictionsDeTest;
+import com.kupanga.api.juridiction.Pays;
 import com.kupanga.api.email.service.EmailService;
 import com.kupanga.api.exception.business.KupangaBusinessException;
 import com.kupanga.api.immobilier.dto.formDTO.ContratFormDTO;
@@ -18,6 +22,9 @@ import com.kupanga.api.user.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.*;
 import org.springframework.http.HttpStatus;
 
@@ -28,6 +35,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import java.math.BigDecimal;
 
 @DisplayName("Tests unitaires — ContratServiceImpl")
 class ContratServiceImplTest {
@@ -39,6 +47,8 @@ class ContratServiceImplTest {
     @Mock private BienService         bienService;
     @Mock private ContratMapper       contratMapper;
     @Mock private NotificationService notificationService;
+    /** J3 : vrai registre (profils et plafonds de application.yml). */
+    @Spy  private JuridictionRegistry juridictionRegistry = JuridictionsDeTest.registre();
 
     @InjectMocks
     private ContratServiceImpl contratService;
@@ -62,7 +72,7 @@ class ContratServiceImplTest {
                 .mail("locataire@test.com")
                 .build();
 
-        bien = Bien.builder()
+        bien = Bien.builder().pays(Pays.FR).devise(Devise.EUR)
                 .id(1L)
                 .adresse("12 rue des Tests")
                 .ville("Nantes")
@@ -73,9 +83,9 @@ class ContratServiceImplTest {
                 .bien(bien)
                 .proprietaire(proprietaire)
                 .locataire(locataire)
-                .loyerMensuel(850.0)
-                .chargesMensuelles(50.0)
-                .depotGarantie(1700.0)
+                .loyerMensuel(new BigDecimal("850.0"))
+                .chargesMensuelles(new BigDecimal("50.0"))
+                .depotGarantie(new BigDecimal("1700.0"))
                 .statut(StatutContrat.EN_ATTENTE_SIGNATURE_PROPRIO)
                 .tokenSignature("token-valide")
                 .tokenExpiration(LocalDateTime.now().plusHours(48))
@@ -104,6 +114,47 @@ class ContratServiceImplTest {
     }
 
     @Test
+    @DisplayName("J3 : creerContrat() — pays, devise et version du modèle du bien figés sur le bail")
+    void creerContrat_figeJuridiction() {
+        bien.setPays(Pays.CD);
+        bien.setDevise(Devise.CDF);
+        ContratFormDTO dto = buildValidContratFormDTO();
+        dto.setLoyerMensuel(new BigDecimal("250000"));
+
+        when(userService.getUserByEmail(proprietaire.getMail())).thenReturn(proprietaire);
+        when(bienService.verifierProprietaire(1L, proprietaire.getMail())).thenReturn(bien);
+        when(bienService.verifierLocataireDuBien(bien, locataire.getMail())).thenReturn(locataire);
+        when(contratPdfService.genererEtUploaderPdf(any(Contrat.class))).thenReturn("contrat.pdf");
+
+        contratService.creerContrat(dto, proprietaire.getMail());
+
+        ArgumentCaptor<Contrat> captor = ArgumentCaptor.forClass(Contrat.class);
+        verify(contratRepository).save(captor.capture());
+        assertThat(captor.getValue().getPays()).isEqualTo(Pays.CD);
+        assertThat(captor.getValue().getDevise()).isEqualTo(Devise.CDF);
+        assertThat(captor.getValue().getModeleVersion()).isEqualTo("cd-v1");
+        assertThat(captor.getValue().getLoyerMensuel()).isEqualByComparingTo("250000");
+    }
+
+    @Test
+    @DisplayName("C5 : creerContrat() — loyer au-dessus du plafond de la devise du bien → 400, ni PDF ni contrat")
+    void creerContrat_plafondDepasse_400() {
+        ContratFormDTO dto = buildValidContratFormDTO();
+        dto.setLoyerMensuel(new BigDecimal("100000.01"));
+
+        when(userService.getUserByEmail(proprietaire.getMail())).thenReturn(proprietaire);
+        when(bienService.verifierProprietaire(1L, proprietaire.getMail())).thenReturn(bien);
+        when(bienService.verifierLocataireDuBien(bien, locataire.getMail())).thenReturn(locataire);
+
+        KupangaBusinessException ex = assertThrows(KupangaBusinessException.class,
+                () -> contratService.creerContrat(dto, proprietaire.getMail()));
+
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
+        verifyNoInteractions(contratPdfService);
+        verify(contratRepository, never()).save(any());
+    }
+
+    @Test
     @DisplayName("creerContrat() — bien introuvable → KupangaBusinessException 404")
     void creerContrat_bienNotFound_throwsException() {
         ContratFormDTO dto = buildValidContratFormDTO();
@@ -117,6 +168,7 @@ class ContratServiceImplTest {
 
         assertThat(ex.getStatus()).isEqualTo(HttpStatus.NOT_FOUND);
         verify(contratRepository, never()).save(any());
+        verify(contratRepository, never()).saveAndFlush(any());
     }
 
     @Test
@@ -134,6 +186,7 @@ class ContratServiceImplTest {
         assertThat(ex.getStatus()).isEqualTo(HttpStatus.FORBIDDEN);
         verify(contratPdfService, never()).genererEtUploaderPdf(any());
         verify(contratRepository, never()).save(any());
+        verify(contratRepository, never()).saveAndFlush(any());
     }
 
     @Test
@@ -151,6 +204,7 @@ class ContratServiceImplTest {
 
         assertThat(ex.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
         verify(contratRepository, never()).save(any());
+        verify(contratRepository, never()).saveAndFlush(any());
     }
 
     // ══════════════════════════════════════════════════════════════
@@ -173,18 +227,18 @@ class ContratServiceImplTest {
     }
 
     @Test
-    @DisplayName("getContratParToken() — token introuvable → KupangaBusinessException 401")
+    @DisplayName("getContratParToken() — token introuvable → KupangaBusinessException 404 (B7)")
     void getContratParToken_tokenNotFound_throwsException() {
         when(contratRepository.findByTokenSignature("mauvais-token")).thenReturn(Optional.empty());
 
         KupangaBusinessException ex = assertThrows(KupangaBusinessException.class,
                 () -> contratService.getContratParToken("mauvais-token"));
 
-        assertThat(ex.getStatus()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 
     @Test
-    @DisplayName("getContratParToken() — token expiré → statut mis à EXPIRE + KupangaBusinessException 401")
+    @DisplayName("getContratParToken() — token expiré → passage à EXPIRE + KupangaBusinessException 410 (B7)")
     void getContratParToken_expired_setsExpiredAndThrows() {
         contrat.setTokenExpiration(LocalDateTime.now().minusMinutes(1));
         contrat.setStatut(StatutContrat.EN_ATTENTE_SIGNATURE_LOCATAIRE);
@@ -195,9 +249,10 @@ class ContratServiceImplTest {
         KupangaBusinessException ex = assertThrows(KupangaBusinessException.class,
                 () -> contratService.getContratParToken("token-valide"));
 
-        assertThat(ex.getStatus()).isEqualTo(HttpStatus.UNAUTHORIZED);
-        assertThat(contrat.getStatut()).isEqualTo(StatutContrat.EXPIRE);
-        verify(contratRepository).save(contrat);
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.GONE);
+        // EXPIRE enregistré dans sa propre transaction (sinon annulé avec le refus)
+        verify(contratRepository).marquerExpire(contrat.getId(), contrat.getVersion());
+        verify(contratRepository, never()).save(any());
     }
 
     @Test
@@ -260,9 +315,79 @@ class ContratServiceImplTest {
         verify(emailService, never()).envoyerInvitationSignature(any(Contrat.class), any());
     }
 
+    @ParameterizedTest(name = "{0}")
+    @EnumSource(value = StatutContrat.class, names = {"SIGNE", "ANNULE"})
+    @DisplayName("signerProprietaire() — contrat signé ou annulé → 409, rien de modifié (B6)")
+    void signerProprietaire_contratFige_throwsConflict(StatutContrat statut) {
+        contrat.setStatut(statut);
+        contrat.setSignatureProprietaire("sig-origine");
+        when(contratRepository.findById(1L)).thenReturn(Optional.of(contrat));
+
+        KupangaBusinessException ex = assertThrows(KupangaBusinessException.class,
+                () -> contratService.signerProprietaire(1L, "sig-nouvelle", proprietaire.getMail()));
+
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.CONFLICT);
+        assertThat(contrat.getStatut()).isEqualTo(statut);
+        assertThat(contrat.getSignatureProprietaire()).isEqualTo("sig-origine");
+        assertThat(contrat.getTokenSignature()).isEqualTo("token-valide"); // lien en cours non remplacé
+        verify(contratRepository, never()).save(any());
+        verify(contratRepository, never()).saveAndFlush(any());
+        verify(emailService, never()).envoyerInvitationSignature(any(Contrat.class), any());
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @EnumSource(value = StatutContrat.class, names = {"EN_ATTENTE_SIGNATURE_LOCATAIRE", "EXPIRE"})
+    @DisplayName("signerProprietaire() — en attente du locataire ou expiré → nouvelle invitation (B6)")
+    void signerProprietaire_relance_autorisee(StatutContrat statut) {
+        contrat.setStatut(statut);
+        when(contratRepository.findById(1L)).thenReturn(Optional.of(contrat));
+        when(contratPdfService.genererEtUploaderPdf(contrat)).thenReturn("cle.pdf");
+
+        contratService.signerProprietaire(1L, "sig-base64", proprietaire.getMail());
+
+        assertThat(contrat.getStatut()).isEqualTo(StatutContrat.EN_ATTENTE_SIGNATURE_LOCATAIRE);
+        verify(emailService).envoyerInvitationSignature(any(Contrat.class), anyString());
+    }
+
     // ══════════════════════════════════════════════════════════════
     // signerLocataire
     // ══════════════════════════════════════════════════════════════
+
+    @Test
+    @DisplayName("signerLocataire() — contrat modifié en parallèle (verrou optimiste) → conflit, ni e-mail ni notification (B6)")
+    void signerLocataire_conflitDeVersion_aucunEnvoi() {
+        contrat.setStatut(StatutContrat.EN_ATTENTE_SIGNATURE_LOCATAIRE);
+        when(contratRepository.findByTokenSignature("token-valide")).thenReturn(Optional.of(contrat));
+        when(contratPdfService.genererEtUploaderPdf(contrat)).thenReturn("cle.pdf");
+        when(contratRepository.saveAndFlush(contrat))
+                .thenThrow(new ObjectOptimisticLockingFailureException(Contrat.class, 1L));
+
+        assertThrows(ObjectOptimisticLockingFailureException.class,
+                () -> contratService.signerLocataire("token-valide", "sig"));
+
+        verify(emailService, never()).envoyerConfirmationContratSigne(any());
+        verifyNoInteractions(notificationService);
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @EnumSource(value = StatutContrat.class, names = {"EN_ATTENTE_SIGNATURE_PROPRIO", "SIGNE", "ANNULE", "BROUILLON"})
+    @DisplayName("signerLocataire() — contrat pas en attente du locataire → 409, rien d'enregistré (B6)")
+    void signerLocataire_wrongStatut_throwsConflict(StatutContrat statut) {
+        contrat.setStatut(statut);
+        contrat.setTokenSignature("token-valide");
+        contrat.setTokenExpiration(LocalDateTime.now().plusHours(1));
+        when(contratRepository.findByTokenSignature("token-valide")).thenReturn(Optional.of(contrat));
+
+        KupangaBusinessException ex = assertThrows(KupangaBusinessException.class,
+                () -> contratService.signerLocataire("token-valide", "sig"));
+
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.CONFLICT);
+        assertThat(contrat.getStatut()).isEqualTo(statut);
+        assertThat(contrat.getSignatureLocataire()).isNull();
+        verify(contratRepository, never()).save(any());
+        verify(contratRepository, never()).saveAndFlush(any());
+        verify(emailService, never()).envoyerConfirmationContratSigne(any());
+    }
 
     @Test
     @DisplayName("signerLocataire() — succès : contrat signé, PDF final, confirmation email")
@@ -287,18 +412,18 @@ class ContratServiceImplTest {
     }
 
     @Test
-    @DisplayName("signerLocataire() — token introuvable → KupangaBusinessException 401")
+    @DisplayName("signerLocataire() — token introuvable → KupangaBusinessException 404 (B7)")
     void signerLocataire_tokenNotFound_throwsException() {
         when(contratRepository.findByTokenSignature("mauvais")).thenReturn(Optional.empty());
 
         KupangaBusinessException ex = assertThrows(KupangaBusinessException.class,
                 () -> contratService.signerLocataire("mauvais", "sig"));
 
-        assertThat(ex.getStatus()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 
     @Test
-    @DisplayName("signerLocataire() — token expiré → statut EXPIRE + KupangaBusinessException 401")
+    @DisplayName("signerLocataire() — token expiré → passage à EXPIRE + KupangaBusinessException 410 (B7)")
     void signerLocataire_expired_setsExpiredAndThrows() {
         contrat.setTokenExpiration(LocalDateTime.now().minusSeconds(1));
 
@@ -308,8 +433,9 @@ class ContratServiceImplTest {
         KupangaBusinessException ex = assertThrows(KupangaBusinessException.class,
                 () -> contratService.signerLocataire("token-valide", "sig"));
 
-        assertThat(ex.getStatus()).isEqualTo(HttpStatus.UNAUTHORIZED);
-        assertThat(contrat.getStatut()).isEqualTo(StatutContrat.EXPIRE);
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.GONE);
+        // EXPIRE enregistré dans sa propre transaction (sinon annulé avec le refus)
+        verify(contratRepository).marquerExpire(contrat.getId(), contrat.getVersion());
         verify(emailService, never()).envoyerConfirmationContratSigne(any());
     }
 
@@ -324,9 +450,62 @@ class ContratServiceImplTest {
                 .dateDebut(LocalDate.now().plusDays(1))
                 .dateFin(LocalDate.now().plusMonths(12))
                 .dureeBailMois(12)
-                .loyerMensuel(850.0)
-                .chargesMensuelles(50.0)
-                .depotGarantie(1700.0)
+                .loyerMensuel(new BigDecimal("850.0"))
+                .chargesMensuelles(new BigDecimal("50.0"))
+                .depotGarantie(new BigDecimal("1700.0"))
                 .build();
+    }
+
+    @Test
+    @DisplayName("B12 : creerContrat() — bien archivé → 409, aucun document créé")
+    void creerContrat_bienArchive_409() {
+        ContratFormDTO dto = buildValidContratFormDTO();
+
+        when(userService.getUserByEmail(proprietaire.getMail())).thenReturn(proprietaire);
+        when(bienService.verifierProprietaire(1L, proprietaire.getMail())).thenReturn(bien);
+        doThrow(new KupangaBusinessException("Ce bien est archivé", HttpStatus.CONFLICT))
+                .when(bienService).verifierBienActif(bien);
+
+        KupangaBusinessException ex = assertThrows(KupangaBusinessException.class,
+                () -> contratService.creerContrat(dto, proprietaire.getMail()));
+
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.CONFLICT);
+        verify(bienService, never()).verifierLocataireDuBien(any(), any());
+        verify(contratRepository, never()).save(any());
+        verify(contratRepository, never()).saveAndFlush(any());
+    }
+
+    @Test
+    @DisplayName("B12 : signerProprietaire() — bien archivé ou partie anonymisée → 409, ni PDF, ni e-mail, ni notification")
+    void signerProprietaire_documentFige_409() {
+        when(contratRepository.findById(1L)).thenReturn(Optional.of(contrat));
+        doThrow(new KupangaBusinessException("Ce bien est archivé", HttpStatus.CONFLICT))
+                .when(bienService).verifierDocumentModifiable(any(), any(), any());
+
+        KupangaBusinessException ex = assertThrows(KupangaBusinessException.class,
+                () -> contratService.signerProprietaire(1L, "sig-base64", proprietaire.getMail()));
+
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.CONFLICT);
+        verify(contratPdfService, never()).genererEtUploaderPdf(any());
+        verify(contratRepository, never()).saveAndFlush(any());
+        verify(emailService, never()).envoyerInvitationSignature(any(Contrat.class), anyString());
+        verifyNoInteractions(notificationService);
+    }
+
+    @Test
+    @DisplayName("B12 : signerLocataire() — bien archivé ou partie anonymisée → 409, contrat non signé")
+    void signerLocataire_documentFige_409() {
+        contrat.setStatut(StatutContrat.EN_ATTENTE_SIGNATURE_LOCATAIRE);
+        when(contratRepository.findByTokenSignature("token-valide")).thenReturn(Optional.of(contrat));
+        doThrow(new KupangaBusinessException("Ce bien est archivé", HttpStatus.CONFLICT))
+                .when(bienService).verifierDocumentModifiable(any(), any(), any());
+
+        KupangaBusinessException ex = assertThrows(KupangaBusinessException.class,
+                () -> contratService.signerLocataire("token-valide", "sig-locataire"));
+
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.CONFLICT);
+        assertThat(contrat.getStatut()).isEqualTo(StatutContrat.EN_ATTENTE_SIGNATURE_LOCATAIRE);
+        verify(contratPdfService, never()).genererEtUploaderPdf(any());
+        verify(emailService, never()).envoyerConfirmationContratSigne(any());
     }
 }

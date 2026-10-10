@@ -1,7 +1,10 @@
 package com.kupanga.api.email.service;
 
+import com.kupanga.api.juridiction.Pays;
 import com.kupanga.api.email.client.BrevoEmailClient;
 import com.kupanga.api.email.dto.BrevoEmail;
+import com.kupanga.api.email.event.EmailAEnvoyer;
+import com.kupanga.api.email.event.EmailEnvoiListener;
 import com.kupanga.api.email.service.impl.EmailServiceImpl;
 import com.kupanga.api.immobilier.entity.Bien;
 import com.kupanga.api.immobilier.entity.Quittance;
@@ -15,24 +18,37 @@ import java.util.Base64;
 
 import static com.kupanga.api.minio.constant.MinioConstant.QUITTANCE_BUCKET;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.Mockito.*;
+import java.math.BigDecimal;
 
 @DisplayName("Tests unitaires pour EmailServiceImpl")
 class EmailServiceImplTest {
 
+    /** J3 : montants formatés comme en France (registre bouchon). */
+    private static com.kupanga.api.juridiction.JuridictionRegistry registreFr() {
+        com.kupanga.api.juridiction.JuridictionRegistry registre =
+                org.mockito.Mockito.mock(com.kupanga.api.juridiction.JuridictionRegistry.class);
+        org.mockito.Mockito.when(registre.formatMontant(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any()))
+                .thenAnswer(i -> new com.kupanga.api.juridiction.FormatMontant(java.util.Locale.FRANCE,
+                        i.getArgument(1) == null ? com.kupanga.api.juridiction.Devise.EUR : i.getArgument(1)));
+        return registre;
+    }
+
     private final BrevoEmailClient brevoClient = mock(BrevoEmailClient.class);
     private final MinioService minioService = mock(MinioService.class);
 
+    // B11 : l'envoi passe par un événement ; ici l'écouteur réel est appelé tout de suite (pas de transaction)
+    private final EmailEnvoiListener listener = new EmailEnvoiListener(brevoClient, minioService);
+
     private final EmailServiceImpl emailService = new EmailServiceImpl(
-            brevoClient,
-            minioService,
+            evenement -> listener.envoyer((EmailAEnvoyer) evenement),
             "noreplydevback@gmail.com",
             "Kupanga",
             "http://localhost:4200/auth/reset-password?token=",
             "http://localhost:4200/auth/login",
             "http://localhost:4200/"
-    );
+    , registreFr());
 
     @Test
     @DisplayName("sendWelcomeMessage — appelle BrevoEmailClient.send() une fois")
@@ -80,8 +96,8 @@ class EmailServiceImplTest {
 
         Quittance quittance = Quittance.builder()
                 .id(3L).mois("janvier").annee(2026)
-                .loyerMensuel(800.0).chargesMensuelles(50.0).montantTotal(850.0)
-                .bien(Bien.builder().adresse("1 rue A").codePostal("44000").ville("Nantes").build())
+                .loyerMensuel(new BigDecimal("800.0")).chargesMensuelles(new BigDecimal("50.0")).montantTotal(new BigDecimal("850.0"))
+                .bien(Bien.builder().pays(Pays.FR).adresse("1 rue A").codePostal("44000").ville("Nantes").build())
                 .locataire(User.builder().firstName("Alice").lastName("Martin").mail("alice@example.com").build())
                 .clePdf("cle-quittance.pdf")
                 .build();
@@ -96,14 +112,33 @@ class EmailServiceImplTest {
     }
 
     @Test
-    @DisplayName("sendWelcomeMessage — propage la RuntimeException du client Brevo")
-    void sendWelcomeMessage_shouldPropagateException() {
+    @DisplayName("sendWelcomeMessage — une erreur Brevo est journalisée, jamais propagée à l'appelant (B11 : envoi après commit)")
+    void sendWelcomeMessage_erreurBrevo_nonPropagee() {
         doThrow(new RuntimeException("Brevo KO")).when(brevoClient).send(any());
 
-        RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> emailService.sendWelcomeMessage("test@example.com", "Alice"));
+        assertDoesNotThrow(() -> emailService.sendWelcomeMessage("test@example.com", "Alice"));
 
-        assertThat(ex.getMessage()).contains("Brevo KO");
+        verify(brevoClient).send(any(BrevoEmail.class));
+    }
+
+    @Test
+    @DisplayName("envoyerQuittance — PDF illisible dans MinIO → e-mail envoyé quand même, sans pièce jointe")
+    void envoyerQuittance_pdfIllisible_emailSansPieceJointe() {
+        when(minioService.telecharger(QUITTANCE_BUCKET, "cle-quittance.pdf")).thenThrow(new IllegalStateException("MinIO KO"));
+
+        Quittance quittance = Quittance.builder()
+                .id(3L).mois("janvier").annee(2026)
+                .loyerMensuel(new BigDecimal("800.0")).chargesMensuelles(new BigDecimal("50.0")).montantTotal(new BigDecimal("850.0"))
+                .bien(Bien.builder().pays(Pays.FR).adresse("1 rue A").codePostal("44000").ville("Nantes").build())
+                .locataire(User.builder().firstName("Alice").lastName("Martin").mail("alice@example.com").build())
+                .clePdf("cle-quittance.pdf")
+                .build();
+
+        assertDoesNotThrow(() -> emailService.envoyerQuittance(quittance));
+
+        ArgumentCaptor<BrevoEmail> captor = ArgumentCaptor.forClass(BrevoEmail.class);
+        verify(brevoClient).send(captor.capture());
+        assertThat(captor.getValue().attachment()).isNull();
     }
 
     @Test
@@ -126,14 +161,13 @@ class EmailServiceImplTest {
     }
 
     @Test
-    @DisplayName("sendPasswordResetMail — propage la RuntimeException du client Brevo")
-    void sendPasswordResetMail_shouldPropagateException() {
+    @DisplayName("sendPasswordResetMail — une erreur Brevo est journalisée, jamais propagée à l'appelant (B11 : envoi après commit)")
+    void sendPasswordResetMail_erreurBrevo_nonPropagee() {
         doThrow(new RuntimeException("Mail KO")).when(brevoClient).send(any());
 
-        RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> emailService.sendPasswordResetMail("user@kupanga.com", "token"));
+        assertDoesNotThrow(() -> emailService.sendPasswordResetMail("user@kupanga.com", "token"));
 
-        assertThat(ex.getMessage()).isEqualTo("Mail KO");
+        verify(brevoClient).send(any(BrevoEmail.class));
     }
 
     @Test
@@ -145,13 +179,12 @@ class EmailServiceImplTest {
     }
 
     @Test
-    @DisplayName("sendPasswordUpdatedConfirmation — propage la RuntimeException du client Brevo")
-    void sendPasswordUpdatedConfirmation_shouldPropagateException() {
+    @DisplayName("sendPasswordUpdatedConfirmation — une erreur Brevo est journalisée, jamais propagée à l'appelant (B11 : envoi après commit)")
+    void sendPasswordUpdatedConfirmation_erreurBrevo_nonPropagee() {
         doThrow(new RuntimeException("Mail KO")).when(brevoClient).send(any());
 
-        RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> emailService.sendPasswordUpdatedConfirmation("user@kupanga.com"));
+        assertDoesNotThrow(() -> emailService.sendPasswordUpdatedConfirmation("user@kupanga.com"));
 
-        assertThat(ex.getMessage()).isEqualTo("Mail KO");
+        verify(brevoClient).send(any(BrevoEmail.class));
     }
 }

@@ -24,6 +24,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
+import java.math.BigDecimal;
 
 @DisplayName("Tests unitaires — ContratSearchService")
 @SuppressWarnings("unchecked")
@@ -53,7 +54,7 @@ class ContratSearchServiceTest {
 
         contrat = Contrat.builder()
                 .id(1L)
-                .loyerMensuel(850.0)
+                .loyerMensuel(new BigDecimal("850.0"))
                 .build();
 
         contratDTO = mock(ContratDTO.class);

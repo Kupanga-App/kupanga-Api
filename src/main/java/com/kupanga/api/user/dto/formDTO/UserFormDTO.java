@@ -34,6 +34,8 @@ public record UserFormDTO(
         @NotNull(message = "Un rôle valide est nécessaire")
         Role role,
 
+        /** Avatar hébergé sur notre MinIO (bucket des photos de profil), contrôlé à l'inscription (revue B5). */
+        @Size(max = 500, message = "L'URL de l'avatar ne doit pas dépasser 500 caractères")
         String urlAvatar
 ) {}
 

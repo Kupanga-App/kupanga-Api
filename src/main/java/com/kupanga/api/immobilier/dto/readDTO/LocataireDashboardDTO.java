@@ -1,9 +1,11 @@
 package com.kupanga.api.immobilier.dto.readDTO;
 
+import com.kupanga.api.juridiction.Devise;
 import com.kupanga.api.immobilier.entity.StatutContrat;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -47,9 +49,10 @@ public class LocataireDashboardDTO {
         private LocalDate       dateFin;
         private Integer         moisEcoules;    // calculé depuis dateDebut
         private Integer         dureeTotale;    // dureeBailMois
-        private Double          loyerMensuel;
-        private Double          charges;
-        private Double          depotGarantie;
+        private BigDecimal      loyerMensuel;
+        private BigDecimal      charges;
+        private BigDecimal      depotGarantie;
+        private Devise          devise;
         private StatutContrat   statut;
     }
 

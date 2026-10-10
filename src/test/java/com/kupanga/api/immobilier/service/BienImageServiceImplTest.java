@@ -1,5 +1,6 @@
 package com.kupanga.api.immobilier.service;
 
+import com.kupanga.api.juridiction.Pays;
 import com.kupanga.api.immobilier.entity.Bien;
 import com.kupanga.api.immobilier.entity.BienImage;
 import com.kupanga.api.immobilier.repository.BienImageRepository;
@@ -31,7 +32,7 @@ class BienImageServiceImplTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        bien = Bien.builder().id(1L).build();
+        bien = Bien.builder().pays(Pays.FR).id(1L).build();
     }
 
     @Test

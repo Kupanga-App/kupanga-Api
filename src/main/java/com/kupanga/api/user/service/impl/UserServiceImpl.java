@@ -5,6 +5,7 @@ import com.kupanga.api.user.entity.Role;
 import com.kupanga.api.user.entity.User;
 import com.kupanga.api.user.repository.UserRepository;
 import com.kupanga.api.user.service.UserService;
+import com.kupanga.api.user.utils.EmailUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -27,14 +28,14 @@ public class UserServiceImpl implements UserService {
     @Override
     public User getUserByEmail(String email){
 
-        return userRepository.findByMail(email)
+        return userRepository.findByMail(EmailUtils.normaliser(email))
                 .orElseThrow( () -> new UserNotFoundException(email));
     }
 
     @Override
     public void verifyIfUserExistWithEmail(String email) throws UserAlreadyExistsException{
 
-        if(userRepository.existsByMail(email)){
+        if(userRepository.existsByMail(EmailUtils.normaliser(email))){
             throw new UserAlreadyExistsException(email);
         }
     }
@@ -96,6 +97,6 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public java.util.Optional<User> findOptionalByMail(String mail) {
-        return userRepository.findByMail(mail);
+        return userRepository.findByMail(EmailUtils.normaliser(mail));
     }
 }

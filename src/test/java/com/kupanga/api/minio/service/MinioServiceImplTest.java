@@ -13,6 +13,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import com.kupanga.api.exception.business.KupangaBusinessException;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -77,6 +78,10 @@ class MinioServiceImplTest {
     // Tests pour uploadFile
     // =======================
 
+    /** En-têtes réels (B5 : le format est reconnu au contenu). */
+    private static final byte[] CONTENU_PNG = {(byte) 0x89, 'P', 'N', 'G', 0x0D, 0x0A, 0x1A, 0x0A, 0, 0, 0, 0x0D};
+    private static final byte[] CONTENU_JPEG = {(byte) 0xFF, (byte) 0xD8, (byte) 0xFF, (byte) 0xE0, 0, 0x10};
+
     @Test
     @DisplayName("Upload d'image : l'URL retournée contient le bucket et le nom du fichier")
     void uploadFile_shouldReturnUrl() throws Exception {
@@ -85,7 +90,7 @@ class MinioServiceImplTest {
                 "file",
                 "test.png",
                 "image/png",
-                "dummy content".getBytes()
+                CONTENU_PNG
         );
 
         // Simule que le bucket existe
@@ -95,20 +100,22 @@ class MinioServiceImplTest {
 
         assertNotNull(result, "L'URL ne doit pas être null");
         assertTrue(result.startsWith("http://localhost:9000" + "/" + bucket + "/"), "L'URL doit contenir le bucket");
-        assertTrue(result.endsWith("_test.png"), "L'URL doit contenir le nom du fichier original");
+        assertTrue(result.endsWith(".png"), "Extension déduite du contenu");
+        assertFalse(result.contains("test"), "B5 : le nom d'origine n'est plus repris");
 
         verify(minioClient, times(1)).putObject(any(PutObjectArgs.class));
     }
 
     @Test
-    @DisplayName("Vérifie que putObject est appelé avec les bons arguments")
+    @DisplayName("B5 : nom et type MIME fixés par le serveur d'après le contenu, pas d'après le client")
     void uploadFile_shouldCallPutObjectWithCorrectArgs() throws Exception {
         String bucket = "avatars";
+        // Le client annonce un JPEG nommé .jpg, le contenu est un PNG
         MultipartFile file = new MockMultipartFile(
                 "file",
-                "myphoto.jpg",
+                "../my photo.jpg",
                 "image/jpeg",
-                "dummy".getBytes()
+                CONTENU_PNG
         );
 
         when(minioClient.bucketExists(any(BucketExistsArgs.class))).thenReturn(true);
@@ -120,9 +127,8 @@ class MinioServiceImplTest {
 
         PutObjectArgs args = captor.getValue();
         assertEquals(bucket, args.bucket(), "Le bucket doit correspondre à celui configuré");
-        assertEquals("myphoto.jpg", args.object().substring(args.object().indexOf("_") + 1),
-                "Le nom de l'objet doit correspondre au nom du fichier original");
-        assertEquals(file.getContentType(), args.contentType(), "Le type MIME doit correspondre au fichier");
+        assertTrue(args.object().matches("[0-9a-f-]{36}\\.png"), "Nom généré : UUID + extension réelle");
+        assertEquals("image/png", args.contentType(), "Type MIME déduit du contenu");
     }
 
     @Test
@@ -133,7 +139,7 @@ class MinioServiceImplTest {
                 "file",
                 "fail.png",
                 "image/png",
-                "data".getBytes()
+                CONTENU_PNG
         );
 
         when(minioClient.bucketExists(any(BucketExistsArgs.class))).thenReturn(true);
@@ -153,7 +159,7 @@ class MinioServiceImplTest {
                 "file",
                 "",
                 "image/png",
-                "data".getBytes()
+                CONTENU_JPEG
         );
 
         when(minioClient.bucketExists(any(BucketExistsArgs.class))).thenReturn(true);
@@ -162,6 +168,36 @@ class MinioServiceImplTest {
 
         assertNotNull(result, "L'URL ne doit pas être null même si le nom du fichier est vide");
         assertTrue(result.startsWith("http://localhost:9000" + "/" + bucket + "/"), "L'URL doit contenir le bucket");
+    }
+
+    @Test
+    @DisplayName("B5 : page HTML déguisée en photo (.jpg, image/jpeg) → 415, rien n'est envoyé à MinIO")
+    void uploadFile_contenuNonImage_refuse() throws Exception {
+        MultipartFile piege = new MockMultipartFile(
+                "file", "photo.jpg", "image/jpeg", "<html><script>alert(1)</script></html>".getBytes());
+
+        KupangaBusinessException e = assertThrows(KupangaBusinessException.class,
+                () -> minioService.uploadImage(piege, "avatars"));
+
+        assertEquals(415, e.getStatus().value());
+        verify(minioClient, never()).putObject(any(PutObjectArgs.class));
+        verify(minioClient, never()).makeBucket(any(MakeBucketArgs.class));
+    }
+
+    @Test
+    @DisplayName("estUrlDuBucket : seules les URL d'un objet simple de ce bucket sur notre MinIO sont acceptées")
+    void estUrlDuBucket() {
+        String bucket = "bucket-photo-profil";
+        assertTrue(minioService.estUrlDuBucket("http://localhost:9000/bucket-photo-profil/avatar-3.png", bucket));
+        assertTrue(minioService.estUrlDuBucket("http://localhost:9000/bucket-photo-profil/2f1c-uuid.jpg", bucket));
+
+        assertFalse(minioService.estUrlDuBucket(null, bucket));
+        assertFalse(minioService.estUrlDuBucket("https://traqueur.example/pixel.gif", bucket));
+        assertFalse(minioService.estUrlDuBucket("http://localhost:9000.traqueur.example/bucket-photo-profil/a.png", bucket));
+        assertFalse(minioService.estUrlDuBucket("http://localhost:9000/photos-imo/a.png", bucket));
+        assertFalse(minioService.estUrlDuBucket("http://localhost:9000/bucket-photo-profil/../contrat-de-bail/x.pdf", bucket));
+        assertFalse(minioService.estUrlDuBucket("http://localhost:9000/bucket-photo-profil/a.png?response-content-type=text/html", bucket));
+        assertFalse(minioService.estUrlDuBucket("javascript:alert(1)", bucket));
     }
 
     // =======================

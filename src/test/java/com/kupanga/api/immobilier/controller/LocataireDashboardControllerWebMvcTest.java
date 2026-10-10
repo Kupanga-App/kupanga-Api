@@ -29,6 +29,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import java.math.BigDecimal;
 
 @WebMvcTest(LocataireDashboardController.class)
 @Import(SecurityConfig.class)
@@ -148,9 +149,9 @@ class LocataireDashboardControllerWebMvcTest {
         contratDTO.setDateFin(LocalDate.of(2024, 8, 31));
         contratDTO.setMoisEcoules(20);
         contratDTO.setDureeTotale(12);
-        contratDTO.setLoyerMensuel(850.0);
-        contratDTO.setCharges(80.0);
-        contratDTO.setDepotGarantie(1700.0);
+        contratDTO.setLoyerMensuel(new BigDecimal("850.0"));
+        contratDTO.setCharges(new BigDecimal("80.0"));
+        contratDTO.setDepotGarantie(new BigDecimal("1700.0"));
         contratDTO.setStatut(com.kupanga.api.immobilier.entity.StatutContrat.SIGNE);
         dto.setContrat(contratDTO);
 

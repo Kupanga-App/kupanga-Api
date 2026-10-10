@@ -1,6 +1,7 @@
 package com.kupanga.api.chat.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
@@ -13,7 +14,7 @@ import java.time.LocalDateTime;
 
 @Getter
 @Setter
-@Builder
+@Builder(toBuilder = true)
 public class MessageDTO {
 
     private Long          id;
@@ -37,4 +38,10 @@ public class MessageDTO {
     // ─── Contexte bien (optionnel) ────────────────────────────────────────────
     private Long          bienId;
     private String        bienAdresse;
+
+    // ─── Accusé d'envoi (W13) ─────────────────────────────────────────────────
+    // Identifiant choisi par le front (en-tête STOMP id-client), renvoyé seulement à l'expéditeur
+    // dans l'écho de son message ; non persisté
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private String        idClient;
 }

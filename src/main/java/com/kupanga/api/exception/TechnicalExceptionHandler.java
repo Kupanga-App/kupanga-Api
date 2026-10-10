@@ -59,10 +59,29 @@ public class TechnicalExceptionHandler {
         return build(HttpStatus.PAYLOAD_TOO_LARGE, "Fichier trop volumineux", request);
     }
 
-    /** Requête multipart illisible : 400. */
+    /**
+     * Requête multipart illisible : 400 ; fichier ou requête au-delà des limites : 413 (B3).
+     * Avec l'analyse différée ({@code resolve-lazily}), le dépassement de taille levé par Tomcat
+     * arrive enveloppé dans une {@link MultipartException} générique : on le reconnaît dans les causes.
+     */
     @ExceptionHandler(MultipartException.class)
     public ResponseEntity<ApiErrorResponse> handleMultipart(MultipartException ex, HttpServletRequest request) {
+        if (depassementDeTaille(ex)) {
+            return build(HttpStatus.PAYLOAD_TOO_LARGE, "Fichier trop volumineux", request);
+        }
         return build(HttpStatus.BAD_REQUEST, "Requête multipart invalide", request);
+    }
+
+    /** Tomcat : {@code FileSizeLimitExceededException} / {@code SizeLimitExceededException} (sans dépendre de ses classes). */
+    private static boolean depassementDeTaille(Throwable ex) {
+        for (Throwable cause = ex; cause != null; cause = cause.getCause()) {
+            if (cause instanceof MaxUploadSizeExceededException
+                    || cause.getClass().getSimpleName().endsWith("SizeLimitExceededException")) {
+                return true;
+            }
+            if (cause.getCause() == cause) break;
+        }
+        return false;
     }
 
     /** Paramètre de chemin ou de requête du mauvais type (ex. {@code /biens/abc}) : 400. */

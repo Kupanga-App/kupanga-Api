@@ -14,17 +14,18 @@ import java.util.List;
 public interface MessageRepository extends JpaRepository<Message, Long> {
 
     /**
-     * Marque tous les messages non lus d'une conversation comme lus.
+     * Marque comme lus les messages reçus par {@code emailDestinataire} dans une seule conversation (W6 :
+     * avant, le filtre ne portait que sur l'expéditeur et touchait aussi ses conversations sur d'autres biens).
      */
     @Modifying
     @Query("""
             UPDATE Message m SET m.lu = true
-            WHERE m.destinataire.mail = :emailDestinataire
-              AND m.expediteur.mail   = :emailExpediteur
+            WHERE m.conversation.id    = :conversationId
+              AND m.destinataire.mail = :emailDestinataire
               AND (m.lu = false OR m.lu IS NULL)
             """)
-    void marquerConversationLue(@Param("emailDestinataire") String emailDestinataire,
-                                @Param("emailExpediteur")   String emailExpediteur);
+    int marquerConversationLue(@Param("conversationId")    Long conversationId,
+                               @Param("emailDestinataire") String emailDestinataire);
 
     /**
      * Compte les messages non lus pour un utilisateur donné.
@@ -58,4 +59,9 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     List<Message> findHistorique(@Param("bienId") Long bienId,
                                  @Param("emailA") String emailA,
                                  @Param("emailB") String emailB);
+
+    /** B12 : supprime les messages envoyés ou reçus par un compte supprimé. */
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query("DELETE FROM Message m WHERE m.expediteur.id = :userId OR m.destinataire.id = :userId")
+    int supprimerParUtilisateur(@Param("userId") Long userId);
 }

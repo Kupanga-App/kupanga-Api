@@ -77,10 +77,7 @@ public interface EtatDesLieuxMapper {
             return null;
         }
 
-        return bien.getAdresse()
-                + ", "
-                + bien.getCodePostal()
-                + " "
-                + bien.getVille();
+        // J4 : sans « null » quand le code postal est absent (RDC), adresse congolaise comprise
+        return bien.adresseComplete();
     }
 }

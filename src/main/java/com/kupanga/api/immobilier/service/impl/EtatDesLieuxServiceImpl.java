@@ -1,5 +1,6 @@
 package com.kupanga.api.immobilier.service.impl;
 
+import com.kupanga.api.juridiction.JuridictionRegistry;
 import com.kupanga.api.email.service.EmailService;
 import com.kupanga.api.exception.business.KupangaBusinessException;
 import com.kupanga.api.notification.enums.NotificationType;
@@ -30,6 +31,7 @@ import java.util.UUID;
 @Transactional
 public class EtatDesLieuxServiceImpl implements EtatDesLieuxService {
 
+    private final JuridictionRegistry juridictionRegistry;
     private final EtatDesLieuxRepository edlRepository;
     private final EtatDesLieuxPdfService  edlPdfService;
     private final EmailService            emailService;
@@ -48,10 +50,14 @@ public class EtatDesLieuxServiceImpl implements EtatDesLieuxService {
         User proprietaire = userService.getUserByEmail(emailProprietaire);
         // Contrôle IDOR : bien du propriétaire connecté + locataire assigné au bien
         Bien bien         = bienService.verifierProprietaire(dto.getBienId(), emailProprietaire);
+        bienService.verifierBienActif(bien);
         User locataire    = bienService.verifierLocataireDuBien(bien, dto.getEmailLocataire());
 
         EtatDesLieux edl = EtatDesLieux.builder()
                 .bien(bien)
+                // J5 : pays et version du modèle figés (le PDF régénéré à la signature garde ce modèle)
+                .pays(bien.getPays())
+                .modeleVersion(juridictionRegistry.profil(bien.getPays()).modeleDocuments())
                 .proprietaire(proprietaire)
                 .locataire(locataire)
                 .type(dto.getType())
@@ -95,6 +101,13 @@ public class EtatDesLieuxServiceImpl implements EtatDesLieuxService {
     public void signerProprietaire(Long edlId, String signatureBase64, String emailProprietaire) {
 
         EtatDesLieux edl = findAndVerifyProprietaire(edlId, emailProprietaire);
+        bienService.verifierDocumentModifiable(edl.getBien(), edl.getProprietaire(), edl.getLocataire());
+
+        // B6 : un EDL signé est figé ; re-signer en attente du locataire ou après expiration renvoie un lien
+        if (edl.getStatut() == StatutEdl.SIGNE) {
+            throw new KupangaBusinessException(
+                    "Cet état des lieux ne peut plus être signé", HttpStatus.CONFLICT);
+        }
 
         edl.setSignatureProprietaire(signatureBase64);
         edl.setDateSignatureProprietaire(LocalDateTime.now());
@@ -106,7 +119,8 @@ public class EtatDesLieuxServiceImpl implements EtatDesLieuxService {
 
         String clePdf = edlPdfService.genererEtUploaderPdf(edl);
         edl.setClePdf(clePdf);
-        edlRepository.save(edl);
+        // B6 : écriture immédiate : un conflit (409) est détecté avant les e-mails et notifications
+        edlRepository.saveAndFlush(edl);
 
         emailService.envoyerInvitationSignature(edl, token);
 
@@ -135,21 +149,18 @@ public class EtatDesLieuxServiceImpl implements EtatDesLieuxService {
     public void signerLocataire(String token, String signatureBase64) {
 
         EtatDesLieux edl = edlRepository.findByTokenSignature(token)
-                .orElseThrow(() -> new KupangaBusinessException(
-                        "Token invalide", HttpStatus.UNAUTHORIZED));
+                .orElseThrow(EtatDesLieuxServiceImpl::lienInvalide);
 
         if (LocalDateTime.now().isAfter(edl.getTokenExpiration())) {
-            edl.setStatut(StatutEdl.EXPIRE);
-            edlRepository.save(edl);
-            throw new KupangaBusinessException(
-                    "Le lien de signature a expiré", HttpStatus.UNAUTHORIZED);
+            edlRepository.marquerExpire(edl.getId(), edl.getVersion());
+            throw lienExpire();
         }
 
         if (edl.getStatut() != StatutEdl.EN_ATTENTE_SIGNATURE_LOCATAIRE) {
             throw new KupangaBusinessException(
-                    "Cet état des lieux ne peut plus être signé — statut actuel : "
-                            + edl.getStatut(), HttpStatus.BAD_REQUEST);
+                    "Cet état des lieux ne peut plus être signé", HttpStatus.CONFLICT);
         }
+        bienService.verifierDocumentModifiable(edl.getBien(), edl.getProprietaire(), edl.getLocataire());
 
         edl.setSignatureLocataire(signatureBase64);
         edl.setDateSignatureLocataire(LocalDateTime.now());
@@ -160,7 +171,8 @@ public class EtatDesLieuxServiceImpl implements EtatDesLieuxService {
 
         edl.setTokenSignature(null);
         edl.setTokenExpiration(null);
-        edlRepository.save(edl);
+        // B6 : écriture immédiate : un conflit (409) est détecté avant les e-mails et notifications
+        edlRepository.saveAndFlush(edl);
 
         emailService.envoyerConfirmationEdlSigne(edl);
 
@@ -198,20 +210,16 @@ public class EtatDesLieuxServiceImpl implements EtatDesLieuxService {
     public EtatDesLieuxDTO getEdlParToken(String token) {
 
         EtatDesLieux edl = edlRepository.findByTokenSignature(token)
-                .orElseThrow(() -> new KupangaBusinessException(
-                        "Token invalide", HttpStatus.UNAUTHORIZED));
+                .orElseThrow(EtatDesLieuxServiceImpl::lienInvalide);
 
         if (LocalDateTime.now().isAfter(edl.getTokenExpiration())) {
-            edl.setStatut(StatutEdl.EXPIRE);
-            edlRepository.save(edl);
-            throw new KupangaBusinessException(
-                    "Le lien de signature a expiré", HttpStatus.UNAUTHORIZED);
+            edlRepository.marquerExpire(edl.getId(), edl.getVersion());
+            throw lienExpire();
         }
 
         if (edl.getStatut() != StatutEdl.EN_ATTENTE_SIGNATURE_LOCATAIRE) {
             throw new KupangaBusinessException(
-                    "Cet état des lieux n'est pas disponible à la signature — statut actuel : "
-                            + edl.getStatut(), HttpStatus.BAD_REQUEST);
+                    "Cet état des lieux ne peut plus être signé", HttpStatus.CONFLICT);
         }
 
         return edlMapper.toDTO(edl);
@@ -220,6 +228,15 @@ public class EtatDesLieuxServiceImpl implements EtatDesLieuxService {
     // ─────────────────────────────────────────────────────────────────────────
     // Helpers privés
     // ─────────────────────────────────────────────────────────────────────────
+
+    // B7 : 404 / 410 et non 401, que le front traite comme une session expirée (retour à la connexion)
+    private static KupangaBusinessException lienInvalide() {
+        return new KupangaBusinessException("Lien de signature invalide", HttpStatus.NOT_FOUND);
+    }
+
+    private static KupangaBusinessException lienExpire() {
+        return new KupangaBusinessException("Le lien de signature a expiré", HttpStatus.GONE);
+    }
 
     private EtatDesLieux findAndVerifyProprietaire(Long edlId, String email) {
         EtatDesLieux edl = edlRepository.findWithAllRelations(edlId)
@@ -246,8 +263,8 @@ public class EtatDesLieuxServiceImpl implements EtatDesLieuxService {
         if (dto.getElements() != null) {
             dto.getElements().forEach(eDto -> {
                 ElementEdl element = ElementEdl.builder()
-                        .typeElement(TypeElement.valueOf(eDto.getTypeElement()))
-                        .etatElement(EtatElement.valueOf(eDto.getEtatElement()))
+                        .typeElement(eDto.getTypeElement())
+                        .etatElement(eDto.getEtatElement())
                         .description(eDto.getDescription())
                         .observation(eDto.getObservation())
                         .piece(piece)
@@ -261,7 +278,7 @@ public class EtatDesLieuxServiceImpl implements EtatDesLieuxService {
     private CompteurReleve buildCompteur(EtatDesLieuxFormDTO.CompteurReleveFormDTO dto,
                                          EtatDesLieux edl) {
         return CompteurReleve.builder()
-                .typeCompteur(TypeCompteur.valueOf(dto.getTypeCompteur()))
+                .typeCompteur(dto.getTypeCompteur())
                 .numeroCompteur(dto.getNumeroCompteur())
                 .index(dto.getIndex())
                 .unite(dto.getUnite())

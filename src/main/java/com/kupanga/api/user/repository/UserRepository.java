@@ -16,4 +16,7 @@ public interface UserRepository extends JpaRepository<User, Long> , JpaSpecifica
     Optional<User> findByGoogleId(String googleId);
 
     long countByRole(Role role);
+
+    /** B12 : la photo de profil est-elle aussi celle d'un autre compte ? */
+    boolean existsByUrlProfileAndIdNot(String urlProfile, Long id);
 }

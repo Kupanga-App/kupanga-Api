@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.security.Principal;
 
@@ -43,9 +44,16 @@ public class BackOfficeUserController {
         return "backoffice/users/list";
     }
 
+    /** B12 : supprime le compte, ou l'anonymise s'il a des biens, baux, quittances ou EDL. */
     @PostMapping("/{id}/supprimer")
-    public String supprimer(@PathVariable Long id) {
-        userAdminService.supprimer(id);
+    public String supprimer(@PathVariable Long id, RedirectAttributes redirect) {
+        String message = switch (userAdminService.supprimer(id)) {
+            case SUPPRIME       -> "Compte supprimé, avec ses conversations.";
+            case ANONYMISE      -> "Compte anonymisé : il avait des biens ou des documents, conservés. Ses biens sont archivés.";
+            case DEJA_ANONYMISE -> "Ce compte est déjà anonymisé.";
+            case INTROUVABLE    -> "Utilisateur introuvable.";
+        };
+        redirect.addFlashAttribute("message", message);
         return "redirect:/backoffice/users";
     }
 }

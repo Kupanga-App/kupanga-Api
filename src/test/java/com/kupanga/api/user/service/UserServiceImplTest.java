@@ -39,6 +39,16 @@ class UserServiceImplTest {
 
 
     @Test
+    @DisplayName("A10 : recherche par e-mail normalisé (casse et espaces ignorés)")
+    void testGetUtilisateurByEmail_normalise() {
+        User utilisateur = new User();
+        utilisateur.setMail("jean@exemple.fr");
+        when(userRepository.findByMail("jean@exemple.fr")).thenReturn(Optional.of(utilisateur));
+
+        assertThat(utilisateurService.getUserByEmail(" Jean@Exemple.FR ")).isSameAs(utilisateur);
+    }
+
+    @Test
     @DisplayName("Doit retourner un utilisateur existant par email")
     void testGetUtilisateurByEmail_success() {
         String email = "test@example.com";

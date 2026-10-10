@@ -1,5 +1,6 @@
 package com.kupanga.api.immobilier.research.dto;
 
+import com.kupanga.api.juridiction.Pays;
 import com.kupanga.api.immobilier.entity.*;
 import com.kupanga.api.immobilier.research.sort.BienSortEnum;
 import com.kupanga.api.pagination.Pagination;
@@ -8,6 +9,9 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
 import org.springframework.data.domain.Sort;
 
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -15,7 +19,7 @@ public record BienSearchDTO(
 
         // ─── Localisation ─────────────────────────────────────────────────────
         @Size(max = 20) List<@Size(max = 100) String> villes,
-        @Size(max = 20) List<@Size(max = 100) String> pays,
+        @Size(max = 20) List<Pays> pays,
         @Size(max = 20) List<@Size(max = 100) String> codesPostaux,
 
         // ─── Type de bien ─────────────────────────────────────────────────────
@@ -23,8 +27,8 @@ public record BienSearchDTO(
         @Size(max = 100) String titre,
 
         // ─── Conditions de location ───────────────────────────────────────────
-        Double              loyerMin,
-        Double              loyerMax,
+        @DecimalMin("0") @DecimalMax("9999999999.99") BigDecimal          loyerMin,
+        @DecimalMin("0") @DecimalMax("9999999999.99") BigDecimal          loyerMax,
         Boolean             meuble,
         Boolean             colocation,
         LocalDate           disponibleAvant,

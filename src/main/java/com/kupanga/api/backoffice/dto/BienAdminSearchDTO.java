@@ -1,5 +1,6 @@
 package com.kupanga.api.backoffice.dto;
 
+import com.kupanga.api.juridiction.Pays;
 import com.kupanga.api.immobilier.entity.TypeBien;
 import com.kupanga.api.pagination.Pagination;
 import org.springframework.data.domain.Sort;
@@ -7,6 +8,7 @@ import org.springframework.data.domain.Sort;
 public record BienAdminSearchDTO(
         String   titre,
         String   ville,
+        Pays     pays,
         TypeBien typeBien,
         int      page,
         int      size

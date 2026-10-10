@@ -1,6 +1,8 @@
 package com.kupanga.api.immobilier.service.impl;
 
+import com.kupanga.api.juridiction.Devise;
 import com.kupanga.api.chat.repository.ConversationRepository;
+import com.kupanga.api.config.ApresCommit;
 import com.kupanga.api.exception.business.KupangaBusinessException;
 import com.kupanga.api.immobilier.dto.formDTO.BienFormDTO;
 import com.kupanga.api.immobilier.dto.formDTO.BienUpdateDTO;
@@ -14,17 +16,21 @@ import com.kupanga.api.immobilier.service.BienImageService;
 import com.kupanga.api.immobilier.service.BienPoiService;
 import com.kupanga.api.immobilier.service.BienService;
 import com.kupanga.api.immobilier.service.GeocodingService;
+import com.kupanga.api.juridiction.JuridictionRegistry;
+import com.kupanga.api.minio.image.ValidationImage;
 import com.kupanga.api.notification.enums.NotificationType;
 import com.kupanga.api.notification.service.NotificationService;
 import com.kupanga.api.user.dto.readDTO.UserDTO;
 import com.kupanga.api.user.entity.User;
 import com.kupanga.api.user.entity.Role;
 import com.kupanga.api.user.service.UserService;
+import com.kupanga.api.user.utils.EmailUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.locationtech.jts.geom.Point;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
+import org.springframework.core.task.TaskRejectedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -48,6 +54,7 @@ public class BienServiceImpl implements BienService {
     private final NotificationService notificationService;
     private final DocumentPdfUrlMapper documentPdfUrlMapper;
     private final ConversationRepository conversationRepository;
+    private final JuridictionRegistry juridictionRegistry;
 
     public void createBien(Authentication auth, BienFormDTO dto, List<MultipartFile> files) {
 
@@ -60,6 +67,16 @@ public class BienServiceImpl implements BienService {
                     HttpStatus.BAD_REQUEST
             );
         }
+        // B5 : toutes les photos contrôlées avant tout enregistrement (ni bien créé, ni envoi MinIO partiel)
+        ValidationImage.verifierPhotosBien(files);
+        // J2 : seuls les pays dotés d'un profil de juridiction sont pris en charge (400 sinon)
+        // J3 : devise acceptée dans ce pays (défaut du profil sinon) et montants sous les plafonds de la devise
+        Devise devise = juridictionRegistry.devisePour(dto.getPays(), dto.getDevise());
+        juridictionRegistry.verifierMontants(devise, dto.getLoyerMensuel(), dto.getChargesMensuelles(),
+                dto.getDepotGarantie());
+        // J4 (C1) : champs obligatoires / masqués et types de bien du pays (déjà contrôlés par
+        // @ValideSelonJuridiction ; refait ici pour tout appel qui ne passerait pas par le contrôleur)
+        juridictionRegistry.verifierBien(dto.getPays(), dto, true);
 
         Bien bien = Bien.builder()
                 // ─── Informations générales ───────────────────────────────────
@@ -71,8 +88,14 @@ public class BienServiceImpl implements BienService {
                 // ─── Adresse ──────────────────────────────────────────────────
                 .adresse(dto.getAdresse())
                 .ville(dto.getVille())
-                .codePostal(dto.getCodePostal())
+                .codePostal(texte(dto.getCodePostal()))
                 .pays(dto.getPays())
+                // J4 : adresse congolaise (vide hors RDC : champs masqués)
+                .commune(texte(dto.getCommune()))
+                .quartier(texte(dto.getQuartier()))
+                .avenue(texte(dto.getAvenue()))
+                .numeroParcelle(texte(dto.getNumeroParcelle()))
+                .pointDeRepere(texte(dto.getPointDeRepere()))
 
                 // ─── Caractéristiques physiques ───────────────────────────────
                 .surfaceHabitable(dto.getSurfaceHabitable())
@@ -91,6 +114,7 @@ public class BienServiceImpl implements BienService {
                 .loyerMensuel(dto.getLoyerMensuel())
                 .chargesMensuelles(dto.getChargesMensuelles())
                 .depotGarantie(dto.getDepotGarantie())
+                .devise(devise)
                 .meuble(dto.getMeuble())
                 .colocation(dto.getColocation())
                 .disponibleDe(dto.getDisponibleDe())
@@ -98,7 +122,7 @@ public class BienServiceImpl implements BienService {
                 .build();
 
         Point point = geocodingService.geocode(dto.getAdresse(), dto.getVille(),
-                dto.getCodePostal(), dto.getPays());
+                bien.getCodePostal(), dto.getPays());
 
         if (point == null) {
             throw new KupangaBusinessException(
@@ -112,15 +136,34 @@ public class BienServiceImpl implements BienService {
 
         bienRepository.save(bien);
 
-        bienPoiService.calculerEtSauvegarderPoi(bien);
+        calculerPoiApresCommit(bien.getId());
 
         bienImageService.uploadImagesImo(files, PHOTO_IMO_BUCKET, bien);
+    }
+
+    /**
+     * B9 : le calcul asynchrone des POI relit le bien par son id ; il ne part qu'une fois le bien validé en base
+     * (sinon le thread asynchrone pourrait ne pas le trouver).
+     */
+    private void calculerPoiApresCommit(Long bienId) {
+        ApresCommit.executer(() -> lancerCalculPoi(bienId));
+    }
+
+    /** Les POI sont facultatifs : un exécuteur asynchrone saturé ne doit pas faire échouer la création du bien. */
+    private void lancerCalculPoi(Long bienId) {
+        try {
+            bienPoiService.calculerEtSauvegarderPoi(bienId);
+        } catch (TaskRejectedException e) {
+            log.warn("Calcul des POI du bien {} refusé (exécuteur asynchrone saturé)", bienId);
+        }
     }
 
     @Override
     public BienPublicDTO getBienInfos(Long id){
 
+        // B12 : un bien archivé n'est plus public (même réponse qu'un id inconnu)
         Bien bien = bienRepository.findWithAllProperties(id)
+                .filter(b -> !b.isArchive())
                 .orElseThrow(
                         () -> new KupangaBusinessException("Le bien n'existe pas" , HttpStatus.NOT_FOUND)
                 );
@@ -189,6 +232,9 @@ public class BienServiceImpl implements BienService {
                     HttpStatus.FORBIDDEN
             );
         }
+        verifierBienActif(bien);
+        // J4 : champs masqués (ex. DPE en RDC) et type de bien selon le pays du bien, avant toute modification
+        juridictionRegistry.verifierBien(bien.getPays(), dto, false);
 
         // ─── Informations générales ───────────────────────────────────────────
         if (dto.getTitre()       != null) bien.setTitre(dto.getTitre());
@@ -213,6 +259,15 @@ public class BienServiceImpl implements BienService {
         if (dto.getClasseGes()     != null) bien.setClasseGes(dto.getClasseGes());
 
         // ─── Conditions de location ───────────────────────────────────────────
+        // J3 : nouvelle devise acceptée dans le pays ; montants (nouveaux ou existants) sous les plafonds
+        Devise devise = dto.getDevise() != null
+                ? juridictionRegistry.devisePour(bien.getPays(), dto.getDevise())
+                : bien.getDevise();
+        juridictionRegistry.verifierMontants(devise,
+                dto.getLoyerMensuel()      != null ? dto.getLoyerMensuel()      : bien.getLoyerMensuel(),
+                dto.getChargesMensuelles() != null ? dto.getChargesMensuelles() : bien.getChargesMensuelles(),
+                dto.getDepotGarantie()     != null ? dto.getDepotGarantie()     : bien.getDepotGarantie());
+        bien.setDevise(devise);
         if (dto.getLoyerMensuel()      != null) bien.setLoyerMensuel(dto.getLoyerMensuel());
         if (dto.getChargesMensuelles() != null) bien.setChargesMensuelles(dto.getChargesMensuelles());
         if (dto.getDepotGarantie()     != null) bien.setDepotGarantie(dto.getDepotGarantie());
@@ -231,6 +286,7 @@ public class BienServiceImpl implements BienService {
         User proprietaire = userService.getUserByEmail(auth.getName());
         userService.verifyIfUserIsOwner(proprietaire.getRole());
         Bien bien = verifierProprietaire(bienId, proprietaire.getMail());
+        verifierBienActif(bien);
         // Seuls les candidats du bien (conversation avec le propriétaire sur ce bien) peuvent être assignés :
         // sinon un propriétaire pourrait assigner n'importe quel compte et lire son e-mail (revue TESTS-SECU).
         // Id inconnu et non-candidat donnent la même réponse : rien n'indique si le compte existe.
@@ -240,7 +296,8 @@ public class BienServiceImpl implements BienService {
         } catch (KupangaBusinessException e) {
             throw locataireIntrouvable();
         }
-        if (conversationRepository.findConversationWithBienIdAndEmailExpediteur(
+        // B12 : un compte anonymisé ne peut plus être assigné
+        if (locataire.isAnonymise() || conversationRepository.findConversationWithBienIdAndEmailExpediteur(
                 bienId, proprietaire.getMail(), locataire.getMail()).isEmpty()) {
             throw locataireIntrouvable();
         }
@@ -298,11 +355,27 @@ public class BienServiceImpl implements BienService {
 
         User locataire = bien.getLocataire();
 
-        if (locataire == null || emailLocataire == null || !locataire.getMail().equalsIgnoreCase(emailLocataire)) {
+        if (locataire == null || emailLocataire == null || !locataire.getMail().equals(EmailUtils.normaliser(emailLocataire))) {
             throw new KupangaBusinessException(
                     "Ce locataire n'est pas le locataire assigné à ce bien", HttpStatus.BAD_REQUEST);
         }
         return locataire;
+    }
+
+    @Override
+    public void verifierBienActif(Bien bien) {
+        if (bien.isArchive()) {
+            throw new KupangaBusinessException("Ce bien est archivé", HttpStatus.CONFLICT);
+        }
+    }
+
+    @Override
+    public void verifierDocumentModifiable(Bien bien, User proprietaire, User locataire) {
+        verifierBienActif(bien);
+        if ((proprietaire != null && proprietaire.isAnonymise()) || (locataire != null && locataire.isAnonymise())) {
+            throw new KupangaBusinessException(
+                    "Une des parties a supprimé son compte : ce document ne peut plus être modifié", HttpStatus.CONFLICT);
+        }
     }
 
     private static boolean estProprietaire(Bien bien, User user) {
@@ -330,6 +403,11 @@ public class BienServiceImpl implements BienService {
                 .ville(bien.getVille())
                 .codePostal(bien.getCodePostal())
                 .pays(bien.getPays())
+                .commune(bien.getCommune())
+                .quartier(bien.getQuartier())
+                .avenue(bien.getAvenue())
+                .numeroParcelle(bien.getNumeroParcelle())
+                .pointDeRepere(bien.getPointDeRepere())
                 .latitude(bien.getLocalisation() != null
                         ? bien.getLocalisation().getY()
                         : null)
@@ -354,9 +432,11 @@ public class BienServiceImpl implements BienService {
                 .loyerMensuel(bien.getLoyerMensuel())
                 .chargesMensuelles(bien.getChargesMensuelles())
                 .depotGarantie(bien.getDepotGarantie())
+                .devise(bien.getDevise())
                 .meuble(bien.getMeuble())
                 .colocation(bien.getColocation())
                 .disponibleDe(bien.getDisponibleDe())
+                .archive(bien.isArchive())
 
                 // ─── Parties ──────────────────────────────────────────────
                 .proprietaire(bien.getProprietaire() != null
@@ -417,5 +497,10 @@ public class BienServiceImpl implements BienService {
                 .updatedAt(bien.getUpdatedAt())
 
                 .build();
+    }
+
+    /** Texte saisi, ou {@code null} s'il est vide (un champ vide n'est pas enregistré). */
+    private static String texte(String valeur) {
+        return valeur == null || valeur.isBlank() ? null : valeur.trim();
     }
 }

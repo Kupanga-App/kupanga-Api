@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -50,6 +51,27 @@ public class GlobalExceptionHandler {
         return buildResponse(
                 ex.getStatus(),
                 ex.getMessage(),
+                request
+        );
+    }
+
+    /**
+     * Document modifié par une autre requête entre sa lecture et son écriture (verrou optimiste, B6) :
+     * 409, rien n'a été enregistré.
+     *
+     * @param ex      l'exception levée
+     * @param request la requête HTTP ayant causé l'exception
+     * @return {@link ResponseEntity} contenant {@link ApiErrorResponse}
+     */
+    @ExceptionHandler(OptimisticLockingFailureException.class)
+    public ResponseEntity<ApiErrorResponse> handleConflitDeVersion(
+            OptimisticLockingFailureException ex,
+            HttpServletRequest request
+    ) {
+        logger.warn("Conflit de version sur {} : {}", request.getRequestURI(), ex.getClass().getSimpleName());
+        return buildResponse(
+                HttpStatus.CONFLICT,
+                "Ce document vient d'être modifié. Rechargez la page puis réessayez.",
                 request
         );
     }
@@ -127,7 +149,9 @@ public class GlobalExceptionHandler {
         Throwable cause = ex.getMostSpecificCause();
         if (cause instanceof InvalidFormatException invalidFormat
                 && invalidFormat.getTargetType().isEnum()) {
-            message = "Valeur invalide : '" + invalidFormat.getValue()
+            String valeur = String.valueOf(invalidFormat.getValue());
+            if (valeur.length() > 50) valeur = valeur.substring(0, 50) + "…";
+            message = "Valeur invalide : '" + valeur
                     + "'. Valeurs acceptées : "
                     + Arrays.toString(invalidFormat.getTargetType().getEnumConstants());
         }

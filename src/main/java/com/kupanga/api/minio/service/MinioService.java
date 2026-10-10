@@ -20,6 +20,15 @@ public interface MinioService {
     String uploadImage(MultipartFile file, String bucketName);
 
     /**
+     * Indique si une URL désigne un objet de ce bucket sur notre MinIO (ex. avatar choisi par le front),
+     * et non une adresse externe (pixel de suivi, contenu non contrôlé).
+     * @param url URL reçue du client
+     * @param bucketName bucket attendu
+     * @return {@code true} si l'URL est {@code <url MinIO>/<bucket>/<nom simple>}
+     */
+    boolean estUrlDuBucket(String url, String bucketName);
+
+    /**
      * Uploader un pdf dans un bucket <b>privé</b> (contrats, EDL, quittances — P0-7).
      * @param pdf le pdf
      * @param originalName nom du pdf
@@ -43,4 +52,12 @@ public interface MinioService {
      * @return le contenu du fichier
      */
     byte[] telecharger(String bucketName, String cle);
+
+    /**
+     * B12 : supprime l'objet désigné par une URL de ce bucket (ex. photo de profil d'un compte supprimé).
+     * Sans effet si l'URL n'est pas celle d'un objet de ce bucket ; une erreur MinIO est journalisée, pas propagée.
+     * @param url URL publique de l'objet
+     * @param bucketName bucket attendu
+     */
+    void supprimerParUrl(String url, String bucketName);
 }

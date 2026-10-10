@@ -28,7 +28,17 @@ public class LimiteurTentatives {
 
     /** Consomme un essai pour l'IP du client. */
     public void verifierIp(LimiteTentatives limite, HttpServletRequest request) {
-        verifier(limite, request.getRemoteAddr());
+        verifierAdresseIp(limite, request.getRemoteAddr());
+    }
+
+    /** Consomme un essai pour une adresse IP déjà connue (ex. détails d'authentification Spring Security). */
+    public void verifierAdresseIp(LimiteTentatives limite, String adresseIp) {
+        verifier(limite, adresseIp != null ? adresseIp : "inconnue");
+    }
+
+    /** Consomme un essai sur un compteur unique, commun à tous les clients. */
+    public void verifierGlobal(LimiteTentatives limite) {
+        verifier(limite, "global");
     }
 
     /** Consomme un essai pour l'e-mail visé (normalisé : la casse ne permet pas de contourner la limite). */

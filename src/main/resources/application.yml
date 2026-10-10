@@ -5,9 +5,25 @@ spring:
     active: ${SPRING_PROFILES_ACTIVE:dev}
   config:
     import: optional:file:.env.dev[.properties]
+  # B3 : photos de smartphone (3 à 8 Mo) ; toutes les photos d'un bien partent dans une seule requête
+  # (décision 2026-10-08). En prod, le reverse proxy doit accepter au moins max-request-size.
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 50MB
+      # Analyse du corps à la lecture des @RequestPart : le 413 passe par l'API (ApiErrorResponse),
+      # les routes non multipart n'analysent rien, et les intercepteurs (limite d'inscription) passent avant.
+      resolve-lazily: true
 
 server:
   port: ${PORT:8089}
+
+# D2 : /actuator/health/liveness (HEALTHCHECK du Dockerfile) et /readiness, sans détails
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
 
 springdoc:
   api-docs:
@@ -19,6 +35,43 @@ brevo:
   api-key: ${BREVO_API_KEY:test-api-key}
   sender-email: ${BREVO_SENDER_EMAIL:noreplydevback@gmail.com}
   sender-name: ${BREVO_SENDER_NAME:Kupanga}
+
+# ─── Juridictions (CLAUDE.md §4bis, J2) ───────────────────────────────────────
+# Un pays sans profil n'est pas pris en charge. Profil contrôlé au démarrage (JuridictionRegistry) :
+# devise-defaut dans devises, champs = noms de BienFormDTO, une RegleJuridiction par pays.
+kupanga:
+  juridictions:
+    FR:
+      locale: fr-FR
+      fuseau: Europe/Paris
+      devises: [EUR]
+      devise-defaut: EUR
+      champs-obligatoires: [codePostal]
+      # J4 : adresse congolaise sans objet en France
+      champs-masques: [commune, quartier, avenue, numeroParcelle, pointDeRepere]
+      types-bien: [APPARTEMENT, MAISON, STUDIO]
+      modele-documents: fr-v1
+      notification:
+        canaux: [EMAIL]
+    CD:
+      locale: fr-CD
+      # MVP Kinshasa (UTC+1) ; Lubumbashi est en UTC+2
+      fuseau: Africa/Kinshasa
+      devises: [USD, CDF]
+      devise-defaut: USD
+      # J4 (C1) : on situe un logement par sa commune et son quartier (« Q/Matonge, C/Kalamu »)
+      champs-obligatoires: [commune, quartier]
+      # Pas de code postal en usage, ni de diagnostic de performance énergétique en RDC
+      champs-masques: [codePostal, classeEnergie, classeGes]
+      types-bien: [APPARTEMENT, MAISON, STUDIO]
+      modele-documents: cd-v1
+      notification:
+        canaux: [EMAIL, WHATSAPP_LIEN]
+  # C5 : montants maximaux par devise (au-delà : 400). CDF ≈ 100 000 USD au taux d'environ 2 800 CDF pour 1 USD.
+  plafonds:
+    EUR: { loyer-mensuel: 100000, charges-mensuelles: 10000, depot-garantie: 100000 }
+    USD: { loyer-mensuel: 100000, charges-mensuelles: 10000, depot-garantie: 100000 }
+    CDF: { loyer-mensuel: 300000000, charges-mensuelles: 30000000, depot-garantie: 300000000 }
 
 app:
   feature-flags:

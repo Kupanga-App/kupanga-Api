@@ -204,6 +204,115 @@ public class Constante {
             </html>
             """;
 
+    // ─── 02bis · Confirmation de l'adresse e-mail (A14) ─────────────────────────────────────────
+    public static final String SUJET_MAIL_VERIFICATION_EMAIL =
+            "Confirmez votre adresse e-mail – KUPANGA";
+
+    // %s = prénom (échappé), %s = lien de confirmation
+    public static final String CONTENU_MAIL_VERIFICATION_EMAIL =
+            """
+            <!DOCTYPE html>
+            <html lang="fr">
+            <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+            </head>
+            <body style="margin:0; padding:0; background:#FAFAF4; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;">
+            <div style="display:none; max-height:0; overflow:hidden;">Confirmez votre adresse e-mail pour activer votre compte — lien valable 24 heures.</div>
+
+            <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" style="background:#FAFAF4; padding:32px 16px;">
+              <tr><td align="center">
+                <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px; width:100%%; background:#FFFFFF; border:1px solid rgba(143,164,100,0.18);">
+
+              <tr><td style="background:#10212B; padding:18px 32px;">
+                <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0"><tr>
+                  <td style="vertical-align:middle;">
+                    <span style="display:inline-block; width:10px; height:10px; background:#8FA464; vertical-align:middle; margin-right:10px;"></span>
+                    <span style="font-family:'DM Serif Display', Georgia, 'Times New Roman', serif; font-size:22px; color:#EFFBDB; vertical-align:middle; letter-spacing:-0.01em; line-height:1;">kupanga</span>
+                  </td>
+                  <td style="text-align:right; vertical-align:middle; font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:9.5px; letter-spacing:0.22em; text-transform:uppercase; color:#B5CA8D;">
+                    Gestion locative
+                  </td>
+                </tr></table>
+              </td></tr>
+
+              <tr><td style="background:#FFFFFF; padding:32px 32px 0;">
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+                  <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:9.5px; letter-spacing:0.28em; text-transform:uppercase; color:#6B7C4B; padding-bottom:10px; border-bottom:1px solid #8FA464;">
+                    Activation du compte
+                  </td>
+                </tr></table>
+              </td></tr>
+
+              <tr><td style="background:#FFFFFF; padding:20px 32px 4px;">
+                <h1 style="font-family:'DM Serif Display', Georgia, 'Times New Roman', serif; font-size:30px; line-height:1.15; margin:0; color:#10212B; font-weight:400; letter-spacing:-0.01em;">
+                  Bienvenue %s, confirmez votre adresse e-mail
+                </h1>
+              </td></tr>
+
+              <tr><td style="background:#FFFFFF; padding:10px 32px;">
+                <p style="margin:0; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:14px; line-height:1.65; color:#3A4F5C; font-weight:300;">
+                  Votre compte KUPANGA est presque prêt. Confirmez que cette adresse vous appartient pour pouvoir vous connecter.
+                </p>
+              </td></tr>
+
+              <tr><td style="background:#FFFFFF; padding:10px 32px;">
+                <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" style="background:rgba(212,168,83,0.14); border-left:3px solid #D4A853;">
+                  <tr><td style="padding:12px 16px; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:13px; color:#7A5E22; line-height:1.55;">
+                    Pour des raisons de sécurité, ce lien est valable <strong>24 heures</strong>.
+                  </td></tr>
+                </table>
+              </td></tr>
+
+              <tr><td style="background:#FFFFFF; padding:10px 32px;">
+                <p style="margin:0; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:14px; line-height:1.65; color:#3A4F5C; font-weight:300;">
+                  Cliquez sur le bouton ci-dessous pour activer votre compte :
+                </p>
+              </td></tr>
+
+              <tr><td style="background:#FFFFFF; padding:18px 32px 14px;">
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+                  <td style="background:#8FA464; border-radius:8px;">
+                    <a href="%s" style="display:inline-block; padding:14px 28px; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:14px; font-weight:600; color:#10212B; text-decoration:none; letter-spacing:0.01em;">
+                      Confirmer mon adresse e-mail
+                    </a>
+                  </td>
+                </tr></table>
+              </td></tr>
+
+              <tr><td style="background:#FFFFFF; padding:10px 32px;">
+                <p style="margin:0; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:12px; line-height:1.65; color:#6B7984; font-weight:300;">
+                  Si vous n'avez pas créé de compte KUPANGA, ignorez cet e-mail : aucun compte ne sera activé.
+                </p>
+              </td></tr>
+
+              <tr><td style="background:#FFFFFF; padding:28px 32px 32px;">
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+                  <td style="border-top:1px solid rgba(143,164,100,0.20); padding-top:16px; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:13px; color:#3A4F5C; line-height:1.7; font-weight:300;">
+                    L'équipe KUPANGA
+                  </td>
+                </tr></table>
+              </td></tr>
+
+              <tr><td style="background:#10212B; padding:16px 32px;">
+                <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0"><tr>
+                  <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:9px; letter-spacing:0.20em; text-transform:uppercase; color:#B5CA8D;">
+                    <span style="display:inline-block; width:5px; height:5px; background:#8FA464; margin-right:8px; vertical-align:middle;"></span>
+                    <span style="color:#EFFBDB; vertical-align:middle;">Kupanga</span><span style="vertical-align:middle;"> · Gestion locative</span>
+                  </td>
+                  <td style="text-align:right; font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:9px; letter-spacing:0.20em; text-transform:uppercase; color:#6B7C4B;">
+                    kupanga.fr
+                  </td>
+                </tr></table>
+              </td></tr>
+                </table>
+              </td></tr>
+            </table>
+            </body>
+            </html>
+            """;
+
     // ─── 03 · Confirmation mot de passe mis à jour ─────────────────────────────────────────
     public static final String SUJET_MAIL_CONFIRMATION_MOT_DE_PASSE =
             "Confirmation de mise à jour du mot de passe – KUPANGA";
@@ -321,6 +430,123 @@ public class Constante {
             </html>
             """;
 
+    // ─── 03bis · Inscription avec une adresse déjà inscrite (A14) ─────────────────────────────────────────
+    public static final String SUJET_MAIL_TENTATIVE_INSCRIPTION =
+            "Tentative d'inscription avec votre adresse – KUPANGA";
+
+    // %s = lien « mot de passe oublié »
+    public static final String CONTENU_MAIL_TENTATIVE_INSCRIPTION =
+            """
+            <!DOCTYPE html>
+            <html lang="fr">
+            <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+            </head>
+            <body style="margin:0; padding:0; background:#FAFAF4; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;">
+            <div style="display:none; max-height:0; overflow:hidden;">Quelqu'un a tenté de créer un compte KUPANGA avec votre adresse e-mail.</div>
+
+            <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" style="background:#FAFAF4; padding:32px 16px;">
+              <tr><td align="center">
+                <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px; width:100%%; background:#FFFFFF; border:1px solid rgba(143,164,100,0.18);">
+
+              <tr><td style="background:#10212B; padding:18px 32px;">
+                <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0"><tr>
+                  <td style="vertical-align:middle;">
+                    <span style="display:inline-block; width:10px; height:10px; background:#8FA464; vertical-align:middle; margin-right:10px;"></span>
+                    <span style="font-family:'DM Serif Display', Georgia, 'Times New Roman', serif; font-size:22px; color:#EFFBDB; vertical-align:middle; letter-spacing:-0.01em; line-height:1;">kupanga</span>
+                  </td>
+                  <td style="text-align:right; vertical-align:middle; font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:9.5px; letter-spacing:0.22em; text-transform:uppercase; color:#B5CA8D;">
+                    Gestion locative
+                  </td>
+                </tr></table>
+              </td></tr>
+
+              <tr><td style="background:#FFFFFF; padding:32px 32px 0;">
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+                  <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:9.5px; letter-spacing:0.28em; text-transform:uppercase; color:#6B7C4B; padding-bottom:10px; border-bottom:1px solid #8FA464;">
+                    Information · Sécurité
+                  </td>
+                </tr></table>
+              </td></tr>
+
+              <tr><td style="background:#FFFFFF; padding:20px 32px 4px;">
+                <h1 style="font-family:'DM Serif Display', Georgia, 'Times New Roman', serif; font-size:30px; line-height:1.15; margin:0; color:#10212B; font-weight:400; letter-spacing:-0.01em;">
+                  Vous avez déjà un compte KUPANGA
+                </h1>
+              </td></tr>
+
+              <tr><td style="background:#FFFFFF; padding:10px 32px;">
+                <p style="margin:0; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:14px; line-height:1.65; color:#3A4F5C; font-weight:300;">
+                  Bonjour,
+                </p>
+              </td></tr>
+
+              <tr><td style="background:#FFFFFF; padding:10px 32px;">
+                <p style="margin:0; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:14px; line-height:1.65; color:#3A4F5C; font-weight:300;">
+                  Quelqu'un vient de demander la création d'un compte <strong>KUPANGA</strong> avec cette adresse e-mail. Un compte existe déjà à cette adresse : aucun nouveau compte n'a été créé.
+                </p>
+              </td></tr>
+
+              <tr><td style="background:#FFFFFF; padding:10px 32px;">
+                <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" style="background:rgba(143,164,100,0.15); border-left:3px solid #8FA464;">
+                  <tr><td style="padding:12px 16px; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:13px; color:#4F5F37; line-height:1.55;">
+                    Si c'est vous, choisissez un nouveau mot de passe avec le bouton ci-dessous pour accéder à votre compte.
+                  </td></tr>
+                </table>
+              </td></tr>
+
+              <tr><td style="background:#FFFFFF; padding:10px 32px;">
+                <p style="margin:0; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:14px; line-height:1.65; color:#3A4F5C; font-weight:300;">
+                  Votre compte et votre mot de passe n'ont pas été modifiés.
+                </p>
+              </td></tr>
+
+              <tr><td style="background:#FFFFFF; padding:10px 32px;">
+                <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" style="background:rgba(192,97,74,0.13); border-left:3px solid #C0614A;">
+                  <tr><td style="padding:12px 16px; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:13px; color:#8A3F2A; line-height:1.55;">
+                    Si vous n'êtes pas à l'origine de cette demande, ignorez simplement cet e-mail.
+                  </td></tr>
+                </table>
+              </td></tr>
+
+              <tr><td style="background:#FFFFFF; padding:18px 32px 14px;">
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+                  <td style="background:#8FA464; border-radius:8px;">
+                    <a href="%s" style="display:inline-block; padding:14px 28px; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:14px; font-weight:600; color:#10212B; text-decoration:none; letter-spacing:0.01em;">
+                      Choisir un nouveau mot de passe
+                    </a>
+                  </td>
+                </tr></table>
+              </td></tr>
+
+              <tr><td style="background:#FFFFFF; padding:28px 32px 32px;">
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+                  <td style="border-top:1px solid rgba(143,164,100,0.20); padding-top:16px; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:13px; color:#3A4F5C; line-height:1.7; font-weight:300;">
+                    L'équipe KUPANGA
+                  </td>
+                </tr></table>
+              </td></tr>
+
+              <tr><td style="background:#10212B; padding:16px 32px;">
+                <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0"><tr>
+                  <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:9px; letter-spacing:0.20em; text-transform:uppercase; color:#B5CA8D;">
+                    <span style="display:inline-block; width:5px; height:5px; background:#8FA464; margin-right:8px; vertical-align:middle;"></span>
+                    <span style="color:#EFFBDB; vertical-align:middle;">Kupanga</span><span style="vertical-align:middle;"> · Gestion locative</span>
+                  </td>
+                  <td style="text-align:right; font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:9px; letter-spacing:0.20em; text-transform:uppercase; color:#6B7C4B;">
+                    kupanga.fr
+                  </td>
+                </tr></table>
+              </td></tr>
+                </table>
+              </td></tr>
+            </table>
+            </body>
+            </html>
+            """;
+
     // ─── 04 · Invitation à signer un contrat ─────────────────────────────────────────
     public static final String SUJET_MAIL_INVITATION_SIGNATURE =
             "KUPANGA — Vous avez un contrat à signer";
@@ -385,15 +611,15 @@ public class Constante {
                     <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0">
                   <tr>
                     <td style="font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:13px; color:#3A4F5C; padding:8px 0; border-bottom:1px dotted rgba(143,164,100,0.35); font-weight:400;">Loyer mensuel</td>
-                    <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:13px; color:#10212B; font-weight:500; text-align:right; padding:8px 0; border-bottom:1px dotted rgba(143,164,100,0.35);"><strong>%5$s €</strong></td>
+                    <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:13px; color:#10212B; font-weight:500; text-align:right; padding:8px 0; border-bottom:1px dotted rgba(143,164,100,0.35);"><strong>%5$s</strong></td>
                   </tr>
                   <tr>
                     <td style="font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:13px; color:#3A4F5C; padding:8px 0; border-bottom:1px dotted rgba(143,164,100,0.35); font-weight:400;">Charges mensuelles</td>
-                    <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:13px; color:#10212B; font-weight:500; text-align:right; padding:8px 0; border-bottom:1px dotted rgba(143,164,100,0.35);"><strong>%6$s €</strong></td>
+                    <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:13px; color:#10212B; font-weight:500; text-align:right; padding:8px 0; border-bottom:1px dotted rgba(143,164,100,0.35);"><strong>%6$s</strong></td>
                   </tr>
                   <tr>
                     <td style="font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:13px; color:#3A4F5C; padding:8px 0; border-bottom:1px dotted rgba(143,164,100,0.35); font-weight:400;">Dépôt de garantie</td>
-                    <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:13px; color:#10212B; font-weight:500; text-align:right; padding:8px 0; border-bottom:1px dotted rgba(143,164,100,0.35);"><strong>%7$s €</strong></td>
+                    <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:13px; color:#10212B; font-weight:500; text-align:right; padding:8px 0; border-bottom:1px dotted rgba(143,164,100,0.35);"><strong>%7$s</strong></td>
                   </tr>
                   <tr>
                     <td style="font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:13px; color:#3A4F5C; padding:8px 0; border-bottom:1px dotted rgba(143,164,100,0.35); font-weight:400;">Date de début</td>
@@ -526,15 +752,15 @@ public class Constante {
                     <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0">
                   <tr>
                     <td style="font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:13px; color:#3A4F5C; padding:8px 0; border-bottom:1px dotted rgba(143,164,100,0.35); font-weight:400;">Loyer mensuel</td>
-                    <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:13px; color:#10212B; font-weight:500; text-align:right; padding:8px 0; border-bottom:1px dotted rgba(143,164,100,0.35);"><strong>%3$s €</strong></td>
+                    <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:13px; color:#10212B; font-weight:500; text-align:right; padding:8px 0; border-bottom:1px dotted rgba(143,164,100,0.35);"><strong>%3$s</strong></td>
                   </tr>
                   <tr>
                     <td style="font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:13px; color:#3A4F5C; padding:8px 0; border-bottom:1px dotted rgba(143,164,100,0.35); font-weight:400;">Charges mensuelles</td>
-                    <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:13px; color:#10212B; font-weight:500; text-align:right; padding:8px 0; border-bottom:1px dotted rgba(143,164,100,0.35);"><strong>%4$s €</strong></td>
+                    <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:13px; color:#10212B; font-weight:500; text-align:right; padding:8px 0; border-bottom:1px dotted rgba(143,164,100,0.35);"><strong>%4$s</strong></td>
                   </tr>
                   <tr>
                     <td style="font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:13px; color:#3A4F5C; padding:8px 0; border-bottom:1px dotted rgba(143,164,100,0.35); font-weight:400;">Dépôt de garantie</td>
-                    <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:13px; color:#10212B; font-weight:500; text-align:right; padding:8px 0; border-bottom:1px dotted rgba(143,164,100,0.35);"><strong>%5$s €</strong></td>
+                    <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:13px; color:#10212B; font-weight:500; text-align:right; padding:8px 0; border-bottom:1px dotted rgba(143,164,100,0.35);"><strong>%5$s</strong></td>
                   </tr>
                   <tr>
                     <td style="font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:13px; color:#3A4F5C; padding:8px 0; border-bottom:1px dotted rgba(143,164,100,0.35); font-weight:400;">Date de début</td>
@@ -906,15 +1132,15 @@ public class Constante {
                     <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0">
                   <tr>
                     <td style="font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:13px; color:#3A4F5C; padding:8px 0; border-bottom:1px dotted rgba(143,164,100,0.35); font-weight:400;">Loyer mensuel hors charges</td>
-                    <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:13px; color:#10212B; font-weight:500; text-align:right; padding:8px 0; border-bottom:1px dotted rgba(143,164,100,0.35);"><strong>%4$s €</strong></td>
+                    <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:13px; color:#10212B; font-weight:500; text-align:right; padding:8px 0; border-bottom:1px dotted rgba(143,164,100,0.35);"><strong>%4$s</strong></td>
                   </tr>
                   <tr>
                     <td style="font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:13px; color:#3A4F5C; padding:8px 0; border-bottom:1px dotted rgba(143,164,100,0.35); font-weight:400;">Charges mensuelles</td>
-                    <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:13px; color:#10212B; font-weight:500; text-align:right; padding:8px 0; border-bottom:1px dotted rgba(143,164,100,0.35);"><strong>%5$s €</strong></td>
+                    <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:13px; color:#10212B; font-weight:500; text-align:right; padding:8px 0; border-bottom:1px dotted rgba(143,164,100,0.35);"><strong>%5$s</strong></td>
                   </tr>
                   <tr>
                     <td style="font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:13px; color:#3A4F5C; padding:8px 0; border-bottom:1px dotted rgba(143,164,100,0.35); font-weight:400;">Total encaissé</td>
-                    <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:13px; color:#10212B; font-weight:500; text-align:right; padding:8px 0; border-bottom:1px dotted rgba(143,164,100,0.35);"><strong>%6$s €</strong></td>
+                    <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:13px; color:#10212B; font-weight:500; text-align:right; padding:8px 0; border-bottom:1px dotted rgba(143,164,100,0.35);"><strong>%6$s</strong></td>
                   </tr>
                   <tr>
                     <td style="font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:13px; color:#3A4F5C; padding:8px 0; font-weight:400;">Date de paiement</td>

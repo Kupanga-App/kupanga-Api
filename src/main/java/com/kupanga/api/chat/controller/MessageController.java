@@ -1,7 +1,9 @@
 package com.kupanga.api.chat.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Pattern;
 import com.kupanga.api.exception.business.BusinessException;
 import com.kupanga.api.exception.business.UserNotFoundException;
 import org.springframework.validation.FieldError;
@@ -22,6 +24,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.web.bind.annotation.*;
@@ -37,6 +40,10 @@ public class MessageController {
 
     private final MessageService messageService;
 
+    /** En-tête STOMP de l'identifiant choisi par le front pour suivre son envoi (W13). */
+    static final String EN_TETE_ID_CLIENT = "id-client";
+    private static final Pattern ID_CLIENT = Pattern.compile("[A-Za-z0-9-]{1,64}");
+
     // ─────────────────────────────────────────────────────────────────────────
     // WebSocket — envoi d'un message en temps réel
     // Destination : /app/chat.send
@@ -48,8 +55,14 @@ public class MessageController {
      * Le destinataire reçoit sur /user/{email}/queue/messages
      */
     @MessageMapping("/chat.send")
-    public void sendMessage(@Valid @Payload MessagePayload payload, Principal principal) {
-        messageService.envoyerMessage(payload, principal.getName());
+    public void sendMessage(@Valid @Payload MessagePayload payload, Principal principal,
+                            @Header(name = EN_TETE_ID_CLIENT, required = false) String idClient) {
+        messageService.envoyerMessage(payload, principal.getName(), idClientValide(idClient));
+    }
+
+    /** Identifiant renvoyé tel quel au front : seulement s'il est court et sans caractère spécial. */
+    static String idClientValide(String idClient) {
+        return idClient != null && ID_CLIENT.matcher(idClient).matches() ? idClient : null;
     }
 
     /**
@@ -59,7 +72,8 @@ public class MessageController {
      */
     @MessageExceptionHandler
     @SendToUser(destinations = "/queue/errors", broadcast = false)
-    public Map<String, String> handleErreurMessage(Exception e) {
+    public Map<String, String> handleErreurMessage(Exception e,
+            @Header(name = EN_TETE_ID_CLIENT, required = false) String idClient) {
         String message;
         if (e instanceof MethodArgumentNotValidException invalide && invalide.getBindingResult() != null) {
             message = invalide.getBindingResult().getFieldErrors().stream()
@@ -72,10 +86,17 @@ public class MessageController {
         } else if (e instanceof BusinessException metier) {
             message = metier.getMessage();
         } else {
-            log.error("Erreur lors de l'envoi d'un message WebSocket", e);
+            // W10 : classe seulement (le détail SQL ou STOMP peut contenir les e-mails ou le contenu)
+            log.error("Erreur lors de l'envoi d'un message WebSocket : {} (cause : {})", e.getClass().getName(),
+                    org.springframework.core.NestedExceptionUtils.getMostSpecificCause(e).getClass().getName());
             message = "Le message n'a pas pu être envoyé.";
         }
-        return Map.of("message", message);
+        Map<String, String> erreur = new HashMap<>();
+        erreur.put("message", message);
+        // W13 : le front passe ce message en « échec »
+        String id = idClientValide(idClient);
+        if (id != null) erreur.put("idClient", id);
+        return erreur;
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -186,9 +207,9 @@ public class MessageController {
     @Operation(
             summary = "Marquer une conversation comme lue",
             description = """
-                    Marque comme lus tous les messages reçus de l'expéditeur donné
-                    dans la conversation avec l'utilisateur connecté.
-                    À appeler dès que l'utilisateur ouvre une conversation.
+                    Marque comme lus les messages reçus de l'expéditeur donné dans la conversation
+                    **sur ce bien** avec l'utilisateur connecté (les conversations sur d'autres biens ne sont pas touchées).
+                    À appeler dès que l'utilisateur ouvre une conversation. `bienId` est obligatoire (400 sinon).
                     """
     )
     @ApiResponses(value = {
@@ -211,8 +232,10 @@ public class MessageController {
     public ResponseEntity<Void> marquerLus(
             @Parameter(description = "Email de l'expéditeur dont on veut marquer les messages comme lus", required = true)
             @PathVariable String emailExpediteur,
+            @Parameter(description = "Identifiant du bien de la conversation", required = true)
+            @RequestParam Long bienId,
             Principal principal) {
-        messageService.marquerConversationLue(principal.getName(), emailExpediteur);
+        messageService.marquerConversationLue(bienId, principal.getName(), emailExpediteur);
         return ResponseEntity.ok().build();
     }
 }

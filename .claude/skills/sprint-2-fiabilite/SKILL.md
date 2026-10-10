@@ -17,6 +17,7 @@ Argument reçu : `$ARGUMENTS`
 
 | Ordre | ID | Tâche | Points d'attention |
 |---|---|---|---|
+| 0 | `BO-LOGIN` | Login du back-office | `AdminCredentialsAuthProvider` : limite de tentatives via `LimiteurTentatives` (A3, Redis) par couple (identifiant, IP) et par IP, comparaison en temps constant (`MessageDigest.isEqual` sur les octets UTF-8, identifiant **et** mot de passe), message d'échec identique ; tests |
 | 1 | `B1` | Le locataire ne voit pas ses quittances | `QuittanceServiceImpl.getQuittancesParLocataire` appelle `findByProprietaireId` : corriger la requête, et ajouter un test |
 | 2 | `A10` | E-mails insensibles à la casse | Normaliser en minuscules (`trim` + `toLowerCase(Locale.ROOT)`) à l'inscription, au login, au login Google, au mot de passe oublié et partout où un e-mail sert de clé (`UserRepository.findByMail`, invitations locataire, messagerie). Migration Flyway : passer les e-mails existants en minuscules **après avoir vérifié qu'aucun doublon n'apparaît** (sinon s'arrêter et lister les doublons à l'utilisateur) ; index unique sur `lower(mail)` |
 | 3 | `B2` | Clé du cache de géocodage | Inclure l'adresse complète dans la clé (`GeocodingService`) |
@@ -33,6 +34,7 @@ Argument reçu : `$ARGUMENTS`
 | 14 | `B9` | Recherche des POI | 1 retry, timeout de 10 s, cache ; ne pas passer d'entité détachée à `@Async` (passer l'id) |
 | 15 | `B11` | E-mails après commit | `@TransactionalEventListener(phase = AFTER_COMMIT)` à la place de `@Async` dans la transaction |
 | 16 | `A14` | Vérification de l'e-mail à l'inscription | Token de vérification envoyé via Brevo (gratuit, pas d'OTP SMS), lien vers le front, expiration ; colonne `email_verifie` (migration Flyway, comptes existants et comptes Google vérifiés = `true`). Envoi **après commit** (s'appuie sur B11). **Demander à l'utilisateur** ce qu'un compte non vérifié peut faire (connexion bloquée ? actions limitées ?) et s'il faut un endpoint « renvoyer l'e-mail » (avec rate limiting A3). **Impact front** |
+| 16bis | `A4` | `email_verified` Google | `AuthServiceImpl` (connexion Google) : refuser le jeton si `email_verified` n'est pas `true` ; ne pas rattacher un compte Google à un compte local non vérifié (A14) ; tests. Remonté du Sprint 4 (décision 2026-10-08) |
 | 17 | `B12` | Cascades dangereuses | Retirer `cascade = ALL` de `User` vers les biens et messages ; définir le comportement à la suppression avec l'utilisateur (anonymisation ?) |
 | 18 | `D1-D8` | Docker, actuator, Sentry, Flyway, versions, sauvegardes | D1 port du compose ; D2 Dockerfile (`USER`, `MaxRAMPercentage`, `HEALTHCHECK`) ; D3 actuator `when-authorized` ; D4 Swagger désactivé en prod ; D5 Sentry PII `false` et sample rate 0.1–0.2 ; D6 Flyway `validate-on-migrate` ; D7 versions d'images figées ; D8 sauvegardes : **documenter la procédure** (`pg_dump` + réplication MinIO), leur mise en place sur le serveur est manuelle |
 

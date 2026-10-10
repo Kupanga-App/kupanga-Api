@@ -22,6 +22,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
@@ -99,5 +100,15 @@ class SecurityConfigTest {
 
         mockMvc.perform(get("/ws/info").header(HttpHeaders.ORIGIN, "http://localhost:4200"))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("D2 : sonde de vivacité publique (HEALTHCHECK du Dockerfile), sans détails ; le reste d'actuator fermé")
+    void sondeDeVivacite_publique() throws Exception {
+        mockMvc.perform(get("/actuator/health/liveness"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("UP"))
+                .andExpect(jsonPath("$.components").doesNotExist());
+        mockMvc.perform(get("/actuator/env")).andExpect(status().is4xxClientError());
     }
 }

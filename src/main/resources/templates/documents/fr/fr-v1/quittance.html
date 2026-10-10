@@ -2,232 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8"/>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            font-size: 11px;
-            color: #2a2a28;
-            margin: 32px 40px;
-            background-color: #EFFBDB;
-            line-height: 1.5;
-        }
-
-        /* ── Header ── */
-        .brand {
-            font-size: 15px;
-            font-weight: bold;
-            color: #EFFBDB;
-        }
-        .brand-tagline {
-            font-size: 8px;
-            color: #B5CA8D;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            margin-top: 2px;
-        }
-        .doc-ref {
-            font-size: 9px;
-            color: #B5CA8D;
-            letter-spacing: 0.5px;
-        }
-
-        /* ── Title ── */
-        .pre-title {
-            font-size: 8px;
-            color: #9a9890;
-            text-transform: uppercase;
-            letter-spacing: 2.5px;
-            margin-bottom: 8px;
-        }
-        .main-title {
-            font-size: 26px;
-            font-weight: normal;
-            color: #2a2a28;
-            margin-bottom: 10px;
-        }
-        .main-title em {
-            font-family: Georgia, 'Times New Roman', serif;
-            font-style: italic;
-        }
-        .subtitle-text {
-            font-size: 10px;
-            color: #6b6b60;
-            line-height: 1.6;
-        }
-
-        /* ── Section heading ── */
-        .section-head {
-            font-size: 8px;
-            font-weight: bold;
-            color: #6b6b60;
-            text-transform: uppercase;
-            letter-spacing: 2.5px;
-            border-bottom: 1px solid #ccc7be;
-            padding-bottom: 5px;
-            margin-top: 26px;
-            margin-bottom: 14px;
-        }
-
-        /* ── Partie card ── */
-        .partie-card {
-            border: 1px solid #dedad3;
-            border-radius: 6px;
-            background-color: #faf8f4;
-            padding: 14px 16px;
-            page-break-inside: avoid;
-        }
-        .partie-role-lbl {
-            font-size: 8px;
-            font-weight: bold;
-            color: #9a9890;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            margin-bottom: 6px;
-        }
-        .name-sublabel {
-            font-size: 9px;
-            color: #9a9890;
-        }
-        .name-big {
-            font-size: 12px;
-            font-weight: bold;
-            color: #2a2a28;
-        }
-        .email-txt {
-            font-size: 9px;
-            color: #6b6b60;
-            margin-top: 4px;
-        }
-
-        /* ── Paragraph ── */
-        .para {
-            font-size: 11px;
-            color: #2a2a28;
-            line-height: 1.7;
-            margin-bottom: 14px;
-        }
-
-        /* ── Financial table ── */
-        .fin-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 12px 0;
-        }
-        .fin-table thead th {
-            background-color: #f0ece4;
-            font-size: 8px;
-            font-weight: bold;
-            color: #9a9890;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            padding: 8px 14px;
-            text-align: left;
-            border-bottom: 1px solid #ccc7be;
-        }
-        .fin-table thead th.right {
-            text-align: right;
-        }
-        .fin-table tbody td {
-            padding: 10px 14px;
-            border-bottom: 1px solid #eae7e0;
-            font-size: 11px;
-            color: #2a2a28;
-        }
-        .fin-table tbody td.right {
-            text-align: right;
-        }
-        .fin-table tbody tr.total-row td {
-            font-weight: bold;
-            font-size: 12px;
-            background-color: #f0ece4;
-            border-top: 1px solid #ccc7be;
-            border-bottom: 1px solid #ccc7be;
-        }
-
-        /* ── Note italic ── */
-        .note {
-            font-size: 9px;
-            color: #9a9890;
-            font-style: italic;
-            line-height: 1.6;
-            margin-top: 10px;
-        }
-
-        /* ── Box card (sig / info) ── */
-        .box-card {
-            border: 1px solid #dedad3;
-            border-radius: 6px;
-            background-color: #faf8f4;
-            padding: 14px 16px;
-            page-break-inside: avoid;
-        }
-        .sig-role-lbl {
-            font-size: 8px;
-            font-weight: bold;
-            color: #9a9890;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            margin-bottom: 4px;
-        }
-        .sig-name-big {
-            font-size: 13px;
-            font-weight: bold;
-            color: #2a2a28;
-            margin-bottom: 12px;
-        }
-        .sig-img {
-            width: 200px;
-            height: 70px;
-            border: 1px solid #ccc7be;
-        }
-        .sig-date-lbl {
-            font-size: 9px;
-            color: #9a9890;
-            margin-top: 6px;
-        }
-        .sig-made-lbl {
-            font-size: 9px;
-            color: #9a9890;
-            margin-top: 10px;
-        }
-        .info-section-lbl {
-            font-size: 8px;
-            color: #9a9890;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        .info-lbl {
-            font-size: 9px;
-            color: #9a9890;
-            padding: 3px 0;
-            width: 40%;
-        }
-        .info-val {
-            font-size: 9px;
-            font-weight: bold;
-            color: #2a2a28;
-            padding: 3px 0;
-        }
-
-        /* ── Footer ── */
-        .page-footer {
-            margin-top: 32px;
-            background-color: #10212B;
-            padding: 10px 16px;
-        }
-        .footer-brand {
-            font-size: 8px;
-            font-weight: bold;
-            color: #B5CA8D;
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
-        }
-        .footer-ref-txt {
-            font-size: 8px;
-            color: #B5CA8D;
-            text-align: right;
-        }
-    </style>
+    <style th:replace="~{documents/commun/styles :: quittance}"></style>
 </head>
 <body>
 
@@ -287,11 +62,11 @@
 <p class="para">
     La présente quittance atteste avoir reçu de
     <strong th:text="${locataire.firstName + ' ' + locataire.lastName}"></strong>,
-    locataire, la somme de <strong th:text="${quittance.montantTotal} + ' €'"></strong>,
+    locataire, la somme de <strong th:text="${montants.f(quittance.montantTotal)}"></strong>,
     en règlement intégral du loyer et des accessoires du terme du
     <span th:text="${#temporals.format(quittance.dateEcheance, 'dd/MM/yyyy')}"></span>,
     pour les locaux sis au
-    <strong th:text="${quittance.bien.adresse + ', ' + quittance.bien.codePostal + ' ' + quittance.bien.ville}"></strong>.
+    <strong th:text="${quittance.bien.adresseComplete()}"></strong>.
 </p>
 
 <div style="page-break-inside: avoid;">
@@ -305,15 +80,15 @@
     <tbody>
     <tr>
         <td>Loyer mensuel hors charges</td>
-        <td class="right"><span th:text="${quittance.loyerMensuel}"></span> €</td>
+        <td class="right"><span th:text="${montants.f(quittance.loyerMensuel)}"></span></td>
     </tr>
     <tr>
         <td>Provision sur charges</td>
-        <td class="right"><span th:text="${quittance.chargesMensuelles}"></span> €</td>
+        <td class="right"><span th:text="${montants.f(quittance.chargesMensuelles)}"></span></td>
     </tr>
     <tr class="total-row">
         <td>Total reçu</td>
-        <td class="right"><span th:text="${quittance.montantTotal}"></span> €</td>
+        <td class="right"><span th:text="${montants.f(quittance.montantTotal)}"></span></td>
     </tr>
     </tbody>
 </table>

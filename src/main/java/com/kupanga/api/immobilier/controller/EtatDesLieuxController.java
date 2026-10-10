@@ -336,7 +336,7 @@ public class EtatDesLieuxController {
                     Retourne les informations de l'état des lieux associé au token pour afficher
                     un récapitulatif complet (pièces, éléments, compteurs, clés) avant signature.
                     Le token est valable **72 heures** — passé ce délai l'EDL passe
-                    au statut `EXPIRE` et une erreur `401` est retournée.
+                    au statut `EXPIRE` et une erreur `410 Gone` est retournée.
                     """
     )
     @ApiResponses(value = {
@@ -366,22 +366,32 @@ public class EtatDesLieuxController {
                     )
             ),
             @ApiResponse(
-                    responseCode = "401",
-                    description = "Token invalide ou expiré",
+                    responseCode = "404",
+                    description = "Lien de signature invalide",
                     content = @Content(
                             mediaType = "application/json",
                             examples = @ExampleObject(value = """
-                                    { "error": "Token invalide" }
+                                    { "message": "Lien de signature invalide" }
                                     """)
                     )
             ),
             @ApiResponse(
-                    responseCode = "400",
+                    responseCode = "410",
+                    description = "Lien de signature expiré",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    { "message": "Le lien de signature a expiré" }
+                                    """)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "409",
                     description = "L'état des lieux n'est pas en attente de signature locataire",
                     content = @Content(
                             mediaType = "application/json",
                             examples = @ExampleObject(value = """
-                                    { "error": "Cet état des lieux n'est pas disponible à la signature — statut actuel : SIGNE" }
+                                    { "message": "Cet état des lieux ne peut plus être signé" }
                                     """)
                     )
             )
@@ -416,7 +426,7 @@ public class EtatDesLieuxController {
             ),
             @ApiResponse(
                     responseCode = "400",
-                    description = "Signature manquante ou EDL non signable",
+                    description = "Signature manquante ou qui n'est pas une image PNG valide",
                     content = @Content(
                             mediaType = "application/json",
                             examples = @ExampleObject(value = """
@@ -424,16 +434,19 @@ public class EtatDesLieuxController {
                                     """)
                     )
             ),
+            @ApiResponse(responseCode = "404", description = "Lien de signature invalide"),
             @ApiResponse(
-                    responseCode = "401",
-                    description = "Token invalide ou expiré — le locataire doit contacter le propriétaire",
+                    responseCode = "410",
+                    description = "Lien expiré — le locataire doit demander un nouveau lien au propriétaire",
                     content = @Content(
                             mediaType = "application/json",
                             examples = @ExampleObject(value = """
-                                    { "error": "Le lien de signature a expiré" }
+                                    { "message": "Le lien de signature a expiré" }
                                     """)
                     )
-            )
+            ),
+            @ApiResponse(responseCode = "409",
+                    description = "EDL déjà signé, ou modifié en même temps par le propriétaire")
     })
     @io.swagger.v3.oas.annotations.parameters.RequestBody(
             description = "Signature du locataire en base64",

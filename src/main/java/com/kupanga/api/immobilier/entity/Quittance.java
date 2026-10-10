@@ -1,11 +1,14 @@
 package com.kupanga.api.immobilier.entity;
 
+import com.kupanga.api.juridiction.Pays;
+import com.kupanga.api.juridiction.Devise;
 import com.kupanga.api.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -22,14 +25,36 @@ public class Quittance {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // B6 : verrou optimiste — deux signatures (ou relances) simultanées ne peuvent pas s'écraser
+    @Version
+    private Long version;
+
     // ─── Période concernée ────────────────────────────────────────────────────
     private String mois;
     private Integer annee;
 
     // ─── Détail financier ─────────────────────────────────────────────────────
-    private Double loyerMensuel;        // loyer hors charges
-    private Double chargesMensuelles;   // charges mensuelles
-    private Double montantTotal;        // loyerMensuel + chargesMensuelles
+    @Column(precision = 12, scale = 2)
+    private BigDecimal loyerMensuel;        // loyer hors charges
+    @Column(precision = 12, scale = 2)
+    private BigDecimal chargesMensuelles;   // charges mensuelles
+    @Column(precision = 12, scale = 2)
+    private BigDecimal montantTotal;        // loyerMensuel + chargesMensuelles
+
+    // ─── Juridiction figée à la création (J3, §4bis) ─────────────────────────
+    // Copiées du bien et du profil : le document ne change jamais si la configuration évolue.
+    @Enumerated(EnumType.STRING)
+    @Column(name = "pays", length = 2, nullable = false, updatable = false)
+    private Pays      pays;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "devise", length = 3, nullable = false, updatable = false)
+    private Devise    devise;
+
+    /** Version du modèle de document utilisé (ex. {@code fr-v1}). */
+    @Column(name = "modele_version", length = 20, nullable = false, updatable = false)
+    private String    modeleVersion;
+
 
     // ─── Paiement ─────────────────────────────────────────────────────────────
     private LocalDate datePaiement;     // date effective d'encaissement

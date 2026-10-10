@@ -5,9 +5,11 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.kupanga.api.chat.security.JwtChannelInterceptor;
 import com.kupanga.api.config.CorsProperties;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.messaging.converter.DefaultContentTypeResolver;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.converter.MessageConverter;
@@ -23,21 +25,46 @@ import java.util.List;
 @Configuration
 @EnableWebSocketMessageBroker
 @EnableConfigurationProperties(CorsProperties.class)
-@RequiredArgsConstructor
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
+
+    /**
+     * W4 : battements de cœur en millisecondes {serveur → client, client → serveur}.
+     * Le front (stompjs) demande 10 s et coupe après 20 s sans rien recevoir. Le broker vérifie toutes les
+     * {@code min} = 5 s s'il doit écrire (intervalle négocié 10 s) : l'écart réel reste de 10 à 15 s, sous les 20 s.
+     * Avec 10 000 ici, l'écart pouvait atteindre ~20 s après un message poussé (déconnexions sur réseau lent).
+     * Client muet : session fermée par le serveur après 3 × 10 s.
+     */
+    static final long[] HEARTBEAT_MS = {5_000, 10_000};
 
     private final JwtChannelInterceptor jwtChannelInterceptor;
     private final CorsProperties corsProperties;
+    private final TaskScheduler messageBrokerTaskScheduler;
+
+    /**
+     * {@code messageBrokerTaskScheduler} : ordonnanceur déjà créé par Spring WebSocket, injecté en {@link Lazy}
+     * car il est défini par la même configuration (sinon dépendance circulaire).
+     */
+    public WebSocketConfig(JwtChannelInterceptor jwtChannelInterceptor,
+                           CorsProperties corsProperties,
+                           @Lazy @Qualifier("messageBrokerTaskScheduler") TaskScheduler messageBrokerTaskScheduler) {
+        this.jwtChannelInterceptor = jwtChannelInterceptor;
+        this.corsProperties = corsProperties;
+        this.messageBrokerTaskScheduler = messageBrokerTaskScheduler;
+    }
 
     /**
      * Configure le broker de messages.
      * /topic  → broadcast à tous les abonnés (conversations publiques)
      * /queue  → messages ciblés à un utilisateur spécifique
      * /app    → préfixe des endpoints @MessageMapping côté serveur
+     * W4 : sans ordonnanceur, le broker simple n'envoie aucun battement (négociation « 0,0 ») et les proxys / NAT
+     * des réseaux mobiles coupent la connexion inactive au bout de 30 à 60 s sans que le client s'en aperçoive.
      */
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
-        registry.enableSimpleBroker("/topic", "/queue");
+        registry.enableSimpleBroker("/topic", "/queue")
+                .setHeartbeatValue(HEARTBEAT_MS)
+                .setTaskScheduler(messageBrokerTaskScheduler);
         registry.setApplicationDestinationPrefixes("/app");
         registry.setUserDestinationPrefix("/user");
     }

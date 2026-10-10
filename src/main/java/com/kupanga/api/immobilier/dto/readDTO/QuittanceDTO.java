@@ -1,9 +1,12 @@
 package com.kupanga.api.immobilier.dto.readDTO;
 
+import com.kupanga.api.juridiction.Pays;
+import com.kupanga.api.juridiction.Devise;
 import com.kupanga.api.immobilier.entity.StatutQuittance;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -17,9 +20,13 @@ public class QuittanceDTO {
     private String  moisLabel;          // "Mars 2026" — calculé côté service
 
     // ─── Financier ────────────────────────────────────────────────────────────
-    private Double loyerMensuel;
-    private Double chargesMensuelles;
-    private Double montantTotal;
+    private BigDecimal loyerMensuel;
+    private BigDecimal chargesMensuelles;
+    private BigDecimal montantTotal;
+    // J3 : juridiction figée sur la quittance
+    private Pays    pays;
+    private Devise  devise;
+    private String  modeleVersion;
 
     // ─── Dates ────────────────────────────────────────────────────────────────
     private LocalDate dateEcheance;

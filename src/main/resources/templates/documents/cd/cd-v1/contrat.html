@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<!--
+  J5 — MODÈLE PROVISOIRE RDC (cd-v1) : mise en page reprise du modèle français, données du bail seulement.
+  Aucune clause juridique n'est rédigée ici : chaque clause à écrire est un bloc « clauseAValider ».
+  À FAIRE VALIDER PAR UN JURISTE (droit congolais du bail) avant toute mise en ligne au Congo (C9).
+-->
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <style th:replace="~{documents/commun/styles :: contrat}"></style>
+</head>
+<body>
+
+<div th:replace="~{documents/commun/fragments :: bandeauProvisoire}"></div>
+
+<!-- ── Header ── -->
+<div style="background-color: #10212B; padding: 16px 20px; margin-bottom: 28px;">
+    <table style="width: 100%; border-collapse: collapse;">
+        <tr>
+            <td style="vertical-align: bottom;">
+                <div class="brand">kupanga</div>
+                <div class="brand-tagline">Gestion locative</div>
+            </td>
+            <td style="text-align: right; vertical-align: bottom;">
+                <div class="doc-ref">RÉF. <span th:text="${contrat.id}"></span></div>
+                <div class="doc-ref">ÉMIS LE <span th:text="${#temporals.format(contrat.dateDebut, 'dd/MM/yyyy')}"></span></div>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<!-- ── Title ── -->
+<div style="text-align: center; margin-bottom: 28px;">
+    <div class="pre-title">Bail d'habitation — République démocratique du Congo</div>
+    <div class="main-title">Contrat <em>de location</em></div>
+    <p class="subtitle-text">
+        Logement à usage d'habitation. Modèle provisoire : cadre juridique à préciser par un juriste.
+    </p>
+</div>
+
+<!-- ── 01. Désignation des parties ── -->
+<div class="section-head">01 — Désignation des parties</div>
+<p style="font-size: 10px; color: #6b6b60; margin-bottom: 12px;">
+    Le présent contrat est conclu entre les soussignés :
+</p>
+<table style="width: 100%; border-collapse: collapse;">
+    <tr>
+        <td style="width: 49%; vertical-align: top;">
+            <div class="partie-card">
+                <div class="partie-role-lbl">Bailleur (propriétaire)</div>
+                <div class="name-sublabel">Nom complet</div>
+                <div class="name-big" th:text="${proprietaire.firstName + ' ' + proprietaire.lastName}"></div>
+                <div class="email-txt">Email &nbsp;<span th:text="${proprietaire.mail}"></span></div>
+            </div>
+        </td>
+        <td style="width: 2%;"></td>
+        <td style="width: 49%; vertical-align: top;">
+            <div class="partie-card">
+                <div class="partie-role-lbl">Locataire</div>
+                <div class="name-sublabel">Nom complet</div>
+                <div class="name-big" th:text="${locataire.firstName + ' ' + locataire.lastName}"></div>
+                <div class="email-txt">Email &nbsp;<span th:text="${locataire.mail}"></span></div>
+            </div>
+        </td>
+    </tr>
+</table>
+
+<!-- ── 02. Désignation du bien loué ── -->
+<div class="section-head">02 — Désignation du bien loué</div>
+
+<p class="legal-text">
+    Le bailleur loue au locataire le bien immobilier désigné ci-après.
+</p>
+
+<!-- 2.1 Identification et localisation -->
+<div class="subsection-head">Identification et localisation du bien</div>
+<div class="info-card">
+    <table style="width: 100%; border-collapse: collapse;">
+        <tr>
+            <td class="field-lbl">Intitulé du bien</td>
+            <td class="field-val" th:text="${contrat.bien.titre}"></td>
+        </tr>
+        <tr>
+            <td class="field-lbl">Type de bien</td>
+            <td class="field-val" th:text="${contrat.bien.typeBien}"></td>
+        </tr>
+        <tr>
+            <td class="field-lbl">Adresse</td>
+            <td class="field-val" th:text="${contrat.bien.adresse}"></td>
+        </tr>
+        <tr th:if="${contrat.bien.avenue != null}">
+            <td class="field-lbl">Avenue</td>
+            <td class="field-val" th:text="${contrat.bien.avenue}"></td>
+        </tr>
+        <tr th:if="${contrat.bien.numeroParcelle != null}">
+            <td class="field-lbl">N° de parcelle</td>
+            <td class="field-val" th:text="${contrat.bien.numeroParcelle}"></td>
+        </tr>
+        <tr>
+            <td class="field-lbl">Quartier</td>
+            <td class="field-val" th:text="${contrat.bien.quartier}"></td>
+        </tr>
+        <tr>
+            <td class="field-lbl">Commune</td>
+            <td class="field-val" th:text="${contrat.bien.commune}"></td>
+        </tr>
+        <tr>
+            <td class="field-lbl">Ville</td>
+            <td class="field-val" th:text="${contrat.bien.ville}"></td>
+        </tr>
+        <tr th:if="${contrat.bien.pointDeRepere != null}">
+            <td class="field-lbl">Point de repère</td>
+            <td class="field-val" th:text="${contrat.bien.pointDeRepere}"></td>
+        </tr>
+        <tr class="field-row-last">
+            <td class="field-lbl">Pays</td>
+            <td class="field-val" th:text="${contrat.bien.pays?.libelle}"></td>
+        </tr>
+    </table>
+</div>
+
+<p class="legal-text">
+    Le bien objet du présent contrat est un(e)
+    <strong th:text="${contrat.bien.typeBien}"></strong>
+    situé(e) au
+    <strong th:text="${contrat.bien.adresseComplete() + ', ' + contrat.bien.pays?.libelle}"></strong>.
+    <span th:if="${contrat.bien.description != null}">
+        Il est décrit comme suit par le bailleur :
+        <em th:text="${contrat.bien.description}"></em>.
+    </span>
+</p>
+
+<!-- 2.2 Caractéristiques physiques -->
+<div class="subsection-head">Caractéristiques physiques du logement</div>
+<div class="info-card">
+    <table style="width: 100%; border-collapse: collapse;">
+        <tr>
+            <td class="field-lbl">Surface habitable</td>
+            <td class="field-val"><span th:text="${contrat.bien.surfaceHabitable}"></span> m²</td>
+        </tr>
+        <tr>
+            <td class="field-lbl">Nombre de pièces principales</td>
+            <td class="field-val" th:text="${contrat.bien.nombrePieces}"></td>
+        </tr>
+        <tr>
+            <td class="field-lbl">Dont chambres</td>
+            <td class="field-val" th:text="${contrat.bien.nombreChambres}"></td>
+        </tr>
+        <tr>
+            <td class="field-lbl">Étage</td>
+            <td class="field-val"
+                th:text="${contrat.bien.etage == null ? '—' : (contrat.bien.etage == 0 ? 'Rez-de-chaussée' : contrat.bien.etage + 'ᵉ étage')}"></td>
+        </tr>
+        <tr>
+            <td class="field-lbl">Ascenseur</td>
+            <td class="field-val">
+                <span th:if="${contrat.bien.ascenseur == true}" class="badge badge-oui">Oui</span>
+                <span th:if="${contrat.bien.ascenseur != true}" class="badge badge-non">Non</span>
+            </td>
+        </tr>
+        <tr>
+            <td class="field-lbl">Année de construction</td>
+            <td class="field-val" th:text="${contrat.bien.anneeConstruction}"></td>
+        </tr>
+        <tr class="field-row-last">
+            <td class="field-lbl">Mode de chauffage</td>
+            <td class="field-val" th:text="${contrat.bien.modeChauffage}"></td>
+        </tr>
+    </table>
+</div>
+
+<p class="legal-text">
+    Le logement présente une surface habitable de
+    <strong><span th:text="${contrat.bien.surfaceHabitable}"></span> m²</strong>,
+    comprenant <strong th:text="${contrat.bien.nombrePieces}"></strong> pièce(s) principale(s)
+    <span th:if="${contrat.bien.nombreChambres != null}">dont <strong th:text="${contrat.bien.nombreChambres}"></strong> chambre(s),</span>
+    situé(e) au
+    <strong th:text="${contrat.bien.etage == null ? '—' : (contrat.bien.etage == 0 ? 'rez-de-chaussée' : contrat.bien.etage + 'ᵉ étage')}"></strong>.
+    <span th:if="${contrat.bien.anneeConstruction != null}">L'immeuble a été construit en <strong th:text="${contrat.bien.anneeConstruction}"></strong>.</span>
+    <span th:if="${contrat.bien.modeChauffage != null}">Le système de chauffage est de type <strong th:text="${contrat.bien.modeChauffage}"></strong>.</span>
+    <span th:if="${contrat.bien.ascenseur == true}">L'immeuble est équipé d'un ascenseur.</span>
+    <span th:if="${contrat.bien.ascenseur != true}">L'immeuble ne dispose pas d'ascenseur.</span>
+</p>
+
+<!-- 2.4 Conditions d'occupation -->
+<div class="subsection-head">Conditions d'occupation</div>
+<div class="info-card">
+    <table style="width: 100%; border-collapse: collapse;">
+        <tr>
+            <td class="field-lbl">Logement meublé</td>
+            <td class="field-val">
+                <span th:if="${contrat.bien.meuble == true}" class="badge badge-oui">Oui — meublé</span>
+                <span th:if="${contrat.bien.meuble != true}" class="badge badge-non">Vide (non meublé)</span>
+            </td>
+        </tr>
+        <tr>
+            <td class="field-lbl">Colocation autorisée</td>
+            <td class="field-val">
+                <span th:if="${contrat.bien.colocation == true}" class="badge badge-oui">Oui</span>
+                <span th:if="${contrat.bien.colocation != true}" class="badge badge-non">Non autorisée</span>
+            </td>
+        </tr>
+        <tr class="field-row-last">
+            <td class="field-lbl">Disponible à partir du</td>
+            <td class="field-val"
+                th:text="${contrat.bien.disponibleDe != null ? #temporals.format(contrat.bien.disponibleDe, 'dd/MM/yyyy') : '—'}"></td>
+        </tr>
+    </table>
+</div>
+
+<p class="legal-text">
+    Le logement est loué
+    <strong th:text="${contrat.bien.meuble == true ? 'meublé' : 'vide (non meublé)'}"></strong>,
+    à usage d'habitation.
+    Colocation : <strong th:text="${contrat.bien.colocation == true ? 'autorisée par le bailleur' : 'non autorisée'}"></strong>.
+    Le bien est disponible à compter du
+    <strong th:text="${contrat.bien.disponibleDe != null ? #temporals.format(contrat.bien.disponibleDe, 'dd/MM/yyyy') : '—'}"></strong>.
+</p>
+
+<!-- ── 03. Conditions financières ── -->
+<div style="page-break-inside: avoid;">
+<div class="section-head">03 — Conditions financières</div>
+
+<table class="fin-table">
+    <thead>
+    <tr>
+        <th>Désignation</th>
+        <th class="right">Montant mensuel</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td>Loyer mensuel hors charges</td>
+        <td class="right"><span th:text="${montants.f(contrat.loyerMensuel)}"></span></td>
+    </tr>
+    <tr>
+        <td>Charges mensuelles</td>
+        <td class="right"><span th:text="${montants.f(contrat.chargesMensuelles)}"></span></td>
+    </tr>
+    <tr class="total-row">
+        <td>Total mensuel</td>
+        <td class="right"><span th:text="${montants.somme(contrat.loyerMensuel, contrat.chargesMensuelles)}"></span></td>
+    </tr>
+    <tr>
+        <td>Garantie locative</td>
+        <td class="right"><span th:text="${montants.f(contrat.depotGarantie)}"></span></td>
+    </tr>
+    </tbody>
+</table>
+
+</div><!-- end no-break conditions financières -->
+
+<!-- ── 04. Durée du bail ── -->
+<div style="page-break-inside: avoid;">
+<div class="section-head">04 — Durée du bail</div>
+
+<div class="duree-bloc">
+    <table style="width: 100%; border-collapse: collapse;">
+        <tr>
+            <td class="field-lbl">Date d'entrée en jouissance</td>
+            <td class="field-val" th:text="${#temporals.format(contrat.dateDebut, 'dd/MM/yyyy')}"></td>
+        </tr>
+        <tr th:if="${contrat.dateFin != null}">
+            <td class="field-lbl">Date de fin</td>
+            <td class="field-val" th:text="${#temporals.format(contrat.dateFin, 'dd/MM/yyyy')}"></td>
+        </tr>
+        <tr class="field-row-last">
+            <td class="field-lbl">Durée totale</td>
+            <td class="field-val"><span th:text="${contrat.dureeBailMois}"></span> mois</td>
+        </tr>
+    </table>
+</div>
+
+</div><!-- end no-break durée bail -->
+
+<!-- ── 05 à 08. Clauses à rédiger (C9) : aucun texte juridique avant validation par un juriste ── -->
+<div class="section-head">05 — Garantie locative et avance sur loyers</div>
+<div th:replace="~{documents/commun/fragments :: clauseAValider('Montant de la garantie, nombre de mois payés en avance, conditions de restitution')}"></div>
+
+<div class="section-head">06 — Obligations des parties</div>
+<div th:replace="~{documents/commun/fragments :: clauseAValider('Obligations du bailleur')}"></div>
+<div th:replace="~{documents/commun/fragments :: clauseAValider('Obligations du locataire')}"></div>
+
+<div class="section-head">07 — Résiliation et préavis</div>
+<div th:replace="~{documents/commun/fragments :: clauseAValider('Durée du préavis et conditions de résiliation')}"></div>
+
+<div class="section-head">08 — Règlement des litiges</div>
+<div th:replace="~{documents/commun/fragments :: clauseAValider('Juridiction compétente et règlement amiable')}"></div>
+
+<!-- ── 09. Signatures des parties ── -->
+<div style="page-break-inside: avoid;">
+<div class="section-head">09 — Signatures des parties</div>
+
+<table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+    <tr>
+        <td style="width: 49%; vertical-align: top;">
+            <div class="sig-box">
+                <div class="sig-role-lbl">Bailleur</div>
+                <div class="sig-name-big" th:text="${proprietaire.firstName + ' ' + proprietaire.lastName}"></div>
+
+                <img th:if="${contrat.signatureProprietaire != null}"
+                     class="sig-img"
+                     th:src="'data:image/png;base64,' + ${contrat.signatureProprietaire}"
+                     alt="Signature propriétaire"/>
+                <table th:if="${contrat.signatureProprietaire == null}"
+                       style="width: 200px; height: 80px; border-collapse: collapse; border: 1px dashed #ccc7be; background-color: #edeae4;">
+                    <tr>
+                        <td style="text-align: center; vertical-align: middle; color: #b0aca4; font-size: 9px; font-style: italic;">
+                            En attente de signature
+                        </td>
+                    </tr>
+                </table>
+
+                <p th:if="${contrat.dateSignatureProprietaire != null}"
+                   class="sig-date-lbl"
+                   th:text="'Signé le ' + ${#temporals.format(contrat.dateSignatureProprietaire, 'dd/MM/yyyy à HH:mm')}"></p>
+
+                <div class="sig-made-lbl">
+                    Fait le <span th:text="${#temporals.format(contrat.dateDebut, 'dd/MM/yyyy')}"></span>
+                </div>
+            </div>
+        </td>
+        <td style="width: 2%;"></td>
+        <td style="width: 49%; vertical-align: top;">
+            <div class="sig-box">
+                <div class="sig-role-lbl">Locataire</div>
+                <div class="sig-name-big" th:text="${locataire.firstName + ' ' + locataire.lastName}"></div>
+
+                <img th:if="${contrat.signatureLocataire != null}"
+                     class="sig-img"
+                     th:src="'data:image/png;base64,' + ${contrat.signatureLocataire}"
+                     alt="Signature locataire"/>
+                <table th:if="${contrat.signatureLocataire == null}"
+                       style="width: 200px; height: 80px; border-collapse: collapse; border: 1px dashed #ccc7be; background-color: #edeae4;">
+                    <tr>
+                        <td style="text-align: center; vertical-align: middle; color: #b0aca4; font-size: 9px; font-style: italic;">
+                            En attente de signature
+                        </td>
+                    </tr>
+                </table>
+
+                <p th:if="${contrat.dateSignatureLocataire != null}"
+                   class="sig-date-lbl"
+                   th:text="'Signé le ' + ${#temporals.format(contrat.dateSignatureLocataire, 'dd/MM/yyyy à HH:mm')}"></p>
+
+                <div class="sig-made-lbl">
+                    Fait le <span th:text="${#temporals.format(contrat.dateDebut, 'dd/MM/yyyy')}"></span>
+                </div>
+            </div>
+        </td>
+    </tr>
+</table>
+
+</div><!-- end no-break signature -->
+
+<!-- ── Footer ── -->
+<div class="page-footer">
+    <table style="width: 100%; border-collapse: collapse;">
+        <tr>
+            <td class="footer-brand">Kupanga — Gestion locative</td>
+            <td class="footer-ref-txt">Page 1 / 1</td>
+        </tr>
+    </table>
+</div>
+
+</body>
+</html>

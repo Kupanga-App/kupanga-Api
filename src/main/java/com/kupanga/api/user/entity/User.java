@@ -2,9 +2,11 @@ package com.kupanga.api.user.entity;
 
 import com.kupanga.api.immobilier.entity.Bien;
 import com.kupanga.api.chat.entity.Message;
+import com.kupanga.api.user.utils.EmailUtils;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
@@ -47,16 +49,34 @@ public class User {
     @Column(name = "google_id")
     private String googleId;
 
-    // relations
-    @OneToMany(mappedBy = "proprietaire" , fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    /** A14 : faux tant que le lien envoyé à l'inscription n'a pas été ouvert ; connexion refusée d'ici là. */
+    @Column(name = "email_verifie", nullable = false)
+    private boolean emailVerifie;
+
+    /** B12 : compte supprimé qui avait des baux : identité effacée, ligne gardée pour les documents. */
+    @Column(name = "anonymise", nullable = false)
+    private boolean anonymise;
+
+    @Column(name = "date_anonymisation")
+    private LocalDateTime dateAnonymisation;
+
+    // relations (B12 : aucune cascade, supprimer un compte ne supprime ni ses biens ni les messages des autres)
+    @OneToMany(mappedBy = "proprietaire" , fetch = FetchType.LAZY)
     private List<Bien> biensProprietes;
 
-    @OneToMany(mappedBy = "locataire", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "locataire", fetch = FetchType.LAZY)
     private List<Bien> biensLoues;
 
-    @OneToMany(mappedBy = "destinataire", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "destinataire", fetch = FetchType.LAZY)
     private List<Message> messagesRecus;
 
-    @OneToMany(mappedBy = "expediteur" ,fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "expediteur" ,fetch = FetchType.LAZY)
     private List<Message> messagesEnvoyes;
+
+    /** A10 : l'e-mail est toujours stocké en minuscules, quel que soit le chemin de création. */
+    @PrePersist
+    @PreUpdate
+    void normaliserMail() {
+        this.mail = EmailUtils.normaliser(this.mail);
+    }
 }

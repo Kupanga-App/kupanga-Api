@@ -41,7 +41,8 @@ public interface QuittanceMapper {
 
     @Named("buildAdresseBien")
     default String buildAdresseBien(com.kupanga.api.immobilier.entity.Bien bien) {
-        return bien.getAdresse() + ", " + bien.getCodePostal() + " " + bien.getVille();
+        // J4 : sans « null » quand le code postal est absent (RDC), adresse congolaise comprise
+        return bien.adresseComplete();
     }
 
     @Named("buildTypeBien")

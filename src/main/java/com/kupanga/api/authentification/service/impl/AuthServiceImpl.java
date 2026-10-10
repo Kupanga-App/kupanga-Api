@@ -9,18 +9,21 @@ import com.kupanga.api.authentification.entity.RefreshToken;
 import com.kupanga.api.authentification.google.GoogleTokenVerifier;
 import com.kupanga.api.authentification.google.GoogleUserInfo;
 import com.kupanga.api.authentification.service.AuthService;
+import com.kupanga.api.authentification.service.VerificationEmailService;
 import com.kupanga.api.authentification.service.PasswordResetTokenService;
 import com.kupanga.api.authentification.service.RefreshTokenService;
 import com.kupanga.api.authentification.utils.JwtUtils;
 import com.kupanga.api.email.service.EmailService;
 import com.kupanga.api.exception.business.InvalidPasswordException;
 import com.kupanga.api.exception.business.KupangaBusinessException;
+import com.kupanga.api.minio.image.ValidationImage;
 import com.kupanga.api.minio.service.MinioService;
 import com.kupanga.api.user.dto.formDTO.UserFormDTO;
 import com.kupanga.api.user.dto.readDTO.UserDTO;
 import com.kupanga.api.user.entity.User;
 import com.kupanga.api.user.mapper.UserMapper;
 import com.kupanga.api.user.service.UserService;
+import com.kupanga.api.user.utils.EmailUtils;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
@@ -38,6 +41,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.UUID;
 
 import static com.kupanga.api.authentification.constant.AuthConstant.*;
@@ -57,6 +61,7 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordResetTokenService passwordResetTokenService;
     private final MinioService         minioService;
     private final GoogleTokenVerifier  googleTokenVerifier;
+    private final VerificationEmailService verificationEmailService;
     @Value("${app.cookie.secure}")
     private boolean cookieSecure;
 
@@ -88,6 +93,11 @@ public class AuthServiceImpl implements AuthService {
 
         // 2. Vérifier le mot de passe
         userService.isCorrectPassword(loginDTO.password(), utilisateur.getPassword());
+
+        // A14 : adresse non confirmée → 403 (seulement après le bon mot de passe : pas d'énumération des comptes)
+        if (!utilisateur.isEmailVerifie()) {
+            throw new KupangaBusinessException(EMAIL_NON_VERIFIE, HttpStatus.FORBIDDEN);
+        }
 
         // 3. Générer access token (court)
         String accessToken = jwtUtils.generateAccessToken(
@@ -161,7 +171,8 @@ public class AuthServiceImpl implements AuthService {
     public String forgotPassword(String email){
 
         // Même réponse que le compte existe ou non : pas d'énumération des comptes
-        User user = userService.findOptionalByMail(email).orElse(null);
+        // B12 : un compte anonymisé (adresse .invalid) n'est jamais réactivé ni écrit
+        User user = userService.findOptionalByMail(email).filter(u -> !u.isAnonymise()).orElse(null);
         if (user == null) {
             LOGGER.info("Demande de réinitialisation pour un e-mail inconnu, ignorée");
             return MAIL_REINITIALISATION_ENVOYE;
@@ -194,8 +205,11 @@ public class AuthServiceImpl implements AuthService {
 
         User user = passwordResetToken.getUser();
         user.setPassword(passwordEncoder.encode(newPassword));
+        // Le lien de réinitialisation a été reçu à cette adresse : elle appartient bien à l'utilisateur (A14)
+        user.setEmailVerifie(true);
         userService.save(user);
         passwordResetTokenService.delete(passwordResetToken);
+        verificationEmailService.annulerLien(user.getId());
 
         // Déconnecte toutes les sessions existantes (un attaquant éventuel perd son refresh token)
         refreshTokenService.revokeAllForUser(user);
@@ -207,37 +221,53 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     @Transactional
-    public AuthResponseDTO createAndCompleteUserProfil(UserFormDTO userFormDTO , MultipartFile imageProfil, HttpServletResponse response){
+    public String createAndCompleteUserProfil(UserFormDTO userFormDTO , MultipartFile imageProfil){
 
-        userService.verifyIfUserExistWithEmail(userFormDTO.mail());
+        // Contrôles du formulaire avant de chercher le compte : mêmes erreurs que l'adresse soit inscrite ou non
         userService.verifyIfRoleOfUserValid(userFormDTO.role());
+        String url = userFormDTO.urlAvatar();
+        // Revue B5 : pas d'URL externe (pixel de suivi, contenu non contrôlé) en photo de profil publique
+        if (url != null && !url.isBlank() && !minioService.estUrlDuBucket(url, PHOTO_PROFIL_BUCKET)) {
+            throw new KupangaBusinessException("Avatar invalide", HttpStatus.BAD_REQUEST);
+        }
+        // Photo contrôlée (B5) même si l'adresse est déjà inscrite : sinon 415 seulement pour une adresse libre
+        if (imageProfil != null && !imageProfil.isEmpty()) {
+            ValidationImage.verifier(imageProfil);
+        }
+        // Calcul BCrypt dans tous les cas : temps de réponse proche que le compte existe ou non
+        String motDePasseHache = passwordEncoder.encode(userFormDTO.password());
+
+        // A14 : adresse déjà inscrite → même réponse qu'une inscription (pas d'énumération des comptes) ;
+        // son titulaire est invité à passer par « mot de passe oublié », vérifié ou non : un nouveau lien de
+        // confirmation validerait le mot de passe choisi par le premier inscrit, peut-être un tiers
+        Optional<User> existant = userService.findOptionalByMail(userFormDTO.mail());
+        if (existant.isPresent()) {
+            LOGGER.info("Inscription demandée avec l'adresse du compte {}, déjà inscrite", existant.get().getId());
+            emailService.envoyerTentativeInscription(existant.get().getMail());
+            return COMPTE_CREE_VERIFIER_EMAIL;
+        }
 
         User user = new User();
-        user.setMail(userFormDTO.mail());
-        user.setPassword(passwordEncoder.encode(userFormDTO.password()));
+        user.setMail(EmailUtils.normaliser(userFormDTO.mail()));
+        user.setPassword(motDePasseHache);
         user.setRole(userFormDTO.role());
         user.setFirstName(userFormDTO.firstName());
         user.setLastName(userFormDTO.lastName());
-        String url = userFormDTO.urlAvatar();
         if( imageProfil != null && !imageProfil.isEmpty()){
             url = minioService.uploadImage(imageProfil , PHOTO_PROFIL_BUCKET);
         }
 
         user.setUrlProfile(url);
         user.setHasCompleteProfil(true);
+        user.setEmailVerifie(false);
 
         userService.save(user);
 
-        LoginDTO loginDTO = LoginDTO.builder()
-                .email(userFormDTO.mail())
-                .password(userFormDTO.password())
-                .build() ;
+        // A14 : plus de connexion automatique ; le lien de confirmation part après le commit,
+        // l'e-mail de bienvenue une fois l'adresse confirmée
+        verificationEmailService.envoyerLien(user);
 
-        AuthResponseDTO authResponseDTO = login(loginDTO ,response );
-
-        emailService.sendWelcomeMessage(user.getMail() , user.getFirstName());
-
-        return authResponseDTO ;
+        return COMPTE_CREE_VERIFIER_EMAIL;
     }
 
     @Override
@@ -256,6 +286,9 @@ public class AuthServiceImpl implements AuthService {
         User user = userService.findOptionalByGoogleId(googleInfo.googleId())
                 .orElseGet(() -> userService.findOptionalByMail(googleInfo.email())
                         .map(existing -> {
+                            if (!existing.isEmailVerifie()) {
+                                reprendreCompteNonVerifie(existing, googleInfo);
+                            }
                             existing.setGoogleId(googleInfo.googleId());
                             userService.save(existing);
                             return existing;
@@ -263,11 +296,12 @@ public class AuthServiceImpl implements AuthService {
                         .orElseGet(() -> {
                             User newUser = User.builder()
                                     .googleId(googleInfo.googleId())
-                                    .mail(googleInfo.email())
+                                    .mail(EmailUtils.normaliser(googleInfo.email()))
                                     .firstName(googleInfo.firstName())
                                     .lastName(googleInfo.lastName())
                                     .urlProfile(googleInfo.pictureUrl())
                                     .hasCompleteProfil(false)
+                                    .emailVerifie(true) // adresse confirmée par Google (email_verified contrôlé par GoogleTokenVerifierImpl, A4)
                                     .build();
                             userService.save(newUser);
                             return newUser;
@@ -281,7 +315,7 @@ public class AuthServiceImpl implements AuthService {
         String refreshToken = refreshTokenService.createRefreshToken(user);
         addRefreshCookie(response, refreshToken);
 
-        LOGGER.info("[GOOGLE-AUTH] Connexion réussie pour {} — sélection rôle requise : {}", user.getMail(), requiresRoleSelection);
+        LOGGER.info("[GOOGLE-AUTH] Connexion réussie pour le compte {} — sélection rôle requise : {}", user.getId(), requiresRoleSelection);
 
         return AuthResponseDTO.builder()
                 .accessToken(accessToken)
@@ -314,7 +348,7 @@ public class AuthServiceImpl implements AuthService {
         String refreshToken = refreshTokenService.createRefreshToken(user);
         addRefreshCookie(response, refreshToken);
 
-        LOGGER.info("[GOOGLE-AUTH] Profil complété pour {} — rôle : {}", email, dto.role());
+        LOGGER.info("[GOOGLE-AUTH] Profil complété pour le compte {} — rôle : {}", user.getId(), dto.role());
 
         emailService.sendWelcomeMessage(user.getMail() , user.getFirstName());
 
@@ -322,6 +356,25 @@ public class AuthServiceImpl implements AuthService {
                 .accessToken(accessToken)
                 .requiresRoleSelection(false)
                 .build();
+    }
+
+    /**
+     * A14 : un compte local jamais confirmé a pu être créé par un tiers avec l'adresse de la personne qui se
+     * connecte avec Google (décision du 2026-10-09). Google atteste l'adresse : le compte lui revient, sans rien
+     * de ce que le premier inscrit a saisi (mot de passe, rôle, profil), ni lien ou session en cours.
+     */
+    private void reprendreCompteNonVerifie(User user, GoogleUserInfo googleInfo) {
+        user.setPassword(null);
+        user.setRole(null);
+        user.setHasCompleteProfil(false);
+        user.setFirstName(googleInfo.firstName());
+        user.setLastName(googleInfo.lastName());
+        user.setUrlProfile(googleInfo.pictureUrl());
+        user.setEmailVerifie(true);
+        verificationEmailService.annulerLien(user.getId());
+        passwordResetTokenService.deleteIfExist(user.getId());
+        refreshTokenService.revokeAllForUser(user);
+        LOGGER.info("[GOOGLE-AUTH] Compte {} non confirmé repris par la connexion Google", user.getId());
     }
 
     private void addRefreshCookie(HttpServletResponse response, String refreshToken) {

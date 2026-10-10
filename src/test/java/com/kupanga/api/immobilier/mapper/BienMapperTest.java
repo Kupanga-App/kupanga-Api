@@ -1,5 +1,6 @@
 package com.kupanga.api.immobilier.mapper;
 
+import com.kupanga.api.juridiction.Pays;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.kupanga.api.immobilier.dto.readDTO.BienPublicDTO;
@@ -30,7 +31,7 @@ class BienMapperTest {
                 .id(2L).firstName("Alice").lastName("Martin")
                 .mail("alice.martin@mail.com").role(Role.ROLE_LOCATAIRE)
                 .build();
-        Bien bien = Bien.builder()
+        Bien bien = Bien.builder().pays(Pays.FR)
                 .id(10L).titre("T3").typeBien(TypeBien.APPARTEMENT)
                 .proprietaire(proprietaire).locataire(locataire)
                 .build();
@@ -57,13 +58,13 @@ class BienMapperTest {
     @Test
     @DisplayName("toPublicDTO() : bien sans propriétaire ni nom → pas d'erreur")
     void toPublicDTO_handlesMissingNames() {
-        Bien bien = Bien.builder().id(11L)
+        Bien bien = Bien.builder().pays(Pays.FR).id(11L)
                 .proprietaire(User.builder().id(3L).firstName("Solo").build())
                 .build();
 
         BienPublicDTO dto = bienMapper.toPublicDTO(bien);
 
         assertThat(dto.proprietaire().initialeNom()).isNull();
-        assertThat(bienMapper.toPublicDTO(Bien.builder().id(12L).build()).proprietaire()).isNull();
+        assertThat(bienMapper.toPublicDTO(Bien.builder().pays(Pays.FR).id(12L).build()).proprietaire()).isNull();
     }
 }

@@ -1,5 +1,6 @@
 package com.kupanga.api.immobilier.controller;
 
+import com.kupanga.api.immobilier.validation.SignaturesDeTest;
 import com.kupanga.api.authentification.service.impl.UserDetailsServiceImpl;
 import com.kupanga.api.authentification.utils.JwtUtils;
 import com.kupanga.api.config.SecurityConfig;
@@ -74,6 +75,53 @@ class EtatDesLieuxControllerWebMvcTest {
     }
 
     @Test
+    @DisplayName("POST /etats-des-lieux — enum inconnu (élément, état, compteur) : 400 et non 500, aucun EDL créé (B8)")
+    @WithMockUser(username = "proprio@test.com", roles = "PROPRIETAIRE")
+    void creerEdl_enumInconnu_shouldReturn400() throws Exception {
+        String[] corps = {
+                edlAvec("\"pieces\": [{\"nomPiece\": \"Salon\", \"elements\": [{\"typeElement\": \"TOIT\", \"etatElement\": \"BON\"}]}]"),
+                edlAvec("\"pieces\": [{\"nomPiece\": \"Salon\", \"elements\": [{\"typeElement\": \"MUR\", \"etatElement\": \"NEUF\"}]}]"),
+                edlAvec("\"compteurs\": [{\"typeCompteur\": \"FIOUL\", \"index\": 12.5}]"),
+        };
+        for (String body : corps) {
+            mockMvc.perform(post("/etats-des-lieux")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(body))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.startsWith("Valeur invalide")));
+        }
+        verify(edlService, never()).creerEtatDesLieux(any(), anyString());
+    }
+
+    @Test
+    @DisplayName("POST /etats-des-lieux — listes et textes hors bornes, élément sans type : 400 (B8)")
+    @WithMockUser(username = "proprio@test.com", roles = "PROPRIETAIRE")
+    void creerEdl_horsBornes_shouldReturn400() throws Exception {
+        String piece = "{\"nomPiece\": \"Salon\"}";
+        String[] corps = {
+                edlAvec("\"pieces\": [" + String.join(",", java.util.Collections.nCopies(51, piece)) + "]"),
+                edlAvec("\"pieces\": [{\"nomPiece\": \"" + "a".repeat(101) + "\"}]"),
+                edlAvec("\"pieces\": [{\"nomPiece\": \"Salon\", \"elements\": [{\"etatElement\": \"BON\"}]}]"),
+                edlAvec("\"cles\": [{\"typeCle\": \"Porte\", \"quantite\": 0}]"),
+                edlAvec("\"observations\": \"" + "a".repeat(2001) + "\""),
+        };
+        for (String body : corps) {
+            mockMvc.perform(post("/etats-des-lieux")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(body))
+                    .andExpect(status().isBadRequest());
+        }
+        verify(edlService, never()).creerEtatDesLieux(any(), anyString());
+    }
+
+    private static String edlAvec(String champs) {
+        return """
+                {"bienId": 1, "emailLocataire": "locataire@test.com", "type": "ENTREE",
+                 "dateRealisation": "2030-01-01", %s}
+                """.formatted(champs);
+    }
+
+    @Test
     @DisplayName("POST /etats-des-lieux — données invalides : 400")
     @WithMockUser(username = "proprio@test.com")
     void creerEdl_invalidBody_shouldReturn400() throws Exception {
@@ -93,7 +141,7 @@ class EtatDesLieuxControllerWebMvcTest {
     void signerProprietaire_success_shouldReturn204() throws Exception {
         doNothing().when(edlService).signerProprietaire(eq(1L), anyString(), anyString());
 
-        String signature = "C".repeat(200);
+        String signature = SignaturesDeTest.signatureValide();
         String body = String.format("{\"signatureBase64\": \"%s\"}", signature);
 
         mockMvc.perform(post("/etats-des-lieux/1/signer-proprietaire")
@@ -109,7 +157,7 @@ class EtatDesLieuxControllerWebMvcTest {
         doThrow(new KupangaBusinessException("EDL introuvable", HttpStatus.NOT_FOUND))
                 .when(edlService).signerProprietaire(eq(99L), anyString(), anyString());
 
-        String signature = "C".repeat(200);
+        String signature = SignaturesDeTest.signatureValide();
         String body = String.format("{\"signatureBase64\": \"%s\"}", signature);
 
         mockMvc.perform(post("/etats-des-lieux/99/signer-proprietaire")
@@ -139,13 +187,13 @@ class EtatDesLieuxControllerWebMvcTest {
     }
 
     @Test
-    @DisplayName("GET /etats-des-lieux/signer/{token} — token invalide : 401")
-    void getEdlParToken_invalid_shouldReturn401() throws Exception {
+    @DisplayName("GET /etats-des-lieux/signer/{token} — lien invalide : 404 (B7)")
+    void getEdlParToken_invalid_shouldReturn404() throws Exception {
         when(edlService.getEdlParToken("bad-token"))
-                .thenThrow(new KupangaBusinessException("Token invalide", HttpStatus.UNAUTHORIZED));
+                .thenThrow(new KupangaBusinessException("Lien de signature invalide", HttpStatus.NOT_FOUND));
 
         mockMvc.perform(get("/etats-des-lieux/signer/bad-token"))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isNotFound());
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -157,7 +205,7 @@ class EtatDesLieuxControllerWebMvcTest {
     void signerLocataire_success_shouldReturn204() throws Exception {
         doNothing().when(edlService).signerLocataire(anyString(), anyString());
 
-        String signature = "D".repeat(200);
+        String signature = SignaturesDeTest.signatureValide();
         String body = String.format("{\"signatureBase64\": \"%s\"}", signature);
 
         mockMvc.perform(post("/etats-des-lieux/signer/valid-token")

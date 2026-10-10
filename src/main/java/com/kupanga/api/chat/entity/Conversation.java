@@ -1,6 +1,7 @@
 package com.kupanga.api.chat.entity;
 
 import com.kupanga.api.immobilier.entity.Bien;
+import com.kupanga.api.user.utils.EmailUtils;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -43,4 +44,12 @@ public class Conversation {
     // ─── Audit ───────────────────────────────────────────────────
     @CreationTimestamp
     private LocalDateTime createdAt;
+
+    /** A10 : e-mails stockés en minuscules, comme {@code utilisateurs.email}. */
+    @PrePersist
+    @PreUpdate
+    void normaliserEmails() {
+        this.emailExpediteur = EmailUtils.normaliser(this.emailExpediteur);
+        this.emailDestinataire = EmailUtils.normaliser(this.emailDestinataire);
+    }
 }

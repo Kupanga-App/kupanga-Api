@@ -1,5 +1,7 @@
 package com.kupanga.api.immobilier.pdf;
 
+import com.kupanga.api.juridiction.JuridictionRegistry;
+import com.kupanga.api.juridiction.TypeDocument;
 import com.kupanga.api.immobilier.entity.EtatDesLieux;
 import com.kupanga.api.minio.service.MinioService;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +21,7 @@ import static com.kupanga.api.minio.constant.MinioConstant.EDL_BUCKET;
 public class EtatDesLieuxPdfService {
 
     private final TemplateEngine templateEngine;
+    private final JuridictionRegistry juridictionRegistry;
     private final MinioService   minioService;
 
     /**
@@ -37,7 +40,9 @@ public class EtatDesLieuxPdfService {
             ctx.setVariable("locataire",    edl.getLocataire());
 
             // 2 — Rendu HTML via Thymeleaf
-            String html = templateEngine.process("etat-des-lieux", ctx);
+            // J5 : modèle du pays et de la version figés sur le document
+            String html = templateEngine.process(
+                    juridictionRegistry.gabarit(TypeDocument.ETAT_DES_LIEUX, edl.getPays(), edl.getModeleVersion()), ctx);
 
             // 3 — Conversion HTML → PDF via Flying Saucer
             byte[] pdfBytes = htmlToPdf(html);

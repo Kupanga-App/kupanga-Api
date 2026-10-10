@@ -58,7 +58,7 @@ public interface AuthService {
      * @param response HttpServletResponse
      * @return le DTO contenant UserDTO et le token d'authentification
      */
-    AuthResponseDTO createAndCompleteUserProfil(UserFormDTO userFormDTO , MultipartFile imageProfil, HttpServletResponse response);
+    String createAndCompleteUserProfil(UserFormDTO userFormDTO , MultipartFile imageProfil);
 
     /**
      * Retourne les infos de l'utilisateur

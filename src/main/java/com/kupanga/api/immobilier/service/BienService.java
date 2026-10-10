@@ -104,4 +104,18 @@ public interface BienService {
      * @throws com.kupanga.api.exception.business.KupangaBusinessException 400 sinon
      */
     User verifierLocataireDuBien(Bien bien, String emailLocataire);
+
+    /**
+     * B12 : un bien archivé est en lecture seule (ni modification, ni nouveau document, ni assignation, ni message).
+     * @param bien le bien
+     * @throws com.kupanga.api.exception.business.KupangaBusinessException 409 si le bien est archivé
+     */
+    void verifierBienActif(Bien bien);
+
+    /**
+     * B12 : un document (contrat, EDL, quittance) n'est plus signé ni régénéré si son bien est archivé
+     * ou si l'une des parties a été anonymisée (le PDF porterait « Utilisateur supprimé »).
+     * @throws com.kupanga.api.exception.business.KupangaBusinessException 409
+     */
+    void verifierDocumentModifiable(Bien bien, User proprietaire, User locataire);
 }

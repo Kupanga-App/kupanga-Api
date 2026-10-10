@@ -1,5 +1,7 @@
 package com.kupanga.api.user.research.specification;
 
+import com.kupanga.api.juridiction.Devise;
+import com.kupanga.api.juridiction.Pays;
 import com.kupanga.api.chat.entity.Conversation;
 import com.kupanga.api.chat.repository.ConversationRepository;
 import com.kupanga.api.immobilier.entity.Bien;
@@ -51,7 +53,7 @@ class LocataireSpecificationTest {
                 .firstName("Bob").lastName("Martin")
                 .mail("bob@test.com").role(Role.ROLE_LOCATAIRE).build());
 
-        bien = bienRepository.save(Bien.builder().titre("Appart Test").proprietaire(proprio).build());
+        bien = bienRepository.save(Bien.builder().pays(Pays.FR).devise(Devise.EUR).titre("Appart Test").proprietaire(proprio).build());
 
         // Alice et Bob ont chacun une conversation liée au bien
         conversationRepository.save(Conversation.builder()

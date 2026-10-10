@@ -1,5 +1,6 @@
 package com.kupanga.api.immobilier.research;
 
+import com.kupanga.api.juridiction.Pays;
 import com.kupanga.api.immobilier.dto.readDTO.BienPublicDTO;
 import com.kupanga.api.immobilier.entity.Bien;
 import com.kupanga.api.immobilier.entity.TypeBien;
@@ -42,7 +43,7 @@ class BienSearchServiceTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
 
-        bien = Bien.builder()
+        bien = Bien.builder().pays(Pays.FR)
                 .id(1L)
                 .titre("Appartement T3")
                 .typeBien(TypeBien.APPARTEMENT)

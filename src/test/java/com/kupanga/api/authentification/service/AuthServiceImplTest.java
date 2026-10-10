@@ -1,5 +1,7 @@
 package com.kupanga.api.authentification.service;
 
+import static com.kupanga.api.authentification.constant.AuthConstant.*;
+import com.kupanga.api.authentification.service.VerificationEmailService;
 import com.kupanga.api.authentification.dto.AuthResponseDTO;
 import com.kupanga.api.authentification.dto.CompleteGoogleProfileDTO;
 import com.kupanga.api.authentification.dto.GoogleLoginDTO;
@@ -75,6 +77,9 @@ class AuthServiceImplTest {
     @Mock
     private GoogleTokenVerifier googleTokenVerifier;
 
+    @Mock
+    private VerificationEmailService verificationEmailService;
+
     @InjectMocks
     private AuthServiceImpl loginService;
 
@@ -88,11 +93,38 @@ class AuthServiceImplTest {
         utilisateur = User.builder()
                 .mail("user@example.com")
                 .password("encodedPassword")
+                .emailVerifie(true)
                 .build();
         loginDTO = new LoginDTO("test@example.com" ,"encodedPassword" );
     }
 
     // ====================== Tests login ======================
+
+    @Test
+    @DisplayName("login() : bon mot de passe mais e-mail non confirmé → 403, aucun jeton (A14)")
+    void testLogin_emailNonVerifie_refuse() {
+        utilisateur.setEmailVerifie(false);
+        when(userService.findOptionalByMail("user@example.com")).thenReturn(Optional.of(utilisateur));
+        doNothing().when(userService).isCorrectPassword(any(), any());
+
+        KupangaBusinessException ex = assertThrows(KupangaBusinessException.class,
+                () -> loginService.login(new LoginDTO("user@example.com", "password"), response));
+
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.FORBIDDEN);
+        assertThat(ex.getMessage()).isEqualTo(EMAIL_NON_VERIFIE);
+        verifyNoInteractions(jwtUtils, refreshTokenService);
+    }
+
+    @Test
+    @DisplayName("login() : mauvais mot de passe sur un compte non confirmé → 401 générique (pas d'indice sur le compte)")
+    void testLogin_emailNonVerifie_mauvaisMotDePasse_401() {
+        utilisateur.setEmailVerifie(false);
+        when(userService.findOptionalByMail("user@example.com")).thenReturn(Optional.of(utilisateur));
+        doThrow(new InvalidPasswordException()).when(userService).isCorrectPassword(any(), any());
+
+        assertThrows(InvalidPasswordException.class,
+                () -> loginService.login(new LoginDTO("user@example.com", "faux"), response));
+    }
 
     @Test
     @DisplayName("login() : connexion réussie, cookie refresh ajouté, access token retourné")
@@ -315,8 +347,10 @@ class AuthServiceImplTest {
         assertEquals(MOT_DE_PASSE_A_JOUR, result);
         assertEquals("encodedPassword", utilisateur.getPassword());
         verify(userService, times(1)).save(utilisateur);
+        assertThat(utilisateur.isEmailVerifie()).isTrue(); // A14 : le lien reçu prouve la possession de l'adresse
         verify(passwordResetTokenService, times(1)).delete(token);
         verify(refreshTokenService, times(1)).revokeAllForUser(utilisateur);
+        verify(verificationEmailService).annulerLien(utilisateur.getId());
         verify(emailService, times(1)).sendPasswordUpdatedConfirmation(utilisateur.getMail());
     }
 
@@ -358,7 +392,7 @@ class AuthServiceImplTest {
     }
 
     @Test
-    @DisplayName("createAndCompleteUserProfil() : succès avec image Minio")
+    @DisplayName("createAndCompleteUserProfil() : compte non vérifié, lien de confirmation envoyé, aucune connexion ni bienvenue (A14)")
     void testCreateAndCompleteUserProfil_withImage() {
 
         UserFormDTO form = new UserFormDTO(
@@ -370,38 +404,72 @@ class AuthServiceImplTest {
                 "defaultUrl"
         );
 
-        MultipartFile image = mock(MultipartFile.class);
-        when(image.isEmpty()).thenReturn(false);
+        MultipartFile image = imagePng();
 
+        when(minioService.estUrlDuBucket("defaultUrl", PHOTO_PROFIL_BUCKET)).thenReturn(true);
         when(passwordEncoder.encode("password")).thenReturn("encodedPwd");
         when(minioService.uploadImage(image, PHOTO_PROFIL_BUCKET))
                 .thenReturn("minioUrl");
 
-        // capturer l'utilisateur sauvegardé
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
         doNothing().when(userService).save(userCaptor.capture());
 
-        // login() va chercher l'utilisateur -> on renvoie celui sauvegardé
-        when(userService.findOptionalByMail(any()))
-                .thenAnswer(inv -> Optional.of(userCaptor.getValue()));
+        String result = loginService.createAndCompleteUserProfil(form, image);
 
-        doNothing().when(userService)
-                .isCorrectPassword(any(), any());
+        assertThat(result).isEqualTo(COMPTE_CREE_VERIFIER_EMAIL);
+        User cree = userCaptor.getValue();
+        assertThat(cree.isEmailVerifie()).isFalse();
+        assertThat(cree.getUrlProfile()).isEqualTo("minioUrl");
+        verify(verificationEmailService).envoyerLien(cree);
+        verifyNoInteractions(jwtUtils, refreshTokenService);
+        verify(emailService, never()).sendWelcomeMessage(any(), any());
+    }
 
-        when(jwtUtils.generateAccessToken(any(), any()))
-                .thenReturn("accessToken");
+    @Test
+    @DisplayName("createAndCompleteUserProfil() : adresse déjà inscrite (vérifiée ou non) → même réponse, aucun compte ni lien, titulaire prévenu (A14)")
+    void testCreateAndCompleteUserProfil_adresseDejaInscrite_memeReponse() {
+        for (boolean verifie : new boolean[]{true, false}) {
+            reset(userService, emailService, verificationEmailService, minioService, passwordEncoder);
+            User existant = User.builder().id(7L).mail("john@mail.com").password("hashDuPremier")
+                    .role(Role.ROLE_PROPRIETAIRE).emailVerifie(verifie).build();
+            UserFormDTO form = UserFormDTO.builder().firstName("John").lastName("User")
+                    .mail("John@Mail.com").password("password").role(Role.ROLE_LOCATAIRE).build();
+            MultipartFile image = imagePng();
+            when(userService.findOptionalByMail("John@Mail.com")).thenReturn(Optional.of(existant));
 
-        when(refreshTokenService.createRefreshToken(any()))
-                .thenReturn("refreshToken");
+            String result = loginService.createAndCompleteUserProfil(form, image);
 
-        AuthResponseDTO result =
-                loginService.createAndCompleteUserProfil(form, image, response);
+            assertThat(result).isEqualTo(COMPTE_CREE_VERIFIER_EMAIL);
+            verify(passwordEncoder).encode("password"); // même calcul BCrypt qu'une vraie inscription
+            verify(emailService).envoyerTentativeInscription("john@mail.com");
+            verify(userService, never()).save(any(User.class));
+            // pas de nouveau lien : il validerait le mot de passe choisi par le premier inscrit
+            verifyNoInteractions(verificationEmailService, jwtUtils, refreshTokenService);
+            verify(minioService, never()).uploadImage(any(), any());
+            assertThat(existant.getPassword()).isEqualTo("hashDuPremier");
+            assertThat(existant.getRole()).isEqualTo(Role.ROLE_PROPRIETAIRE);
+        }
+    }
 
-        assertThat(result.accessToken()).isEqualTo("accessToken");
+    @Test
+    @DisplayName("createAndCompleteUserProfil() : avatar hors de notre MinIO → 400, aucun compte créé (revue B5)")
+    void testCreateAndCompleteUserProfil_avatarExterne_refuse() {
+        String pixelDeSuivi = "https://traqueur.example/pixel.gif";
+        UserFormDTO form = new UserFormDTO("User", "password", "john@mail.com", "John",
+                Role.ROLE_LOCATAIRE, pixelDeSuivi);
+        when(minioService.estUrlDuBucket(pixelDeSuivi, PHOTO_PROFIL_BUCKET)).thenReturn(false);
 
-        verify(minioService).uploadImage(image, PHOTO_PROFIL_BUCKET);
-        verify(userService).save(any(User.class));
-        verify(emailService).sendWelcomeMessage("john@mail.com","User");
+        KupangaBusinessException ex = assertThrows(KupangaBusinessException.class,
+                () -> loginService.createAndCompleteUserProfil(form, null));
+
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
+        verify(userService, never()).save(any(User.class));
+    }
+
+    /** Fichier reconnu comme PNG par sa signature (B5). */
+    private static MultipartFile imagePng() {
+        byte[] contenu = {(byte) 0x89, 'P', 'N', 'G', 0x0D, 0x0A, 0x1A, 0x0A, 0, 0, 0, 0x0D, 'I', 'H', 'D', 'R'};
+        return new org.springframework.mock.web.MockMultipartFile("imageProfil", "photo.png", "image/png", contenu);
     }
 
     @Test
@@ -473,7 +541,9 @@ class AuthServiceImplTest {
         AuthResponseDTO result = loginService.loginWithGoogle(dto, response);
 
         assertThat(result.requiresRoleSelection()).isTrue();
-        verify(userService).save(any(User.class));
+        ArgumentCaptor<User> cree = ArgumentCaptor.forClass(User.class);
+        verify(userService).save(cree.capture());
+        assertThat(cree.getValue().isEmailVerifie()).isTrue(); // adresse attestée par Google (A14)
     }
 
     @Test
@@ -485,6 +555,7 @@ class AuthServiceImplTest {
         User existingUser = User.builder()
                 .mail("existing@example.com")
                 .role(Role.ROLE_PROPRIETAIRE)
+                .emailVerifie(true)
                 .build(); // googleId = null
 
         when(googleTokenVerifier.verify("google-id-token")).thenReturn(googleInfo);
@@ -500,6 +571,47 @@ class AuthServiceImplTest {
         assertThat(result.requiresRoleSelection()).isFalse();
         assertThat(existingUser.getGoogleId()).isEqualTo("g-456");
         verify(userService).save(existingUser);
+    }
+
+    @Test
+    @DisplayName("loginWithGoogle() — compte local non vérifié : repris par Google, mot de passe/rôle/profil du premier inscrit effacés, lien et sessions annulés (A14)")
+    void loginWithGoogle_compteLocalNonVerifie_reprisSansLesDonneesDuPremierInscrit() {
+        GoogleLoginDTO dto = new GoogleLoginDTO("google-id-token");
+        GoogleUserInfo googleInfo = new GoogleUserInfo("g-789", "victime@example.com", "Vraie", "Personne", "photoGoogle");
+
+        User squatte = User.builder()
+                .id(42L)
+                .mail("victime@example.com")
+                .password("hashDeLAttaquant")
+                .role(Role.ROLE_PROPRIETAIRE)
+                .firstName("Faux")
+                .lastName("Profil")
+                .urlProfile("photoAttaquant")
+                .hasCompleteProfil(true)
+                .emailVerifie(false)
+                .build();
+
+        when(googleTokenVerifier.verify("google-id-token")).thenReturn(googleInfo);
+        when(userService.findOptionalByGoogleId("g-789")).thenReturn(Optional.empty());
+        when(userService.findOptionalByMail("victime@example.com")).thenReturn(Optional.of(squatte));
+        when(jwtUtils.generateAccessToken("victime@example.com", "")).thenReturn("accessToken");
+        when(refreshTokenService.createRefreshToken(squatte)).thenReturn("refreshToken");
+
+        AuthResponseDTO result = loginService.loginWithGoogle(dto, response);
+
+        assertThat(result.requiresRoleSelection()).isTrue();
+        assertThat(squatte.getPassword()).isNull();
+        assertThat(squatte.getRole()).isNull();
+        assertThat(squatte.getHasCompleteProfil()).isFalse();
+        assertThat(squatte.getFirstName()).isEqualTo("Vraie");
+        assertThat(squatte.getLastName()).isEqualTo("Personne");
+        assertThat(squatte.getUrlProfile()).isEqualTo("photoGoogle");
+        assertThat(squatte.isEmailVerifie()).isTrue();
+        assertThat(squatte.getGoogleId()).isEqualTo("g-789");
+        verify(verificationEmailService).annulerLien(42L);
+        verify(passwordResetTokenService).deleteIfExist(42L);
+        verify(refreshTokenService).revokeAllForUser(squatte);
+        verify(userService).save(squatte);
     }
 
     @Test

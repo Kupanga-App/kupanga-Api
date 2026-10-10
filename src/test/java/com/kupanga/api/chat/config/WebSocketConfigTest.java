@@ -4,6 +4,7 @@ import com.kupanga.api.chat.security.JwtChannelInterceptor;
 import com.kupanga.api.config.CorsProperties;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.StompWebSocketEndpointRegistration;
 
@@ -26,7 +27,8 @@ class WebSocketConfigTest {
         when(registry.addEndpoint("/ws")).thenReturn(registration);
 
         new WebSocketConfig(mock(JwtChannelInterceptor.class),
-                new CorsProperties(List.of("http://localhost:4200", "https://kupanga.lespacelibellule.com")))
+                new CorsProperties(List.of("http://localhost:4200", "https://kupanga.lespacelibellule.com")),
+                mock(TaskScheduler.class))
                 .registerStompEndpoints(registry);
 
         verify(registration).setAllowedOrigins("http://localhost:4200", "https://kupanga.lespacelibellule.com");

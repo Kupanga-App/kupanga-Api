@@ -12,7 +12,9 @@ spring:
     enabled: true
     locations: classpath:db/migration
     baseline-on-migrate: true
-    validate-on-migrate: false
+    # D6 : une migration modifiée après coup est refusée au démarrage. Base existante : V1, V24 et V27 ont été
+    # modifiées après leur passage → lancer une fois `flyway repair` avant ce déploiement (docs/sauvegardes.md).
+    validate-on-migrate: true
     default-schema: public
 
   # Upstash Redis — connexion binaire TLS via URL (rediss://)
@@ -22,6 +24,8 @@ spring:
       timeout: 2000ms
   cache:
     type: redis
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
 
 minio:
   endpoint: ${MINIO_ENDPOINT}
@@ -56,9 +60,8 @@ sentry:
   # ni l'IP ou l'utilisateur. Ne jamais repasser à true (données personnelles + jetons de session).
   # cf. https://docs.sentry.io/platforms/java/guides/spring-boot/data-management/data-collected/
   send-default-pii: false
-  # Set traces-sample-rate to 1.0 to capture 100% of transactions for tracing.
-  # We recommend adjusting this value in production.
-  traces-sample-rate: 1.0
+  # D5 : 10 % des transactions tracées (coût et volume) ; les erreurs, elles, sont toutes envoyées
+  traces-sample-rate: 0.1
 
 # Swagger désactivé en production (décision P0-1)
 springdoc:
@@ -71,3 +74,6 @@ springdoc:
 # seulement depuis des proxys internes) : utilisée par la limite de tentatives (A3)
 server:
   forward-headers-strategy: native
+  # Arrêt propre (B11, D2) : les requêtes en cours se terminent et l'exécuteur des e-mails vide sa file
+  shutdown: graceful
+

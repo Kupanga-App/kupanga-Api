@@ -9,10 +9,13 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: panga-dev
+    # D1 : l'application écoute sur 8089 (PORT)
     ports:
-      - "8085:8080"
+      - "8089:8089"
     env_file:
       - .env.dev
+    environment:
+      SPRING_PROFILES_ACTIVE: dev   # l'image démarre en prod par défaut (Dockerfile)
     depends_on:
       - db
       - minio
@@ -99,7 +102,7 @@ services:
   # 4. Redis Cache
   # ------------------------
   redis:
-    image: redis:7-alpine
+    image: redis:7.4.6-alpine
     container_name: redis-dev
     ports:
       - "6379:6379"
@@ -122,7 +125,7 @@ services:
   # 5️. RedisInsight GUI
   # ------------------------
   redisinsight:
-    image: redis/redisinsight:latest
+    image: redis/redisinsight:2.60.0
     container_name: redisinsight-dev
     ports:
       - "5540:5540"

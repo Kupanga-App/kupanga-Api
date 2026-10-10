@@ -61,7 +61,7 @@ public class UserController {
                                         "adresse": "75 Boulevard Jules Verne",
                                         "ville": "Nantes",
                                         "codePostal": "44000",
-                                        "pays": "France",
+                                        "pays": "FR",
                                         "latitude": 47.2184,
                                         "longitude": -1.5536,
                                         "surfaceHabitable": 68.5,

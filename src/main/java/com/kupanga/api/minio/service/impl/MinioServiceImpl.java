@@ -1,5 +1,8 @@
 package com.kupanga.api.minio.service.impl;
 
+import com.kupanga.api.exception.business.KupangaBusinessException;
+import com.kupanga.api.minio.image.FormatImage;
+import com.kupanga.api.minio.image.ValidationImage;
 import com.kupanga.api.minio.service.MinioService;
 import io.minio.*;
 import io.minio.http.Method;
@@ -15,6 +18,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 import static com.kupanga.api.minio.constant.MinioConstant.BUCKETS_PRIVES;
 import static com.kupanga.api.minio.constant.MinioConstant.DUREE_URL_PRESIGNEE_MINUTES;
@@ -91,26 +95,40 @@ public class MinioServiceImpl implements MinioService {
     @Override
     public String uploadImage(MultipartFile file, String bucketName) {
         try {
+            // B5 : format reconnu au contenu ; nom et type MIME fixés par le serveur (jamais ceux du client)
+            FormatImage format = ValidationImage.verifier(file);
+
             // Crée le bucket si nécessaire
             createBucketIfNotExists(bucketName, true);
-            String originalName = file.getOriginalFilename();
 
-            String fileName = UUID.randomUUID() + "_" + (originalName != null ?
-                    originalName.replaceAll("\\s+", "") : "file");
+            String fileName = UUID.randomUUID() + "." + format.getExtension();
 
             minioClient.putObject(
                     PutObjectArgs.builder()
                             .bucket(bucketName)
                             .object(fileName)
                             .stream(file.getInputStream(), file.getSize(), -1)
-                            .contentType(file.getContentType())
+                            .contentType(format.getTypeMime())
                             .build()
             );
 
             return url_minio + "/" + bucketName + "/" + fileName;
+        } catch (KupangaBusinessException e) {
+            throw e;
         } catch (Exception e) {
             throw new RuntimeException("Erreur lors de upload vers MinIO", e);
         }
+    }
+
+    /** Nom d'objet simple : ni sous-dossier, ni « .. », ni paramètres. */
+    private static final Pattern NOM_OBJET = Pattern.compile("[A-Za-z0-9][A-Za-z0-9_-]*(\\.[A-Za-z0-9]+)?");
+
+    @Override
+    public boolean estUrlDuBucket(String url, String bucketName) {
+        String prefixe = url_minio + "/" + bucketName + "/";
+        return url != null
+                && url.startsWith(prefixe)
+                && NOM_OBJET.matcher(url.substring(prefixe.length())).matches();
     }
 
     @Override
@@ -170,6 +188,19 @@ public class MinioServiceImpl implements MinioService {
             return in.readAllBytes();
         } catch (Exception e) {
             throw new RuntimeException("Erreur téléchargement MinIO", e);
+        }
+    }
+
+    @Override
+    public void supprimerParUrl(String url, String bucketName) {
+        if (!estUrlDuBucket(url, bucketName)) {
+            return;
+        }
+        String objet = url.substring((url_minio + "/" + bucketName + "/").length());
+        try {
+            minioClient.removeObject(RemoveObjectArgs.builder().bucket(bucketName).object(objet).build());
+        } catch (Exception e) {
+            log.warn("Suppression d'un objet du bucket {} impossible : {}", bucketName, e.getClass().getName());
         }
     }
 }

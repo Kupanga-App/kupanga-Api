@@ -1,5 +1,8 @@
 package com.kupanga.api.securite;
 
+import com.kupanga.api.juridiction.Devise;
+import com.kupanga.api.juridiction.Pays;
+import com.kupanga.api.immobilier.validation.SignaturesDeTest;
 import com.kupanga.api.authentification.utils.JwtUtils;
 import com.kupanga.api.chat.entity.Conversation;
 import com.kupanga.api.chat.repository.ConversationRepository;
@@ -54,6 +57,8 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import java.math.BigDecimal;
 
 /**
  * TESTS-SECU : tests d'intégration de sécurité sur le contexte complet (vraie chaîne de filtres,
@@ -83,13 +88,16 @@ class SecuriteApiIntegrationTest {
     private static final Set<String> ROUTES_PUBLIQUES = Set.of(
             "POST /auth/login", "POST /auth/register", "POST /auth/google", "POST /auth/refresh",
             "POST /auth/forgot-password", "POST /auth/reset-password", "POST /auth/logout",
-            "GET /biens/{bienId}", "POST /biens/search",
+            "POST /auth/verifier-email", "POST /auth/renvoyer-verification",
+            "GET /biens/{bienId}", "POST /biens/search", "GET /juridictions", "GET /juridictions/{pays}",
             "GET /contrats/signer/{token}", "POST /contrats/signer/{token}",
             "GET /etats-des-lieux/signer/{token}", "POST /etats-des-lieux/signer/{token}",
             "GET /health"
     );
 
-    private static final String SIGNATURE = "{\"signatureBase64\": \"data:image/png;base64," + "A".repeat(120) + "\"}";
+    // Signature valide (B6) : sinon la validation répond 400 avant le contrôle de propriété testé ici
+    private static final String SIGNATURE =
+            "{\"signatureBase64\": \"" + SignaturesDeTest.signatureValide() + "\"}";
 
     @Autowired private MockMvc mockMvc;
     @Autowired @Qualifier("requestMappingHandlerMapping") private RequestMappingHandlerMapping handlerMapping;
@@ -133,13 +141,13 @@ class SecuriteApiIntegrationTest {
         contratA = contrat(bienA);
         contratAutreBienA = contrat(autreBienA);
 
-        quittanceA = quittanceRepository.save(Quittance.builder()
+        quittanceA = quittanceRepository.save(Quittance.builder().pays(Pays.FR).devise(Devise.EUR).modeleVersion("fr-v1")
                 .bien(bienA).proprietaire(proprietaireA).locataire(locataireA).contrat(contratA)
-                .mois("JANVIER").annee(2026).loyerMensuel(800.0).chargesMensuelles(50.0).montantTotal(850.0)
+                .mois("JANVIER").annee(2026).loyerMensuel(new BigDecimal("800.0")).chargesMensuelles(new BigDecimal("50.0")).montantTotal(new BigDecimal("850.0"))
                 .statut(StatutQuittance.EN_ATTENTE)
                 .build());
 
-        edlA = etatDesLieuxRepository.save(EtatDesLieux.builder()
+        edlA = etatDesLieuxRepository.save(EtatDesLieux.builder().pays(Pays.FR).modeleVersion("fr-v1")
                 .bien(bienA).proprietaire(proprietaireA).locataire(locataireA)
                 .type(TypeEtat.ENTREE).dateRealisation(LocalDate.now())
                 .statut(StatutEdl.EN_ATTENTE_SIGNATURE_PROPRIO)
@@ -219,7 +227,9 @@ class SecuriteApiIntegrationTest {
                 .andExpect(jsonPath("$.contrats").doesNotExist())
                 .andExpect(jsonPath("$.quittances").doesNotExist());
         // Token de signature inconnu : refus métier (corps JSON), pas le 401 vide de la sécurité
-        mockMvc.perform(get("/contrats/signer/token-inconnu")).andExpect(jsonPath("$.message").value("Token Invalide"));
+        mockMvc.perform(get("/contrats/signer/token-inconnu"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("Lien de signature invalide"));
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -377,6 +387,32 @@ class SecuriteApiIntegrationTest {
     }
 
     @Test
+    @DisplayName("Mes quittances : chaque locataire ne voit que les siennes, même sur le même bien (B1)")
+    void mesQuittances_parLocataire() throws Exception {
+        mockMvc.perform(get("/quittances/mes-quittances").with(connecte(autreLocataire)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(0));
+
+        // Ancien / nouveau locataire du même bien : chacun sa quittance
+        Quittance quittanceAutreLocataire = quittanceRepository.save(Quittance.builder().pays(Pays.FR).devise(Devise.EUR).modeleVersion("fr-v1")
+                .bien(bienA).proprietaire(proprietaireA).locataire(autreLocataire).contrat(contratA)
+                .mois("FEVRIER").annee(2026).loyerMensuel(new BigDecimal("800.0")).chargesMensuelles(new BigDecimal("50.0")).montantTotal(new BigDecimal("850.0"))
+                .statut(StatutQuittance.EN_ATTENTE)
+                .build());
+
+        mockMvc.perform(get("/quittances/mes-quittances").with(connecte(locataireA)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].id").value(quittanceA.getId()))
+                .andExpect(jsonPath("$[0].emailLocataire").value(locataireA.getMail()));
+
+        mockMvc.perform(get("/quittances/mes-quittances").with(connecte(autreLocataire)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].id").value(quittanceAutreLocataire.getId()));
+    }
+
+    @Test
     @DisplayName("Rôles (@PreAuthorize) : propriétaire sur les routes locataire et inversement → 403")
     void roles_croises_refuses() throws Exception {
         RequestPostProcessor a = connecte(proprietaireA);
@@ -437,17 +473,17 @@ class SecuriteApiIntegrationTest {
 
     private Bien bien(String titre, User proprietaire, User locataire) {
         return bienRepository.save(Bien.builder()
-                .titre(titre).adresse("1 rue Test").ville("Paris").codePostal("75001").pays("France")
-                .typeBien(TypeBien.APPARTEMENT).loyerMensuel(800.0).chargesMensuelles(50.0)
+                .titre(titre).adresse("1 rue Test").ville("Paris").codePostal("75001").pays(Pays.FR).devise(Devise.EUR)
+                .typeBien(TypeBien.APPARTEMENT).loyerMensuel(new BigDecimal("800.0")).chargesMensuelles(new BigDecimal("50.0"))
                 .proprietaire(proprietaire).locataire(locataire)
                 .build());
     }
 
     private Contrat contrat(Bien bien) {
-        return contratRepository.save(Contrat.builder()
+        return contratRepository.save(Contrat.builder().pays(Pays.FR).devise(Devise.EUR).modeleVersion("fr-v1")
                 .bien(bien).proprietaire(bien.getProprietaire()).locataire(bien.getLocataire())
                 .dateDebut(LocalDate.now()).dateFin(LocalDate.now().plusYears(1)).dureeBailMois(12)
-                .loyerMensuel(800.0).chargesMensuelles(50.0).depotGarantie(800.0).adresseBien("1 rue Test")
+                .loyerMensuel(new BigDecimal("800.0")).chargesMensuelles(new BigDecimal("50.0")).depotGarantie(new BigDecimal("800.0")).adresseBien("1 rue Test")
                 .statut(StatutContrat.EN_ATTENTE_SIGNATURE_PROPRIO)
                 .build());
     }

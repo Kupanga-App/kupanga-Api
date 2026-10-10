@@ -5,8 +5,11 @@ import com.kupanga.api.authentification.dto.CompleteGoogleProfileDTO;
 import com.kupanga.api.authentification.dto.ForgotPasswordDTO;
 import com.kupanga.api.authentification.dto.GoogleLoginDTO;
 import com.kupanga.api.authentification.dto.LoginDTO;
+import com.kupanga.api.authentification.dto.RenvoyerVerificationDTO;
 import com.kupanga.api.authentification.dto.ResetPasswordDTO;
+import com.kupanga.api.authentification.dto.VerifierEmailDTO;
 import com.kupanga.api.authentification.service.AuthService;
+import com.kupanga.api.authentification.service.VerificationEmailService;
 import com.kupanga.api.user.dto.formDTO.UserFormDTO;
 import com.kupanga.api.user.dto.readDTO.UserDTO;
 import io.swagger.v3.oas.annotations.Operation;
@@ -22,6 +25,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import com.kupanga.api.authentification.ratelimit.LimiteurTentatives;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -39,6 +43,7 @@ public class AuthController {
 
     private final AuthService authService;
     private final LimiteurTentatives limiteurTentatives;
+    private final VerificationEmailService verificationEmailService;
 
     // =============================================================================
     //  CREATION UTILISATEUR + COMPLETER LE PROFIL UTILISATEUR + AJOUT PHOTO PROFIL
@@ -47,21 +52,17 @@ public class AuthController {
             summary = "Créer un nouvel utilisateur et compléter son profil",
             description = "Permet à un utilisateur de compléter son profil en fournissant les informations " +
                     "nécessaires telles que nom, prénom, email, rôle, mot de passe, et optionnellement une image de profil. " +
-                    "Retourne le profil utilisateur créé et mis à jour, avec photo de profil si fournie, " +
-                    "et reconnecte automatiquement l'utilisateur."
+                    "A14 : aucune connexion automatique ; un lien de confirmation (valable 24 h) est envoyé par e-mail, " +
+                    "et la connexion est refusée (403) tant que l'adresse n'est pas confirmée."
     )
     @ApiResponses(value = {
             @ApiResponse(
-                    responseCode = "200",
-                    description = "Profil utilisateur complété avec succès",
+                    responseCode = "201",
+                    description = "Compte créé, lien de confirmation envoyé. Même réponse si l'adresse est déjà inscrite "
+                            + "(son titulaire reçoit un e-mail l'invitant à passer par « mot de passe oublié »)",
                     content = @Content(
-                            mediaType = "application/json",
-                            schema = @Schema(implementation = AuthResponseDTO.class),
-                            examples = @ExampleObject(value = """
-                {
-                    "accessToken": "eyJhbGciOiJIUzI1NiJ9..."
-                }
-                """)
+                            mediaType = "text/plain",
+                            examples = @ExampleObject(value = "Compte créé. Un lien de confirmation vient d'être envoyé à votre adresse e-mail : ouvrez-le pour activer votre compte (valable 24 heures).")
                     )
             ),
 
@@ -95,7 +96,7 @@ public class AuthController {
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE
     )
 
-    public ResponseEntity<AuthResponseDTO> createUser(
+    public ResponseEntity<String> createUser(
             @Parameter(
                     description = "JSON contenant les informations utilisateur obligatoires",
                     required = true
@@ -106,13 +107,12 @@ public class AuthController {
                     description = "Image de profil optionnelle de l'utilisateur (fichier)",
                     required = false
             )
-            @RequestPart(value = "imageProfil", required = false) MultipartFile imageProfil,
-
-            HttpServletResponse response,
-            HttpServletRequest request
+            @RequestPart(value = "imageProfil", required = false) MultipartFile imageProfil
     ) {
-        limiteurTentatives.verifierIp(REGISTER_PAR_IP, request);
-        return ResponseEntity.ok(authService.createAndCompleteUserProfil(userFormDTO , imageProfil ,response));
+        // Limite REGISTER_PAR_IP : LimiteInscriptionInterceptor, avant la lecture du corps (B3)
+        limiteurTentatives.verifierEmail(REGISTER_PAR_EMAIL, userFormDTO.mail());
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(authService.createAndCompleteUserProfil(userFormDTO , imageProfil));
     }
 
 
@@ -379,6 +379,52 @@ public class AuthController {
     @PostMapping("/reset-password")
     public ResponseEntity<String> resetPassword(@Valid @RequestBody ResetPasswordDTO dto) {
         return ResponseEntity.ok(authService.resetPassword(dto.token(), dto.newPassword()));
+    }
+
+    // =========================================
+    // CONFIRMATION DE L'ADRESSE E-MAIL (A14)
+    // =========================================
+    @Operation(
+            summary = "Confirmer l'adresse e-mail",
+            description = """
+                    Appelé par la page du front ouverte depuis le lien reçu à l'inscription
+                    (`{app.url}auth/verifier-email?token=...`). Le compte peut ensuite se connecter
+                    et reçoit l'e-mail de bienvenue. Lien valable 24 heures, utilisable une fois.
+                    """
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Adresse confirmée",
+                    content = @Content(mediaType = "text/plain",
+                            examples = @ExampleObject(value = "Adresse e-mail confirmée : vous pouvez vous connecter."))),
+            @ApiResponse(responseCode = "400", description = "Lien invalide, déjà utilisé ou expiré",
+                    content = @Content(mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    { "message": "Lien de confirmation invalide ou expiré" }
+                                    """)))
+    })
+    @PostMapping("/verifier-email")
+    public ResponseEntity<String> verifierEmail(@Valid @RequestBody VerifierEmailDTO dto) {
+        return ResponseEntity.ok(verificationEmailService.verifier(dto.token()));
+    }
+
+    @Operation(
+            summary = "Renvoyer le lien de confirmation de l'adresse e-mail",
+            description = """
+                    Envoie un nouveau lien (l'ancien est invalidé) si un compte non confirmé existe pour cet e-mail.
+                    Réponse identique dans tous les cas (pas d'énumération des comptes).
+                    Limité à 3 demandes par heure et par e-mail, 20 par heure et par IP (429 au-delà).
+                    """
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Demande prise en compte (réponse générique)"),
+            @ApiResponse(responseCode = "429", description = "Trop de demandes")
+    })
+    @PostMapping("/renvoyer-verification")
+    public ResponseEntity<String> renvoyerVerification(@Valid @RequestBody RenvoyerVerificationDTO dto,
+                                                       HttpServletRequest request) {
+        limiteurTentatives.verifierIp(RENVOI_VERIFICATION_PAR_IP, request);
+        limiteurTentatives.verifierEmail(RENVOI_VERIFICATION_PAR_EMAIL, dto.email());
+        return ResponseEntity.ok(verificationEmailService.renvoyer(dto.email()));
     }
 
     // =========================================

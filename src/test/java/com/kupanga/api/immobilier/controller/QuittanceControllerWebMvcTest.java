@@ -1,5 +1,6 @@
 package com.kupanga.api.immobilier.controller;
 
+import com.kupanga.api.immobilier.validation.SignaturesDeTest;
 import com.kupanga.api.authentification.service.impl.UserDetailsServiceImpl;
 import com.kupanga.api.authentification.utils.JwtUtils;
 import com.kupanga.api.config.SecurityConfig;
@@ -121,7 +122,7 @@ class QuittanceControllerWebMvcTest {
     void marquerPayee_success_shouldReturn204() throws Exception {
         doNothing().when(quittanceService).marquerPayee(eq(1L), anyString(), anyString());
 
-        String signature = "E".repeat(200);
+        String signature = SignaturesDeTest.signatureValide();
         String body = String.format("{\"signatureBase64\": \"%s\"}", signature);
 
         mockMvc.perform(post("/quittances/1/marquer-payee")
@@ -137,7 +138,7 @@ class QuittanceControllerWebMvcTest {
         doThrow(new KupangaBusinessException("Quittance introuvable", HttpStatus.NOT_FOUND))
                 .when(quittanceService).marquerPayee(eq(99L), anyString(), anyString());
 
-        String signature = "E".repeat(200);
+        String signature = SignaturesDeTest.signatureValide();
         String body = String.format("{\"signatureBase64\": \"%s\"}", signature);
 
         mockMvc.perform(post("/quittances/99/marquer-payee")

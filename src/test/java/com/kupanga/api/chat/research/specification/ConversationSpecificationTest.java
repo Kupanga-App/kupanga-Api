@@ -1,5 +1,7 @@
 package com.kupanga.api.chat.research.specification;
 
+import com.kupanga.api.juridiction.Devise;
+import com.kupanga.api.juridiction.Pays;
 import com.kupanga.api.chat.dto.ConversationSearchDTO;
 import com.kupanga.api.chat.entity.Conversation;
 import com.kupanga.api.chat.entity.Message;
@@ -47,7 +49,7 @@ class ConversationSpecificationTest {
         alice = userRepository.save(User.builder().mail("alice@test.com").role(Role.ROLE_LOCATAIRE).build());
         bob   = userRepository.save(User.builder().mail("bob@test.com").role(Role.ROLE_PROPRIETAIRE).build());
 
-        bien = bienRepository.save(Bien.builder().titre("Appart Centre-Ville").proprietaire(bob).build());
+        bien = bienRepository.save(Bien.builder().pays(Pays.FR).devise(Devise.EUR).titre("Appart Centre-Ville").proprietaire(bob).build());
 
         conv = conversationRepository.save(Conversation.builder()
                 .bien(bien)

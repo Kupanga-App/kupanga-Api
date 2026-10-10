@@ -128,7 +128,7 @@ public class BienController {
                                         "adresse":            "75 Boulevard Jules Verne",
                                         "ville":              "Nantes",
                                         "codePostal":         "44300",
-                                        "pays":               "France",
+                                        "pays":               "FR",
                                         "surfaceHabitable":   65.5,
                                         "nombrePieces":       3,
                                         "nombreChambres":     2,
@@ -159,7 +159,8 @@ public class BienController {
             @Valid @RequestPart("bienFormDTO") BienFormDTO bienFormDTO,
 
             @Parameter(
-                    description = "Photos du bien (JPG, PNG, WEBP — 10 Mo max par fichier). " +
+                    description = "Photos du bien (JPEG, PNG, WEBP, AVIF, GIF, HEIC — reconnues au contenu ; 10 Mo max par fichier, " +
+                            "50 Mo par requête, 20 photos max). " +
                             "Au moins une image est obligatoire. " +
                             "Envoyer plusieurs fichiers en répétant la clé 'files'.",
                     required = true
@@ -201,7 +202,7 @@ public class BienController {
                                         "adresse": "75 Boulevard Jules Verne",
                                         "ville": "Nantes",
                                         "codePostal": "44300",
-                                        "pays": "France",
+                                        "pays": "FR",
                                         "latitude": 47.2184,
                                         "longitude": -1.5536,
                                         "surfaceHabitable": 65.5,
@@ -315,7 +316,7 @@ public class BienController {
                                                 "adresse": "75 Boulevard Jules Verne",
                                                 "ville": "Nantes",
                                                 "codePostal": "44300",
-                                                "pays": "France",
+                                                "pays": "FR",
                                                 "latitude": 47.2184,
                                                 "longitude": -1.5536,
                                                 "surfaceHabitable": 65.5,

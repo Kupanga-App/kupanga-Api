@@ -108,7 +108,7 @@ public class LocataireDashboardServiceImpl implements LocataireDashboardService 
     private LocataireDashboardDTO.BienResumeDTO buildBienResumeDTO(Bien bien) {
         LocataireDashboardDTO.BienResumeDTO dto = new LocataireDashboardDTO.BienResumeDTO();
         dto.setId(bien.getId());
-        dto.setAdresse(bien.getAdresse() + ", " + bien.getCodePostal() + " " + bien.getVille());
+        dto.setAdresse(bien.adresseComplete()); // J4 : sans « null » si pas de code postal (RDC)
         dto.setSurface(bien.getSurfaceHabitable());
         dto.setNbPieces(bien.getNombrePieces());
         dto.setType(bien.getTypeBien() != null ? bien.getTypeBien().name() : null);
@@ -138,6 +138,7 @@ public class LocataireDashboardServiceImpl implements LocataireDashboardService 
         dto.setLoyerMensuel(contrat.getLoyerMensuel());
         dto.setCharges(contrat.getChargesMensuelles());
         dto.setDepotGarantie(contrat.getDepotGarantie());
+        dto.setDevise(contrat.getDevise());
         dto.setStatut(contrat.getStatut());
         return dto;
     }

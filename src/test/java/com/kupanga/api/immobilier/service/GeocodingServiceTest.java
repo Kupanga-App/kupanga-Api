@@ -1,5 +1,6 @@
 package com.kupanga.api.immobilier.service;
 
+import com.kupanga.api.juridiction.Pays;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -42,7 +43,7 @@ class GeocodingServiceTest {
         String json = "[{\"lat\":\"48.8566\",\"lon\":\"2.3522\"}]";
         when(responseSpec.bodyToMono(String.class)).thenReturn(Mono.just(json));
 
-        Point result = geocodingService.geocode("10 rue de Rivoli", "Paris", "75001", "France");
+        Point result = geocodingService.geocode("10 rue de Rivoli", "Paris", "75001", Pays.FR);
 
         assertThat(result).isNotNull();
         assertThat(result.getY()).isEqualTo(48.8566);
@@ -54,7 +55,7 @@ class GeocodingServiceTest {
     void geocode_emptyArray_returnsNull() {
         when(responseSpec.bodyToMono(String.class)).thenReturn(Mono.just("[]"));
 
-        Point result = geocodingService.geocode("Rue inconnue", "Inconnue", "00000", "France");
+        Point result = geocodingService.geocode("Rue inconnue", "Inconnue", "00000", Pays.FR);
 
         assertThat(result).isNull();
     }
@@ -65,7 +66,7 @@ class GeocodingServiceTest {
         when(responseSpec.bodyToMono(String.class))
                 .thenReturn(Mono.error(new RuntimeException("timeout simulé")));
 
-        Point result = geocodingService.geocode("1 rue Test", "Ville", "12345", "France");
+        Point result = geocodingService.geocode("1 rue Test", "Ville", "12345", Pays.FR);
 
         assertThat(result).isNull();
     }

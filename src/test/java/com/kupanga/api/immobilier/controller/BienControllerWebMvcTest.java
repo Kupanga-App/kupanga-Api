@@ -1,5 +1,6 @@
 package com.kupanga.api.immobilier.controller;
 
+import com.kupanga.api.juridiction.Pays;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.kupanga.api.authentification.service.impl.UserDetailsServiceImpl;
@@ -39,6 +40,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import java.math.BigDecimal;
 
 @WebMvcTest(BienController.class)
 @Import(SecurityConfig.class)
@@ -107,6 +109,51 @@ class BienControllerWebMvcTest {
                 .andExpect(status().isBadRequest());
 
         verify(bienService, never()).createBien(any(), any(), any());
+    }
+
+    @Test
+    @DisplayName("J3 : POST /biens — devise inconnue ou montant hors NUMERIC(12,2) (1e2147483647) : 400, aucun bien créé")
+    @WithMockUser(username = "proprietaire@test.com", roles = "PROPRIETAIRE")
+    void createBien_deviseOuMontantInvalide_400() throws Exception {
+        java.util.Map<String, com.fasterxml.jackson.databind.JsonNode> champs = java.util.Map.of(
+                "devise", objectMapper.getNodeFactory().textNode("XXX"),
+                // montants énormes en BigDecimal exact (« 1E+2147483647 »), pas en double (Infinity → JSON invalide)
+                "loyerMensuel", objectMapper.getNodeFactory().numberNode(new BigDecimal("1e2147483647")),
+                "depotGarantie", objectMapper.getNodeFactory().numberNode(new BigDecimal("1e200000")));
+        for (var champ : champs.entrySet()) {
+            com.fasterxml.jackson.databind.node.ObjectNode noeud = objectMapper.valueToTree(bienFormValide());
+            noeud.set(champ.getKey(), champ.getValue());
+            String json = objectMapper.writeValueAsString(noeud);
+            MockMultipartFile bienPart = new MockMultipartFile(
+                    "bienFormDTO", "", "application/json", json.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+
+            mockMvc.perform(multipart("/biens").file(bienPart))
+                    .andExpect(status().isBadRequest());
+        }
+        verify(bienService, never()).createBien(any(), any(), any());
+    }
+
+    @Test
+    @DisplayName("J1 : POST /biens — pays en texte libre (« France ») ou code inconnu : 400 ; code ISO accepté")
+    @WithMockUser(username = "proprietaire@test.com", roles = "PROPRIETAIRE")
+    void createBien_paysCodeIso() throws Exception {
+        for (String pays : new String[]{"France", "DE", ""}) {
+            String json = objectMapper.writeValueAsString(bienFormValide())
+                    .replace("\"pays\":\"FR\"", "\"pays\":\"" + pays + "\"");
+            MockMultipartFile bienPart = new MockMultipartFile(
+                    "bienFormDTO", "", "application/json", json.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+
+            mockMvc.perform(multipart("/biens").file(bienPart))
+                    .andExpect(status().isBadRequest());
+        }
+        verify(bienService, never()).createBien(any(), any(), any());
+
+        BienFormDTO dto = bienFormValide();
+        dto.setPays(Pays.CD);
+        MockMultipartFile bienPart = new MockMultipartFile(
+                "bienFormDTO", "", "application/json", objectMapper.writeValueAsBytes(dto));
+        mockMvc.perform(multipart("/biens").file(bienPart))
+                .andExpect(status().isNoContent());
     }
 
     @Test
@@ -302,6 +349,20 @@ class BienControllerWebMvcTest {
     }
 
     @Test
+    @DisplayName("J3 : POST /biens/search — loyer énorme (1e200000), négatif ou hors NUMERIC(12,2) : 400 et non 500, aucune recherche")
+    void rechercher_loyerHorsBornes_shouldReturn400() throws Exception {
+        for (String body : List.of("{\"loyerMax\": 1e200000}", "{\"loyerMin\": 1e2147483647}",
+                "{\"loyerMin\": -1}", "{\"loyerMax\": 10000000000}")) {
+            mockMvc.perform(post("/biens/search")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(body))
+                    .andExpect(status().isBadRequest());
+        }
+
+        verify(bienSearchService, never()).rechercher(any());
+    }
+
+    @Test
     @DisplayName("POST /biens/search — filtre texte trop long : 400 (VALID)")
     void rechercher_titreTropLong_shouldReturn400() throws Exception {
         mockMvc.perform(post("/biens/search")
@@ -381,12 +442,12 @@ class BienControllerWebMvcTest {
                 .adresse("12 rue des Tests")
                 .ville("Nantes")
                 .codePostal("44000")
-                .pays("France")
+                .pays(Pays.FR)
                 .surfaceHabitable(65.0)
                 .nombrePieces(3)
-                .loyerMensuel(850.0)
-                .chargesMensuelles(50.0)
-                .depotGarantie(1700.0)
+                .loyerMensuel(new BigDecimal("850.0"))
+                .chargesMensuelles(new BigDecimal("50.0"))
+                .depotGarantie(new BigDecimal("1700.0"))
                 .meuble(false)
                 .colocation(false)
                 .disponibleDe(java.time.LocalDate.of(2030, 1, 1))

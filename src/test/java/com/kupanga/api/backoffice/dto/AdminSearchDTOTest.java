@@ -14,10 +14,10 @@ class AdminSearchDTOTest {
     @Test
     @DisplayName("BienAdminSearchDTO — page=-1 → 0, size=0 → 1, size=10000 → 100")
     void bienAdminSearch_bornes() {
-        assertThat(new BienAdminSearchDTO(null, null, null, -1, 0))
+        assertThat(new BienAdminSearchDTO(null, null, null, null, -1, 0))
                 .extracting(BienAdminSearchDTO::page, BienAdminSearchDTO::size).containsExactly(0, 1);
-        assertThat(new BienAdminSearchDTO(null, null, null, 2, 10000).size()).isEqualTo(BienAdminSearchDTO.SIZE_MAX);
-        assertThat(new BienAdminSearchDTO(null, null, null, 2, 10))
+        assertThat(new BienAdminSearchDTO(null, null, null, null, 2, 10000).size()).isEqualTo(BienAdminSearchDTO.SIZE_MAX);
+        assertThat(new BienAdminSearchDTO(null, null, null, null, 2, 10))
                 .extracting(BienAdminSearchDTO::page, BienAdminSearchDTO::size).containsExactly(2, 10);
     }
 

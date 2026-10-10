@@ -1,5 +1,6 @@
 package com.kupanga.api.immobilier.entity;
 
+import com.kupanga.api.juridiction.Pays;
 import com.kupanga.api.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -25,6 +26,10 @@ public class EtatDesLieux {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // B6 : verrou optimiste — deux signatures (ou relances) simultanées ne peuvent pas s'écraser
+    @Version
+    private Long version;
+
     // ─── Type et date ──────────────────────────────────────────────────────────
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -34,6 +39,15 @@ public class EtatDesLieux {
     private LocalDate dateRealisation;
 
     private LocalTime heureRealisation;
+
+    // ─── J5 : juridiction figée à la création (modèle du PDF inchangé si le profil évolue) ─
+    @Enumerated(EnumType.STRING)
+    @Column(name = "pays", length = 2, nullable = false, updatable = false)
+    private Pays pays;
+
+    /** Version du modèle de document utilisé (ex. {@code fr-v1}). */
+    @Column(name = "modele_version", length = 20, nullable = false, updatable = false)
+    private String modeleVersion;
 
     // ─── Statut ───────────────────────────────────────────────────────────────
     @Enumerated(EnumType.STRING)
