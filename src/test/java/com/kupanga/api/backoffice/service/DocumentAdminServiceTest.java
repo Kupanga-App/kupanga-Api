@@ -1,5 +1,6 @@
 package com.kupanga.api.backoffice.service;
 
+import com.kupanga.api.juridiction.Pays;
 import com.kupanga.api.backoffice.dto.BienDocumentsSummaryDTO;
 import com.kupanga.api.immobilier.entity.Bien;
 import com.kupanga.api.immobilier.entity.Contrat;
@@ -63,8 +64,8 @@ class DocumentAdminServiceTest {
     @Test
     @DisplayName("getDocumentsParBien() — agrège contrats, EDL et quittances par bien, filtre total=0")
     void getDocumentsParBien_aggregatesAndFiltersEmpty() {
-        Bien b1 = Bien.builder().id(1L).titre("Appart Paris").ville("Paris").build();
-        Bien b2 = Bien.builder().id(2L).titre("Maison Lyon").ville("Lyon").build();
+        Bien b1 = Bien.builder().pays(Pays.FR).id(1L).titre("Appart Paris").ville("Paris").build();
+        Bien b2 = Bien.builder().pays(Pays.FR).id(2L).titre("Maison Lyon").ville("Lyon").build();
 
         when(bienRepository.findAll()).thenReturn(List.of(b1, b2));
         when(contratRepository.countParBien()).thenReturn(Collections.singletonList(new Object[]{1L, 3L}));
@@ -84,8 +85,8 @@ class DocumentAdminServiceTest {
     @Test
     @DisplayName("getDocumentsParBien() — trie par total décroissant")
     void getDocumentsParBien_trieParTotalDecroissant() {
-        Bien b1 = Bien.builder().id(1L).titre("B1").ville("Paris").build();
-        Bien b2 = Bien.builder().id(2L).titre("B2").ville("Lyon").build();
+        Bien b1 = Bien.builder().pays(Pays.FR).id(1L).titre("B1").ville("Paris").build();
+        Bien b2 = Bien.builder().pays(Pays.FR).id(2L).titre("B2").ville("Lyon").build();
 
         when(bienRepository.findAll()).thenReturn(List.of(b1, b2));
         List<Object[]> rows = new java.util.ArrayList<>();

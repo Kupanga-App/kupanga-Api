@@ -1,8 +1,11 @@
 package com.kupanga.api.immobilier.dto.readDTO;
 
+import com.kupanga.api.juridiction.Pays;
+import com.kupanga.api.juridiction.Devise;
 import com.kupanga.api.immobilier.entity.StatutContrat;
 import com.kupanga.api.user.dto.readDTO.UserDTO;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -19,9 +22,16 @@ public record ContratDTO(
         UserDTO         locataire,
 
         // ─── Conditions financières ───────────────────────────────────────────
-        Double          loyerMensuel,
-        Double          chargesMensuelles,
-        Double          depotGarantie,
+        BigDecimal      loyerMensuel,
+        BigDecimal      chargesMensuelles,
+        BigDecimal      depotGarantie,
+        // C12 (RDC) : garantie en mois (montant dans depotGarantie) et loyers payés d'avance
+        Integer         garantieMois,
+        Integer         avanceMois,
+        // J3 : juridiction figée sur le contrat
+        Pays            pays,
+        Devise          devise,
+        String          modeleVersion,
 
         // ─── Dates ────────────────────────────────────────────────────────────
         LocalDate       dateDebut,

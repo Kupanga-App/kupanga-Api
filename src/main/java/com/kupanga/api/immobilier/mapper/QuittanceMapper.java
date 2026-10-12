@@ -6,7 +6,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = DocumentPdfUrlMapper.class)
 public interface QuittanceMapper {
 
     @Mapping(target = "moisLabel", source = ".", qualifiedByName = "buildMoisLabel")
@@ -16,6 +16,8 @@ public interface QuittanceMapper {
     @Mapping(target = "emailLocataire", source = "locataire.mail")
     @Mapping(target = "adresseBien", source = "bien", qualifiedByName = "buildAdresseBien")
     @Mapping(target = "typeBien", source = "bien", qualifiedByName = "buildTypeBien")
+    @Mapping(target = "urlPdf", source = "clePdf", qualifiedByName = "urlQuittance")
+    @Mapping(target = "urlRecu", source = "cleRecu", qualifiedByName = "urlRecu")
     QuittanceDTO toDTO(Quittance q);
 
     // -------------------------
@@ -40,7 +42,8 @@ public interface QuittanceMapper {
 
     @Named("buildAdresseBien")
     default String buildAdresseBien(com.kupanga.api.immobilier.entity.Bien bien) {
-        return bien.getAdresse() + ", " + bien.getCodePostal() + " " + bien.getVille();
+        // J4 : sans « null » quand le code postal est absent (RDC), adresse congolaise comprise
+        return bien.adresseComplete();
     }
 
     @Named("buildTypeBien")

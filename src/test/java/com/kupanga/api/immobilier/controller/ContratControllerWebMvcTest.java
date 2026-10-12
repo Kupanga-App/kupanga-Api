@@ -2,6 +2,7 @@ package com.kupanga.api.immobilier.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.kupanga.api.immobilier.validation.SignaturesDeTest;
 import com.kupanga.api.authentification.service.impl.UserDetailsServiceImpl;
 import com.kupanga.api.authentification.utils.JwtUtils;
 import com.kupanga.api.config.SecurityConfig;
@@ -14,6 +15,7 @@ import com.kupanga.api.immobilier.service.ContratService;
 import jakarta.persistence.EntityManagerFactory;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -31,6 +33,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import java.math.BigDecimal;
 
 @WebMvcTest(ContratController.class)
 @Import(SecurityConfig.class)
@@ -56,7 +59,7 @@ class ContratControllerWebMvcTest {
 
     @Test
     @DisplayName("POST /contrats — succès : contrat créé (204)")
-    @WithMockUser(username = "proprio@test.com")
+    @WithMockUser(username = "proprio@test.com", roles = "PROPRIETAIRE")
     void creerContrat_success_shouldReturn204() throws Exception {
         doNothing().when(contratService).creerContrat(any(), anyString());
 
@@ -94,11 +97,11 @@ class ContratControllerWebMvcTest {
 
     @Test
     @DisplayName("POST /contrats/{id}/signer-proprio — succès : 204")
-    @WithMockUser(username = "proprio@test.com")
+    @WithMockUser(username = "proprio@test.com", roles = "PROPRIETAIRE")
     void signerProprietaire_success_shouldReturn204() throws Exception {
         doNothing().when(contratService).signerProprietaire(eq(1L), anyString(), anyString());
 
-        String signature = "A".repeat(200);
+        String signature = SignaturesDeTest.signatureValide();
         String body = String.format("{\"signatureBase64\": \"%s\"}", signature);
 
         mockMvc.perform(post("/contrats/1/signer-proprio")
@@ -109,12 +112,12 @@ class ContratControllerWebMvcTest {
 
     @Test
     @DisplayName("POST /contrats/{id}/signer-proprio — contrat introuvable : 404")
-    @WithMockUser(username = "proprio@test.com")
+    @WithMockUser(username = "proprio@test.com", roles = "PROPRIETAIRE")
     void signerProprietaire_notFound_shouldReturn404() throws Exception {
         doThrow(new KupangaBusinessException("Contrat introuvable", HttpStatus.NOT_FOUND))
                 .when(contratService).signerProprietaire(eq(99L), anyString(), anyString());
 
-        String signature = "A".repeat(200);
+        String signature = SignaturesDeTest.signatureValide();
         String body = String.format("{\"signatureBase64\": \"%s\"}", signature);
 
         mockMvc.perform(post("/contrats/99/signer-proprio")
@@ -132,7 +135,8 @@ class ContratControllerWebMvcTest {
     void getContratParToken_success_shouldReturn200() throws Exception {
         ContratDTO dto = new ContratDTO(
                 1L, 1L, "75 Boulevard Jules Verne", null, null,
-                850.0, 50.0, 1700.0,
+                new BigDecimal("850.0"), new BigDecimal("50.0"), new BigDecimal("1700.0"), null, null,
+                com.kupanga.api.juridiction.Pays.FR, com.kupanga.api.juridiction.Devise.EUR, "fr-v1",
                 java.time.LocalDate.of(2030, 1, 1), null, 12,
                 false, false, null, null,
                 null, com.kupanga.api.immobilier.entity.StatutContrat.EN_ATTENTE_SIGNATURE_PROPRIO,
@@ -164,13 +168,44 @@ class ContratControllerWebMvcTest {
     void signerLocataire_success_shouldReturn204() throws Exception {
         doNothing().when(contratService).signerLocataire(anyString(), anyString());
 
-        String signature = "B".repeat(200);
+        String signature = SignaturesDeTest.signatureValide();
         String body = String.format("{\"signatureBase64\": \"%s\"}", signature);
 
         mockMvc.perform(post("/contrats/signer/valid-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
                 .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @DisplayName("POST /contrats/signer/{token} (route publique) — signature qui n'est pas un PNG ou trop longue : 400, aucune signature (B6)")
+    void signerLocataire_signatureInvalide_shouldReturn400() throws Exception {
+        String[] signatures = {
+                "B".repeat(200),
+                "data:image/png;base64," + SignaturesDeTest.signatureValide(),
+                "A".repeat(200_004),
+        };
+        for (String signature : signatures) {
+            mockMvc.perform(post("/contrats/signer/valid-token")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(String.format("{\"signatureBase64\": \"%s\"}", signature)))
+                    .andExpect(status().isBadRequest());
+        }
+
+        verify(contratService, never()).signerLocataire(anyString(), anyString());
+    }
+
+    @Test
+    @DisplayName("POST /contrats/signer/{token} — contrat modifié en parallèle (verrou optimiste) : 409 (B6)")
+    void signerLocataire_conflitDeVersion_shouldReturn409() throws Exception {
+        doThrow(new ObjectOptimisticLockingFailureException("Contrat", 1L))
+                .when(contratService).signerLocataire(anyString(), anyString());
+
+        mockMvc.perform(post("/contrats/signer/valid-token")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(String.format("{\"signatureBase64\": \"%s\"}", SignaturesDeTest.signatureValide())))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.message").value("Ce document vient d'être modifié. Rechargez la page puis réessayez."));
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -189,5 +224,33 @@ class ContratControllerWebMvcTest {
                         .content("{}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalElements").value(0));
+    }
+
+    @Test
+    @DisplayName("POST /contrats/search — pagination hors bornes (size=0, size=10000, page=-1) : 400, aucune recherche (VALID)")
+    @WithMockUser(username = "user@test.com")
+    void search_paginationHorsBornes_shouldReturn400() throws Exception {
+        for (String body : new String[] {"{\"size\": 0}", "{\"size\": 10000}", "{\"page\": -1}"}) {
+            mockMvc.perform(post("/contrats/search")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(body))
+                    .andExpect(status().isBadRequest());
+        }
+
+        verify(contratSearchService, never()).rechercher(any(), anyString());
+    }
+
+    @Test
+    @DisplayName("J3 : POST /contrats/search — loyer énorme ou négatif : 400 et non 500, aucune recherche")
+    @WithMockUser(username = "user@test.com")
+    void search_loyerHorsBornes_shouldReturn400() throws Exception {
+        for (String body : new String[] {"{\"loyerMax\": 1e200000}", "{\"loyerMin\": -1}"}) {
+            mockMvc.perform(post("/contrats/search")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(body))
+                    .andExpect(status().isBadRequest());
+        }
+
+        verify(contratSearchService, never()).rechercher(any(), anyString());
     }
 }

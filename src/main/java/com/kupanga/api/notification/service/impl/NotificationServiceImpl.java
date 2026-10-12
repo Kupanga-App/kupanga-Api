@@ -1,5 +1,6 @@
 package com.kupanga.api.notification.service.impl;
 
+import com.kupanga.api.config.ApresCommit;
 import com.kupanga.api.exception.business.KupangaBusinessException;
 import com.kupanga.api.notification.dto.AppNotificationDTO;
 import com.kupanga.api.notification.entity.Notification;
@@ -40,17 +41,18 @@ public class NotificationServiceImpl implements NotificationService {
                 .build();
 
         Notification saved = notificationRepository.save(notif);
+        AppNotificationDTO dto = toDTO(saved);
+        String email = destinataire.getMail();
 
-        try {
-            messagingTemplate.convertAndSendToUser(
-                    destinataire.getMail(),
-                    "/queue/app-notifications",
-                    toDTO(saved)
-            );
-            log.info("[NOTIF] ✓ {} → {}", type, destinataire.getMail());
-        } catch (Exception e) {
-            log.error("[NOTIF] ✗ Push WebSocket échoué vers {} : {}", destinataire.getMail(), e.getMessage());
-        }
+        // B11 : envoi WebSocket après le commit de la transaction appelante (rien si elle est annulée)
+        ApresCommit.executer(() -> {
+            try {
+                messagingTemplate.convertAndSendToUser(email, "/queue/app-notifications", dto);
+                log.debug("[NOTIF] {} {} poussée", type, saved.getId());
+            } catch (Exception e) {
+                log.warn("[NOTIF] Échec du push de la notification {} : {}", saved.getId(), e.getClass().getName());
+            }
+        });
     }
 
     @Override

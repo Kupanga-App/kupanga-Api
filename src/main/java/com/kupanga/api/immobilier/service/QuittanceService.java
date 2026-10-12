@@ -1,5 +1,7 @@
 package com.kupanga.api.immobilier.service;
 
+import com.kupanga.api.immobilier.dto.formDTO.MarquerPayeeDTO;
+import org.springframework.web.multipart.MultipartFile;
 import com.kupanga.api.immobilier.dto.formDTO.QuittanceFormDTO;
 import com.kupanga.api.immobilier.dto.readDTO.QuittanceDTO;
 
@@ -21,10 +23,16 @@ public interface QuittanceService {
      * régénère le PDF et envoie la quittance par email au locataire.
      *
      * @param quittanceId       id de la quittance
-     * @param signatureBase64   signature du propriétaire en base64
+     * @param dto               C8-bis : signature, mode, date et référence du paiement reçu hors application
      * @param emailProprietaire email du propriétaire connecté
      */
-    void marquerPayee(Long quittanceId, String signatureBase64, String emailProprietaire);
+    void marquerPayee(Long quittanceId, MarquerPayeeDTO dto, String emailProprietaire);
+
+    /**
+     * C8-bis : joint (ou remplace) la photo du reçu d'une quittance payée, dans un bucket privé.
+     * 404 / 403 / 409 (non payée, bien archivé, compte supprimé) / 400, 413, 415 (fichier).
+     */
+    QuittanceDTO ajouterRecu(Long quittanceId, MultipartFile recu, String emailProprietaire);
 
     /**
      * Récupère toutes les quittances d'un bien.

@@ -12,6 +12,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.Collections;
 
+import static com.kupanga.api.authentification.constant.AuthConstant.ADRESSE_GOOGLE_NON_VERIFIEE;
+
 @Component
 @Slf4j
 public class GoogleTokenVerifierImpl implements GoogleTokenVerifier {
@@ -33,27 +35,39 @@ public class GoogleTokenVerifierImpl implements GoogleTokenVerifier {
                 throw new KupangaBusinessException("Token Google invalide ou expiré", HttpStatus.UNAUTHORIZED);
             }
 
-            GoogleIdToken.Payload payload = idToken.getPayload();
-
-            String firstName = (String) payload.get("given_name");
-            String lastName  = (String) payload.get("family_name");
-            String picture   = (String) payload.get("picture");
-
-            log.info("[GOOGLE-AUTH] Token vérifié pour {}", payload.getEmail());
-
-            return new GoogleUserInfo(
-                    payload.getSubject(),
-                    payload.getEmail(),
-                    firstName  != null ? firstName : "",
-                    lastName   != null ? lastName  : "",
-                    picture
-            );
+            return extraire(idToken.getPayload());
 
         } catch (KupangaBusinessException e) {
             throw e;
         } catch (Exception e) {
-            log.error("[GOOGLE-AUTH] Erreur de vérification : {}", e.getMessage());
+            log.warn("[GOOGLE-AUTH] Erreur de vérification : {}", e.getClass().getSimpleName());
             throw new KupangaBusinessException("Erreur lors de la vérification du token Google", HttpStatus.UNAUTHORIZED);
         }
+    }
+
+    /**
+     * A4 : n'accepte que les adresses que Google a confirmées ({@code email_verified}). Sans ce contrôle, un compte
+     * Google ouvert avec l'adresse d'autrui (non confirmée) se connecterait au compte Kupanga de cette adresse.
+     */
+    GoogleUserInfo extraire(GoogleIdToken.Payload payload) {
+        if (payload.getEmail() == null || payload.getEmail().isBlank()
+                || !Boolean.TRUE.equals(payload.getEmailVerified())) {
+            log.info("[GOOGLE-AUTH] Jeton refusé : adresse e-mail non confirmée par Google");
+            throw new KupangaBusinessException(ADRESSE_GOOGLE_NON_VERIFIEE, HttpStatus.UNAUTHORIZED);
+        }
+
+        String firstName = (String) payload.get("given_name");
+        String lastName  = (String) payload.get("family_name");
+        String picture   = (String) payload.get("picture");
+
+        log.debug("[GOOGLE-AUTH] Jeton vérifié");
+
+        return new GoogleUserInfo(
+                payload.getSubject(),
+                payload.getEmail(),
+                firstName  != null ? firstName : "",
+                lastName   != null ? lastName  : "",
+                picture
+        );
     }
 }

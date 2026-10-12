@@ -1,5 +1,6 @@
 package com.kupanga.api.immobilier.controller;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import com.kupanga.api.immobilier.dto.readDTO.LocataireDashboardDTO;
 import com.kupanga.api.immobilier.service.LocataireDashboardService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -54,6 +55,7 @@ public class LocataireDashboardController {
             @ApiResponse(responseCode = "403", description = "L'utilisateur n'est pas le locataire de ce bien"),
             @ApiResponse(responseCode = "404", description = "Bien introuvable")
     })
+    @PreAuthorize("hasAuthority('ROLE_LOCATAIRE')")
     @GetMapping("/dashboard/{bienId}")
     public ResponseEntity<LocataireDashboardDTO> getDashboard(
             @Parameter(description = "Identifiant du bien", required = true)

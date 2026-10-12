@@ -125,4 +125,27 @@ class RefreshTokenServiceImplTest {
 
         verify(refreshTokenRepository, never()).delete(any());
     }
+
+    @Test
+    @DisplayName("revokeAllForUser : supprime le refresh token de l'utilisateur (P0-2)")
+    void shouldRevokeRefreshTokenOfUser() {
+        RefreshToken refreshToken = new RefreshToken();
+        refreshToken.setToken("tokenUtilisateur");
+
+        when(refreshTokenRepository.findByUserId(1L)).thenReturn(refreshToken);
+
+        refreshTokenService.revokeAllForUser(user);
+
+        verify(refreshTokenRepository).delete(refreshToken);
+    }
+
+    @Test
+    @DisplayName("revokeAllForUser : ne fait rien si l'utilisateur n'a pas de refresh token")
+    void shouldDoNothingWhenUserHasNoRefreshToken() {
+        when(refreshTokenRepository.findByUserId(1L)).thenReturn(null);
+
+        refreshTokenService.revokeAllForUser(user);
+
+        verify(refreshTokenRepository, never()).delete(any());
+    }
 }

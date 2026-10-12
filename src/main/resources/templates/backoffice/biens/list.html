@@ -20,19 +20,32 @@
             </div>
         </div>
 
+        <!-- ── Message après une action (B12) ──────── -->
+        <div th:if="${message}" class="alert alert-info small py-2" role="status" th:text="${message}"></div>
+
         <!-- ── Formulaire de recherche ──────────────── -->
         <div class="search-card">
             <form th:action="@{/backoffice/biens}" method="get">
                 <div class="row g-2 align-items-end">
-                    <div class="col-sm-6 col-md-4">
+                    <div class="col-sm-6 col-md-3">
                         <label class="form-label">Titre</label>
                         <input type="text" name="titre" class="form-control"
                                placeholder="Rechercher..." th:value="${titre}"/>
                     </div>
-                    <div class="col-sm-6 col-md-4">
+                    <div class="col-sm-6 col-md-3">
                         <label class="form-label">Ville</label>
                         <input type="text" name="ville" class="form-control"
                                placeholder="Rechercher..." th:value="${ville}"/>
+                    </div>
+                    <div class="col-sm-6 col-md-2">
+                        <label class="form-label">Pays</label>
+                        <select name="pays" class="form-select">
+                            <option value="">Tous les pays</option>
+                            <option th:each="p : ${listePays}"
+                                    th:value="${p.name()}"
+                                    th:text="${p.libelle}"
+                                    th:selected="${p == pays}"></option>
+                        </select>
                     </div>
                     <div class="col-sm-6 col-md-3">
                         <label class="form-label">Type de bien</label>
@@ -160,6 +173,7 @@
                                      th:text="${bien.titre != null ? bien.titre : 'Sans titre'}">
                                     Titre
                                 </div>
+                                <span th:if="${bien.archive}" class="badge-type badge-default mt-1 d-inline-block">Archivé</span>
                                 <div class="text-muted small mt-1 d-flex align-items-center gap-1">
                                     <i data-lucide="map-pin" style="width:12px;height:12px;" aria-hidden="true"></i>
                                     <span th:text="${bien.ville != null ? bien.ville : '—'}"></span>
@@ -196,7 +210,7 @@
                                 <div class="fw-medium"
                                      style="font-family:'DM Mono',monospace;color:var(--mint);"
                                      th:text="${bien.loyerMensuel != null
-                                        ? #numbers.formatDecimal(bien.loyerMensuel, 0, 'COMMA', 0, 'POINT') + ' €'
+                                        ? #numbers.formatDecimal(bien.loyerMensuel, 0, 'COMMA', 0, 'POINT') + ' ' + bien.devise
                                         : '—'}">
                                     —
                                 </div>
@@ -240,15 +254,25 @@
                                     <i data-lucide="files" style="width:14px;height:14px;" aria-hidden="true"></i>
                                     Documents
                                 </a>
-                                <button class="btn btn-danger btn-sm d-inline-flex align-items-center gap-1"
-                                        title="Supprimer ce bien"
+                                <button th:unless="${bien.archive}"
+                                        class="btn btn-danger btn-sm d-inline-flex align-items-center gap-1"
+                                        title="Archiver ce bien"
                                         data-bs-toggle="modal"
                                         data-bs-target="#deleteModal"
                                         th:attr="data-bien-id=${bien.id},
                                                  data-bien-titre=${bien.titre != null ? bien.titre : 'ce bien'}">
-                                    <i data-lucide="trash-2" style="width:14px;height:14px;" aria-hidden="true"></i>
-                                    Supprimer
+                                    <i data-lucide="archive" style="width:14px;height:14px;" aria-hidden="true"></i>
+                                    Archiver
                                 </button>
+                                <form th:if="${bien.archive}"
+                                      th:action="@{'/backoffice/biens/' + ${bien.id} + '/desarchiver'}" method="post">
+                                    <button type="submit"
+                                            class="btn btn-outline-light btn-sm d-inline-flex align-items-center gap-1"
+                                            title="Remettre ce bien en ligne">
+                                        <i data-lucide="archive-restore" style="width:14px;height:14px;" aria-hidden="true"></i>
+                                        Désarchiver
+                                    </button>
+                                </form>
                             </div>
                         </div>
 
@@ -272,7 +296,7 @@
                     <li class="page-item" th:classappend="${page.premierePage} ? 'disabled'">
                         <a class="page-link"
                            th:href="@{/backoffice/biens(page=${page.pageActuelle - 1}, size=${size},
-                                      titre=${titre}, ville=${ville}, typeBien=${typeBien})}">
+                                      titre=${titre}, ville=${ville}, pays=${pays}, typeBien=${typeBien})}">
                             <i data-lucide="chevron-left" style="width:14px;height:14px;" aria-hidden="true"></i>
                         </a>
                     </li>
@@ -281,13 +305,13 @@
                         th:classappend="${i == page.pageActuelle} ? 'active'">
                         <a class="page-link"
                            th:href="@{/backoffice/biens(page=${i}, size=${size},
-                                      titre=${titre}, ville=${ville}, typeBien=${typeBien})}"
+                                      titre=${titre}, ville=${ville}, pays=${pays}, typeBien=${typeBien})}"
                            th:text="${i + 1}"></a>
                     </li>
                     <li class="page-item" th:classappend="${page.dernierePage} ? 'disabled'">
                         <a class="page-link"
                            th:href="@{/backoffice/biens(page=${page.pageActuelle + 1}, size=${size},
-                                      titre=${titre}, ville=${ville}, typeBien=${typeBien})}">
+                                      titre=${titre}, ville=${ville}, pays=${pays}, typeBien=${typeBien})}">
                             <i data-lucide="chevron-right" style="width:14px;height:14px;" aria-hidden="true"></i>
                         </a>
                     </li>
@@ -298,7 +322,7 @@
     </div>
 </div>
 
-<!-- ── Modal confirmation suppression ──────────── -->
+<!-- ── Modal confirmation archivage ──────────── -->
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-sm">
         <div class="modal-content">
@@ -309,17 +333,17 @@
                        style="width:24px;height:24px;color:#C0614A;"
                        aria-hidden="true"></i>
                 </div>
-                <h6 class="mb-1">Confirmer la suppression</h6>
+                <h6 class="mb-1">Confirmer l'archivage</h6>
                 <p class="text-muted small mb-4">
-                    Supprimer <strong id="deleteTargetTitre" style="color:var(--mint);"></strong> ?
-                    Cette action est irréversible.
+                    Archiver <strong id="deleteTargetTitre" style="color:var(--mint);"></strong> ?
+                    Il ne sera plus visible en ligne ; ses baux, quittances et états des lieux sont conservés.
                 </p>
-                <form id="deleteForm" th:action="@{/backoffice/biens/0/supprimer}" method="post">
+                <form id="deleteForm" th:action="@{/backoffice/biens/0/archiver}" method="post">
                     <div class="d-flex gap-2 justify-content-center">
                         <button type="button"
                                 class="btn btn-outline-secondary btn-sm px-3"
                                 data-bs-dismiss="modal">Annuler</button>
-                        <button type="submit" class="btn btn-danger btn-sm px-3">Supprimer</button>
+                        <button type="submit" class="btn btn-danger btn-sm px-3">Archiver</button>
                     </div>
                 </form>
             </div>
@@ -334,7 +358,7 @@
         const id    = btn.dataset.bienId;
         const titre = btn.dataset.bienTitre;
         document.getElementById('deleteTargetTitre').textContent = titre;
-        document.getElementById('deleteForm').action = '/backoffice/biens/' + id + '/supprimer';
+        document.getElementById('deleteForm').action = '/backoffice/biens/' + id + '/archiver';
     });
 </script>
 </body>

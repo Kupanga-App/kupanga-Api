@@ -1,5 +1,7 @@
 package com.kupanga.api.immobilier.research.specification;
 
+import com.kupanga.api.juridiction.Devise;
+import com.kupanga.api.juridiction.Pays;
 import com.kupanga.api.immobilier.entity.*;
 import com.kupanga.api.immobilier.repository.BienRepository;
 import com.kupanga.api.immobilier.repository.EtatDesLieuxRepository;
@@ -45,16 +47,16 @@ class EtatDesLieuxSpecificationTest {
         proprio   = userRepository.save(User.builder().mail("proprio@test.com").role(Role.ROLE_PROPRIETAIRE).build());
         locataire = userRepository.save(User.builder().mail("loc@test.com").role(Role.ROLE_LOCATAIRE).build());
 
-        Bien bien = bienRepository.save(Bien.builder().titre("Bien Test").proprietaire(proprio).build());
+        Bien bien = bienRepository.save(Bien.builder().pays(Pays.FR).devise(Devise.EUR).titre("Bien Test").proprietaire(proprio).build());
 
-        e1 = edlRepository.save(EtatDesLieux.builder()
+        e1 = edlRepository.save(EtatDesLieux.builder().pays(Pays.FR).modeleVersion("fr-v1")
                 .bien(bien).proprietaire(proprio).locataire(locataire)
                 .type(TypeEtat.ENTREE)
                 .statut(StatutEdl.SIGNE)
                 .dateRealisation(LocalDate.of(2024, 3, 15))
                 .build());
 
-        e2 = edlRepository.save(EtatDesLieux.builder()
+        e2 = edlRepository.save(EtatDesLieux.builder().pays(Pays.FR).modeleVersion("fr-v1")
                 .bien(bien).proprietaire(proprio).locataire(locataire)
                 .type(TypeEtat.SORTIE)
                 .statut(StatutEdl.EN_ATTENTE_SIGNATURE_LOCATAIRE)

@@ -22,5 +22,6 @@ public interface MessageMapper {
             expression = "java(message.getDestinataire().getFirstName() + \" \" + message.getDestinataire().getLastName())"
     )
 
+    @Mapping(target = "idClient", ignore = true)
     MessageDTO toDTO(Message message);
 }

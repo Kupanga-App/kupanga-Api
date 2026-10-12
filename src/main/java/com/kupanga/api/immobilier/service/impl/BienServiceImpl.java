@@ -1,30 +1,44 @@
 package com.kupanga.api.immobilier.service.impl;
 
+import com.kupanga.api.juridiction.Devise;
+import com.kupanga.api.chat.repository.ConversationRepository;
+import com.kupanga.api.config.ApresCommit;
 import com.kupanga.api.exception.business.KupangaBusinessException;
 import com.kupanga.api.immobilier.dto.formDTO.BienFormDTO;
 import com.kupanga.api.immobilier.dto.formDTO.BienUpdateDTO;
 import com.kupanga.api.immobilier.dto.readDTO.BienDTO;
+import com.kupanga.api.immobilier.dto.readDTO.BienPublicDTO;
 import com.kupanga.api.immobilier.entity.*;
 import com.kupanga.api.immobilier.mapper.BienMapper;
+import com.kupanga.api.immobilier.mapper.DocumentPdfUrlMapper;
 import com.kupanga.api.immobilier.repository.BienRepository;
 import com.kupanga.api.immobilier.service.BienImageService;
 import com.kupanga.api.immobilier.service.BienPoiService;
 import com.kupanga.api.immobilier.service.BienService;
-import com.kupanga.api.immobilier.service.GeocodingService;
+import com.kupanga.api.immobilier.service.LocalisationBienService;
+import com.kupanga.api.immobilier.repository.BienPoiRepository;
+import com.kupanga.api.juridiction.JuridictionRegistry;
+import com.kupanga.api.minio.image.CompressionImage;
+import com.kupanga.api.minio.image.PhotoPreparee;
+import com.kupanga.api.minio.image.ValidationImage;
 import com.kupanga.api.notification.enums.NotificationType;
 import com.kupanga.api.notification.service.NotificationService;
 import com.kupanga.api.user.dto.readDTO.UserDTO;
 import com.kupanga.api.user.entity.User;
+import com.kupanga.api.user.entity.Role;
 import com.kupanga.api.user.service.UserService;
+import com.kupanga.api.user.utils.EmailUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.locationtech.jts.geom.Point;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
+import org.springframework.core.task.TaskRejectedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 
@@ -37,11 +51,15 @@ public class BienServiceImpl implements BienService {
 
     private final UserService        userService;
     private final BienImageService   bienImageService;
-    private final GeocodingService   geocodingService;
+    private final LocalisationBienService localisationBienService;
+    private final BienPoiRepository  bienPoiRepository;
     private final BienRepository     bienRepository;
     private final BienMapper         bienMapper;
     private final BienPoiService     bienPoiService;
     private final NotificationService notificationService;
+    private final DocumentPdfUrlMapper documentPdfUrlMapper;
+    private final ConversationRepository conversationRepository;
+    private final JuridictionRegistry juridictionRegistry;
 
     public void createBien(Authentication auth, BienFormDTO dto, List<MultipartFile> files) {
 
@@ -54,6 +72,16 @@ public class BienServiceImpl implements BienService {
                     HttpStatus.BAD_REQUEST
             );
         }
+        // B5 : toutes les photos contrôlées avant tout enregistrement (ni bien créé, ni envoi MinIO partiel)
+        ValidationImage.verifierPhotosBien(files);
+        // J2 : seuls les pays dotés d'un profil de juridiction sont pris en charge (400 sinon)
+        // J3 : devise acceptée dans ce pays (défaut du profil sinon) et montants sous les plafonds de la devise
+        Devise devise = juridictionRegistry.devisePour(dto.getPays(), dto.getDevise());
+        juridictionRegistry.verifierMontants(devise, dto.getLoyerMensuel(), dto.getChargesMensuelles(),
+                dto.getDepotGarantie());
+        // J4 (C1) : champs obligatoires / masqués et types de bien du pays (déjà contrôlés par
+        // @ValideSelonJuridiction ; refait ici pour tout appel qui ne passerait pas par le contrôleur)
+        juridictionRegistry.verifierBien(dto.getPays(), dto, true);
 
         Bien bien = Bien.builder()
                 // ─── Informations générales ───────────────────────────────────
@@ -65,8 +93,14 @@ public class BienServiceImpl implements BienService {
                 // ─── Adresse ──────────────────────────────────────────────────
                 .adresse(dto.getAdresse())
                 .ville(dto.getVille())
-                .codePostal(dto.getCodePostal())
+                .codePostal(texte(dto.getCodePostal()))
                 .pays(dto.getPays())
+                // J4 : adresse congolaise (vide hors RDC : champs masqués)
+                .commune(texte(dto.getCommune()))
+                .quartier(texte(dto.getQuartier()))
+                .avenue(texte(dto.getAvenue()))
+                .numeroParcelle(texte(dto.getNumeroParcelle()))
+                .pointDeRepere(texte(dto.getPointDeRepere()))
 
                 // ─── Caractéristiques physiques ───────────────────────────────
                 .surfaceHabitable(dto.getSurfaceHabitable())
@@ -85,42 +119,85 @@ public class BienServiceImpl implements BienService {
                 .loyerMensuel(dto.getLoyerMensuel())
                 .chargesMensuelles(dto.getChargesMensuelles())
                 .depotGarantie(dto.getDepotGarantie())
+                // C11 / C12
+                .garantieMois(dto.getGarantieMois())
+                .avanceMois(dto.getAvanceMois())
+                .heuresElectriciteParJour(dto.getHeuresElectriciteParJour())
+                .equipements(dto.getEquipements() != null ? new HashSet<>(dto.getEquipements()) : new HashSet<>())
+                .devise(devise)
                 .meuble(dto.getMeuble())
                 .colocation(dto.getColocation())
                 .disponibleDe(dto.getDisponibleDe())
 
                 .build();
 
-        Point point = geocodingService.geocode(dto.getAdresse(), dto.getVille(),
-                dto.getCodePostal(), dto.getPays());
+        // R1 : photos décodées et réduites avant tout enregistrement (une photo indécodable ne laisse ni bien
+        // à moitié créé, ni objet orphelin dans MinIO)
+        List<PhotoPreparee> photos = files.stream()
+                .map(file -> PhotoPreparee.pourBucketPublic(file, CompressionImage.COTE_GRANDE, CompressionImage.COTE_VIGNETTE))
+                .toList();
 
-        if (point == null) {
-            throw new KupangaBusinessException(
-                    "Nous n'avons pas pu géolocaliser votre bien",
-                    HttpStatus.NOT_FOUND
-            );
-        }
-
-        bien.setLocalisation(point);
-        log.info("Géocodage réussi -> {}", point);
+        // C2 / B10 : repère du propriétaire, sinon adresse, sinon centre du quartier, de la commune ou de la ville ;
+        // la création n'est jamais refusée faute de position
+        LocalisationBienService.Localisation localisation = localisationBienService.localiser(
+                dto.getLatitude(), dto.getLongitude(), dto.getAdresse(), dto.getVille(), bien.getCodePostal(),
+                bien.getQuartier(), bien.getCommune(), dto.getPays());
+        bien.setLocalisation(localisation.point());
+        bien.setPrecisionLocalisation(localisation.precision());
 
         bienRepository.save(bien);
 
-        bienPoiService.calculerEtSauvegarderPoi(bien);
+        // POI seulement autour d'une position exacte (un centre de commune donnerait des POI faux)
+        if (localisation.precision().estPrecise()) {
+            calculerPoiApresCommit(bien.getId());
+        }
 
-        bienImageService.uploadImagesImo(files, PHOTO_IMO_BUCKET, bien);
+        bienImageService.uploadImagesImo(photos, PHOTO_IMO_BUCKET, bien);
+    }
+
+    /**
+     * B9 : le calcul asynchrone des POI relit le bien par son id ; il ne part qu'une fois le bien validé en base
+     * (sinon le thread asynchrone pourrait ne pas le trouver).
+     */
+    private void calculerPoiApresCommit(Long bienId) {
+        ApresCommit.executer(() -> lancerCalculPoi(bienId));
+    }
+
+    /** Les POI sont facultatifs : un exécuteur asynchrone saturé ne doit pas faire échouer la création du bien. */
+    private void lancerCalculPoi(Long bienId) {
+        try {
+            bienPoiService.calculerEtSauvegarderPoi(bienId);
+        } catch (TaskRejectedException e) {
+            log.warn("Calcul des POI du bien {} refusé (exécuteur asynchrone saturé)", bienId);
+        }
     }
 
     @Override
-    public BienDTO getBienInfos(Long id){
+    public BienPublicDTO getBienInfos(Long id){
 
+        // B12 : un bien archivé n'est plus public (même réponse qu'un id inconnu)
         Bien bien = bienRepository.findWithAllProperties(id)
+                .filter(b -> !b.isArchive())
                 .orElseThrow(
                         () -> new KupangaBusinessException("Le bien n'existe pas" , HttpStatus.NOT_FOUND)
                 );
 
         return bienMapper.toPublicDTO(bien);
 
+    }
+
+    @Override
+    @Transactional
+    public BienDTO getBienPrive(Long bienId, String email) {
+
+        User user = userService.getUserByEmail(email);
+        Bien bien = findWithAllProperties(bienId);
+
+        if (!estProprietaire(bien, user) && !concerne(bien.getLocataire(), user)) {
+            throw new KupangaBusinessException(
+                    "Accès refusé : vous n'êtes ni le propriétaire ni le locataire de ce bien", HttpStatus.FORBIDDEN);
+        }
+        return toPriveDTO(bien, user);
     }
 
     @Override
@@ -140,101 +217,7 @@ public class BienServiceImpl implements BienService {
 
         return bienRepository.findAllPropertiesAssociateToUser(user.getId())
                 .stream()
-                .map(bien -> BienDTO.builder()
-                        // ─── Informations générales ───────────────────────────────
-                        .id(bien.getId())
-                        .titre(bien.getTitre())
-                        .typeBien(bien.getTypeBien())
-                        .description(bien.getDescription())
-
-                        // ─── Adresse ──────────────────────────────────────────────
-                        .adresse(bien.getAdresse())
-                        .ville(bien.getVille())
-                        .codePostal(bien.getCodePostal())
-                        .pays(bien.getPays())
-                        .latitude(bien.getLocalisation() != null
-                                ? bien.getLocalisation().getY()
-                                : null)
-                        .longitude(bien.getLocalisation() != null
-                                ? bien.getLocalisation().getX()
-                                : null)
-
-                        // ─── Caractéristiques physiques ───────────────────────────
-                        .surfaceHabitable(bien.getSurfaceHabitable())
-                        .nombrePieces(bien.getNombrePieces())
-                        .nombreChambres(bien.getNombreChambres())
-                        .etage(bien.getEtage())
-                        .ascenseur(bien.getAscenseur())
-                        .anneeConstruction(bien.getAnneeConstruction())
-                        .modeChauffage(bien.getModeChauffage())
-
-                        // ─── Diagnostic énergétique ───────────────────────────────
-                        .classeEnergie(bien.getClasseEnergie())
-                        .classeGes(bien.getClasseGes())
-
-                        // ─── Conditions de location ───────────────────────────────
-                        .loyerMensuel(bien.getLoyerMensuel())
-                        .chargesMensuelles(bien.getChargesMensuelles())
-                        .depotGarantie(bien.getDepotGarantie())
-                        .meuble(bien.getMeuble())
-                        .colocation(bien.getColocation())
-                        .disponibleDe(bien.getDisponibleDe())
-
-                        // ─── Parties ──────────────────────────────────────────────
-                        .proprietaire(bien.getProprietaire() != null
-                                ? UserDTO.builder()
-                                .id(bien.getProprietaire().getId())
-                                .firstName(bien.getProprietaire().getFirstName())
-                                .lastName(bien.getProprietaire().getLastName())
-                                .mail(bien.getProprietaire().getMail())
-                                .build()
-                                : null)
-                        .locataire(bien.getLocataire() != null
-                                ? UserDTO.builder()
-                                .id(bien.getLocataire().getId())
-                                .firstName(bien.getLocataire().getFirstName())
-                                .lastName(bien.getLocataire().getLastName())
-                                .mail(bien.getLocataire().getMail())
-                                .build()
-                                : null)
-
-                        // ─── Documents & médias ───────────────────────────────────
-                        .contrats(bien.getContrats() != null
-                                ? bien.getContrats().stream()
-                                .map(Contrat::getUrlPdf)
-                                .filter(Objects::nonNull)
-                                .toList()
-                                : List.of())
-                        .quittances(bien.getQuittances() != null
-                                ? bien.getQuittances().stream()
-                                .map(Quittance::getUrlPdf)
-                                .filter(Objects::nonNull)
-                                .toList()
-                                : List.of())
-                        .documents(bien.getDocuments() != null
-                                ? bien.getDocuments().stream()
-                                .map(Document::getUrl)
-                                .filter(Objects::nonNull)
-                                .toList()
-                                : List.of())
-                        .images(bien.getImages() != null
-                                ? bien.getImages().stream()
-                                .map(BienImage::getUrl)
-                                .filter(Objects::nonNull)
-                                .toList()
-                                : List.of())
-                        .pois(bien.getPois() != null
-                                ? bien.getPois().stream()
-                                .map(p -> p.getPoiType().getLabelFr())
-                                .filter(Objects::nonNull)
-                                .toList()
-                                : List.of())
-
-                        // ─── Audit ────────────────────────────────────────────────
-                        .createdAt(bien.getCreatedAt())
-                        .updatedAt(bien.getUpdatedAt())
-
-                        .build())
+                .map(bien -> toPriveDTO(bien, user))
                 .toList();
     }
 
@@ -263,6 +246,9 @@ public class BienServiceImpl implements BienService {
                     HttpStatus.FORBIDDEN
             );
         }
+        verifierBienActif(bien);
+        // J4 : champs masqués (ex. DPE en RDC) et type de bien selon le pays du bien, avant toute modification
+        juridictionRegistry.verifierBien(bien.getPays(), dto, false);
 
         // ─── Informations générales ───────────────────────────────────────────
         if (dto.getTitre()       != null) bien.setTitre(dto.getTitre());
@@ -287,16 +273,45 @@ public class BienServiceImpl implements BienService {
         if (dto.getClasseGes()     != null) bien.setClasseGes(dto.getClasseGes());
 
         // ─── Conditions de location ───────────────────────────────────────────
+        // J3 : nouvelle devise acceptée dans le pays ; montants (nouveaux ou existants) sous les plafonds
+        Devise devise = dto.getDevise() != null
+                ? juridictionRegistry.devisePour(bien.getPays(), dto.getDevise())
+                : bien.getDevise();
+        juridictionRegistry.verifierMontants(devise,
+                dto.getLoyerMensuel()      != null ? dto.getLoyerMensuel()      : bien.getLoyerMensuel(),
+                dto.getChargesMensuelles() != null ? dto.getChargesMensuelles() : bien.getChargesMensuelles(),
+                dto.getDepotGarantie()     != null ? dto.getDepotGarantie()     : bien.getDepotGarantie());
+        bien.setDevise(devise);
         if (dto.getLoyerMensuel()      != null) bien.setLoyerMensuel(dto.getLoyerMensuel());
         if (dto.getChargesMensuelles() != null) bien.setChargesMensuelles(dto.getChargesMensuelles());
         if (dto.getDepotGarantie()     != null) bien.setDepotGarantie(dto.getDepotGarantie());
+        // C11 / C12 (champs masqués dans le pays déjà refusés par verifierBien)
+        if (dto.getGarantieMois()      != null) bien.setGarantieMois(dto.getGarantieMois());
+        if (dto.getAvanceMois()        != null) bien.setAvanceMois(dto.getAvanceMois());
+        if (dto.getHeuresElectriciteParJour() != null) bien.setHeuresElectriciteParJour(dto.getHeuresElectriciteParJour());
+        if (dto.getEquipements()       != null) {
+            bien.getEquipements().clear();
+            bien.getEquipements().addAll(dto.getEquipements());
+        }
         if (dto.getMeuble()            != null) bien.setMeuble(dto.getMeuble());
         if (dto.getColocation()        != null) bien.setColocation(dto.getColocation());
         if (dto.getDisponibleDe()      != null) bien.setDisponibleDe(dto.getDisponibleDe());
 
-        bienRepository.save(bien);
+        // C2 : repère déplacé par le propriétaire ; les anciens POI (autour de l'ancienne position) sont effacés
+        boolean repereDeplace = dto.getLatitude() != null && dto.getLongitude() != null;
+        if (repereDeplace) {
+            bien.setLocalisation(LocalisationBienService.repere(dto.getLatitude(), dto.getLongitude()));
+            bien.setPrecisionLocalisation(PrecisionLocalisation.REPERE);
+            bienPoiRepository.supprimerParBien(bien.getId());
+            if (bien.getPois() != null) bien.getPois().clear();
+        }
 
-        return bienMapper.toPublicDTO(bien);
+        bienRepository.save(bien);
+        if (repereDeplace) {
+            calculerPoiApresCommit(bien.getId());
+        }
+
+        return toPriveDTO(bien, proprietaire);
     }
 
     @Override
@@ -304,8 +319,26 @@ public class BienServiceImpl implements BienService {
 
         User proprietaire = userService.getUserByEmail(auth.getName());
         userService.verifyIfUserIsOwner(proprietaire.getRole());
-        User locataire = userService.findById(userId);
-        Bien bien = findWithAllProperties(bienId);
+        Bien bien = verifierProprietaire(bienId, proprietaire.getMail());
+        verifierBienActif(bien);
+        // Seuls les candidats du bien (conversation avec le propriétaire sur ce bien) peuvent être assignés :
+        // sinon un propriétaire pourrait assigner n'importe quel compte et lire son e-mail (revue TESTS-SECU).
+        // Id inconnu et non-candidat donnent la même réponse : rien n'indique si le compte existe.
+        User locataire;
+        try {
+            locataire = userService.findById(userId);
+        } catch (KupangaBusinessException e) {
+            throw locataireIntrouvable();
+        }
+        // B12 : un compte anonymisé ne peut plus être assigné
+        if (locataire.isAnonymise() || conversationRepository.findConversationWithBienIdAndEmailExpediteur(
+                bienId, proprietaire.getMail(), locataire.getMail()).isEmpty()) {
+            throw locataireIntrouvable();
+        }
+        if (locataire.getRole() != Role.ROLE_LOCATAIRE) {
+            throw new KupangaBusinessException(
+                    "L'utilisateur à assigner doit être un locataire", HttpStatus.BAD_REQUEST);
+        }
         bien.setLocataire(locataire);
         bienRepository.save(bien);
 
@@ -333,5 +366,183 @@ public class BienServiceImpl implements BienService {
                 null,
                 bien.getId()
         );
+    }
+
+    private KupangaBusinessException locataireIntrouvable() {
+        return new KupangaBusinessException("Locataire introuvable pour ce bien", HttpStatus.NOT_FOUND);
+    }
+
+    @Override
+    public Bien verifierProprietaire(Long bienId, String emailProprietaire) {
+
+        Bien bien = findWithAllProperties(bienId);
+
+        if (bien.getProprietaire() == null || !bien.getProprietaire().getMail().equals(emailProprietaire)) {
+            throw new KupangaBusinessException(
+                    "Accès refusé : vous n'êtes pas le propriétaire de ce bien", HttpStatus.FORBIDDEN);
+        }
+        return bien;
+    }
+
+    @Override
+    public User verifierLocataireDuBien(Bien bien, String emailLocataire) {
+
+        User locataire = bien.getLocataire();
+
+        if (locataire == null || emailLocataire == null || !locataire.getMail().equals(EmailUtils.normaliser(emailLocataire))) {
+            throw new KupangaBusinessException(
+                    "Ce locataire n'est pas le locataire assigné à ce bien", HttpStatus.BAD_REQUEST);
+        }
+        return locataire;
+    }
+
+    @Override
+    public void verifierBienActif(Bien bien) {
+        if (bien.isArchive()) {
+            throw new KupangaBusinessException("Ce bien est archivé", HttpStatus.CONFLICT);
+        }
+    }
+
+    @Override
+    public void verifierDocumentModifiable(Bien bien, User proprietaire, User locataire) {
+        verifierBienActif(bien);
+        if ((proprietaire != null && proprietaire.isAnonymise()) || (locataire != null && locataire.isAnonymise())) {
+            throw new KupangaBusinessException(
+                    "Une des parties a supprimé son compte : ce document ne peut plus être modifié", HttpStatus.CONFLICT);
+        }
+    }
+
+    private static boolean estProprietaire(Bien bien, User user) {
+        return bien.getProprietaire() != null && bien.getProprietaire().getId().equals(user.getId());
+    }
+
+    private static boolean concerne(User partie, User user) {
+        return partie != null && partie.getId().equals(user.getId());
+    }
+
+    /**
+     * Vue privée d'un bien (propriétaire ou locataire connecté) : parties avec e-mail,
+     * documents filtrés selon l'utilisateur.
+     */
+    private BienDTO toPriveDTO(Bien bien, User user) {
+        return BienDTO.builder()
+                // ─── Informations générales ───────────────────────────────
+                .id(bien.getId())
+                .titre(bien.getTitre())
+                .typeBien(bien.getTypeBien())
+                .description(bien.getDescription())
+
+                // ─── Adresse ──────────────────────────────────────────────
+                .adresse(bien.getAdresse())
+                .ville(bien.getVille())
+                .codePostal(bien.getCodePostal())
+                .pays(bien.getPays())
+                .commune(bien.getCommune())
+                .quartier(bien.getQuartier())
+                .avenue(bien.getAvenue())
+                .numeroParcelle(bien.getNumeroParcelle())
+                .pointDeRepere(bien.getPointDeRepere())
+                .latitude(bien.getLocalisation() != null
+                        ? bien.getLocalisation().getY()
+                        : null)
+                .longitude(bien.getLocalisation() != null
+                        ? bien.getLocalisation().getX()
+                        : null)
+                .precisionLocalisation(bien.getPrecisionLocalisation())
+
+                // ─── Caractéristiques physiques ───────────────────────────
+                .surfaceHabitable(bien.getSurfaceHabitable())
+                .nombrePieces(bien.getNombrePieces())
+                .nombreChambres(bien.getNombreChambres())
+                .etage(bien.getEtage())
+                .ascenseur(bien.getAscenseur())
+                .anneeConstruction(bien.getAnneeConstruction())
+                .modeChauffage(bien.getModeChauffage())
+
+                // ─── Diagnostic énergétique ───────────────────────────────
+                .classeEnergie(bien.getClasseEnergie())
+                .classeGes(bien.getClasseGes())
+
+                // ─── Conditions de location ───────────────────────────────
+                .loyerMensuel(bien.getLoyerMensuel())
+                .chargesMensuelles(bien.getChargesMensuelles())
+                .depotGarantie(bien.getDepotGarantie())
+                .garantieMois(bien.getGarantieMois())
+                .avanceMois(bien.getAvanceMois())
+                .heuresElectriciteParJour(bien.getHeuresElectriciteParJour())
+                .equipements(bien.getEquipements() != null
+                        ? bien.getEquipements().stream().sorted().toList() : List.of())
+                .devise(bien.getDevise())
+                .meuble(bien.getMeuble())
+                .colocation(bien.getColocation())
+                .disponibleDe(bien.getDisponibleDe())
+                .archive(bien.isArchive())
+
+                // ─── Parties ──────────────────────────────────────────────
+                .proprietaire(bien.getProprietaire() != null
+                        ? UserDTO.builder()
+                        .id(bien.getProprietaire().getId())
+                        .firstName(bien.getProprietaire().getFirstName())
+                        .lastName(bien.getProprietaire().getLastName())
+                        .mail(bien.getProprietaire().getMail())
+                        .telephone(bien.getProprietaire().getTelephone()) // C6 : vue réservée aux parties du bien
+                        .build()
+                        : null)
+                .locataire(bien.getLocataire() != null
+                        ? UserDTO.builder()
+                        .id(bien.getLocataire().getId())
+                        .firstName(bien.getLocataire().getFirstName())
+                        .lastName(bien.getLocataire().getLastName())
+                        .mail(bien.getLocataire().getMail())
+                        .telephone(bien.getLocataire().getTelephone()) // C6 : vue réservée aux parties du bien
+                        .build()
+                        : null)
+
+                // ─── Documents & médias ───────────────────────────────────
+                // Le propriétaire voit tous les documents du bien ; un locataire ne voit que les siens
+                // (pas ceux des locataires précédents)
+                .contrats(bien.getContrats() != null
+                        ? bien.getContrats().stream()
+                        .filter(c -> estProprietaire(bien, user) || concerne(c.getLocataire(), user))
+                        .map(c -> documentPdfUrlMapper.urlContrat(c.getClePdf()))
+                        .filter(Objects::nonNull)
+                        .toList()
+                        : List.of())
+                .quittances(bien.getQuittances() != null
+                        ? bien.getQuittances().stream()
+                        .filter(q -> estProprietaire(bien, user) || concerne(q.getLocataire(), user))
+                        .map(q -> documentPdfUrlMapper.urlQuittance(q.getClePdf()))
+                        .filter(Objects::nonNull)
+                        .toList()
+                        : List.of())
+                .documents(bien.getDocuments() != null
+                        ? bien.getDocuments().stream()
+                        .map(Document::getUrl)
+                        .filter(Objects::nonNull)
+                        .toList()
+                        : List.of())
+                .images(BienMapper.photosTriees(bien.getImages()).stream()
+                        .map(BienImage::getUrl)
+                        .toList())
+                .vignettes(BienMapper.photosTriees(bien.getImages()).stream()
+                        .map(BienImage::vignetteOuPhoto)
+                        .toList())
+                .pois(bien.getPois() != null
+                        ? bien.getPois().stream()
+                        .map(p -> p.getPoiType().getLabelFr())
+                        .filter(Objects::nonNull)
+                        .toList()
+                        : List.of())
+
+                // ─── Audit ────────────────────────────────────────────────
+                .createdAt(bien.getCreatedAt())
+                .updatedAt(bien.getUpdatedAt())
+
+                .build();
+    }
+
+    /** Texte saisi, ou {@code null} s'il est vide (un champ vide n'est pas enregistré). */
+    private static String texte(String valeur) {
+        return valeur == null || valeur.isBlank() ? null : valeur.trim();
     }
 }

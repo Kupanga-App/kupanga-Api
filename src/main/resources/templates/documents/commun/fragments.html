@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<!--
+  J5 : fragments communs aux modèles de documents de tous les pays.
+  Styles en ligne (Flying Saucer) : ces fragments ne dépendent pas des feuilles de style de chaque document.
+-->
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!--
+  Bandeau des modèles provisoires (C9) : affiché en tête de tout document dont le texte juridique n'a pas encore
+  été validé par un juriste du pays. À retirer du modèle seulement après cette validation.
+-->
+<div th:fragment="bandeauProvisoire"
+     style="border: 2px solid #b3261e; background-color: #fdecea; color: #b3261e; padding: 10px 14px; margin-bottom: 20px; text-align: center; font-size: 10px; font-weight: bold;">
+    MODÈLE PROVISOIRE — À FAIRE VALIDER PAR UN JURISTE AVANT TOUTE UTILISATION.
+    <br/>
+    <span style="font-weight: normal;">
+        Ce document n'a pas encore été relu par un juriste du pays où se situe le logement :
+        les clauses marquées « à rédiger » ne sont pas encore écrites et aucune référence légale n'y figure.
+    </span>
+</div>
+
+<!--
+  Clause dont le texte reste à rédiger et à faire valider par un juriste (C9) : jamais de texte juridique inventé.
+  Paramètre : titre de la clause.
+-->
+<div th:fragment="clauseAValider(titre)"
+     style="border: 1px dashed #b3261e; background-color: #fff8f6; padding: 10px 12px; margin: 6px 0 14px 0; font-size: 9.5px; color: #5c1a14; page-break-inside: avoid;">
+    <strong th:text="${titre}">Clause</strong>
+    — <em>À RÉDIGER ET À FAIRE VALIDER PAR UN JURISTE.</em>
+    Le texte de cette clause sera fourni après relecture juridique ; en attendant, elle n'engage pas les parties.
+</div>
+
+</body>
+</html>

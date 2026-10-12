@@ -7,7 +7,7 @@ import com.kupanga.api.user.dto.readDTO.UserDTO;
 import com.kupanga.api.user.mapper.UserMapper;
 import org.mapstruct.*;
 
-@Mapper(componentModel = "spring", uses = {UserMapper.class})
+@Mapper(componentModel = "spring", uses = {UserMapper.class, DocumentPdfUrlMapper.class})
 public interface ContratMapper {
 
     @Mapping(target = "bienId",                source = "bien.id")
@@ -17,10 +17,14 @@ public interface ContratMapper {
             qualifiedByName = "mapUserSansInfosSensibles")
     @Mapping(target = "proprietaireASigné",    expression = "java(contrat.getSignatureProprietaire() != null)")
     @Mapping(target = "locataireASigné",       expression = "java(contrat.getSignatureLocataire() != null)")
+    @Mapping(target = "urlPdf",                source = "clePdf", qualifiedByName = "urlContrat")
     ContratDTO toDTO(Contrat contrat);
 
-    // ─── User sans id ni password ─────────────────────────────────────────────
+    // ─── User sans infos sensibles : ni id, ni rôle, ni état du profil (vue aussi servie par token public) ──
     @Named("mapUserSansInfosSensibles")
-    @Mapping(target = "password", ignore = true)
+    @Mapping(target = "id",                ignore = true)
+    @Mapping(target = "role",              ignore = true)
+    @Mapping(target = "hasCompleteProfil", ignore = true)
+    @Mapping(target = "telephone",         ignore = true) // C6 : vue aussi servie par le lien de signature
     UserDTO mapUserSansInfosSensibles(User user);
 }

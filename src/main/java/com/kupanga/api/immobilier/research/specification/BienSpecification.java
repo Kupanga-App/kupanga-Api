@@ -1,5 +1,7 @@
 package com.kupanga.api.immobilier.research.specification;
 
+import java.math.BigDecimal;
+import com.kupanga.api.juridiction.Pays;
 import com.kupanga.api.immobilier.entity.*;
 import com.kupanga.api.immobilier.research.dto.BienSearchDTO;
 import jakarta.persistence.criteria.Expression;
@@ -22,6 +24,7 @@ public class BienSpecification {
     public Specification<Bien> build(BienSearchDTO dto) {
         return Specification
                 .where(sansLocataire())
+                .and(nonArchive())
                 .and(parVilles(dto.villes()))
                 .and(parPays(dto.pays()))
                 .and(parCodesPostaux(dto.codesPostaux()))
@@ -74,15 +77,10 @@ public class BienSpecification {
      * @param pays les pays à filtrer
      * @return la spécification correspondante ou null si aucun filtre
      */
-    private Specification<Bien> parPays(List<String> pays) {
+    private Specification<Bien> parPays(List<Pays> pays) {
         return (root, query, cb) -> {
             if (pays == null || pays.isEmpty()) return null;
-
-            List<Expression<String>> paysLower = pays.stream()
-                    .map(v -> cb.<String>literal(v.toLowerCase()))
-                    .toList();
-
-            return cb.lower(root.get("pays")).in(paysLower);
+            return root.get("pays").in(pays);
         };
     }
 
@@ -170,16 +168,23 @@ public class BienSpecification {
 
     }
 
+    /** B12 : un bien archivé n'apparaît plus dans la recherche publique. */
+    private Specification<Bien> nonArchive() {
+
+        return (root, query, cb) -> cb.isFalse(root.get("archive"));
+
+    }
+
     // ─── Conditions de location ───────────────────────────────────────────────────
 
-    private Specification<Bien> loyerMin(Double loyerMin) {
+    private Specification<Bien> loyerMin(BigDecimal loyerMin) {
         return (root, query, cb) -> {
             if (loyerMin == null) return null;
             return cb.greaterThanOrEqualTo(root.get("loyerMensuel"), loyerMin);
         };
     }
 
-    private Specification<Bien> loyerMax(Double loyerMax) {
+    private Specification<Bien> loyerMax(BigDecimal loyerMax) {
         return (root, query, cb) -> {
             if (loyerMax == null) return null;
             return cb.lessThanOrEqualTo(root.get("loyerMensuel"), loyerMax);

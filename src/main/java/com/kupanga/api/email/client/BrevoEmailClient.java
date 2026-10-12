@@ -31,13 +31,13 @@ public class BrevoEmailClient {
                     .retrieve()
                     .bodyToMono(Void.class)
                     .block();
-            log.info("Brevo API — email envoyé à {}", email.to().get(0).email());
+            log.debug("Brevo API — e-mail envoyé");
         } catch (WebClientResponseException e) {
-            log.error("Brevo API erreur HTTP {} pour {} : {}",
-                    e.getStatusCode(), email.to().get(0).email(), e.getResponseBodyAsString());
+            // Ni destinataire ni corps de réponse (qui peut le citer) dans les logs (W10)
+            log.error("Brevo API erreur HTTP {}", e.getStatusCode());
             throw new RuntimeException("Erreur lors de l'envoi via Brevo API", e);
         } catch (Exception e) {
-            log.error("Brevo API erreur inattendue pour {} : {}", email.to().get(0).email(), e.getMessage(), e);
+            log.error("Brevo API erreur inattendue : {}", e.getClass().getName());
             throw new RuntimeException("Erreur lors de l'envoi via Brevo API", e);
         }
     }

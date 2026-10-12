@@ -26,9 +26,17 @@ public interface QuittanceRepository extends JpaRepository<Quittance, Long>, Jpa
     List<Object[]> countParBien();
 
     /**
-     * Toutes les quittances d'un propriétaire.
+     * Toutes les quittances d'un locataire (B1), relations chargées pour le mapper, les plus récentes d'abord.
      */
-    List<Quittance> findByProprietaireId(Long proprietaireId);
+    @Query("""
+            SELECT q FROM Quittance q
+            LEFT JOIN FETCH q.bien
+            LEFT JOIN FETCH q.proprietaire
+            LEFT JOIN FETCH q.locataire
+            WHERE q.locataire.id = :locataireId
+            ORDER BY q.annee DESC, q.createdAt DESC
+            """)
+    List<Quittance> findByLocataireId(@Param("locataireId") Long locataireId);
 
     @Query("""
             SELECT q
@@ -60,4 +68,7 @@ public interface QuittanceRepository extends JpaRepository<Quittance, Long>, Jpa
             WHERE q.id = :id
             """)
     Optional<Quittance> findWithAllRelations(@Param("id") Long id);
+
+    /** B12 : le compte est-il partie (propriétaire ou locataire) d'au moins un document ? */
+    boolean existsByProprietaire_IdOrLocataire_Id(Long proprietaireId, Long locataireId);
 }

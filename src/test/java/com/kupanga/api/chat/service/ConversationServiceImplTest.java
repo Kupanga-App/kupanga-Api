@@ -1,5 +1,6 @@
 package com.kupanga.api.chat.service;
 
+import com.kupanga.api.juridiction.Pays;
 import com.kupanga.api.chat.entity.Conversation;
 import com.kupanga.api.chat.repository.ConversationRepository;
 import com.kupanga.api.chat.service.impl.ConversationServiceImpl;
@@ -34,7 +35,7 @@ class ConversationServiceImplTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
 
-        bien = Bien.builder()
+        bien = Bien.builder().pays(Pays.FR)
                 .id(1L)
                 .titre("Appartement Nantes")
                 .build();

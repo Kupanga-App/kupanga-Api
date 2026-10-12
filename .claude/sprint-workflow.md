@@ -17,7 +17,7 @@ Ce fichier est lu par toutes les skills `/sprint-*`. Il décrit comment traiter 
 
 ## Boucle pour une tâche
 
-0. **État du dépôt** : lance `git status --short`. S'il y a des changements non commités **qui ne viennent pas de cette tâche**, liste-les et demande à l'utilisateur s'il veut les committer d'abord (pour garder un commit par tâche) ou continuer quand même.
+0. **État du dépôt** : lance `git status --short` pour savoir ce qui est déjà modifié. L'utilisateur ne committe **pas** entre les tâches (il committe tout à la fin) : les changements des tâches précédentes sont normaux, ne pas demander de committer, enchaîner. Ne signaler que des changements inattendus (qui ne viennent d'aucune tâche du sprint).
 1. **Comprendre** : relis l'item dans `AUDIT-PRODUCTION.md` (et §4bis de `.claude/CLAUDE.md` pour les tâches J*), puis le code concerné. Cherche **tous** les endroits touchés (Grep) : contrôleurs, services, mappers, WebSocket, back-office.
 2. **Tâche manuelle ou décision ?** Si la tâche demande une action que seul l'utilisateur peut faire, ou un choix qui lui revient, arrête-toi et explique précisément quoi faire. Exemples : changer des secrets, réécrire l'historique git, faire valider un texte juridique.
 3. **Implémenter** le correctif minimal et complet.

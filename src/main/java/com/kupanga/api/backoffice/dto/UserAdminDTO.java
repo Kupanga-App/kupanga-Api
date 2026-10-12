@@ -10,7 +10,8 @@ public record UserAdminDTO(
         String  mail,
         Role    role,
         Boolean hasCompleteProfil,
-        String  urlProfile
+        String  urlProfile,
+        boolean anonymise
 ) {
     public static UserAdminDTO from(User user) {
         return new UserAdminDTO(
@@ -20,7 +21,8 @@ public record UserAdminDTO(
                 user.getMail(),
                 user.getRole(),
                 user.getHasCompleteProfil(),
-                user.getUrlProfile()
+                user.getUrlProfile(),
+                user.isAnonymise()
         );
     }
 }

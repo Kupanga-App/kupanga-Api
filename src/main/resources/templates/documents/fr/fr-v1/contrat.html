@@ -2,292 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8"/>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            font-size: 11px;
-            color: #2a2a28;
-            margin: 32px 40px;
-            background-color: #EFFBDB;
-            line-height: 1.5;
-        }
-
-        /* ── Header ── */
-        .brand {
-            font-size: 15px;
-            font-weight: bold;
-            color: #EFFBDB;
-        }
-        .brand-tagline {
-            font-size: 8px;
-            color: #B5CA8D;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            margin-top: 2px;
-        }
-        .doc-ref {
-            font-size: 9px;
-            color: #B5CA8D;
-            letter-spacing: 0.5px;
-        }
-
-        /* ── Title ── */
-        .pre-title {
-            font-size: 8px;
-            color: #9a9890;
-            text-transform: uppercase;
-            letter-spacing: 2.5px;
-            margin-bottom: 8px;
-        }
-        .main-title {
-            font-size: 26px;
-            font-weight: normal;
-            color: #2a2a28;
-            margin-bottom: 10px;
-        }
-        .main-title em {
-            font-family: Georgia, 'Times New Roman', serif;
-            font-style: italic;
-        }
-        .subtitle-text {
-            font-size: 10px;
-            color: #6b6b60;
-            line-height: 1.6;
-        }
-
-        /* ── Section heading ── */
-        .section-head {
-            font-size: 8px;
-            font-weight: bold;
-            color: #6b6b60;
-            text-transform: uppercase;
-            letter-spacing: 2.5px;
-            border-bottom: 1px solid #ccc7be;
-            padding-bottom: 5px;
-            margin-top: 26px;
-            margin-bottom: 14px;
-        }
-
-        /* ── Sub-section heading ── */
-        .subsection-head {
-            font-size: 8px;
-            font-weight: bold;
-            color: #9a9890;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            margin-top: 16px;
-            margin-bottom: 10px;
-        }
-
-        /* ── Card ── */
-        .info-card {
-            border: 1px solid #dedad3;
-            border-radius: 6px;
-            background-color: #faf8f4;
-            padding: 14px 16px;
-            margin-bottom: 12px;
-            page-break-inside: avoid;
-        }
-        .card-title {
-            font-size: 9px;
-            font-weight: bold;
-            color: #9a9890;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            margin-bottom: 10px;
-            padding-bottom: 6px;
-            border-bottom: 1px solid #eae7e0;
-        }
-
-        /* ── Field row ── */
-        .field-lbl {
-            font-size: 10px;
-            color: #9a9890;
-            width: 45%;
-            vertical-align: top;
-            padding: 4px 0;
-            border-bottom: 1px solid #eae7e0;
-        }
-        .field-val {
-            font-size: 10px;
-            font-weight: bold;
-            color: #2a2a28;
-            vertical-align: top;
-            padding: 4px 0;
-            border-bottom: 1px solid #eae7e0;
-        }
-        .field-row-last td {
-            border-bottom: none;
-        }
-
-        /* ── Partie card ── */
-        .partie-card {
-            border: 1px solid #dedad3;
-            border-radius: 6px;
-            background-color: #faf8f4;
-            padding: 14px 16px;
-            page-break-inside: avoid;
-        }
-        .partie-role-lbl {
-            font-size: 8px;
-            font-weight: bold;
-            color: #9a9890;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            margin-bottom: 6px;
-        }
-        .name-sublabel {
-            font-size: 9px;
-            color: #9a9890;
-        }
-        .name-big {
-            font-size: 12px;
-            font-weight: bold;
-            color: #2a2a28;
-        }
-        .email-txt {
-            font-size: 9px;
-            color: #6b6b60;
-            margin-top: 4px;
-        }
-
-        /* ── Legal text ── */
-        .legal-text {
-            font-size: 10.5px;
-            color: #2a2a28;
-            line-height: 1.7;
-            text-align: justify;
-            margin-bottom: 12px;
-        }
-        .legal-text strong {
-            color: #2a2a28;
-        }
-
-        /* ── Boolean badge ── */
-        .badge {
-            display: inline-block;
-            padding: 1px 8px;
-            font-size: 9px;
-            font-weight: bold;
-            border-radius: 4px;
-        }
-        .badge-oui {
-            background-color: #daecd4;
-            color: #2e6624;
-        }
-        .badge-non {
-            background-color: #f5d5d3;
-            color: #7a1a18;
-        }
-
-        /* ── Financial table ── */
-        .fin-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 12px 0;
-        }
-        .fin-table thead th {
-            background-color: #f0ece4;
-            font-size: 8px;
-            font-weight: bold;
-            color: #9a9890;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            padding: 8px 14px;
-            text-align: left;
-            border-bottom: 1px solid #ccc7be;
-        }
-        .fin-table thead th.right {
-            text-align: right;
-        }
-        .fin-table tbody td {
-            padding: 10px 14px;
-            border-bottom: 1px solid #eae7e0;
-            font-size: 11px;
-            color: #2a2a28;
-        }
-        .fin-table tbody td.right {
-            text-align: right;
-        }
-        .fin-table tbody tr.total-row td {
-            font-weight: bold;
-            font-size: 12px;
-            background-color: #f0ece4;
-            border-top: 1px solid #ccc7be;
-            border-bottom: 1px solid #ccc7be;
-        }
-
-        /* ── Durée bloc ── */
-        .duree-bloc {
-            border: 1px solid #dedad3;
-            border-radius: 6px;
-            background-color: #faf8f4;
-            border-left: 3px solid #ccc7be;
-            padding: 12px 16px;
-            page-break-inside: avoid;
-        }
-        .duree-bloc table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        /* ── Signatures ── */
-        .sig-box {
-            border: 1px solid #dedad3;
-            border-radius: 6px;
-            background-color: #faf8f4;
-            padding: 14px 16px;
-            page-break-inside: avoid;
-        }
-        .sig-role-lbl {
-            font-size: 8px;
-            font-weight: bold;
-            color: #9a9890;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            margin-bottom: 4px;
-        }
-        .sig-name-big {
-            font-size: 13px;
-            font-weight: bold;
-            color: #2a2a28;
-            margin-bottom: 12px;
-        }
-        .sig-img {
-            width: 200px;
-            height: 80px;
-            border: 1px solid #ccc7be;
-        }
-        .sig-date-lbl {
-            font-size: 9px;
-            color: #9a9890;
-            margin-top: 6px;
-        }
-        .sig-made-lbl {
-            font-size: 9px;
-            color: #9a9890;
-            margin-top: 10px;
-        }
-
-        /* ── Footer ── */
-        .page-footer {
-            margin-top: 32px;
-            background-color: #10212B;
-            padding: 10px 16px;
-        }
-        .footer-brand {
-            font-size: 8px;
-            font-weight: bold;
-            color: #B5CA8D;
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
-        }
-        .footer-ref-txt {
-            font-size: 8px;
-            color: #B5CA8D;
-            text-align: right;
-        }
-    </style>
+    <style th:replace="~{documents/commun/styles :: contrat}"></style>
 </head>
 <body>
 
@@ -371,11 +86,11 @@
         </tr>
         <tr>
             <td class="field-lbl">Code postal - Ville</td>
-            <td class="field-val" th:text="${contrat.bien.codePostal + ' — ' + contrat.bien.ville}"></td>
+            <td class="field-val" th:text="${(contrat.bien.codePostal != null ? contrat.bien.codePostal + ' — ' : '') + contrat.bien.ville}"></td>
         </tr>
         <tr class="field-row-last">
             <td class="field-lbl">Pays</td>
-            <td class="field-val" th:text="${contrat.bien.pays}"></td>
+            <td class="field-val" th:text="${contrat.bien.pays?.libelle}"></td>
         </tr>
     </table>
 </div>
@@ -384,7 +99,7 @@
     Le bien objet du présent contrat est un(e)
     <strong th:text="${contrat.bien.typeBien}"></strong>
     situé(e) au
-    <strong th:text="${contrat.bien.adresse + ', ' + contrat.bien.codePostal + ' ' + contrat.bien.ville + ', ' + contrat.bien.pays}"></strong>.
+    <strong th:text="${contrat.bien.adresseComplete() + ', ' + contrat.bien.pays?.libelle}"></strong>.
     <span th:if="${contrat.bien.description != null}">
         Il est décrit comme suit par le bailleur :
         <em th:text="${contrat.bien.description}"></em>.
@@ -410,13 +125,13 @@
         <tr>
             <td class="field-lbl">Étage</td>
             <td class="field-val"
-                th:text="${contrat.bien.etage == 0 ? 'Rez-de-chaussée' : contrat.bien.etage + 'ᵉ étage'}"></td>
+                th:text="${contrat.bien.etage == null ? '—' : (contrat.bien.etage == 0 ? 'Rez-de-chaussée' : contrat.bien.etage + 'ᵉ étage')}"></td>
         </tr>
         <tr>
             <td class="field-lbl">Ascenseur</td>
             <td class="field-val">
-                <span th:if="${contrat.bien.ascenseur}" class="badge badge-oui">Oui</span>
-                <span th:if="${!contrat.bien.ascenseur}" class="badge badge-non">Non</span>
+                <span th:if="${contrat.bien.ascenseur == true}" class="badge badge-oui">Oui</span>
+                <span th:if="${contrat.bien.ascenseur != true}" class="badge badge-non">Non</span>
             </td>
         </tr>
         <tr>
@@ -434,13 +149,13 @@
     Le logement présente une surface habitable de
     <strong><span th:text="${contrat.bien.surfaceHabitable}"></span> m²</strong>,
     comprenant <strong th:text="${contrat.bien.nombrePieces}"></strong> pièce(s) principale(s)
-    dont <strong th:text="${contrat.bien.nombreChambres}"></strong> chambre(s),
+    <span th:if="${contrat.bien.nombreChambres != null}">dont <strong th:text="${contrat.bien.nombreChambres}"></strong> chambre(s),</span>
     situé(e) au
-    <strong th:text="${contrat.bien.etage == 0 ? 'rez-de-chaussée' : contrat.bien.etage + 'ᵉ étage'}"></strong>.
-    L'immeuble a été construit en <strong th:text="${contrat.bien.anneeConstruction}"></strong>.
-    Le système de chauffage est de type <strong th:text="${contrat.bien.modeChauffage}"></strong>.
-    <span th:if="${contrat.bien.ascenseur}">L'immeuble est équipé d'un ascenseur.</span>
-    <span th:if="${!contrat.bien.ascenseur}">L'immeuble ne dispose pas d'ascenseur.</span>
+    <strong th:text="${contrat.bien.etage == null ? '—' : (contrat.bien.etage == 0 ? 'rez-de-chaussée' : contrat.bien.etage + 'ᵉ étage')}"></strong>.
+    <span th:if="${contrat.bien.anneeConstruction != null}">L'immeuble a été construit en <strong th:text="${contrat.bien.anneeConstruction}"></strong>.</span>
+    <span th:if="${contrat.bien.modeChauffage != null}">Le système de chauffage est de type <strong th:text="${contrat.bien.modeChauffage}"></strong>.</span>
+    <span th:if="${contrat.bien.ascenseur == true}">L'immeuble est équipé d'un ascenseur.</span>
+    <span th:if="${contrat.bien.ascenseur != true}">L'immeuble ne dispose pas d'ascenseur.</span>
 </p>
 
 <!-- 2.3 DPE -->
@@ -474,15 +189,15 @@
         <tr>
             <td class="field-lbl">Logement meublé</td>
             <td class="field-val">
-                <span th:if="${contrat.bien.meuble}" class="badge badge-oui">Oui — meublé</span>
-                <span th:if="${!contrat.bien.meuble}" class="badge badge-non">Vide (non meublé)</span>
+                <span th:if="${contrat.bien.meuble == true}" class="badge badge-oui">Oui — meublé</span>
+                <span th:if="${contrat.bien.meuble != true}" class="badge badge-non">Vide (non meublé)</span>
             </td>
         </tr>
         <tr>
             <td class="field-lbl">Colocation autorisée</td>
             <td class="field-val">
-                <span th:if="${contrat.bien.colocation}" class="badge badge-oui">Oui</span>
-                <span th:if="${!contrat.bien.colocation}" class="badge badge-non">Non autorisée</span>
+                <span th:if="${contrat.bien.colocation == true}" class="badge badge-oui">Oui</span>
+                <span th:if="${contrat.bien.colocation != true}" class="badge badge-non">Non autorisée</span>
             </td>
         </tr>
         <tr class="field-row-last">
@@ -495,12 +210,12 @@
 
 <p class="legal-text">
     Le logement est loué
-    <strong th:text="${contrat.bien.meuble ? 'meublé' : 'vide (non meublé)'}"></strong>,
+    <strong th:text="${contrat.bien.meuble == true ? 'meublé' : 'vide (non meublé)'}"></strong>,
     à usage exclusif de résidence principale du locataire.
-    <span th:if="${contrat.bien.colocation}">
+    <span th:if="${contrat.bien.colocation == true}">
         La colocation est expressément autorisée par le bailleur dans le cadre du présent contrat.
     </span>
-    <span th:if="${!contrat.bien.colocation}">
+    <span th:if="${contrat.bien.colocation != true}">
         Toute mise en colocation ou sous-location est formellement interdite sans l'accord écrit préalable du bailleur.
     </span>
     Le bien est disponible à compter du
@@ -521,19 +236,19 @@
     <tbody>
     <tr>
         <td>Loyer mensuel hors charges</td>
-        <td class="right"><span th:text="${contrat.loyerMensuel}"></span> €</td>
+        <td class="right"><span th:text="${montants.f(contrat.loyerMensuel)}"></span></td>
     </tr>
     <tr>
         <td>Provision sur charges</td>
-        <td class="right"><span th:text="${contrat.chargesMensuelles}"></span> €</td>
+        <td class="right"><span th:text="${montants.f(contrat.chargesMensuelles)}"></span></td>
     </tr>
     <tr class="total-row">
         <td>Total mensuel</td>
-        <td class="right"><span th:text="${contrat.loyerMensuel + contrat.chargesMensuelles}"></span> €</td>
+        <td class="right"><span th:text="${montants.somme(contrat.loyerMensuel, contrat.chargesMensuelles)}"></span></td>
     </tr>
     <tr>
         <td>Dépôt de garantie</td>
-        <td class="right"><span th:text="${contrat.depotGarantie}"></span> €</td>
+        <td class="right"><span th:text="${montants.f(contrat.depotGarantie)}"></span></td>
     </tr>
     </tbody>
 </table>

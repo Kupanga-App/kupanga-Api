@@ -1,5 +1,6 @@
 package com.kupanga.api.immobilier.service;
 
+import com.kupanga.api.juridiction.Pays;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.Nullable;
@@ -15,7 +16,11 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.time.Duration;
+import java.util.Locale;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Service de géocodage des adresses en coordonnées GPS.
@@ -23,8 +28,8 @@ import java.util.Optional;
  * à partir d'une adresse complète. Les résultats sont mis en cache avec Redis pour améliorer
  * les performances et éviter de dépasser les limites de requêtes de l'API externe.
  * Exemple d'utilisation :
- * Optional<Point> point = geocodingService.geocode("10 rue de Rivoli", "Paris", "75001");
- * Notes – Le cache Redis utilise comme clé : "ville : codePostal"
+ * Optional<Point> point = geocodingService.geocode("10 rue de Rivoli", "Paris", "75001", "France");
+ * Notes – Le cache Redis utilise comme clé l'adresse complète normalisée (B2, cf. {@link #cleCache})
  * . Le type Point est compatible avec PostGIS (SRID 4326)
  */
 @Service
@@ -47,13 +52,47 @@ public class GeocodingService {
     // Cache le Point directement — plus simple à sérialiser pour Redis
     @Cacheable(
             value  = "geocode",
-            key    = "#ville + ':' + #codePostal",
+            key    = "T(com.kupanga.api.immobilier.service.GeocodingService).cleCache(#adresse, #ville, #codePostal, #pays)",
             unless = "#result == null"
     )
     @Nullable
-    public Point geocode(String adresse, String ville, String codePostal, String pays) {
+    public Point geocode(String adresse, String ville, String codePostal, Pays pays) {
+        return appeler(buildUrl(adresse, ville, codePostal, pays), ville);
+    }
+
+    /**
+     * C2 : centre d'une zone (quartier, commune ou ville) par une recherche libre, en repli quand l'adresse
+     * n'est pas trouvée (fréquent à Kinshasa).
+     *
+     * @param parties du plus précis au plus large (ex. « Matonge », « Kalamu », « Kinshasa ») ; vides ignorées
+     * @return le point, ou {@code null} si Nominatim ne trouve rien ou ne répond pas
+     */
+    @Cacheable(
+            value  = "geocode",
+            key    = "'zone|' + T(com.kupanga.api.immobilier.service.GeocodingService).cleCache(T(java.lang.String).join(',', #parties), null, null, #pays)",
+            unless = "#result == null"
+    )
+    @Nullable
+    public Point geocodeZone(List<String> parties, Pays pays) {
+        String requete = parties.stream()
+                .filter(p -> p != null && !p.isBlank())
+                .map(this::sanitize)
+                .collect(Collectors.joining(", "));
+        if (requete.isBlank()) return null;
+        String url = UriComponentsBuilder
+                .fromHttpUrl("https://nominatim.openstreetmap.org/search")
+                .queryParam("q", requete)
+                .queryParam("countrycodes", pays != null ? pays.codeMinuscule() : null)
+                .queryParam("format", "json")
+                .queryParam("limit", "1")
+                .build()
+                .toUriString();
+        return appeler(url, requete);
+    }
+
+    @Nullable
+    private Point appeler(String url, String contexte) {
         try {
-            String url      = buildUrl(adresse, ville, codePostal, pays);
             String response = webClient.get()
                     .uri(url)
                     .header("User-Agent", "KupangaImmobilier/1.0")
@@ -65,9 +104,25 @@ public class GeocodingService {
             return parseResponse(response).orElse(null);
 
         } catch (Exception e) {
-            log.warn("Échec géocodage pour {} {} : {}", ville, codePostal, e.getMessage());
+            log.warn("Échec géocodage pour {} : {}", contexte, e.getClass().getSimpleName());
             return null;
         }
+    }
+
+    /**
+     * Clé du cache de géocodage (B2) : adresse complète (voie, ville, code postal, pays), sinon tous les biens
+     * d'une même ville recevaient les mêmes coordonnées. Casse et espaces normalisés : « 10 Rue X » et
+     * « 10  rue x » partagent la même entrée.
+     */
+    public static String cleCache(String adresse, String ville, String codePostal, Pays pays) {
+        return Stream.of(adresse, ville, codePostal, pays != null ? pays.name() : null)
+                .map(GeocodingService::normaliserPourCle)
+                .collect(Collectors.joining("|"));
+    }
+
+    private static String normaliserPourCle(String valeur) {
+        if (valeur == null) return "";
+        return valeur.trim().replaceAll("\\s+", " ").replace("|", " ").toLowerCase(Locale.ROOT);
     }
 
     /**
@@ -104,13 +159,15 @@ public class GeocodingService {
      * @param pays    Pays
      * @return URL complète encodée
      */
-    private String buildUrl(String adresse, String ville, String cp, String pays) {
+    private String buildUrl(String adresse, String ville, String cp, Pays pays) {
         return UriComponentsBuilder
                 .fromHttpUrl("https://nominatim.openstreetmap.org/search")
                 .queryParam("street", sanitize(adresse))
                 .queryParam("city", sanitize(ville))
-                .queryParam("postalcode", sanitize(cp))
-                .queryParam("country", sanitize(pays))
+                // J4 : pas de code postal en RDC → paramètre omis (vide, il fausserait la recherche)
+                .queryParamIfPresent("postalcode", Optional.ofNullable(cp).filter(c -> !c.isBlank()).map(this::sanitize))
+                // J1 : filtre par code ISO (« fr », « cd »), indépendant de la langue du nom du pays
+                .queryParam("countrycodes", pays != null ? pays.codeMinuscule() : null)
                 .queryParam("format", "json")            // Format de sortie JSON
                 .queryParam("limit", "1")                // Limite à 1 résultat
                 .queryParam("addressdetails", "1")       // Inclut les détails d'adresse

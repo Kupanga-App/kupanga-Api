@@ -1,5 +1,7 @@
 package com.kupanga.api.immobilier.research.specification;
 
+import com.kupanga.api.juridiction.Devise;
+import com.kupanga.api.juridiction.Pays;
 import com.kupanga.api.immobilier.entity.Bien;
 import com.kupanga.api.immobilier.entity.Quittance;
 import com.kupanga.api.immobilier.entity.StatutQuittance;
@@ -46,19 +48,19 @@ class QuittanceSpecificationTest {
         proprio   = userRepository.save(User.builder().mail("proprio@test.com").role(Role.ROLE_PROPRIETAIRE).build());
         locataire = userRepository.save(User.builder().mail("loc@test.com").role(Role.ROLE_LOCATAIRE).build());
 
-        Bien bien = bienRepository.save(Bien.builder().titre("Bien Test").proprietaire(proprio).build());
+        Bien bien = bienRepository.save(Bien.builder().pays(Pays.FR).devise(Devise.EUR).titre("Bien Test").proprietaire(proprio).build());
 
-        q1 = quittanceRepository.save(Quittance.builder()
+        q1 = quittanceRepository.save(Quittance.builder().pays(Pays.FR).devise(Devise.EUR).modeleVersion("fr-v1")
                 .bien(bien).proprietaire(proprio).locataire(locataire)
                 .mois("janvier").annee(2024).statut(StatutQuittance.EN_ATTENTE)
                 .build());
 
-        q2 = quittanceRepository.save(Quittance.builder()
+        q2 = quittanceRepository.save(Quittance.builder().pays(Pays.FR).devise(Devise.EUR).modeleVersion("fr-v1")
                 .bien(bien).proprietaire(proprio).locataire(locataire)
                 .mois("fevrier").annee(2024).statut(StatutQuittance.PAYEE)
                 .build());
 
-        q3 = quittanceRepository.save(Quittance.builder()
+        q3 = quittanceRepository.save(Quittance.builder().pays(Pays.FR).devise(Devise.EUR).modeleVersion("fr-v1")
                 .bien(bien).proprietaire(proprio).locataire(locataire)
                 .mois("janvier").annee(2025).statut(StatutQuittance.EN_ATTENTE)
                 .build());

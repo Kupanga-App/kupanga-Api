@@ -36,14 +36,14 @@ public interface AuthService {
     String logout( String token , HttpServletResponse response);
 
     /**
-     * Envoie un mail avec le lien de mise à jour
+     * Envoie un mail avec le lien de mise à jour, si un compte existe pour cet e-mail.
      * @param email email
-     * @return le token
+     * @return un message générique, identique que le compte existe ou non (le token n'est jamais renvoyé)
      */
     String forgotPassword(String email);
 
     /**
-     * Mise à jour du mot de passe.
+     * Mise à jour du mot de passe. Révoque le refresh token de l'utilisateur.
      * @param token le token
      * @param newPassword le nouveau mot de passe
      * @return un message
@@ -58,7 +58,7 @@ public interface AuthService {
      * @param response HttpServletResponse
      * @return le DTO contenant UserDTO et le token d'authentification
      */
-    AuthResponseDTO createAndCompleteUserProfil(UserFormDTO userFormDTO , MultipartFile imageProfil, HttpServletResponse response);
+    String createAndCompleteUserProfil(UserFormDTO userFormDTO , MultipartFile imageProfil);
 
     /**
      * Retourne les infos de l'utilisateur

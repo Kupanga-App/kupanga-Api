@@ -75,15 +75,19 @@ jobs:
             -password=devpassword \
             info
 
+      # minio/minio n'existe plus sur Docker Hub : image Chainguard figée par digest.
+      # Elle tourne en non root par défaut : --user 0:0 pour pouvoir écrire dans /data.
       - name: Start MinIO
         run: |
           docker run -d \
             --name minio \
+            --user 0:0 \
             -p 9000:9000 \
             -p 9001:9001 \
             -e MINIO_ROOT_USER=minioadmin \
             -e MINIO_ROOT_PASSWORD=minioadmin \
-            minio/minio server /data --console-address ":9001"
+            cgr.dev/chainguard/minio@sha256:59667194421209c2c1eacbe761e24787e047985c5dfa96b15da9b59fe9b55cd0 \
+            server /data --console-address ":9001"
 
       - name: Wait for MinIO
         run: |
@@ -206,15 +210,19 @@ jobs:
             -validateOnMigrate=false \
             migrate
 
+      # minio/minio n'existe plus sur Docker Hub : image Chainguard figée par digest.
+      # Elle tourne en non root par défaut : --user 0:0 pour pouvoir écrire dans /data.
       - name: Start MinIO
         run: |
           docker run -d \
             --name minio \
+            --user 0:0 \
             -p 9000:9000 \
             -p 9001:9001 \
             -e MINIO_ROOT_USER=minioadmin \
             -e MINIO_ROOT_PASSWORD=minioadmin \
-            minio/minio server /data --console-address ":9001"
+            cgr.dev/chainguard/minio@sha256:59667194421209c2c1eacbe761e24787e047985c5dfa96b15da9b59fe9b55cd0 \
+            server /data --console-address ":9001"
 
       - name: Wait for MinIO
         run: |
@@ -224,6 +232,18 @@ jobs:
               exit 0
             fi
             sleep 3
+          done
+          exit 1
+
+      - name: Start Redis
+        run: |
+          docker run -d --name redis -p 6379:6379 redis:7.4.6-alpine
+          for i in {1..10}; do
+            if docker exec redis redis-cli ping 2>/dev/null | grep -q PONG; then
+              echo "✅ Redis prêt"
+              exit 0
+            fi
+            sleep 2
           done
           exit 1
 

@@ -1,5 +1,7 @@
 package com.kupanga.api.authentification.service;
 
+import static com.kupanga.api.authentification.constant.AuthConstant.*;
+import com.kupanga.api.authentification.service.VerificationEmailService;
 import com.kupanga.api.authentification.dto.AuthResponseDTO;
 import com.kupanga.api.authentification.dto.CompleteGoogleProfileDTO;
 import com.kupanga.api.authentification.dto.GoogleLoginDTO;
@@ -11,6 +13,7 @@ import com.kupanga.api.authentification.google.GoogleUserInfo;
 import com.kupanga.api.authentification.service.impl.AuthServiceImpl;
 import com.kupanga.api.authentification.utils.JwtUtils;
 import com.kupanga.api.email.service.EmailService;
+import com.kupanga.api.exception.business.InvalidPasswordException;
 import com.kupanga.api.exception.business.KupangaBusinessException;
 import com.kupanga.api.minio.service.MinioService;
 import com.kupanga.api.user.dto.formDTO.UserFormDTO;
@@ -27,12 +30,15 @@ import org.junit.jupiter.api.Test;
 import org.mockito.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
 
+import static com.kupanga.api.authentification.constant.AuthConstant.MAIL_REINITIALISATION_ENVOYE;
 import static com.kupanga.api.authentification.constant.AuthConstant.MOT_DE_PASSE_A_JOUR;
+import static com.kupanga.api.authentification.constant.AuthConstant.TOKEN_REINITIALISATION_INVALIDE;
 import static com.kupanga.api.minio.constant.MinioConstant.PHOTO_PROFIL_BUCKET;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
@@ -71,6 +77,9 @@ class AuthServiceImplTest {
     @Mock
     private GoogleTokenVerifier googleTokenVerifier;
 
+    @Mock
+    private VerificationEmailService verificationEmailService;
+
     @InjectMocks
     private AuthServiceImpl loginService;
 
@@ -84,6 +93,7 @@ class AuthServiceImplTest {
         utilisateur = User.builder()
                 .mail("user@example.com")
                 .password("encodedPassword")
+                .emailVerifie(true)
                 .build();
         loginDTO = new LoginDTO("test@example.com" ,"encodedPassword" );
     }
@@ -91,11 +101,37 @@ class AuthServiceImplTest {
     // ====================== Tests login ======================
 
     @Test
+    @DisplayName("login() : bon mot de passe mais e-mail non confirmé → 403, aucun jeton (A14)")
+    void testLogin_emailNonVerifie_refuse() {
+        utilisateur.setEmailVerifie(false);
+        when(userService.findOptionalByMail("user@example.com")).thenReturn(Optional.of(utilisateur));
+        doNothing().when(userService).isCorrectPassword(any(), any());
+
+        KupangaBusinessException ex = assertThrows(KupangaBusinessException.class,
+                () -> loginService.login(new LoginDTO("user@example.com", "password"), response));
+
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.FORBIDDEN);
+        assertThat(ex.getMessage()).isEqualTo(EMAIL_NON_VERIFIE);
+        verifyNoInteractions(jwtUtils, refreshTokenService);
+    }
+
+    @Test
+    @DisplayName("login() : mauvais mot de passe sur un compte non confirmé → 401 générique (pas d'indice sur le compte)")
+    void testLogin_emailNonVerifie_mauvaisMotDePasse_401() {
+        utilisateur.setEmailVerifie(false);
+        when(userService.findOptionalByMail("user@example.com")).thenReturn(Optional.of(utilisateur));
+        doThrow(new InvalidPasswordException()).when(userService).isCorrectPassword(any(), any());
+
+        assertThrows(InvalidPasswordException.class,
+                () -> loginService.login(new LoginDTO("user@example.com", "faux"), response));
+    }
+
+    @Test
     @DisplayName("login() : connexion réussie, cookie refresh ajouté, access token retourné")
     void testLoginSuccess() {
         LoginDTO loginDTO = new LoginDTO("user@example.com", "password");
 
-        when(userService.getUserByEmail(loginDTO.email())).thenReturn(utilisateur);
+        when(userService.findOptionalByMail(loginDTO.email())).thenReturn(Optional.of(utilisateur));
         doNothing().when(userService).isCorrectPassword(loginDTO.password(), utilisateur.getPassword());
         when(jwtUtils.generateAccessToken(utilisateur.getMail(), String.valueOf(utilisateur.getRole())))
                 .thenReturn("accessToken");
@@ -114,11 +150,31 @@ class AuthServiceImplTest {
     @DisplayName("login() : mot de passe incorrect lance exception")
     void testLoginIncorrectPassword() {
         LoginDTO loginDTO = new LoginDTO("user@example.com", "wrongpassword");
-        when(userService.getUserByEmail(loginDTO.email())).thenReturn(utilisateur);
-        doThrow(new RuntimeException("Mot de passe incorrect"))
+        when(userService.findOptionalByMail(loginDTO.email())).thenReturn(Optional.of(utilisateur));
+        doThrow(new InvalidPasswordException())
                 .when(userService).isCorrectPassword(loginDTO.password(), utilisateur.getPassword());
 
-        assertThrows(RuntimeException.class, () -> loginService.login(loginDTO, response));
+        InvalidPasswordException ex = assertThrows(InvalidPasswordException.class,
+                () -> loginService.login(loginDTO, response));
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        verify(response, never()).addHeader(any(), any());
+    }
+
+    @Test
+    @DisplayName("login() : e-mail inconnu → même 401 générique qu'un mauvais mot de passe (A2)")
+    void testLoginUnknownEmailSameErrorAsWrongPassword() {
+        LoginDTO loginDTO = new LoginDTO("inconnu@example.com", "Password1");
+        when(userService.findOptionalByMail(loginDTO.email())).thenReturn(Optional.empty());
+
+        InvalidPasswordException ex = assertThrows(InvalidPasswordException.class,
+                () -> loginService.login(loginDTO, response));
+
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        assertThat(ex.getMessage()).isEqualTo(new InvalidPasswordException().getMessage())
+                .doesNotContain("inconnu@example.com");
+        verify(userService, never()).getUserByEmail(any());
+        // BCrypt est calculé quand même : pas d'énumération par le temps de réponse
+        verify(passwordEncoder).matches(eq("Password1"), any());
         verify(response, never()).addHeader(any(), any());
     }
 
@@ -127,6 +183,7 @@ class AuthServiceImplTest {
     @Test
     @DisplayName("refresh() : token valide génère nouvel access token")
     void testRefreshSuccess() {
+        utilisateur.setRole(Role.ROLE_PROPRIETAIRE);
         RefreshToken refreshToken = RefreshToken.builder()
                 .token("validToken")
                 .user(utilisateur)
@@ -135,12 +192,57 @@ class AuthServiceImplTest {
                 .build();
 
         when(refreshTokenService.getByToken("validToken")).thenReturn(refreshToken);
-        when(jwtUtils.generateAccessToken(utilisateur.getMail(), utilisateur.getPassword()))
+        when(jwtUtils.generateAccessToken(utilisateur.getMail(), String.valueOf(utilisateur.getRole())))
                 .thenReturn("newAccessToken");
 
         AuthResponseDTO result = loginService.refresh("validToken");
 
         assertThat(result.accessToken()).isEqualTo("newAccessToken");
+    }
+
+    @Test
+    @DisplayName("refresh() : le claim role contient le rôle, jamais le hash du mot de passe (P0-3)")
+    void testRefreshPutsRoleNotPasswordInToken() {
+        utilisateur.setRole(Role.ROLE_PROPRIETAIRE);
+        utilisateur.setPassword("$2a$10$hashBcryptDuMotDePasse");
+        RefreshToken refreshToken = RefreshToken.builder()
+                .token("validToken")
+                .user(utilisateur)
+                .expiration(Instant.now().plusSeconds(3600))
+                .revoked(false)
+                .build();
+
+        when(refreshTokenService.getByToken("validToken")).thenReturn(refreshToken);
+        when(jwtUtils.generateAccessToken(any(), any())).thenReturn("newAccessToken");
+
+        loginService.refresh("validToken");
+
+        ArgumentCaptor<String> roleCaptor = ArgumentCaptor.forClass(String.class);
+        verify(jwtUtils).generateAccessToken(eq(utilisateur.getMail()), roleCaptor.capture());
+        assertThat(roleCaptor.getValue())
+                .isEqualTo(String.valueOf(Role.ROLE_PROPRIETAIRE))
+                .doesNotContain("$2a$");
+    }
+
+    @Test
+    @DisplayName("refresh() : compte Google sans rôle → claim role vide et sélection du rôle requise")
+    void testRefreshUserWithoutRoleRequiresRoleSelection() {
+        utilisateur.setRole(null);
+        RefreshToken refreshToken = RefreshToken.builder()
+                .token("validToken")
+                .user(utilisateur)
+                .expiration(Instant.now().plusSeconds(3600))
+                .revoked(false)
+                .build();
+
+        when(refreshTokenService.getByToken("validToken")).thenReturn(refreshToken);
+        when(jwtUtils.generateAccessToken(utilisateur.getMail(), "")).thenReturn("pendingToken");
+
+        AuthResponseDTO result = loginService.refresh("validToken");
+
+        assertThat(result.accessToken()).isEqualTo("pendingToken");
+        assertThat(result.requiresRoleSelection()).isTrue();
+        verify(jwtUtils, never()).generateAccessToken(any(), eq("null"));
     }
 
     @Test
@@ -197,27 +299,29 @@ class AuthServiceImplTest {
     // ======================
 
     @Test
-    @DisplayName("forgotPassword — retourne un token valide et envoie un mail")
-    void forgotPassword_shouldReturnToken_andSendMail() {
-        when(userService.getUserByEmail("user@kupanga.com")).thenReturn(utilisateur);
+    @DisplayName("forgotPassword — envoie le token par mail et ne le renvoie jamais (P0-2)")
+    void forgotPassword_shouldSendTokenByMail_andNeverReturnIt() {
+        when(userService.findOptionalByMail("user@example.com")).thenReturn(Optional.of(utilisateur));
 
-        String token = loginService.forgotPassword("user@kupanga.com");
+        String result = loginService.forgotPassword("user@example.com");
 
-        assertNotNull(token);
-        verify(passwordResetTokenService, times(1)).save(any(PasswordResetToken.class));
-        verify(emailService, times(1)).sendPasswordResetMail(eq("user@kupanga.com"), contains(token));
+        ArgumentCaptor<PasswordResetToken> tokenCaptor = ArgumentCaptor.forClass(PasswordResetToken.class);
+        verify(passwordResetTokenService, times(1)).save(tokenCaptor.capture());
+        String token = tokenCaptor.getValue().getToken();
+
+        assertEquals(MAIL_REINITIALISATION_ENVOYE, result);
+        assertThat(result).doesNotContain(token);
+        verify(emailService, times(1)).sendPasswordResetMail("user@example.com", token);
     }
 
     @Test
-    @DisplayName("forgotPassword — lance une exception si l'email n'existe pas")
-    void forgotPassword_shouldThrowException_whenEmailDoesNotExist() {
-        when(userService.getUserByEmail("invalide@kupanga.com"))
-                .thenThrow(new RuntimeException("Utilisateur introuvable"));
+    @DisplayName("forgotPassword — e-mail inconnu : même message générique, aucun mail (P0-2 / A2)")
+    void forgotPassword_shouldReturnSameMessage_whenEmailDoesNotExist() {
+        when(userService.findOptionalByMail("invalide@kupanga.com")).thenReturn(Optional.empty());
 
-        RuntimeException exception = assertThrows(RuntimeException.class,
-                () -> loginService.forgotPassword("invalide@kupanga.com"));
+        String result = loginService.forgotPassword("invalide@kupanga.com");
 
-        assertEquals("Utilisateur introuvable", exception.getMessage());
+        assertEquals(MAIL_REINITIALISATION_ENVOYE, result);
         verify(passwordResetTokenService, never()).save(any());
         verify(emailService, never()).sendPasswordResetMail(any(), any());
     }
@@ -243,8 +347,26 @@ class AuthServiceImplTest {
         assertEquals(MOT_DE_PASSE_A_JOUR, result);
         assertEquals("encodedPassword", utilisateur.getPassword());
         verify(userService, times(1)).save(utilisateur);
+        assertThat(utilisateur.isEmailVerifie()).isTrue(); // A14 : le lien reçu prouve la possession de l'adresse
         verify(passwordResetTokenService, times(1)).delete(token);
+        verify(refreshTokenService, times(1)).revokeAllForUser(utilisateur);
+        verify(verificationEmailService).annulerLien(utilisateur.getId());
         verify(emailService, times(1)).sendPasswordUpdatedConfirmation(utilisateur.getMail());
+    }
+
+    @Test
+    @DisplayName("resetPassword — token inconnu : 400 avec le même message qu'un token expiré")
+    void resetPassword_shouldThrowSameError_whenTokenUnknown() {
+        when(passwordResetTokenService.getByToken("inconnu"))
+                .thenThrow(new KupangaBusinessException(TOKEN_REINITIALISATION_INVALIDE, HttpStatus.BAD_REQUEST));
+
+        KupangaBusinessException exception = assertThrows(KupangaBusinessException.class,
+                () -> loginService.resetPassword("inconnu", "NewPassword1"));
+
+        assertEquals(TOKEN_REINITIALISATION_INVALIDE, exception.getMessage());
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
+        verify(userService, never()).save(any());
+        verify(refreshTokenService, never()).revokeAllForUser(any());
     }
 
     @Test
@@ -258,17 +380,19 @@ class AuthServiceImplTest {
 
         when(passwordResetTokenService.getByToken("123")).thenReturn(token);
 
-        RuntimeException exception = assertThrows(RuntimeException.class,
+        KupangaBusinessException exception = assertThrows(KupangaBusinessException.class,
                 () -> loginService.resetPassword("123", "newPassword"));
 
-        assertEquals("Token expiré", exception.getMessage());
+        assertEquals(TOKEN_REINITIALISATION_INVALIDE, exception.getMessage());
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
         verify(userService, never()).save(any());
+        verify(refreshTokenService, never()).revokeAllForUser(any());
         verify(passwordResetTokenService, never()).delete(any());
         verify(emailService, never()).sendPasswordUpdatedConfirmation(any());
     }
 
     @Test
-    @DisplayName("createAndCompleteUserProfil() : succès avec image Minio")
+    @DisplayName("createAndCompleteUserProfil() : compte non vérifié, lien de confirmation envoyé, aucune connexion ni bienvenue (A14)")
     void testCreateAndCompleteUserProfil_withImage() {
 
         UserFormDTO form = new UserFormDTO(
@@ -277,41 +401,77 @@ class AuthServiceImplTest {
                 "john@mail.com",
                 "John",
                 Role.ROLE_LOCATAIRE,
-                "defaultUrl"
+                "defaultUrl",
+                "+243 81 234-56.78"
         );
 
-        MultipartFile image = mock(MultipartFile.class);
-        when(image.isEmpty()).thenReturn(false);
+        MultipartFile image = imagePng();
 
+        when(minioService.estUrlDuBucket("defaultUrl", PHOTO_PROFIL_BUCKET)).thenReturn(true);
         when(passwordEncoder.encode("password")).thenReturn("encodedPwd");
-        when(minioService.uploadImage(image, PHOTO_PROFIL_BUCKET))
+        when(minioService.envoyerImagePublique(any(com.kupanga.api.minio.image.PhotoPreparee.class), eq(PHOTO_PROFIL_BUCKET)))
                 .thenReturn("minioUrl");
 
-        // capturer l'utilisateur sauvegardé
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
         doNothing().when(userService).save(userCaptor.capture());
 
-        // login() va chercher l'utilisateur -> on renvoie celui sauvegardé
-        when(userService.getUserByEmail(any()))
-                .thenAnswer(inv -> userCaptor.getValue());
+        String result = loginService.createAndCompleteUserProfil(form, image);
 
-        doNothing().when(userService)
-                .isCorrectPassword(any(), any());
+        assertThat(result).isEqualTo(COMPTE_CREE_VERIFIER_EMAIL);
+        User cree = userCaptor.getValue();
+        assertThat(cree.isEmailVerifie()).isFalse();
+        assertThat(cree.getUrlProfile()).isEqualTo("minioUrl");
+        assertThat(cree.getTelephone()).isEqualTo("+243812345678"); // C6 : normalisé en E.164
+        verify(verificationEmailService).envoyerLien(cree);
+        verifyNoInteractions(jwtUtils, refreshTokenService);
+        verify(emailService, never()).sendWelcomeMessage(any(), any());
+    }
 
-        when(jwtUtils.generateAccessToken(any(), any()))
-                .thenReturn("accessToken");
+    @Test
+    @DisplayName("createAndCompleteUserProfil() : adresse déjà inscrite (vérifiée ou non) → même réponse, aucun compte ni lien, titulaire prévenu (A14)")
+    void testCreateAndCompleteUserProfil_adresseDejaInscrite_memeReponse() {
+        for (boolean verifie : new boolean[]{true, false}) {
+            reset(userService, emailService, verificationEmailService, minioService, passwordEncoder);
+            User existant = User.builder().id(7L).mail("john@mail.com").password("hashDuPremier")
+                    .role(Role.ROLE_PROPRIETAIRE).emailVerifie(verifie).build();
+            UserFormDTO form = UserFormDTO.builder().firstName("John").lastName("User")
+                    .mail("John@Mail.com").password("password").role(Role.ROLE_LOCATAIRE).build();
+            MultipartFile image = imagePng();
+            when(userService.findOptionalByMail("John@Mail.com")).thenReturn(Optional.of(existant));
 
-        when(refreshTokenService.createRefreshToken(any()))
-                .thenReturn("refreshToken");
+            String result = loginService.createAndCompleteUserProfil(form, image);
 
-        AuthResponseDTO result =
-                loginService.createAndCompleteUserProfil(form, image, response);
+            assertThat(result).isEqualTo(COMPTE_CREE_VERIFIER_EMAIL);
+            verify(passwordEncoder).encode("password"); // même calcul BCrypt qu'une vraie inscription
+            verify(emailService).envoyerTentativeInscription("john@mail.com");
+            verify(userService, never()).save(any(User.class));
+            // pas de nouveau lien : il validerait le mot de passe choisi par le premier inscrit
+            verifyNoInteractions(verificationEmailService, jwtUtils, refreshTokenService);
+            verify(minioService, never()).envoyerImagePublique(any(), any());
+            assertThat(existant.getPassword()).isEqualTo("hashDuPremier");
+            assertThat(existant.getRole()).isEqualTo(Role.ROLE_PROPRIETAIRE);
+        }
+    }
 
-        assertThat(result.accessToken()).isEqualTo("accessToken");
+    @Test
+    @DisplayName("createAndCompleteUserProfil() : avatar hors de notre MinIO → 400, aucun compte créé (revue B5)")
+    void testCreateAndCompleteUserProfil_avatarExterne_refuse() {
+        String pixelDeSuivi = "https://traqueur.example/pixel.gif";
+        UserFormDTO form = new UserFormDTO("User", "password", "john@mail.com", "John",
+                Role.ROLE_LOCATAIRE, pixelDeSuivi, null);
+        when(minioService.estUrlDuBucket(pixelDeSuivi, PHOTO_PROFIL_BUCKET)).thenReturn(false);
 
-        verify(minioService).uploadImage(image, PHOTO_PROFIL_BUCKET);
-        verify(userService).save(any(User.class));
-        verify(emailService).sendWelcomeMessage("john@mail.com","User");
+        KupangaBusinessException ex = assertThrows(KupangaBusinessException.class,
+                () -> loginService.createAndCompleteUserProfil(form, null));
+
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
+        verify(userService, never()).save(any(User.class));
+    }
+
+    /** Fichier reconnu comme PNG par sa signature (B5). */
+    private static MultipartFile imagePng() {
+        byte[] contenu = com.kupanga.api.minio.image.ImagesDeTest.png(40, 40);
+        return new org.springframework.mock.web.MockMultipartFile("imageProfil", "photo.png", "image/png", contenu);
     }
 
     @Test
@@ -383,7 +543,9 @@ class AuthServiceImplTest {
         AuthResponseDTO result = loginService.loginWithGoogle(dto, response);
 
         assertThat(result.requiresRoleSelection()).isTrue();
-        verify(userService).save(any(User.class));
+        ArgumentCaptor<User> cree = ArgumentCaptor.forClass(User.class);
+        verify(userService).save(cree.capture());
+        assertThat(cree.getValue().isEmailVerifie()).isTrue(); // adresse attestée par Google (A14)
     }
 
     @Test
@@ -395,6 +557,7 @@ class AuthServiceImplTest {
         User existingUser = User.builder()
                 .mail("existing@example.com")
                 .role(Role.ROLE_PROPRIETAIRE)
+                .emailVerifie(true)
                 .build(); // googleId = null
 
         when(googleTokenVerifier.verify("google-id-token")).thenReturn(googleInfo);
@@ -410,6 +573,49 @@ class AuthServiceImplTest {
         assertThat(result.requiresRoleSelection()).isFalse();
         assertThat(existingUser.getGoogleId()).isEqualTo("g-456");
         verify(userService).save(existingUser);
+    }
+
+    @Test
+    @DisplayName("loginWithGoogle() — compte local non vérifié : repris par Google, mot de passe/rôle/profil du premier inscrit effacés, lien et sessions annulés (A14)")
+    void loginWithGoogle_compteLocalNonVerifie_reprisSansLesDonneesDuPremierInscrit() {
+        GoogleLoginDTO dto = new GoogleLoginDTO("google-id-token");
+        GoogleUserInfo googleInfo = new GoogleUserInfo("g-789", "victime@example.com", "Vraie", "Personne", "photoGoogle");
+
+        User squatte = User.builder()
+                .id(42L)
+                .mail("victime@example.com")
+                .password("hashDeLAttaquant")
+                .role(Role.ROLE_PROPRIETAIRE)
+                .firstName("Faux")
+                .lastName("Profil")
+                .urlProfile("photoAttaquant")
+                .telephone("+243999999999")
+                .hasCompleteProfil(true)
+                .emailVerifie(false)
+                .build();
+
+        when(googleTokenVerifier.verify("google-id-token")).thenReturn(googleInfo);
+        when(userService.findOptionalByGoogleId("g-789")).thenReturn(Optional.empty());
+        when(userService.findOptionalByMail("victime@example.com")).thenReturn(Optional.of(squatte));
+        when(jwtUtils.generateAccessToken("victime@example.com", "")).thenReturn("accessToken");
+        when(refreshTokenService.createRefreshToken(squatte)).thenReturn("refreshToken");
+
+        AuthResponseDTO result = loginService.loginWithGoogle(dto, response);
+
+        assertThat(result.requiresRoleSelection()).isTrue();
+        assertThat(squatte.getPassword()).isNull();
+        assertThat(squatte.getRole()).isNull();
+        assertThat(squatte.getHasCompleteProfil()).isFalse();
+        assertThat(squatte.getFirstName()).isEqualTo("Vraie");
+        assertThat(squatte.getLastName()).isEqualTo("Personne");
+        assertThat(squatte.getUrlProfile()).isEqualTo("photoGoogle");
+        assertThat(squatte.getTelephone()).isNull(); // C6 : numéro saisi par le premier inscrit effacé
+        assertThat(squatte.isEmailVerifie()).isTrue();
+        assertThat(squatte.getGoogleId()).isEqualTo("g-789");
+        verify(verificationEmailService).annulerLien(42L);
+        verify(passwordResetTokenService).deleteIfExist(42L);
+        verify(refreshTokenService).revokeAllForUser(squatte);
+        verify(userService).save(squatte);
     }
 
     @Test

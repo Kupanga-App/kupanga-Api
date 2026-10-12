@@ -1,5 +1,6 @@
 package com.kupanga.api.chat.controller;
 
+import jakarta.validation.Valid;
 import com.kupanga.api.chat.dto.ConversationPageDTO;
 import com.kupanga.api.chat.dto.ConversationSearchDTO;
 import com.kupanga.api.chat.research.ConversationSearchService;
@@ -124,7 +125,7 @@ public class ConversationController {
     )
     @PostMapping("/search")
     public ResponseEntity<ConversationPageDTO> rechercherConversations(
-            @RequestBody(required = false) ConversationSearchDTO dto
+            @Valid @RequestBody(required = false) ConversationSearchDTO dto
     ) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 

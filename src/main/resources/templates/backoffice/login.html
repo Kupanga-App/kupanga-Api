@@ -159,6 +159,10 @@
             <i data-lucide="alert-triangle" aria-hidden="true"></i>
             <span>Identifiants incorrects. Veuillez réessayer.</span>
         </div>
+        <div th:if="${param.bloque}" class="alert-ds alert-danger-ds" role="alert">
+            <i data-lucide="alert-triangle" aria-hidden="true"></i>
+            <span>Trop de tentatives de connexion. Réessayez dans quelques minutes.</span>
+        </div>
         <div th:if="${param.logout}" class="alert-ds alert-success-ds" role="alert">
             <i data-lucide="check-circle" aria-hidden="true"></i>
             <span>Vous avez été déconnecté avec succès.</span>

@@ -15,7 +15,17 @@ public interface MessageService {
      * @param payload         contenu + destinataire + bienId optionnel
      * @param emailExpediteur email de l'expéditeur (extrait du JWT)
      */
-    void envoyerMessage(MessagePayload payload, String emailExpediteur);
+    default void envoyerMessage(MessagePayload payload, String emailExpediteur) {
+        envoyerMessage(payload, emailExpediteur, null);
+    }
+
+    /**
+     * Comme {@link #envoyerMessage(MessagePayload, String)}, puis renvoie le message enregistré à l'expéditeur
+     * sur {@code /user/queue/messages} avec {@code idClient} : accusé d'envoi du front (W13).
+     *
+     * @param idClient identifiant choisi par le front, déjà validé ; {@code null} = pas d'écho
+     */
+    void envoyerMessage(MessagePayload payload, String emailExpediteur, String idClient);
 
     /**
      * Retourne l'historique chronologique des messages entre deux utilisateurs pour un bien donné.
@@ -36,11 +46,12 @@ public interface MessageService {
     Long countMessagesNonLus(String email);
 
     /**
-     * Marque comme lus tous les messages reçus d'un expéditeur dans une conversation.
+     * Marque comme lus les messages reçus d'un interlocuteur dans la conversation sur ce bien (W6).
      *
+     * @param bienId            bien de la conversation
      * @param emailDestinataire email du destinataire (utilisateur connecté)
-     * @param emailExpediteur   email de l'expéditeur dont on marque les messages comme lus
+     * @param emailExpediteur   email de l'interlocuteur dont on marque les messages comme lus
      */
-    void marquerConversationLue(String emailDestinataire, String emailExpediteur);
+    void marquerConversationLue(Long bienId, String emailDestinataire, String emailExpediteur);
 
 }

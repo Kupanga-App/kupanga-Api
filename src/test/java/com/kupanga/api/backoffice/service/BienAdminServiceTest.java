@@ -1,11 +1,17 @@
 package com.kupanga.api.backoffice.service;
 
+import com.kupanga.api.juridiction.Pays;
 import com.kupanga.api.backoffice.dto.BienAdminPageDTO;
 import com.kupanga.api.backoffice.dto.BienAdminSearchDTO;
 import com.kupanga.api.backoffice.specification.BienAdminSpecification;
 import com.kupanga.api.immobilier.entity.Bien;
 import com.kupanga.api.immobilier.entity.TypeBien;
+import com.kupanga.api.immobilier.entity.StatutContrat;
+import com.kupanga.api.immobilier.entity.StatutEdl;
 import com.kupanga.api.immobilier.repository.BienRepository;
+import com.kupanga.api.immobilier.repository.ContratRepository;
+import com.kupanga.api.immobilier.repository.EtatDesLieuxRepository;
+import com.kupanga.api.user.entity.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -14,9 +20,11 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
@@ -26,6 +34,8 @@ import static org.mockito.Mockito.*;
 class BienAdminServiceTest {
 
     @Mock private BienRepository        bienRepository;
+    @Mock private ContratRepository contratRepository;
+    @Mock private EtatDesLieuxRepository etatDesLieuxRepository;
     @Mock private BienAdminSpecification bienAdminSpecification;
 
     @InjectMocks
@@ -39,8 +49,8 @@ class BienAdminServiceTest {
     @Test
     @DisplayName("rechercher() — retourne une page de BienAdminDTO")
     void rechercher_returnsPage() {
-        BienAdminSearchDTO dto = new BienAdminSearchDTO(null, null, null, 0, 10);
-        Bien bien = Bien.builder().id(1L).titre("Test").ville("Paris")
+        BienAdminSearchDTO dto = new BienAdminSearchDTO(null, null, null, null, 0, 10);
+        Bien bien = Bien.builder().pays(Pays.FR).id(1L).titre("Test").ville("Paris")
                 .typeBien(TypeBien.APPARTEMENT).build();
 
         when(bienAdminSpecification.build(dto)).thenReturn(mock(Specification.class));
@@ -54,11 +64,44 @@ class BienAdminServiceTest {
     }
 
     @Test
-    @DisplayName("supprimer() — délègue deleteById au repository")
-    void supprimer_callsDeleteById() {
-        bienAdminService.supprimer(42L);
+    @DisplayName("B12 : archiver() — le bien est archivé, jamais supprimé")
+    void archiver_archiveSansSupprimer() {
+        Bien bien = Bien.builder().pays(Pays.FR).id(42L).build();
+        when(bienRepository.findById(42L)).thenReturn(Optional.of(bien));
 
-        verify(bienRepository).deleteById(42L);
+        assertThat(bienAdminService.archiver(42L)).isTrue();
+
+        assertThat(bien.isArchive()).isTrue();
+        assertThat(bien.getDateArchivage()).isNotNull();
+        verify(bienRepository, never()).deleteById(any());
+        verify(bienRepository, never()).delete(any(Bien.class));
+        verify(contratRepository).expirerNonSignesDuBien(42L, StatutContrat.SIGNE, StatutContrat.EXPIRE);
+        verify(etatDesLieuxRepository).expirerNonSignesDuBien(42L, StatutEdl.SIGNE, StatutEdl.EXPIRE);
+    }
+
+    @Test
+    @DisplayName("B12 : archiver() — bien introuvable → false")
+    void archiver_introuvable() {
+        when(bienRepository.findById(42L)).thenReturn(Optional.empty());
+
+        assertThat(bienAdminService.archiver(42L)).isFalse();
+    }
+
+    @Test
+    @DisplayName("B12 : desarchiver() — remis en ligne ; refusé si le propriétaire est anonymisé")
+    void desarchiver() {
+        User proprio = User.builder().id(1L).build();
+        Bien bien = Bien.builder().pays(Pays.FR).id(42L).proprietaire(proprio).archive(true).dateArchivage(LocalDateTime.now()).build();
+        when(bienRepository.findById(42L)).thenReturn(Optional.of(bien));
+
+        proprio.setAnonymise(true);
+        assertThat(bienAdminService.desarchiver(42L)).isFalse();
+        assertThat(bien.isArchive()).isTrue();
+
+        proprio.setAnonymise(false);
+        assertThat(bienAdminService.desarchiver(42L)).isTrue();
+        assertThat(bien.isArchive()).isFalse();
+        assertThat(bien.getDateArchivage()).isNull();
     }
 
     @Test
@@ -106,7 +149,7 @@ class BienAdminServiceTest {
     @Test
     @DisplayName("rechercher() — page vide → contenu vide")
     void rechercher_emptyPage_returnsEmptyContent() {
-        BienAdminSearchDTO dto = new BienAdminSearchDTO(null, null, null, 0, 10);
+        BienAdminSearchDTO dto = new BienAdminSearchDTO(null, null, null, null, 0, 10);
 
         when(bienAdminSpecification.build(dto)).thenReturn(mock(Specification.class));
         when(bienRepository.findAll(any(Specification.class), any(Pageable.class)))

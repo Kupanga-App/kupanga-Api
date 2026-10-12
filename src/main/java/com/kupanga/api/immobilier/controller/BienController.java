@@ -1,8 +1,10 @@
 package com.kupanga.api.immobilier.controller;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import com.kupanga.api.immobilier.dto.formDTO.BienFormDTO;
 import com.kupanga.api.immobilier.dto.formDTO.BienUpdateDTO;
 import com.kupanga.api.immobilier.dto.readDTO.BienDTO;
+import com.kupanga.api.immobilier.dto.readDTO.BienPublicDTO;
 import com.kupanga.api.immobilier.research.BienSearchService;
 import com.kupanga.api.immobilier.research.dto.BienPageDTO;
 import com.kupanga.api.immobilier.research.dto.BienSearchDTO;
@@ -42,9 +44,11 @@ public class BienController {
             summary = "Créer un nouveau bien immobilier",
             description = """
                     Permet à un utilisateur authentifié ayant le rôle `PROPRIETAIRE` d'enregistrer
-                    un nouveau bien immobilier. La localisation géographique est calculée automatiquement
-                    à partir de l'adresse fournie via Nominatim (OpenStreetMap).
-                    Les points d'intérêt (POI) sont calculés de façon asynchrone après la création.
+                    un nouveau bien immobilier. Position (C2) : `latitude` + `longitude` facultatives (repère sur
+                    la carte ou GPS, les deux ensemble) ; sinon adresse géocodée via Nominatim, puis centre du
+                    quartier, de la commune ou de la ville ; à défaut le bien est créé sans position.
+                    `precisionLocalisation` indique l'origine (REPERE, ADRESSE, QUARTIER, COMMUNE, VILLE, AUCUNE).
+                    Les points d'intérêt (POI) ne sont calculés (en asynchrone) qu'autour d'un repère ou d'une adresse.
                     Au moins une photo est obligatoire.
 
                     **Champs obligatoires :** titre, typeBien, adresse, ville, codePostal, pays,
@@ -126,7 +130,7 @@ public class BienController {
                                         "adresse":            "75 Boulevard Jules Verne",
                                         "ville":              "Nantes",
                                         "codePostal":         "44300",
-                                        "pays":               "France",
+                                        "pays":               "FR",
                                         "surfaceHabitable":   65.5,
                                         "nombrePieces":       3,
                                         "nombreChambres":     2,
@@ -147,16 +151,18 @@ public class BienController {
                     )
             )
     )
+    @PreAuthorize("hasAuthority('ROLE_PROPRIETAIRE')")
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Void> createBien(
             @Parameter(
                     description = "JSON contenant les informations du bien immobilier",
                     required = true
             )
-            @RequestPart("bienFormDTO") BienFormDTO bienFormDTO,
+            @Valid @RequestPart("bienFormDTO") BienFormDTO bienFormDTO,
 
             @Parameter(
-                    description = "Photos du bien (JPG, PNG, WEBP — 10 Mo max par fichier). " +
+                    description = "Photos du bien (JPEG, PNG, WEBP, AVIF, GIF, HEIC — reconnues au contenu ; 10 Mo max par fichier, " +
+                            "50 Mo par requête, 20 photos max). " +
                             "Au moins une image est obligatoire. " +
                             "Envoyer plusieurs fichiers en répétant la clé 'files'.",
                     required = true
@@ -175,12 +181,11 @@ public class BienController {
     @Operation(
             summary = "Consulter le détail d'un bien immobilier",
             description = """
-                    Retourne les informations complètes d'un bien immobilier.
-                    Seuls le propriétaire du bien et son locataire peuvent accéder à cette ressource.
-                    Tout autre utilisateur, même authentifié, se verra refuser l'accès.
+                    Vue **publique** d'un bien immobilier (accessible sans authentification).
 
                     **Informations retournées :** caractéristiques physiques, conditions de location,
-                    diagnostic énergétique, POI à proximité, documents, images, parties du contrat.
+                    diagnostic énergétique, POI à proximité, images, et le propriétaire réduit à
+                    prénom + initiale du nom + photo. Aucune donnée personnelle (e-mail, locataire, documents).
                     """
     )
     @ApiResponses(value = {
@@ -189,7 +194,7 @@ public class BienController {
                     description = "Bien trouvé et retourné avec succès",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = BienDTO.class),
+                            schema = @Schema(implementation = BienPublicDTO.class),
                             examples = @ExampleObject(value = """
                                     {
                                         "id": 1,
@@ -199,7 +204,7 @@ public class BienController {
                                         "adresse": "75 Boulevard Jules Verne",
                                         "ville": "Nantes",
                                         "codePostal": "44300",
-                                        "pays": "France",
+                                        "pays": "FR",
                                         "latitude": 47.2184,
                                         "longitude": -1.5536,
                                         "surfaceHabitable": 65.5,
@@ -219,12 +224,9 @@ public class BienController {
                                         "disponibleDe": "2026-04-01",
                                         "proprietaire": {
                                             "firstName": "Jean",
-                                            "lastName": "Dupont"
+                                            "initialeNom": "D.",
+                                            "urlProfile": "https://minio.kupanga.com/photos/jean.jpg"
                                         },
-                                        "locataire": null,
-                                        "contrats":   ["https://minio.kupanga.com/contrats/contrat_1.pdf"],
-                                        "quittances": [],
-                                        "documents":  [],
                                         "images": [
                                             "https://minio.kupanga.com/biens/photo1.jpg",
                                             "https://minio.kupanga.com/biens/photo2.jpg"
@@ -233,26 +235,6 @@ public class BienController {
                                         "createdAt": "2026-03-16T10:00:00",
                                         "updatedAt": "2026-03-16T10:00:00"
                                     }
-                                    """)
-                    )
-            ),
-            @ApiResponse(
-                    responseCode = "401",
-                    description = "Utilisateur non authentifié ou token invalide",
-                    content = @Content(
-                            mediaType = "application/json",
-                            examples = @ExampleObject(value = """
-                                    { "error": "Accès non autorisé" }
-                                    """)
-                    )
-            ),
-            @ApiResponse(
-                    responseCode = "403",
-                    description = "Accès refusé : l'utilisateur n'est ni propriétaire ni locataire de ce bien",
-                    content = @Content(
-                            mediaType = "application/json",
-                            examples = @ExampleObject(value = """
-                                    { "error": "Accès refusé au bien 1" }
                                     """)
                     )
             ),
@@ -268,7 +250,7 @@ public class BienController {
             )
     })
     @GetMapping("/{bienId}")
-    public ResponseEntity<BienDTO> getBienInfos(
+    public ResponseEntity<BienPublicDTO> getBienInfos(
             @Parameter(description = "Identifiant unique du bien immobilier", required = true)
             @PathVariable Long bienId
     ) {
@@ -336,7 +318,7 @@ public class BienController {
                                                 "adresse": "75 Boulevard Jules Verne",
                                                 "ville": "Nantes",
                                                 "codePostal": "44300",
-                                                "pays": "France",
+                                                "pays": "FR",
                                                 "latitude": 47.2184,
                                                 "longitude": -1.5536,
                                                 "surfaceHabitable": 65.5,
@@ -454,7 +436,7 @@ public class BienController {
     )
     @PostMapping("/search")
     public ResponseEntity<BienPageDTO> rechercher(
-            @RequestBody BienSearchDTO dto
+            @Valid @RequestBody BienSearchDTO dto
     ) {
         return ResponseEntity.ok(bienSearchService.rechercher(dto));
     }
@@ -502,9 +484,10 @@ public class BienController {
                     | `meuble`            | Boolean    | —                                           |
                     | `colocation`        | Boolean    | —                                           |
                     | `disponibleDe`      | LocalDate  | format `YYYY-MM-DD`, aucune contrainte future/passé |
+                    | `latitude` + `longitude` | Double | C2 : ensemble, -90..90 / -180..180 ; repère déplacé, POI recalculés |
 
                     ### Champs non modifiables via cet endpoint
-                    `adresse`, `ville`, `codePostal`, `pays`, `localisation` (géocodage géré séparément),
+                    `adresse`, `ville`, `codePostal`, `pays`,
                     `proprietaire`, `locataire`, `contrats`, `quittances`, `images`, `documents`, `pois`.
 
                     ### Réponse
@@ -621,6 +604,7 @@ public class BienController {
                     }
             )
     )
+    @PreAuthorize("hasAuthority('ROLE_PROPRIETAIRE')")
     @PatchMapping("/{bienId}")
     public ResponseEntity<BienDTO> updateBien(
             @Parameter(description = "Identifiant unique du bien à modifier", required = true)
@@ -681,6 +665,7 @@ public class BienController {
                     )
             )
     })
+    @PreAuthorize("hasAuthority('ROLE_PROPRIETAIRE')")
     @PostMapping("/{bienId}/assigne-locataire/{userId}")
     public ResponseEntity<Void> assignLocataire(
             @Parameter(description = "Identifiant unique du bien auquel assigner le locataire", required = true)

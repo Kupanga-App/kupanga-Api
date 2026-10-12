@@ -1,5 +1,6 @@
 package com.kupanga.api.immobilier.research.specification;
 
+import java.math.BigDecimal;
 import com.kupanga.api.immobilier.entity.Contrat;
 import com.kupanga.api.immobilier.entity.StatutContrat;
 import com.kupanga.api.immobilier.research.dto.ContratSearchDTO;
@@ -58,14 +59,14 @@ public class ContratSpecification {
         };
     }
 
-    private Specification<Contrat> loyerMin(Double min) {
+    private Specification<Contrat> loyerMin(BigDecimal min) {
         return (root, query, cb) -> {
             if (min == null) return null;
             return cb.greaterThanOrEqualTo(root.get("loyerMensuel"), min);
         };
     }
 
-    private Specification<Contrat> loyerMax(Double max) {
+    private Specification<Contrat> loyerMax(BigDecimal max) {
         return (root, query, cb) -> {
             if (max == null) return null;
             return cb.lessThanOrEqualTo(root.get("loyerMensuel"), max);

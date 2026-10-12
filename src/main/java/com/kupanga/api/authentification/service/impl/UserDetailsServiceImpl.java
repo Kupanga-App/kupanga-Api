@@ -3,6 +3,7 @@ package com.kupanga.api.authentification.service.impl;
 import com.kupanga.api.user.entity.Role;
 import com.kupanga.api.user.entity.User;
 import com.kupanga.api.user.repository.UserRepository;
+import com.kupanga.api.user.utils.EmailUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -64,7 +65,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
 
         // Récupération de l'utilisateur à partir de son email
-        User user = userRepository.findByMail(email)
+        User user = userRepository.findByMail(EmailUtils.normaliser(email))
                 .orElseThrow(() ->
                         new UsernameNotFoundException(
                                 "Utilisateur non trouvé avec l'email : " + email

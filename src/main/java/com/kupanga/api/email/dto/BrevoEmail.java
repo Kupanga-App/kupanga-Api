@@ -14,5 +14,9 @@ public record BrevoEmail(
 ) {
     public record Sender(String name, String email) {}
     public record Recipient(String email) {}
-    public record Attachment(String url, String name) {}
+    /**
+     * Pièce jointe envoyée en base64 ({@code content}) : les PDF sont dans des buckets privés (P0-7),
+     * Brevo ne peut donc plus les récupérer par URL.
+     */
+    public record Attachment(String content, String name) {}
 }

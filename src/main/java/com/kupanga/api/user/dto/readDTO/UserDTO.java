@@ -9,9 +9,10 @@ public record UserDTO(
         String firstName,
         String lastName,
         String mail ,
-        String password ,
         Role role,
         String urlProfile,
-        Boolean hasCompleteProfil
+        Boolean hasCompleteProfil,
+        /** C6 : visible seulement par l'utilisateur lui-même et par l'autre partie d'un bien (vue privée). */
+        String telephone
 ) {
 }

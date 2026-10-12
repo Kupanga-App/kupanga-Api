@@ -113,7 +113,7 @@
                                 <td class="text-end">
                                     <span class="badge-count"
                                           th:text="${c.loyerMensuel != null
-                                            ? #numbers.formatDecimal(c.loyerMensuel, 0, 'COMMA', 0, 'POINT') + ' €'
+                                            ? #numbers.formatDecimal(c.loyerMensuel, 0, 'COMMA', 0, 'POINT') + ' ' + c.devise
                                             : '—'}"></span>
                                 </td>
                                 <td class="text-center">
@@ -295,7 +295,7 @@
                                 <td class="text-end">
                                     <span class="badge-count"
                                           th:text="${q.montantTotal != null
-                                            ? #numbers.formatDecimal(q.montantTotal, 0, 'COMMA', 0, 'POINT') + ' €'
+                                            ? #numbers.formatDecimal(q.montantTotal, 0, 'COMMA', 0, 'POINT') + ' ' + q.devise
                                             : '—'}"></span>
                                 </td>
                                 <td class="text-center">

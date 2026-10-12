@@ -1,5 +1,7 @@
 package com.kupanga.api.immobilier.pdf;
 
+import com.kupanga.api.juridiction.JuridictionRegistry;
+import com.kupanga.api.juridiction.TypeDocument;
 import com.kupanga.api.immobilier.entity.Contrat;
 import com.kupanga.api.minio.service.MinioService;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +21,7 @@ import static com.kupanga.api.minio.constant.MinioConstant.CONTRAT_BUCKET;
 public class ContratPdfService {
 
     private final TemplateEngine templateEngine;
+    private final JuridictionRegistry juridictionRegistry;
     private final MinioService minioService;
 
     /**
@@ -30,11 +33,15 @@ public class ContratPdfService {
             // 1 — Alimenter le contexte Thymeleaf
             Context ctx = new Context();
             ctx.setVariable("contrat",      contrat);
+            // J3 : montants dans la devise figée du document, formatés selon la langue de son pays
+            ctx.setVariable("montants", juridictionRegistry.formatMontant(contrat.getPays(), contrat.getDevise()));
             ctx.setVariable("proprietaire", contrat.getProprietaire());
             ctx.setVariable("locataire",    contrat.getLocataire());
 
             // 2 — Rendu HTML via Thymeleaf
-            String html = templateEngine.process("contrat", ctx);
+            // J5 : modèle du pays et de la version figés sur le document
+            String html = templateEngine.process(
+                    juridictionRegistry.gabarit(TypeDocument.CONTRAT, contrat.getPays(), contrat.getModeleVersion()), ctx);
 
             // 3 — Conversion HTML → PDF via Flying Saucer
             byte[] pdfBytes = htmlToPdf(html);

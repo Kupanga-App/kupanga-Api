@@ -1,5 +1,7 @@
 package com.kupanga.api.backoffice.specification;
 
+import com.kupanga.api.juridiction.Devise;
+import com.kupanga.api.juridiction.Pays;
 import com.kupanga.api.backoffice.dto.BienAdminSearchDTO;
 import com.kupanga.api.immobilier.entity.Bien;
 import com.kupanga.api.immobilier.entity.TypeBien;
@@ -41,6 +43,7 @@ class BienAdminSpecificationTest {
         b1 = bienRepository.save(Bien.builder()
                 .titre("Appartement Nantes hypercentre")
                 .ville("Nantes")
+                .pays(Pays.FR).devise(Devise.EUR)
                 .typeBien(TypeBien.APPARTEMENT)
                 .proprietaire(proprio)
                 .build());
@@ -48,6 +51,7 @@ class BienAdminSpecificationTest {
         b2 = bienRepository.save(Bien.builder()
                 .titre("Maison Lyon calme")
                 .ville("Lyon")
+                .pays(Pays.CD).devise(Devise.USD)
                 .typeBien(TypeBien.MAISON)
                 .proprietaire(proprio)
                 .build());
@@ -56,7 +60,7 @@ class BienAdminSpecificationTest {
     @Test
     @DisplayName("parTitre — filtre partiel insensible à la casse")
     void build_parTitre_filtrePartiellement() {
-        BienAdminSearchDTO dto = new BienAdminSearchDTO("APPART", null, null, 0, 10);
+        BienAdminSearchDTO dto = new BienAdminSearchDTO("APPART", null, null, null, 0, 10);
 
         List<Bien> result = bienRepository.findAll(spec.build(dto));
 
@@ -67,7 +71,7 @@ class BienAdminSpecificationTest {
     @Test
     @DisplayName("parVille — filtre partiel sur la ville")
     void build_parVille_filtreParVille() {
-        BienAdminSearchDTO dto = new BienAdminSearchDTO(null, "lyon", null, 0, 10);
+        BienAdminSearchDTO dto = new BienAdminSearchDTO(null, "lyon", null, null, 0, 10);
 
         List<Bien> result = bienRepository.findAll(spec.build(dto));
 
@@ -76,9 +80,19 @@ class BienAdminSpecificationTest {
     }
 
     @Test
+    @DisplayName("J1 : parPays — filtre exact sur le code ISO")
+    void build_parPays_filtreParPays() {
+        BienAdminSearchDTO dto = new BienAdminSearchDTO(null, null, Pays.CD, null, 0, 10);
+
+        List<Bien> result = bienRepository.findAll(spec.build(dto));
+
+        assertThat(result).extracting(Bien::getId).containsExactly(b2.getId());
+    }
+
+    @Test
     @DisplayName("parType MAISON — retourne uniquement les maisons")
     void build_parType_filtreParTypeBien() {
-        BienAdminSearchDTO dto = new BienAdminSearchDTO(null, null, TypeBien.MAISON, 0, 10);
+        BienAdminSearchDTO dto = new BienAdminSearchDTO(null, null, null, TypeBien.MAISON, 0, 10);
 
         List<Bien> result = bienRepository.findAll(spec.build(dto));
 
@@ -89,7 +103,7 @@ class BienAdminSpecificationTest {
     @Test
     @DisplayName("sans filtre — retourne tous les biens")
     void build_sansFiltre_retourneTousLesBiens() {
-        BienAdminSearchDTO dto = new BienAdminSearchDTO(null, null, null, 0, 10);
+        BienAdminSearchDTO dto = new BienAdminSearchDTO(null, null, null, null, 0, 10);
 
         List<Bien> result = bienRepository.findAll(spec.build(dto));
 

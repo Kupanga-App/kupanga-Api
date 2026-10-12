@@ -1,5 +1,7 @@
 package com.kupanga.api.immobilier.research.specification;
 
+import com.kupanga.api.juridiction.Devise;
+import com.kupanga.api.juridiction.Pays;
 import com.kupanga.api.immobilier.entity.Bien;
 import com.kupanga.api.immobilier.entity.TypeBien;
 import com.kupanga.api.immobilier.repository.BienRepository;
@@ -19,6 +21,7 @@ import org.springframework.test.context.ActiveProfiles;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import java.math.BigDecimal;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
@@ -45,8 +48,8 @@ class BienSpecificationTest {
 
         b1 = bienRepository.save(Bien.builder()
                 .titre("Appartement Paris centre")
-                .ville("Paris").pays("France").codePostal("75001")
-                .loyerMensuel(800.0).surfaceHabitable(45.0).nombrePieces(2)
+                .ville("Paris").pays(Pays.FR).devise(Devise.EUR).codePostal("75001")
+                .loyerMensuel(new BigDecimal("800.0")).surfaceHabitable(45.0).nombrePieces(2)
                 .meuble(true).colocation(false)
                 .typeBien(TypeBien.APPARTEMENT)
                 .proprietaire(proprio)
@@ -54,8 +57,8 @@ class BienSpecificationTest {
 
         b2 = bienRepository.save(Bien.builder()
                 .titre("Maison Lyon quartier nord")
-                .ville("Lyon").pays("France").codePostal("69001")
-                .loyerMensuel(1200.0).surfaceHabitable(80.0).nombrePieces(4)
+                .ville("Lyon").pays(Pays.FR).devise(Devise.EUR).codePostal("69001")
+                .loyerMensuel(new BigDecimal("1200.0")).surfaceHabitable(80.0).nombrePieces(4)
                 .meuble(false).colocation(false)
                 .typeBien(TypeBien.MAISON)
                 .proprietaire(proprio)
@@ -64,8 +67,8 @@ class BienSpecificationTest {
         // b3 est occupé — doit être exclu de toutes les recherches via build()
         b3 = bienRepository.save(Bien.builder()
                 .titre("Studio Nantes loué")
-                .ville("Nantes").pays("France")
-                .loyerMensuel(600.0).meuble(true)
+                .ville("Nantes").pays(Pays.FR).devise(Devise.EUR)
+                .loyerMensuel(new BigDecimal("600.0")).meuble(true)
                 .typeBien(TypeBien.STUDIO)
                 .proprietaire(proprio).locataire(locataire)
                 .build());
@@ -79,6 +82,33 @@ class BienSpecificationTest {
                 null, null, null, null,
                 0, 10, null, Sort.Direction.ASC
         );
+    }
+
+    @Test
+    @DisplayName("J1 : filtre par code pays")
+    void build_parPays_codeIso() {
+        b2.setPays(Pays.CD);
+        bienRepository.saveAndFlush(b2);
+        BienSearchDTO dto = new BienSearchDTO(
+                null, List.of(Pays.CD), null, null, null,
+                null, null, null, null, null,
+                null, null, null, null, null, null,
+                null, null, null, null,
+                0, 10, null, Sort.Direction.ASC
+        );
+
+        assertThat(bienRepository.findAll(spec.build(dto))).extracting(Bien::getId).containsExactly(b2.getId());
+    }
+
+    @Test
+    @DisplayName("B12 : un bien archivé n'apparaît plus dans la recherche publique")
+    void build_exclutBiensArchives() {
+        b2.setArchive(true);
+        bienRepository.saveAndFlush(b2);
+
+        List<Bien> result = bienRepository.findAll(spec.build(emptyDto()));
+
+        assertThat(result).extracting(Bien::getId).containsExactly(b1.getId());
     }
 
     @Test
@@ -113,7 +143,7 @@ class BienSpecificationTest {
     void build_loyerMin_filtreParLoyerMinimum() {
         BienSearchDTO dto = new BienSearchDTO(
                 null, null, null, null, null,
-                900.0, null, null, null, null,
+                new BigDecimal("900.0"), null, null, null, null,
                 null, null, null, null, null, null,
                 null, null, null, null,
                 0, 10, null, Sort.Direction.ASC
@@ -122,7 +152,7 @@ class BienSpecificationTest {
         List<Bien> result = bienRepository.findAll(spec.build(dto));
 
         assertThat(result).hasSize(1);
-        assertThat(result.get(0).getLoyerMensuel()).isGreaterThanOrEqualTo(900.0);
+        assertThat(result.get(0).getLoyerMensuel()).isGreaterThanOrEqualTo(new BigDecimal("900.0"));
     }
 
     @Test
@@ -130,7 +160,7 @@ class BienSpecificationTest {
     void build_loyerMax_filtreParLoyerMaximum() {
         BienSearchDTO dto = new BienSearchDTO(
                 null, null, null, null, null,
-                null, 900.0, null, null, null,
+                null, new BigDecimal("900.0"), null, null, null,
                 null, null, null, null, null, null,
                 null, null, null, null,
                 0, 10, null, Sort.Direction.ASC
@@ -139,7 +169,7 @@ class BienSpecificationTest {
         List<Bien> result = bienRepository.findAll(spec.build(dto));
 
         assertThat(result).hasSize(1);
-        assertThat(result.get(0).getLoyerMensuel()).isLessThanOrEqualTo(900.0);
+        assertThat(result.get(0).getLoyerMensuel()).isLessThanOrEqualTo(new BigDecimal("900.0"));
     }
 
     @Test

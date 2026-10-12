@@ -1,5 +1,7 @@
 package com.kupanga.api.immobilier.research.specification;
 
+import com.kupanga.api.juridiction.Devise;
+import com.kupanga.api.juridiction.Pays;
 import com.kupanga.api.immobilier.entity.Bien;
 import com.kupanga.api.immobilier.entity.Contrat;
 import com.kupanga.api.immobilier.entity.StatutContrat;
@@ -22,6 +24,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import java.math.BigDecimal;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
@@ -48,19 +51,19 @@ class ContratSpecificationTest {
         proprio2  = userRepository.save(User.builder().mail("proprio2@test.com").role(Role.ROLE_PROPRIETAIRE).build());
         locataire = userRepository.save(User.builder().mail("loc@test.com").role(Role.ROLE_LOCATAIRE).build());
 
-        Bien bien1 = bienRepository.save(Bien.builder().titre("Bien1").proprietaire(proprio1).build());
-        Bien bien2 = bienRepository.save(Bien.builder().titre("Bien2").proprietaire(proprio2).build());
+        Bien bien1 = bienRepository.save(Bien.builder().pays(Pays.FR).devise(Devise.EUR).titre("Bien1").proprietaire(proprio1).build());
+        Bien bien2 = bienRepository.save(Bien.builder().pays(Pays.FR).devise(Devise.EUR).titre("Bien2").proprietaire(proprio2).build());
 
-        c1 = contratRepository.save(Contrat.builder()
+        c1 = contratRepository.save(Contrat.builder().pays(Pays.FR).devise(Devise.EUR).modeleVersion("fr-v1")
                 .proprietaire(proprio1).locataire(locataire).bien(bien1)
-                .loyerMensuel(800.0).dureeBailMois(12)
+                .loyerMensuel(new BigDecimal("800.0")).dureeBailMois(12)
                 .dateDebut(LocalDate.of(2024, 1, 1))
                 .statut(StatutContrat.SIGNE)
                 .build());
 
-        c2 = contratRepository.save(Contrat.builder()
+        c2 = contratRepository.save(Contrat.builder().pays(Pays.FR).devise(Devise.EUR).modeleVersion("fr-v1")
                 .proprietaire(proprio2).locataire(locataire).bien(bien2)
-                .loyerMensuel(1500.0).dureeBailMois(24)
+                .loyerMensuel(new BigDecimal("1500.0")).dureeBailMois(24)
                 .dateDebut(LocalDate.of(2025, 3, 1))
                 .statut(StatutContrat.EN_ATTENTE_SIGNATURE_LOCATAIRE)
                 .build());
@@ -104,13 +107,13 @@ class ContratSpecificationTest {
     @Test
     @DisplayName("loyerMin — exclut les contrats avec loyer inférieur au minimum")
     void build_loyerMin_filtreParLoyerMinimum() {
-        ContratSearchDTO dto = new ContratSearchDTO(null, null, null, 1000.0, null, null, null, null,
+        ContratSearchDTO dto = new ContratSearchDTO(null, null, null, new BigDecimal("1000.0"), null, null, null, null,
                 0, 10, null, Sort.Direction.ASC);
 
         List<Contrat> result = contratRepository.findAll(spec.build(dto, locataire.getId(), Role.ROLE_LOCATAIRE));
 
         assertThat(result).hasSize(1);
-        assertThat(result.get(0).getLoyerMensuel()).isGreaterThanOrEqualTo(1000.0);
+        assertThat(result.get(0).getLoyerMensuel()).isGreaterThanOrEqualTo(new BigDecimal("1000.0"));
     }
 
     @Test

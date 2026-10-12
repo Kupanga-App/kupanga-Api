@@ -113,15 +113,25 @@ class MessageControllerWebMvcTest {
     // ─────────────────────────────────────────────────────────────
 
     @Test
-    @DisplayName("POST /messages/conversation/{email}/lire — succès : 200")
+    @DisplayName("POST /messages/conversation/{email}/lire?bienId= — succès : 200, limité au bien (W6)")
     @WithMockUser(username = "user@test.com")
     void marquerLus_success_shouldReturn200() throws Exception {
-        doNothing().when(messageService).marquerConversationLue("user@test.com", "locataire@test.com");
-
         mockMvc.perform(post("/messages/conversation/locataire@test.com/lire")
+                        .param("bienId", "7")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
 
-        verify(messageService).marquerConversationLue("user@test.com", "locataire@test.com");
+        verify(messageService).marquerConversationLue(7L, "user@test.com", "locataire@test.com");
+    }
+
+    @Test
+    @DisplayName("POST /messages/conversation/{email}/lire sans bienId → 400 (W6)")
+    @WithMockUser(username = "user@test.com")
+    void marquerLus_sansBienId_400() throws Exception {
+        mockMvc.perform(post("/messages/conversation/locataire@test.com/lire")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+
+        verifyNoInteractions(messageService);
     }
 }

@@ -1,0 +1,11 @@
+# Jamais de secrets ni d'artefacts locaux dans le contexte de build
+.env*
+.git
+.github
+.claude
+.idea
+target
+docs
+postman
+testWebSocket
+*.md

@@ -7,7 +7,11 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpHeaders;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -17,16 +21,24 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfigurationSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * Tests unitaires et d'intégration pour la configuration SecurityConfig.
  */
 @SpringBootTest
+@AutoConfigureMockMvc
+@ActiveProfiles("test")
 @DisplayName("Tests unitaires pour SecurityConfig")
 class SecurityConfigTest {
 
     @Autowired
     private SecurityConfig securityConfig;
+
+    @Autowired
+    private MockMvc mockMvc;
 
     @Autowired
     private SecurityFilterChain filterChain;
@@ -78,5 +90,25 @@ class SecurityConfigTest {
     @DisplayName(" L'AuthenticationManager est correctement configuré")
     void authenticationManagerConfigured() {
         assertThat(authenticationManager).isNotNull();
+    }
+
+    @Test
+    @DisplayName("WebSocket — origine inconnue refusée (403), origine du front acceptée (W5)")
+    void websocket_originesRestreintes() throws Exception {
+        mockMvc.perform(get("/ws/info").header(HttpHeaders.ORIGIN, "https://site-pirate.example"))
+                .andExpect(status().isForbidden());
+
+        mockMvc.perform(get("/ws/info").header(HttpHeaders.ORIGIN, "http://localhost:4200"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("D2 : sonde de vivacité publique (HEALTHCHECK du Dockerfile), sans détails ; le reste d'actuator fermé")
+    void sondeDeVivacite_publique() throws Exception {
+        mockMvc.perform(get("/actuator/health/liveness"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("UP"))
+                .andExpect(jsonPath("$.components").doesNotExist());
+        mockMvc.perform(get("/actuator/env")).andExpect(status().is4xxClientError());
     }
 }

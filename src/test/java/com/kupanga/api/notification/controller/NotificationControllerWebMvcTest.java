@@ -58,6 +58,15 @@ class NotificationControllerWebMvcTest {
     // ─────────────────────────────────────────────────────────────
 
     @Test
+    @DisplayName("GET /notifications — sans token : 401 (P0-1)")
+    void getNonLues_withoutToken_shouldReturn401() throws Exception {
+        mockMvc.perform(get("/notifications"))
+                .andExpect(status().isUnauthorized());
+
+        verify(notificationService, never()).getNonLues(any());
+    }
+
+    @Test
     @DisplayName("GET /notifications — succès : retourne liste des notifications non lues (200)")
     @WithMockUser(username = "locataire@test.com")
     void getNonLues_authenticated_shouldReturn200() throws Exception {

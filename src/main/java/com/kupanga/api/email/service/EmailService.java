@@ -19,6 +19,23 @@ public interface EmailService {
     void sendWelcomeMessage(String destinataire, String prenom);
 
     /**
+     * A14 : envoie le lien de confirmation de l'adresse e-mail (après le commit, B11).
+     *
+     * @param destinataire l'adresse e-mail à confirmer
+     * @param prenom       le prénom de l'utilisateur
+     * @param token        le jeton du lien (valable 24 h)
+     */
+    void envoyerVerificationEmail(String destinataire, String prenom, String token);
+
+    /**
+     * A14 : prévient le titulaire d'un compte déjà vérifié qu'une inscription a été tentée avec son adresse
+     * (l'API répond comme pour une nouvelle inscription : pas d'énumération des comptes).
+     *
+     * @param destinataire l'adresse du compte existant
+     */
+    void envoyerTentativeInscription(String destinataire);
+
+    /**
      * Email de mise à jour du mot de passe.
      * @param destinataire le destinataire
      */

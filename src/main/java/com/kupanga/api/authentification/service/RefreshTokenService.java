@@ -24,4 +24,10 @@ public interface RefreshTokenService {
      * @param token le refresh token à supprimer
      */
     void deleteRefreshToken(String token);
+
+    /**
+     * Supprime le refresh token de l'utilisateur, s'il en a un (déconnecte toutes ses sessions).
+     * @param user utilisateur
+     */
+    void revokeAllForUser(User user);
 }

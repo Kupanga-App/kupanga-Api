@@ -13,7 +13,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
         properties = {
                 "minio.endpoint=http://localhost:9000",
                 "minio.access-key=minioadmin",
-                "minio.secret-key=minioadmin"
+                "minio.secret-key=minioadmin",
+                "app.url-mino=http://localhost:9000"
         }
 )
 @DisplayName("MinioConfig test")

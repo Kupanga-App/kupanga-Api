@@ -31,6 +31,8 @@ public class LocataireSpecification {
     public Specification<User> build(Long bienId, LocataireSearchDTO dto) {
         return Specification
                 .where(pourBien(bienId))
+                // B12 : un compte anonymisé n'est plus un candidat
+                .and((root, query, cb) -> cb.isFalse(root.get("anonymise")))
                 .and(parPrenom(dto.firstName()))
                 .and(parNom(dto.lastName()))
                 .and(parMail(dto.mail()));

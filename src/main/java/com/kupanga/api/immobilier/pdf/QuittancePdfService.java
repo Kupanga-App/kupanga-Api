@@ -1,5 +1,7 @@
 package com.kupanga.api.immobilier.pdf;
 
+import com.kupanga.api.juridiction.JuridictionRegistry;
+import com.kupanga.api.juridiction.TypeDocument;
 import com.kupanga.api.immobilier.entity.Quittance;
 import com.kupanga.api.minio.service.MinioService;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +22,7 @@ import static com.kupanga.api.minio.constant.MinioConstant.QUITTANCE_BUCKET;
 public class QuittancePdfService {
 
     private final TemplateEngine templateEngine;
+    private final JuridictionRegistry juridictionRegistry;
     private final MinioService   minioService;
 
 
@@ -35,12 +38,16 @@ public class QuittancePdfService {
             // 1 — Alimenter le contexte Thymeleaf
             Context ctx = new Context();
             ctx.setVariable("quittance",    quittance);
+            // J3 : montants dans la devise figée du document, formatés selon la langue de son pays
+            ctx.setVariable("montants", juridictionRegistry.formatMontant(quittance.getPays(), quittance.getDevise()));
             ctx.setVariable("proprietaire", quittance.getProprietaire());
             ctx.setVariable("locataire",    quittance.getLocataire());
             ctx.setVariable("moisLabel",    quittance.getMois());
 
             // 2 — Rendu HTML via Thymeleaf
-            String html = templateEngine.process("quittance", ctx);
+            // J5 : modèle du pays et de la version figés sur le document
+            String html = templateEngine.process(
+                    juridictionRegistry.gabarit(TypeDocument.QUITTANCE, quittance.getPays(), quittance.getModeleVersion()), ctx);
 
             // 3 — Conversion HTML → PDF via Flying Saucer
             byte[] pdfBytes = htmlToPdf(html);

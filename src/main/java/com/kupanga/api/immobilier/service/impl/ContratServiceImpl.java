@@ -1,5 +1,8 @@
 package com.kupanga.api.immobilier.service.impl;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import com.kupanga.api.juridiction.JuridictionRegistry;
 import com.kupanga.api.email.service.EmailService;
 import com.kupanga.api.exception.business.KupangaBusinessException;
 import com.kupanga.api.immobilier.dto.formDTO.ContratFormDTO;
@@ -38,24 +41,57 @@ public class ContratServiceImpl implements ContratService {
     private final BienService        bienService;
     private final ContratMapper      contratMapper;
     private final NotificationService notificationService;
+    private final JuridictionRegistry juridictionRegistry;
 
     @Override
     public void creerContrat(ContratFormDTO dto, String emailProprietaire) {
 
         User proprietaire = userService.getUserByEmail(emailProprietaire);
 
-        User locataire = userService.getUserByEmail(dto.getEmailLocataire());
+        // Contrôle IDOR : le bien doit appartenir au propriétaire connecté,
+        // et le locataire doit être celui assigné au bien
+        Bien bien = bienService.verifierProprietaire(dto.getBienId(), emailProprietaire);
+        bienService.verifierBienActif(bien);
+        User locataire = bienService.verifierLocataireDuBien(bien, dto.getEmailLocataire());
 
-        Bien bien = bienService.findWithAllProperties(dto.getBienId());
+        // C12 : garantie en montant (France) ou en mois de loyer + avance (RDC : dépôt masqué dans le profil)
+        Integer garantieMois = null;
+        Integer avanceMois = null;
+        BigDecimal depotGarantie;
+        if (juridictionRegistry.profil(bien.getPays()).champsMasques().contains("depotGarantie")) {
+            garantieMois = dto.getGarantieMois() != null ? dto.getGarantieMois() : bien.getGarantieMois();
+            avanceMois = dto.getAvanceMois() != null ? dto.getAvanceMois() : bien.getAvanceMois();
+            if (garantieMois == null || avanceMois == null) {
+                throw new KupangaBusinessException(
+                        "La garantie et l'avance (en mois de loyer) sont obligatoires", HttpStatus.BAD_REQUEST);
+            }
+            depotGarantie = dto.getLoyerMensuel().multiply(BigDecimal.valueOf(garantieMois))
+                    .setScale(2, RoundingMode.HALF_UP);
+        } else {
+            if (dto.getDepotGarantie() == null) {
+                throw new KupangaBusinessException("Le dépôt de garantie est obligatoire", HttpStatus.BAD_REQUEST);
+            }
+            depotGarantie = dto.getDepotGarantie();
+        }
+
+        // C5 : montants du bail sous les plafonds de la devise du bien
+        juridictionRegistry.verifierMontants(bien.getDevise(), dto.getLoyerMensuel(), dto.getChargesMensuelles(),
+                depotGarantie);
 
         Contrat contrat = Contrat.builder()
                 .bien(bien)
+                // J3 : juridiction figée sur le bail (ne change plus si le profil évolue)
+                .pays(bien.getPays())
+                .devise(bien.getDevise())
+                .modeleVersion(juridictionRegistry.profil(bien.getPays()).modeleDocuments())
                 .proprietaire(proprietaire)
                 .locataire(locataire)
                 .adresseBien(bien.getAdresse() + ", " + bien.getVille())
                 .loyerMensuel(dto.getLoyerMensuel())
                 .chargesMensuelles(dto.getChargesMensuelles())
-                .depotGarantie(dto.getDepotGarantie())
+                .depotGarantie(depotGarantie)
+                .garantieMois(garantieMois)
+                .avanceMois(avanceMois)
                 .dateDebut(dto.getDateDebut())
                 .dateFin(dto.getDateFin())
                 .dureeBailMois(dto.getDureeBailMois())
@@ -63,8 +99,8 @@ public class ContratServiceImpl implements ContratService {
                 .build();
 
         // Génère le PDF initial (sans signatures)
-        String urlPdf = contratPdfService.genererEtUploaderPdf(contrat);
-        contrat.setUrlPdf(urlPdf);
+        String clePdf = contratPdfService.genererEtUploaderPdf(contrat);
+        contrat.setClePdf(clePdf);
         contratRepository.save(contrat);
 
     }
@@ -72,20 +108,17 @@ public class ContratServiceImpl implements ContratService {
     public ContratDTO getContratParToken(String token) {
 
         Contrat contrat = contratRepository.findByTokenSignature(token)
-                .orElseThrow(() -> new KupangaBusinessException("Token Invalide" , HttpStatus.UNAUTHORIZED));
+                .orElseThrow(ContratServiceImpl::lienInvalide);
 
         // Vérifie si le token est expiré
         if (LocalDateTime.now().isAfter(contrat.getTokenExpiration())) {
-            contrat.setStatut(StatutContrat.EXPIRE);
-            contratRepository.save(contrat);
-            throw new KupangaBusinessException("Le lien de la signature a éxpiré" , HttpStatus.UNAUTHORIZED);
+            contratRepository.marquerExpire(contrat.getId(), contrat.getVersion());
+            throw lienExpire();
         }
 
         // Vérifie que le contrat est bien en attente de signature locataire
         if (contrat.getStatut() != StatutContrat.EN_ATTENTE_SIGNATURE_LOCATAIRE) {
-            throw new IllegalStateException(
-                    "Ce contrat ne peut plus être signé — statut actuel : " + contrat.getStatut()
-            );
+            throw new KupangaBusinessException("Ce contrat ne peut plus être signé", HttpStatus.CONFLICT);
         }
 
         return contratMapper.toDTO(contrat);
@@ -96,6 +129,13 @@ public class ContratServiceImpl implements ContratService {
                                    String emailProprietaire) {
 
         Contrat contrat = findAndVerify(contratId, emailProprietaire);
+        bienService.verifierDocumentModifiable(contrat.getBien(), contrat.getProprietaire(), contrat.getLocataire());
+
+        // B6 : un contrat signé (ou annulé) est figé. Re-signer en attente du locataire ou après expiration
+        // reste possible : c'est la seule façon de renvoyer un lien de signature (l'ancien est invalidé).
+        if (contrat.getStatut() == StatutContrat.SIGNE || contrat.getStatut() == StatutContrat.ANNULE) {
+            throw new KupangaBusinessException("Ce contrat ne peut plus être signé", HttpStatus.CONFLICT);
+        }
 
         contrat.setSignatureProprietaire(signatureBase64);
         contrat.setDateSignatureProprietaire(LocalDateTime.now());
@@ -107,9 +147,10 @@ public class ContratServiceImpl implements ContratService {
         contrat.setTokenExpiration(LocalDateTime.now().plusHours(72));
 
         // Regénère le PDF avec la signature du proprio
-        String urlPdf = contratPdfService.genererEtUploaderPdf(contrat);
-        contrat.setUrlPdf(urlPdf);
-        contratRepository.save(contrat);
+        String clePdf = contratPdfService.genererEtUploaderPdf(contrat);
+        contrat.setClePdf(clePdf);
+        // B6 : écriture immédiate : un conflit (409) est détecté avant les e-mails et notifications
+        contratRepository.saveAndFlush(contrat);
 
         // Envoie l'email au locataire
         emailService.envoyerInvitationSignature(contrat, token);
@@ -132,27 +173,33 @@ public class ContratServiceImpl implements ContratService {
     public void signerLocataire(String token, String signatureBase64) {
 
         Contrat contrat = contratRepository.findByTokenSignature(token)
-                .orElseThrow(() -> new KupangaBusinessException("Token Invalide" , HttpStatus.UNAUTHORIZED));
+                .orElseThrow(ContratServiceImpl::lienInvalide);
 
         // Vérifie l'expiration
         if (LocalDateTime.now().isAfter(contrat.getTokenExpiration())) {
-            contrat.setStatut(StatutContrat.EXPIRE);
-            contratRepository.save(contrat);
-            throw new KupangaBusinessException("Le lien de la signature a éxpiré" , HttpStatus.UNAUTHORIZED);
+            contratRepository.marquerExpire(contrat.getId(), contrat.getVersion());
+            throw lienExpire();
         }
+
+        // B6 : le locataire ne signe qu'après le propriétaire, et une seule fois
+        if (contrat.getStatut() != StatutContrat.EN_ATTENTE_SIGNATURE_LOCATAIRE) {
+            throw new KupangaBusinessException("Ce contrat ne peut plus être signé", HttpStatus.CONFLICT);
+        }
+        bienService.verifierDocumentModifiable(contrat.getBien(), contrat.getProprietaire(), contrat.getLocataire());
 
         contrat.setSignatureLocataire(signatureBase64);
         contrat.setDateSignatureLocataire(LocalDateTime.now());
         contrat.setStatut(StatutContrat.SIGNE);
 
         // Génère le PDF final avec les deux signatures
-        String urlPdf = contratPdfService.genererEtUploaderPdf(contrat);
-        contrat.setUrlPdf(urlPdf);
+        String clePdf = contratPdfService.genererEtUploaderPdf(contrat);
+        contrat.setClePdf(clePdf);
 
         // Invalide le token
         contrat.setTokenSignature(null);
         contrat.setTokenExpiration(null);
-        contratRepository.save(contrat);
+        // B6 : écriture immédiate : un conflit (409) est détecté avant les e-mails et notifications
+        contratRepository.saveAndFlush(contrat);
 
         // Envoie les emails de confirmation aux deux parties
         emailService.envoyerConfirmationContratSigne(contrat);
@@ -186,11 +233,20 @@ public class ContratServiceImpl implements ContratService {
      * @param email email
      * @return le contrat.
      */
+    // B7 : 404 / 410 et non 401, que le front traite comme une session expirée (retour à la connexion)
+    private static KupangaBusinessException lienInvalide() {
+        return new KupangaBusinessException("Lien de signature invalide", HttpStatus.NOT_FOUND);
+    }
+
+    private static KupangaBusinessException lienExpire() {
+        return new KupangaBusinessException("Le lien de signature a expiré", HttpStatus.GONE);
+    }
+
     private Contrat findAndVerify(Long contratId, String email) {
         Contrat contrat = contratRepository.findById(contratId)
                 .orElseThrow(() -> new KupangaBusinessException("Aucun contrat trouvé " , HttpStatus.NOT_FOUND));
         if (!contrat.getProprietaire().getMail().equals(email)) {
-            throw new KupangaBusinessException(" Email du propriétaire incorrect " , HttpStatus.UNAUTHORIZED);
+            throw new KupangaBusinessException("Accès refusé : ce contrat ne vous appartient pas" , HttpStatus.FORBIDDEN);
         }
         return contrat;
     }
