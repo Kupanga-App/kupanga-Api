@@ -17,6 +17,12 @@ spring:
 
 server:
   port: ${PORT:8089}
+  # R1 : réponses texte compressées en gzip (réseau mobile lent et cher au Congo) ; les photos et PDF, déjà
+  # compressés, ne le sont pas
+  compression:
+    enabled: true
+    mime-types: application/json,application/problem+json,text/html,text/css,text/plain,application/javascript
+    min-response-size: 1KB
 
 # D2 : /actuator/health/liveness (HEALTHCHECK du Dockerfile) et /readiness, sans détails
 management:
@@ -46,13 +52,18 @@ kupanga:
       fuseau: Europe/Paris
       devises: [EUR]
       devise-defaut: EUR
-      champs-obligatoires: [codePostal]
-      # J4 : adresse congolaise sans objet en France
-      champs-masques: [commune, quartier, avenue, numeroParcelle, pointDeRepere]
+      champs-obligatoires: [codePostal, depotGarantie]
+      # J4 : adresse congolaise sans objet en France ; C12 : dépôt en montant (pas de garantie en mois ni d'avance)
+      champs-masques: [commune, quartier, avenue, numeroParcelle, pointDeRepere, garantieMois, avanceMois, heuresElectriciteParJour]
       types-bien: [APPARTEMENT, MAISON, STUDIO]
       modele-documents: fr-v1
       notification:
         canaux: [EMAIL]
+      # C8-bis : modes que le propriétaire peut déclarer (aucun paiement ne passe par l'application)
+      modes-paiement: [VIREMENT, CHEQUE, ESPECES, AUTRE]
+      # C11 / C13
+      equipements: [PARKING, CLIMATISATION]
+      compteurs-edl: [EAU_FROIDE, EAU_CHAUDE, ELECTRICITE, ELECTRICITE_HP, ELECTRICITE_HC, GAZ]
     CD:
       locale: fr-CD
       # MVP Kinshasa (UTC+1) ; Lubumbashi est en UTC+2
@@ -60,13 +71,19 @@ kupanga:
       devises: [USD, CDF]
       devise-defaut: USD
       # J4 (C1) : on situe un logement par sa commune et son quartier (« Q/Matonge, C/Kalamu »)
-      champs-obligatoires: [commune, quartier]
-      # Pas de code postal en usage, ni de diagnostic de performance énergétique en RDC
-      champs-masques: [codePostal, classeEnergie, classeGes]
-      types-bien: [APPARTEMENT, MAISON, STUDIO]
+      # C12 : garantie en mois de loyer et loyers payés d'avance (en mois), deux champs distincts
+      champs-obligatoires: [commune, quartier, garantieMois, avanceMois]
+      # Pas de code postal en usage, ni de diagnostic de performance énergétique en RDC ; garantie en mois (C12)
+      champs-masques: [codePostal, classeEnergie, classeGes, depotGarantie]
+      # C10
+      types-bien: [APPARTEMENT, MAISON, STUDIO, VILLA, ANNEXE, CHAMBRE, LOCAL_COMMERCIAL, ENTREPOT, PARCELLE, TERRAIN]
       modele-documents: cd-v1
       notification:
         canaux: [EMAIL, WHATSAPP_LIEN]
+      modes-paiement: [ESPECES, MOBILE_MONEY, VIREMENT, AUTRE]
+      # C11 / C13 : eau, électricité (SNEL, groupe, solaire), sécurité ; compteurs prépayés et groupe électrogène
+      equipements: [EAU_REGIDESO, FORAGE, CITERNE, ELECTRICITE_SNEL, GROUPE_ELECTROGENE, PANNEAUX_SOLAIRES, CLOTURE, GARDIENNAGE, PARKING, CLIMATISATION]
+      compteurs-edl: [EAU_FROIDE, ELECTRICITE, CASH_POWER, GROUPE_ELECTROGENE]
   # C5 : montants maximaux par devise (au-delà : 400). CDF ≈ 100 000 USD au taux d'environ 2 800 CDF pour 1 USD.
   plafonds:
     EUR: { loyer-mensuel: 100000, charges-mensuelles: 10000, depot-garantie: 100000 }

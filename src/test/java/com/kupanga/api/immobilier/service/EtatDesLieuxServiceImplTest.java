@@ -24,6 +24,7 @@ import org.springframework.http.HttpStatus;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -420,5 +421,29 @@ class EtatDesLieuxServiceImplTest {
         verify(edlPdfService, never()).genererEtUploaderPdf(any());
         verify(emailService, never()).envoyerInvitationSignature(any(EtatDesLieux.class), anyString());
         verifyNoInteractions(notificationService);
+    }
+
+    @Test
+    @DisplayName("C13 : creerEtatDesLieux() — Cash Power et groupe électrogène acceptés en RDC, refusés en France (400)")
+    void creerEtatDesLieux_compteursSelonPays() {
+        EtatDesLieuxFormDTO dto = buildValidEdlFormDTO();
+        EtatDesLieuxFormDTO.CompteurReleveFormDTO cashPower = new EtatDesLieuxFormDTO.CompteurReleveFormDTO();
+        cashPower.setTypeCompteur(TypeCompteur.CASH_POWER);
+        cashPower.setIndex(42.5);
+        cashPower.setUnite("kWh");
+        dto.setCompteurs(List.of(cashPower));
+        when(userService.getUserByEmail(proprietaire.getMail())).thenReturn(proprietaire);
+        when(bienService.verifierProprietaire(eq(1L), any())).thenReturn(bien);
+        when(bienService.verifierLocataireDuBien(eq(bien), any())).thenReturn(locataire);
+        when(edlRepository.save(any(EtatDesLieux.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        bien.setPays(Pays.FR);
+        assertThat(assertThrows(KupangaBusinessException.class,
+                () -> edlService.creerEtatDesLieux(dto, proprietaire.getMail())).getStatus())
+                .isEqualTo(HttpStatus.BAD_REQUEST);
+        verify(edlRepository, never()).save(any());
+
+        bien.setPays(Pays.CD);
+        assertDoesNotThrow(() -> edlService.creerEtatDesLieux(dto, proprietaire.getMail()));
     }
 }

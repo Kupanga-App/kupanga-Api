@@ -1,8 +1,9 @@
 package com.kupanga.api.minio.service.impl;
 
-import com.kupanga.api.exception.business.KupangaBusinessException;
-import com.kupanga.api.minio.image.FormatImage;
-import com.kupanga.api.minio.image.ValidationImage;
+import com.kupanga.api.minio.image.CompressionImage;
+import com.kupanga.api.minio.image.FichierImage;
+import com.kupanga.api.minio.image.PhotoPreparee;
+import com.kupanga.api.minio.image.PhotoStockee;
 import com.kupanga.api.minio.service.MinioService;
 import io.minio.*;
 import io.minio.http.Method;
@@ -93,31 +94,46 @@ public class MinioServiceImpl implements MinioService {
     }
 
     @Override
-    public String uploadImage(MultipartFile file, String bucketName) {
+    public String envoyerImagePublique(PhotoPreparee photo, String bucketName) {
         try {
-            // B5 : format reconnu au contenu ; nom et type MIME fixés par le serveur (jamais ceux du client)
-            FormatImage format = ValidationImage.verifier(file);
-
-            // Crée le bucket si nécessaire
             createBucketIfNotExists(bucketName, true);
-
-            String fileName = UUID.randomUUID() + "." + format.getExtension();
-
-            minioClient.putObject(
-                    PutObjectArgs.builder()
-                            .bucket(bucketName)
-                            .object(fileName)
-                            .stream(file.getInputStream(), file.getSize(), -1)
-                            .contentType(format.getTypeMime())
-                            .build()
-            );
-
-            return url_minio + "/" + bucketName + "/" + fileName;
-        } catch (KupangaBusinessException e) {
-            throw e;
+            return url(bucketName, envoyer(bucketName, photo.versions().get(0)));
         } catch (Exception e) {
             throw new RuntimeException("Erreur lors de upload vers MinIO", e);
         }
+    }
+
+    @Override
+    public PhotoStockee envoyerPhotoAvecVignette(PhotoPreparee photo, String bucketName) {
+        try {
+            createBucketIfNotExists(bucketName, true);
+            FichierImage grande = photo.versions().get(0);
+            FichierImage vignette = photo.versions().get(1);
+            String urlGrande = url(bucketName, envoyer(bucketName, grande));
+            // Format non réduit (WEBP) : une seule copie, servie aussi comme vignette
+            String urlVignette = vignette == grande ? urlGrande : url(bucketName, envoyer(bucketName, vignette));
+            return new PhotoStockee(urlGrande, urlVignette);
+        } catch (Exception e) {
+            throw new RuntimeException("Erreur lors de upload vers MinIO", e);
+        }
+    }
+
+    /** @return le nom de l'objet créé */
+    private String envoyer(String bucketName, FichierImage version) throws Exception {
+        String nom = UUID.randomUUID() + "." + version.format().getExtension();
+        minioClient.putObject(
+                PutObjectArgs.builder()
+                        .bucket(bucketName)
+                        .object(nom)
+                        .stream(new ByteArrayInputStream(version.contenu()), version.contenu().length, -1)
+                        .contentType(version.format().getTypeMime())
+                        .build()
+        );
+        return nom;
+    }
+
+    private String url(String bucketName, String nom) {
+        return url_minio + "/" + bucketName + "/" + nom;
     }
 
     /** Nom d'objet simple : ni sous-dossier, ni « .. », ni paramètres. */
@@ -199,6 +215,28 @@ public class MinioServiceImpl implements MinioService {
         String objet = url.substring((url_minio + "/" + bucketName + "/").length());
         try {
             minioClient.removeObject(RemoveObjectArgs.builder().bucket(bucketName).object(objet).build());
+        } catch (Exception e) {
+            log.warn("Suppression d'un objet du bucket {} impossible : {}", bucketName, e.getClass().getName());
+        }
+    }
+
+    @Override
+    public String uploadImagePrivee(MultipartFile file, String bucketName) {
+        // R1 : reçu réduit à 1600 px et sans EXIF/GPS (lisible, mais plus léger sur réseau mobile)
+        PhotoPreparee photo = PhotoPreparee.pourBucketPrive(file, CompressionImage.COTE_GRANDE);
+        try {
+            createBucketIfNotExists(bucketName, false);
+            return envoyer(bucketName, photo.versions().get(0));
+        } catch (Exception e) {
+            throw new RuntimeException("Erreur lors de upload vers MinIO", e);
+        }
+    }
+
+    @Override
+    public void supprimer(String bucketName, String cle) {
+        if (cle == null || cle.isBlank()) return;
+        try {
+            minioClient.removeObject(RemoveObjectArgs.builder().bucket(bucketName).object(cle).build());
         } catch (Exception e) {
             log.warn("Suppression d'un objet du bucket {} impossible : {}", bucketName, e.getClass().getName());
         }

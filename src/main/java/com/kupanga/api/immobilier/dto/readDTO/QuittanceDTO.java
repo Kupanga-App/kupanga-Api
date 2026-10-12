@@ -1,5 +1,6 @@
 package com.kupanga.api.immobilier.dto.readDTO;
 
+import com.kupanga.api.immobilier.entity.ModePaiement;
 import com.kupanga.api.juridiction.Pays;
 import com.kupanga.api.juridiction.Devise;
 import com.kupanga.api.immobilier.entity.StatutQuittance;
@@ -31,6 +32,11 @@ public class QuittanceDTO {
     // ─── Dates ────────────────────────────────────────────────────────────────
     private LocalDate dateEcheance;
     private LocalDate datePaiement;
+    /** C8-bis : déclaré par le propriétaire (aucun paiement via l'application). */
+    private ModePaiement modePaiement;
+    private String referencePaiement;
+    /** C8-bis : photo du reçu, URL présignée de 5 minutes (null sans reçu). */
+    private String urlRecu;
 
     // ─── Statut ───────────────────────────────────────────────────────────────
     private StatutQuittance statut;

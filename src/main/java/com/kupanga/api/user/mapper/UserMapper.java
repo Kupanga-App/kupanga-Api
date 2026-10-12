@@ -11,6 +11,7 @@ public interface UserMapper {
     UserDTO toDTO(User user);
 
     @Mapping(target = "role",     ignore = true)
+    @Mapping(target = "telephone", ignore = true) // C6 : jamais dans la recherche de candidats
     UserDTO toDTOWithoutCredentials(User user);
 }
 

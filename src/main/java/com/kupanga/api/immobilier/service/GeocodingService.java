@@ -17,6 +17,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.time.Duration;
 import java.util.Locale;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -56,8 +57,42 @@ public class GeocodingService {
     )
     @Nullable
     public Point geocode(String adresse, String ville, String codePostal, Pays pays) {
+        return appeler(buildUrl(adresse, ville, codePostal, pays), ville);
+    }
+
+    /**
+     * C2 : centre d'une zone (quartier, commune ou ville) par une recherche libre, en repli quand l'adresse
+     * n'est pas trouvée (fréquent à Kinshasa).
+     *
+     * @param parties du plus précis au plus large (ex. « Matonge », « Kalamu », « Kinshasa ») ; vides ignorées
+     * @return le point, ou {@code null} si Nominatim ne trouve rien ou ne répond pas
+     */
+    @Cacheable(
+            value  = "geocode",
+            key    = "'zone|' + T(com.kupanga.api.immobilier.service.GeocodingService).cleCache(T(java.lang.String).join(',', #parties), null, null, #pays)",
+            unless = "#result == null"
+    )
+    @Nullable
+    public Point geocodeZone(List<String> parties, Pays pays) {
+        String requete = parties.stream()
+                .filter(p -> p != null && !p.isBlank())
+                .map(this::sanitize)
+                .collect(Collectors.joining(", "));
+        if (requete.isBlank()) return null;
+        String url = UriComponentsBuilder
+                .fromHttpUrl("https://nominatim.openstreetmap.org/search")
+                .queryParam("q", requete)
+                .queryParam("countrycodes", pays != null ? pays.codeMinuscule() : null)
+                .queryParam("format", "json")
+                .queryParam("limit", "1")
+                .build()
+                .toUriString();
+        return appeler(url, requete);
+    }
+
+    @Nullable
+    private Point appeler(String url, String contexte) {
         try {
-            String url      = buildUrl(adresse, ville, codePostal, pays);
             String response = webClient.get()
                     .uri(url)
                     .header("User-Agent", "KupangaImmobilier/1.0")
@@ -69,7 +104,7 @@ public class GeocodingService {
             return parseResponse(response).orElse(null);
 
         } catch (Exception e) {
-            log.warn("Échec géocodage pour {} {} : {}", ville, codePostal, e.getMessage());
+            log.warn("Échec géocodage pour {} : {}", contexte, e.getClass().getSimpleName());
             return null;
         }
     }

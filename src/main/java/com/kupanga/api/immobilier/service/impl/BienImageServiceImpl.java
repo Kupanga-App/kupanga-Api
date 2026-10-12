@@ -7,7 +7,7 @@ import com.kupanga.api.immobilier.service.BienImageService;
 import com.kupanga.api.minio.service.MinioService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
+import com.kupanga.api.minio.image.PhotoPreparee;
 
 import java.util.List;
 @Service
@@ -18,11 +18,14 @@ public class BienImageServiceImpl implements BienImageService {
     private final MinioService minioService ;
 
     @Override
-    public void uploadImagesImo(List<MultipartFile> files, String bucketName,  Bien bien) {
+    public void uploadImagesImo(List<PhotoPreparee> photos, String bucketName,  Bien bien) {
 
-        List<BienImage> images = files.stream()
-                .map(file -> BienImage.builder()
-                        .url( minioService.uploadImage(file, bucketName))
+        // R1 : version de 1600 px + vignette de 400 px, en JPEG sans EXIF
+        List<BienImage> images = photos.stream()
+                .map(photo -> minioService.envoyerPhotoAvecVignette(photo, bucketName))
+                .map(photo -> BienImage.builder()
+                        .url(photo.url())
+                        .urlVignette(photo.urlVignette())
                         .bien(bien)
                         .build())
                 .toList();

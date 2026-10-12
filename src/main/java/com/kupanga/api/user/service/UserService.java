@@ -3,6 +3,7 @@ package com.kupanga.api.user.service;
 import com.kupanga.api.exception.business.InvalidRoleException;
 import com.kupanga.api.exception.business.UserAlreadyExistsException;
 import com.kupanga.api.exception.business.UserNotFoundException;
+import com.kupanga.api.user.dto.readDTO.UserDTO;
 import com.kupanga.api.user.entity.Role;
 import com.kupanga.api.user.entity.User;
 
@@ -91,4 +92,14 @@ public interface UserService {
      * @return Optional contenant l'utilisateur ou vide
      */
     Optional<User> findOptionalByMail(String mail);
+
+    /**
+     * C6 : enregistre, change ou efface ({@code null} ou vide) le numéro de contact de l'utilisateur connecté.
+     * Le numéro n'est pas vérifié ; il est stocké au format E.164.
+     *
+     * @param email     e-mail de l'utilisateur connecté
+     * @param telephone numéro au format international, séparateurs acceptés
+     * @return le profil mis à jour
+     */
+    UserDTO modifierTelephone(String email, String telephone);
 }

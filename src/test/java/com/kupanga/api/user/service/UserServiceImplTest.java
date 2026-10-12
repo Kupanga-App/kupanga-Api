@@ -4,7 +4,9 @@ import com.kupanga.api.exception.business.InvalidRoleException;
 import com.kupanga.api.exception.business.UserAlreadyExistsException;
 import com.kupanga.api.exception.business.UserNotFoundException;
 import com.kupanga.api.authentification.utils.JwtUtils;
+import com.kupanga.api.user.dto.readDTO.UserDTO;
 import com.kupanga.api.user.entity.Role;
+import com.kupanga.api.user.mapper.UserMapper;
 import com.kupanga.api.user.entity.User;
 import com.kupanga.api.user.repository.UserRepository;
 import com.kupanga.api.user.service.impl.UserServiceImpl;
@@ -13,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mapstruct.factory.Mappers;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Optional;
@@ -32,6 +35,9 @@ class UserServiceImplTest {
 
     @Mock
     private PasswordEncoder passwordEncoder;
+
+    @Spy
+    private UserMapper userMapper = Mappers.getMapper(UserMapper.class);
 
     @Spy
     @InjectMocks
@@ -155,5 +161,40 @@ class UserServiceImplTest {
     void testVerifieSiUtilisateurEstProprietaire_valid() {
         assertThatCode(() -> utilisateurService.verifyIfUserIsOwner(Role.ROLE_PROPRIETAIRE))
                 .doesNotThrowAnyException();
+    }
+
+    @Test
+    @DisplayName("C6 : modifierTelephone enregistre le numéro au format E.164 et le renvoie")
+    void modifierTelephone_normalise() {
+        User user = User.builder().id(1L).mail("jean@exemple.fr").build();
+        when(userRepository.findByMail("jean@exemple.fr")).thenReturn(Optional.of(user));
+
+        UserDTO dto = utilisateurService.modifierTelephone("jean@exemple.fr", "00 33 6 12 34 56 78");
+
+        assertThat(user.getTelephone()).isEqualTo("+33612345678");
+        assertThat(dto.telephone()).isEqualTo("+33612345678");
+        verify(userRepository).save(user);
+    }
+
+    @Test
+    @DisplayName("C6 : modifierTelephone avec une valeur vide efface le numéro")
+    void modifierTelephone_videEfface() {
+        User user = User.builder().id(1L).mail("jean@exemple.fr").telephone("+243812345678").build();
+        when(userRepository.findByMail("jean@exemple.fr")).thenReturn(Optional.of(user));
+
+        utilisateurService.modifierTelephone("jean@exemple.fr", "  ");
+
+        assertThat(user.getTelephone()).isNull();
+    }
+
+    @Test
+    @DisplayName("C6 : modifierTelephone refuse un numéro local (sans indicatif) sans rien enregistrer")
+    void modifierTelephone_numeroLocal_refuse() {
+        User user = User.builder().id(1L).mail("jean@exemple.fr").build();
+        when(userRepository.findByMail("jean@exemple.fr")).thenReturn(Optional.of(user));
+
+        assertThatThrownBy(() -> utilisateurService.modifierTelephone("jean@exemple.fr", "0812345678"))
+                .isInstanceOf(IllegalArgumentException.class);
+        verify(userRepository, never()).save(any());
     }
 }

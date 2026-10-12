@@ -58,7 +58,8 @@ public class BienPoiServiceImpl implements BienPoiService {
                         .build())
                 .toList();
 
-        bienPoiRepository.saveAll(bienPois);
+        // C2 : un repère déplacé relance le calcul ; les POI précédents sont remplacés en une transaction
+        bienPoiRepository.remplacer(bienId, bienPois);
         log.info("POI sauvegardés pour le bien {}", bienId);
     }
 }

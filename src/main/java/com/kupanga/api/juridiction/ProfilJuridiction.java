@@ -1,5 +1,8 @@
 package com.kupanga.api.juridiction;
 
+import com.kupanga.api.immobilier.entity.Equipement;
+import com.kupanga.api.immobilier.entity.ModePaiement;
+import com.kupanga.api.immobilier.entity.TypeCompteur;
 import com.kupanga.api.immobilier.entity.TypeBien;
 
 import java.time.ZoneId;
@@ -20,6 +23,9 @@ import java.util.Set;
  * @param typesBien          types de bien proposés
  * @param modeleDocuments    version des modèles de bail, quittance et EDL, ex. {@code fr-v1} (figée sur chaque document)
  * @param notification       canaux de notification des parties
+ * @param modesPaiement      C8-bis : modes de paiement que le propriétaire peut déclarer (aucun paiement via l'app)
+ * @param equipements        C11 : équipements proposés pour un bien (eau, électricité, sécurité…)
+ * @param compteursEdl       C13 : compteurs relevés dans un état des lieux
  */
 public record ProfilJuridiction(
         Locale locale,
@@ -30,7 +36,10 @@ public record ProfilJuridiction(
         Set<String> champsMasques,
         Set<TypeBien> typesBien,
         String modeleDocuments,
-        Notification notification
+        Notification notification,
+        List<ModePaiement> modesPaiement,
+        List<Equipement> equipements,
+        List<TypeCompteur> compteursEdl
 ) {
 
     /** @param canaux canaux utilisés, dans l'ordre */
@@ -48,5 +57,8 @@ public record ProfilJuridiction(
         champsMasques = champsMasques == null ? Set.of() : Set.copyOf(champsMasques);
         typesBien = typesBien == null ? Set.of() : Set.copyOf(typesBien);
         notification = notification == null ? new Notification(List.of()) : notification;
+        modesPaiement = modesPaiement == null ? List.of() : List.copyOf(modesPaiement);
+        equipements = equipements == null ? List.of() : List.copyOf(equipements);
+        compteursEdl = compteursEdl == null ? List.of() : List.copyOf(compteursEdl);
     }
 }

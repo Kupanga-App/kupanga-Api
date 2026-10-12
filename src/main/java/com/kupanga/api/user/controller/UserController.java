@@ -4,7 +4,10 @@ import jakarta.validation.Valid;
 import org.springframework.security.access.prepost.PreAuthorize;
 import com.kupanga.api.immobilier.dto.readDTO.BienDTO;
 import com.kupanga.api.immobilier.service.BienService;
+import com.kupanga.api.user.dto.formDTO.TelephoneDTO;
+import com.kupanga.api.user.dto.readDTO.UserDTO;
 import com.kupanga.api.user.research.LocataireSearchService;
+import com.kupanga.api.user.service.UserService;
 import com.kupanga.api.user.research.dto.LocatairePageDTO;
 import com.kupanga.api.user.research.dto.LocataireSearchDTO;
 import io.swagger.v3.oas.annotations.Operation;
@@ -31,6 +34,39 @@ public class UserController {
 
     private final BienService bienService;
     private final LocataireSearchService locataireSearchService;
+    private final UserService userService;
+
+    // =========================================
+    // MON TÉLÉPHONE (C6)
+    // =========================================
+    @Operation(
+            summary = "Enregistrer, changer ou effacer mon numéro de téléphone",
+            description = """
+                    Numéro de contact facultatif, **non vérifié** (ce n'est pas un identifiant de connexion).
+                    Format international obligatoire (`+243 812 345 678`, `0033 6 12 34 56 78`) ; espaces, points,
+                    tirets et parenthèses acceptés. Stocké et renvoyé au format E.164 (`+243812345678`).
+                    `null` ou une chaîne vide efface le numéro. Visible seulement par l'autre partie d'un bien
+                    (propriétaire ↔ locataire), jamais dans l'annonce publique.
+                    """
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Profil mis à jour",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserDTO.class))),
+            @ApiResponse(responseCode = "400", description = "Numéro invalide (pas au format international)"),
+            @ApiResponse(responseCode = "401", description = "Utilisateur non authentifié")
+    })
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            required = true,
+            content = @Content(mediaType = "application/json",
+                    examples = @ExampleObject(value = """
+                            { "telephone": "+243 812 345 678" }
+                            """))
+    )
+    @PatchMapping("/me/telephone")
+    public ResponseEntity<UserDTO> modifierTelephone(@Valid @RequestBody TelephoneDTO dto) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return ResponseEntity.ok(userService.modifierTelephone(auth.getName(), dto.telephone()));
+    }
 
     // =========================================
     // MES BIENS

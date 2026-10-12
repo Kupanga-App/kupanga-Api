@@ -49,6 +49,10 @@ public class User {
     @Column(name = "google_id")
     private String googleId;
 
+    /** C6 : numéro de contact facultatif, non vérifié, au format E.164 (jamais un identifiant de connexion). */
+    @Column(name = "telephone", length = 16)
+    private String telephone;
+
     /** A14 : faux tant que le lien envoyé à l'inscription n'a pas été ouvert ; connexion refusée d'ici là. */
     @Column(name = "email_verifie", nullable = false)
     private boolean emailVerifie;

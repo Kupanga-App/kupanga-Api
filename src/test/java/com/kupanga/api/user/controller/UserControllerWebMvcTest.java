@@ -8,7 +8,9 @@ import com.kupanga.api.immobilier.dto.readDTO.BienDTO;
 import com.kupanga.api.immobilier.entity.TypeBien;
 import com.kupanga.api.immobilier.service.BienService;
 import com.kupanga.api.user.research.LocataireSearchService;
+import com.kupanga.api.user.dto.readDTO.UserDTO;
 import com.kupanga.api.user.research.dto.LocatairePageDTO;
+import com.kupanga.api.user.service.UserService;
 import jakarta.persistence.EntityManagerFactory;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -42,6 +44,7 @@ class UserControllerWebMvcTest {
 
     @MockBean private BienService            bienService;
     @MockBean private LocataireSearchService  locataireSearchService;
+    @MockBean private UserService            userService;
     @MockBean private JwtUtils               jwtUtils;
     @MockBean private UserDetailsServiceImpl  userDetailsService;
     @MockBean private EntityManagerFactory   entityManagerFactory;
@@ -141,5 +144,61 @@ class UserControllerWebMvcTest {
         }
 
         verify(locataireSearchService, never()).rechercher(anyString(), anyLong(), any());
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // PATCH /users/me/telephone (C6)
+    // ─────────────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("C6 : PATCH /users/me/telephone — sans token : 401")
+    void modifierTelephone_sansToken_401() throws Exception {
+        mockMvc.perform(patch("/users/me/telephone")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"telephone\":\"+243812345678\"}"))
+                .andExpect(status().isUnauthorized());
+
+        verify(userService, never()).modifierTelephone(any(), any());
+    }
+
+    @Test
+    @DisplayName("C6 : PATCH /users/me/telephone — numéro international : 200, appliqué à l'utilisateur connecté")
+    @WithMockUser(username = "locataire@test.com", roles = "LOCATAIRE")
+    void modifierTelephone_valide_200() throws Exception {
+        when(userService.modifierTelephone("locataire@test.com", "+243 81 234 56 78"))
+                .thenReturn(UserDTO.builder().id(2L).mail("locataire@test.com").telephone("+243812345678").build());
+
+        mockMvc.perform(patch("/users/me/telephone")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"telephone\":\"+243 81 234 56 78\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.telephone").value("+243812345678"))
+                .andExpect(jsonPath("$.password").doesNotExist());
+    }
+
+    @Test
+    @DisplayName("C6 : PATCH /users/me/telephone — numéro local ou texte : 400, rien n'est enregistré")
+    @WithMockUser(username = "locataire@test.com", roles = "LOCATAIRE")
+    void modifierTelephone_invalide_400() throws Exception {
+        for (String invalide : List.of("0812345678", "appelle-moi", "+243 81 234 56 78 99 99 99 99")) {
+            mockMvc.perform(patch("/users/me/telephone")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(java.util.Map.of("telephone", invalide))))
+                    .andExpect(status().isBadRequest());
+        }
+        verify(userService, never()).modifierTelephone(any(), any());
+    }
+
+    @Test
+    @DisplayName("C6 : PATCH /users/me/telephone — null efface le numéro (200)")
+    @WithMockUser(username = "locataire@test.com", roles = "LOCATAIRE")
+    void modifierTelephone_null_efface() throws Exception {
+        when(userService.modifierTelephone("locataire@test.com", null))
+                .thenReturn(UserDTO.builder().id(2L).mail("locataire@test.com").build());
+
+        mockMvc.perform(patch("/users/me/telephone")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"telephone\":null}"))
+                .andExpect(status().isOk());
     }
 }

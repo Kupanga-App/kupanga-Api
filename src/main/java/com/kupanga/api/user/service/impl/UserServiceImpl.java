@@ -1,15 +1,19 @@
 package com.kupanga.api.user.service.impl;
 
 import com.kupanga.api.exception.business.*;
+import com.kupanga.api.user.dto.readDTO.UserDTO;
 import com.kupanga.api.user.entity.Role;
 import com.kupanga.api.user.entity.User;
 import com.kupanga.api.user.repository.UserRepository;
 import com.kupanga.api.user.service.UserService;
+import com.kupanga.api.user.mapper.UserMapper;
 import com.kupanga.api.user.utils.EmailUtils;
+import com.kupanga.api.user.utils.TelephoneUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -19,6 +23,7 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final UserMapper userMapper;
 
     public static final List<Role> ROLES = List.of(
             Role.ROLE_PROPRIETAIRE,
@@ -98,5 +103,14 @@ public class UserServiceImpl implements UserService {
     @Override
     public java.util.Optional<User> findOptionalByMail(String mail) {
         return userRepository.findByMail(EmailUtils.normaliser(mail));
+    }
+
+    @Override
+    @Transactional
+    public UserDTO modifierTelephone(String email, String telephone) {
+        User user = getUserByEmail(email);
+        user.setTelephone(TelephoneUtils.normaliser(telephone));
+        userRepository.save(user);
+        return userMapper.toDTO(user);
     }
 }

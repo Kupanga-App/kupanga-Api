@@ -134,6 +134,44 @@ class BienControllerWebMvcTest {
     }
 
     @Test
+    @DisplayName("C2 : POST /biens — repère hors bornes ou incomplet : 400, aucun bien créé ; repère valide accepté")
+    @WithMockUser(username = "proprietaire@test.com", roles = "PROPRIETAIRE")
+    void createBien_repere() throws Exception {
+        Double[][] invalides = {{91.0, 15.3}, {-91.0, 15.3}, {-4.3, 180.5}, {-4.3, null}, {null, 15.3}};
+        for (Double[] coord : invalides) {
+            BienFormDTO dto = bienFormValide();
+            dto.setLatitude(coord[0]);
+            dto.setLongitude(coord[1]);
+            MockMultipartFile bienPart = new MockMultipartFile(
+                    "bienFormDTO", "", "application/json", objectMapper.writeValueAsBytes(dto));
+            mockMvc.perform(multipart("/biens").file(bienPart))
+                    .andExpect(status().isBadRequest());
+        }
+        verify(bienService, never()).createBien(any(), any(), any());
+
+        BienFormDTO dto = bienFormValide();
+        dto.setLatitude(-4.3317);
+        dto.setLongitude(15.3139);
+        String json = objectMapper.writeValueAsString(dto);
+        org.assertj.core.api.Assertions.assertThat(json).doesNotContain("repereComplet");
+        MockMultipartFile bienPart = new MockMultipartFile(
+                "bienFormDTO", "", "application/json", json.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        mockMvc.perform(multipart("/biens").file(bienPart))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @DisplayName("C2 : PATCH /biens/{id} — latitude sans longitude : 400")
+    @WithMockUser(username = "proprietaire@test.com", roles = "PROPRIETAIRE")
+    void updateBien_repereIncomplet_400() throws Exception {
+        mockMvc.perform(patch("/biens/1")
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .content("{\"latitude\": -4.33}"))
+                .andExpect(status().isBadRequest());
+        verify(bienService, never()).updateBien(any(), any(), any());
+    }
+
+    @Test
     @DisplayName("J1 : POST /biens — pays en texte libre (« France ») ou code inconnu : 400 ; code ISO accepté")
     @WithMockUser(username = "proprietaire@test.com", roles = "PROPRIETAIRE")
     void createBien_paysCodeIso() throws Exception {

@@ -25,6 +25,9 @@ public record ContratDTO(
         BigDecimal      loyerMensuel,
         BigDecimal      chargesMensuelles,
         BigDecimal      depotGarantie,
+        // C12 (RDC) : garantie en mois (montant dans depotGarantie) et loyers payés d'avance
+        Integer         garantieMois,
+        Integer         avanceMois,
         // J3 : juridiction figée sur le contrat
         Pays            pays,
         Devise          devise,

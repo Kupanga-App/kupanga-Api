@@ -2,6 +2,7 @@ package com.kupanga.api.immobilier.validation;
 
 import com.kupanga.api.immobilier.dto.formDTO.BienFormDTO;
 import com.kupanga.api.immobilier.entity.ClasseEnergie;
+import com.kupanga.api.immobilier.entity.Equipement;
 import com.kupanga.api.immobilier.entity.TypeBien;
 import com.kupanga.api.juridiction.Devise;
 import com.kupanga.api.juridiction.JuridictionRegistry;
@@ -67,8 +68,10 @@ class ValideSelonJuridictionValidatorTest {
     }
 
     private static BienFormDTO.BienFormDTOBuilder kinshasa() {
+        // C12 : garantie et avance en mois, pas de dépôt en montant
         return base().pays(Pays.CD).adresse("N° 12, Av. Kasa-Vubu").ville("Kinshasa")
-                .commune("Kalamu").quartier("Matonge");
+                .commune("Kalamu").quartier("Matonge")
+                .depotGarantie(null).garantieMois(2).avanceMois(3);
     }
 
     /** Champ → message des violations. */
@@ -150,5 +153,39 @@ class ValideSelonJuridictionValidatorTest {
         Validator parDefaut = Validation.buildDefaultValidatorFactory().getValidator();
 
         assertThat(parDefaut.validate(kinshasa().commune(null).build())).isEmpty();
+    }
+
+    @Test
+    @DisplayName("C12 : RDC — garantie et avance (en mois) obligatoires, dépôt en montant refusé ; France : l'inverse")
+    void garantieSelonPays() {
+        assertThat(erreurs(kinshasa().garantieMois(null).avanceMois(null).depotGarantie(new BigDecimal("1000")).build()))
+                .containsOnlyKeys("garantieMois", "avanceMois", "depotGarantie");
+        assertThat(erreurs(france().depotGarantie(null).garantieMois(2).build()))
+                .containsOnlyKeys("depotGarantie", "garantieMois");
+    }
+
+    @Test
+    @DisplayName("C10 : parcelle ou terrain sans surface ni pièces accepté en RDC ; maison sans surface refusée ; terrain refusé en France")
+    void typesRdc_surfaceSelonType() {
+        assertThat(erreurs(kinshasa().typeBien(TypeBien.TERRAIN).surfaceHabitable(null).nombrePieces(null).build())).isEmpty();
+        assertThat(erreurs(kinshasa().typeBien(TypeBien.VILLA).surfaceHabitable(null).build()))
+                .containsOnlyKeys("surfaceHabitable");
+        assertThat(erreurs(france().typeBien(TypeBien.TERRAIN).build())).containsOnlyKeys("typeBien");
+    }
+
+    @Test
+    @DisplayName("C11 : équipements et heures de courant selon le pays")
+    void equipementsSelonPays() {
+        assertThat(erreurs(kinshasa().equipements(java.util.Set.of(Equipement.FORAGE, Equipement.GROUPE_ELECTROGENE))
+                .heuresElectriciteParJour(8).build())).isEmpty();
+        assertThat(erreurs(france().equipements(java.util.Set.of(Equipement.FORAGE)).build()))
+                .containsOnlyKeys("equipements");
+        assertThat(erreurs(france().heuresElectriciteParJour(8).build())).containsOnlyKeys("heuresElectriciteParJour");
+        assertThat(erreurs(kinshasa().heuresElectriciteParJour(25).build())).containsOnlyKeys("heuresElectriciteParJour");
+        // revue : un élément null est une erreur de validation (400), pas une 500
+        java.util.Set<Equipement> avecNull = new java.util.HashSet<>();
+        avecNull.add(null);
+        avecNull.add(Equipement.FORAGE);
+        assertThat(erreurs(kinshasa().equipements(avecNull).build())).isNotEmpty();
     }
 }

@@ -53,6 +53,14 @@ public class EtatDesLieuxServiceImpl implements EtatDesLieuxService {
         bienService.verifierBienActif(bien);
         User locataire    = bienService.verifierLocataireDuBien(bien, dto.getEmailLocataire());
 
+        // C13 : compteurs proposés dans le pays du bien (Cash Power, groupe électrogène en RDC…)
+        if (dto.getCompteurs() != null) {
+            juridictionRegistry.verifierCompteursEdl(bien.getPays(), dto.getCompteurs().stream()
+                    .map(EtatDesLieuxFormDTO.CompteurReleveFormDTO::getTypeCompteur)
+                    .filter(java.util.Objects::nonNull)
+                    .toList());
+        }
+
         EtatDesLieux edl = EtatDesLieux.builder()
                 .bien(bien)
                 // J5 : pays et version du modèle figés (le PDF régénéré à la signature garde ce modèle)

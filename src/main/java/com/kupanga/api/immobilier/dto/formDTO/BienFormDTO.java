@@ -3,16 +3,19 @@ package com.kupanga.api.immobilier.dto.formDTO;
 import com.kupanga.api.juridiction.Devise;
 import com.kupanga.api.juridiction.Pays;
 import com.kupanga.api.immobilier.entity.ClasseEnergie;
+import com.kupanga.api.immobilier.entity.Equipement;
 import com.kupanga.api.immobilier.entity.ClasseGes;
 import com.kupanga.api.immobilier.entity.ModeChauffage;
 import com.kupanga.api.immobilier.entity.TypeBien;
 import com.kupanga.api.immobilier.validation.NoUrl;
 import com.kupanga.api.immobilier.validation.ValideSelonJuridiction;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Set;
 
 @Data
 @Builder
@@ -87,13 +90,28 @@ public class BienFormDTO {
     @NotNull(message = "Le pays est obligatoire")
     private Pays pays;
 
+    // ─── C2 : repère sur la carte ou GPS du téléphone (facultatif, les deux ensemble) ───
+
+    @DecimalMin(value = "-90.0", message = "La latitude doit être comprise entre -90 et 90")
+    @DecimalMax(value = "90.0", message = "La latitude doit être comprise entre -90 et 90")
+    private Double latitude;
+
+    @DecimalMin(value = "-180.0", message = "La longitude doit être comprise entre -180 et 180")
+    @DecimalMax(value = "180.0", message = "La longitude doit être comprise entre -180 et 180")
+    private Double longitude;
+
+    @JsonIgnore
+    @AssertTrue(message = "La latitude et la longitude du repère doivent être fournies ensemble")
+    public boolean isRepereComplet() {
+        return (latitude == null) == (longitude == null);
+    }
+
     // ─── Caractéristiques physiques ───────────────────────────────────────────
 
-    @NotNull(message = "La surface habitable est obligatoire")
+    // C10 : obligatoire sauf pour une parcelle ou un terrain (JuridictionRegistry.controlerBien)
     @DecimalMin(value = "9.0",    message = "La surface minimale est de 9 m²")
     private Double surfaceHabitable;
 
-    @NotNull(message = "Le nombre de pièces est obligatoire")
     @Min(value = 1,   message = "Le nombre de pièces minimum est 1")
     @Max(value = 50,  message = "Le nombre de pièces semble invalide")
     private Integer nombrePieces;
@@ -133,7 +151,7 @@ public class BienFormDTO {
     @Digits(integer = 10, fraction = 2, message = "Format invalide (ex: 50.00)")
     private BigDecimal chargesMensuelles;
 
-    @NotNull(message = "Le dépôt de garantie est obligatoire")
+    // C12 : obligatoire en France, masqué en RDC (garantie en mois) : profil de juridiction
     @DecimalMin(value = "0.0",      message = "Le dépôt ne peut pas être négatif")
     @DecimalMax(value = "9999999999.99", message = "Montant trop élevé") // technique (NUMERIC(12,2)), avant les plafonds C5
     @Digits(integer = 10, fraction = 2, message = "Format invalide (ex: 1700.00)")
@@ -151,4 +169,23 @@ public class BienFormDTO {
     @NotNull(message = "La date de disponibilité est obligatoire")
     @FutureOrPresent(message = "La date de disponibilité ne peut pas être dans le passé")
     private LocalDate disponibleDe;
+
+    // ─── C11 : équipements (proposés selon le pays) et heures de courant ─────
+
+    @Size(max = 20, message = "20 équipements au maximum")
+    private Set<@NotNull(message = "Équipement invalide") Equipement> equipements;
+
+    @Min(value = 0,  message = "Entre 0 et 24 heures")
+    @Max(value = 24, message = "Entre 0 et 24 heures")
+    private Integer heuresElectriciteParJour;
+
+    // ─── C12 : garantie en mois de loyer et loyers payés d'avance (RDC) ─────
+
+    @Min(value = 0,  message = "Entre 0 et 24 mois")
+    @Max(value = 24, message = "Entre 0 et 24 mois")
+    private Integer garantieMois;
+
+    @Min(value = 0,  message = "Entre 0 et 24 mois")
+    @Max(value = 24, message = "Entre 0 et 24 mois")
+    private Integer avanceMois;
 }

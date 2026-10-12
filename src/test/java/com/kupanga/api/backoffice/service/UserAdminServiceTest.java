@@ -126,6 +126,7 @@ class UserAdminServiceTest {
         user.setPassword("hash-bcrypt");
         user.setGoogleId("google-123");
         user.setUrlProfile("http://minio/photo.jpg");
+        user.setTelephone("+243812345678");
         user.setEmailVerifie(true);
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
         when(contratRepository.existsByProprietaire_IdOrLocataire_Id(1L, 1L)).thenReturn(true);
@@ -157,6 +158,7 @@ class UserAdminServiceTest {
         assertThat(user.getPassword()).isNull();
         assertThat(user.getGoogleId()).isNull();
         assertThat(user.getUrlProfile()).isNull();
+        assertThat(user.getTelephone()).isNull(); // C6
         assertThat(user.isEmailVerifie()).isFalse();
     }
 

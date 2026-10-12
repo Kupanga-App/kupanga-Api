@@ -82,7 +82,7 @@
         </tr>
         <tr>
             <td class="field-lbl">Type de bien</td>
-            <td class="field-val" th:text="${contrat.bien.typeBien}"></td>
+            <td class="field-val" th:text="${contrat.bien.typeBien?.libelle}"></td>
         </tr>
         <tr>
             <td class="field-lbl">Adresse</td>
@@ -121,7 +121,7 @@
 
 <p class="legal-text">
     Le bien objet du présent contrat est un(e)
-    <strong th:text="${contrat.bien.typeBien}"></strong>
+    <strong th:text="${contrat.bien.typeBien?.libelle}"></strong>
     situé(e) au
     <strong th:text="${contrat.bien.adresseComplete() + ', ' + contrat.bien.pays?.libelle}"></strong>.
     <span th:if="${contrat.bien.description != null}">
@@ -134,11 +134,12 @@
 <div class="subsection-head">Caractéristiques physiques du logement</div>
 <div class="info-card">
     <table style="width: 100%; border-collapse: collapse;">
-        <tr>
+        <!-- C10 : ni surface habitable ni pièces pour une parcelle ou un terrain -->
+        <tr th:if="${contrat.bien.surfaceHabitable != null}">
             <td class="field-lbl">Surface habitable</td>
             <td class="field-val"><span th:text="${contrat.bien.surfaceHabitable}"></span> m²</td>
         </tr>
-        <tr>
+        <tr th:if="${contrat.bien.nombrePieces != null}">
             <td class="field-lbl">Nombre de pièces principales</td>
             <td class="field-val" th:text="${contrat.bien.nombrePieces}"></td>
         </tr>
@@ -170,9 +171,9 @@
 </div>
 
 <p class="legal-text">
-    Le logement présente une surface habitable de
-    <strong><span th:text="${contrat.bien.surfaceHabitable}"></span> m²</strong>,
-    comprenant <strong th:text="${contrat.bien.nombrePieces}"></strong> pièce(s) principale(s)
+    <th:block th:if="${contrat.bien.surfaceHabitable != null}">Le logement présente une surface habitable de
+    <strong><span th:text="${contrat.bien.surfaceHabitable}"></span> m²</strong>,</th:block>
+    <th:block th:if="${contrat.bien.nombrePieces != null}">comprenant <strong th:text="${contrat.bien.nombrePieces}"></strong> pièce(s) principale(s)</th:block>
     <span th:if="${contrat.bien.nombreChambres != null}">dont <strong th:text="${contrat.bien.nombreChambres}"></strong> chambre(s),</span>
     situé(e) au
     <strong th:text="${contrat.bien.etage == null ? '—' : (contrat.bien.etage == 0 ? 'rez-de-chaussée' : contrat.bien.etage + 'ᵉ étage')}"></strong>.
@@ -242,8 +243,13 @@
         <td class="right"><span th:text="${montants.somme(contrat.loyerMensuel, contrat.chargesMensuelles)}"></span></td>
     </tr>
     <tr>
-        <td>Garantie locative</td>
+        <td>Garantie locative<span th:if="${contrat.garantieMois != null}" th:text="${' (' + contrat.garantieMois + ' mois de loyer)'}"></span></td>
         <td class="right"><span th:text="${montants.f(contrat.depotGarantie)}"></span></td>
+    </tr>
+    <!-- C12 : loyers payés d'avance (en mois) -->
+    <tr th:if="${contrat.avanceMois != null}">
+        <td>Loyers payés d'avance</td>
+        <td class="right"><span th:text="${contrat.avanceMois + ' mois'}"></span></td>
     </tr>
     </tbody>
 </table>

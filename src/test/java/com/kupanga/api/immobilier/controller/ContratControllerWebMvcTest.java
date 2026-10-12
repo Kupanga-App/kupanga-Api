@@ -135,7 +135,7 @@ class ContratControllerWebMvcTest {
     void getContratParToken_success_shouldReturn200() throws Exception {
         ContratDTO dto = new ContratDTO(
                 1L, 1L, "75 Boulevard Jules Verne", null, null,
-                new BigDecimal("850.0"), new BigDecimal("50.0"), new BigDecimal("1700.0"),
+                new BigDecimal("850.0"), new BigDecimal("50.0"), new BigDecimal("1700.0"), null, null,
                 com.kupanga.api.juridiction.Pays.FR, com.kupanga.api.juridiction.Devise.EUR, "fr-v1",
                 java.time.LocalDate.of(2030, 1, 1), null, 12,
                 false, false, null, null,

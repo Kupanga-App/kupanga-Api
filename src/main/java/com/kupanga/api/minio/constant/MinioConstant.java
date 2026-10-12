@@ -9,9 +9,11 @@ public class MinioConstant {
     public static final String CONTRAT_BUCKET = "contrat-de-bail";
     public static final String EDL_BUCKET = "bucket-etats-des-lieux";
     public static final String QUITTANCE_BUCKET = "bucket-des-quittances";
+    /** C8-bis : photos des reçus de paiement (données personnelles). */
+    public static final String RECU_BUCKET = "bucket-recus-paiement";
 
     /** Buckets contenant des données personnelles : toujours privés (P0-7). */
-    public static final List<String> BUCKETS_PRIVES = List.of(CONTRAT_BUCKET, EDL_BUCKET, QUITTANCE_BUCKET);
+    public static final List<String> BUCKETS_PRIVES = List.of(CONTRAT_BUCKET, EDL_BUCKET, QUITTANCE_BUCKET, RECU_BUCKET);
 
     /** Durée de validité d'une URL présignée. */
     public static final int DUREE_URL_PRESIGNEE_MINUTES = 5;

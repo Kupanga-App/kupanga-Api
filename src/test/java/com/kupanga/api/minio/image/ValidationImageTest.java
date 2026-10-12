@@ -26,11 +26,11 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 @DisplayName("Tests unitaires — ValidationImage / FormatImage (B5)")
 class ValidationImageTest {
 
-    // ─── Échantillons : en-têtes réels des formats ───────────────────────────────
+    // ─── Échantillons : vraies images (R1 : dimensions lues), en-têtes réels des autres formats ─────
 
-    static final byte[] JPEG = octets(0xFF, 0xD8, 0xFF, 0xE0, 0x00, 0x10, 'J', 'F', 'I', 'F');
-    static final byte[] PNG = octets(0x89, 'P', 'N', 'G', 0x0D, 0x0A, 0x1A, 0x0A, 0, 0, 0, 0x0D);
-    static final byte[] GIF = ascii("GIF89a\u0001\u0000");
+    static final byte[] JPEG = ImagesDeTest.jpeg(40, 30);
+    static final byte[] PNG = ImagesDeTest.png(40, 30);
+    static final byte[] GIF = ImagesDeTest.gif(40, 30);
     static final byte[] WEBP = concat(ascii("RIFF"), octets(0x24, 0, 0, 0), ascii("WEBPVP8 "));
 
     static byte[] ftyp(String marquePrincipale, String... compatibles) {
@@ -120,6 +120,28 @@ class ValidationImageTest {
 
         assertThatThrownBy(() -> ValidationImage.verifierPhotosBien(List.of(photo, piege)))
                 .isInstanceOf(KupangaBusinessException.class);
+    }
+
+    @Test
+    @DisplayName("R1 : JPEG réduit à son en-tête (dimensions illisibles) → 400")
+    void jpegEndommage_400() {
+        MultipartFile fichier = new MockMultipartFile("files", "p.jpg", "image/jpeg",
+                completer(octets(0xFF, 0xD8, 0xFF, 0xE0, 0x00, 0x10, 'J', 'F', 'I', 'F')));
+
+        assertThatThrownBy(() -> ValidationImage.verifier(fichier))
+                .isInstanceOfSatisfying(KupangaBusinessException.class,
+                        e -> assertThat(e.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST));
+    }
+
+    @Test
+    @DisplayName("R1 : PNG annonçant 400 Mpx → 400 avant tout enregistrement (bombe de décompression)")
+    void tropDePixels_400() {
+        MultipartFile fichier = new MockMultipartFile("files", "p.png", "image/png",
+                ImagesDeTest.pngEnteteSeul(20_000, 20_000));
+
+        assertThatThrownBy(() -> ValidationImage.verifier(fichier))
+                .isInstanceOfSatisfying(KupangaBusinessException.class,
+                        e -> assertThat(e.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST));
     }
 
     // ─── Outils ───────────────────────────────────────────────────────────────────

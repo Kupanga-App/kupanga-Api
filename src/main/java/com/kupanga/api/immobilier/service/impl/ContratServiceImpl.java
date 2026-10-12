@@ -1,5 +1,7 @@
 package com.kupanga.api.immobilier.service.impl;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import com.kupanga.api.juridiction.JuridictionRegistry;
 import com.kupanga.api.email.service.EmailService;
 import com.kupanga.api.exception.business.KupangaBusinessException;
@@ -52,9 +54,29 @@ public class ContratServiceImpl implements ContratService {
         bienService.verifierBienActif(bien);
         User locataire = bienService.verifierLocataireDuBien(bien, dto.getEmailLocataire());
 
+        // C12 : garantie en montant (France) ou en mois de loyer + avance (RDC : dépôt masqué dans le profil)
+        Integer garantieMois = null;
+        Integer avanceMois = null;
+        BigDecimal depotGarantie;
+        if (juridictionRegistry.profil(bien.getPays()).champsMasques().contains("depotGarantie")) {
+            garantieMois = dto.getGarantieMois() != null ? dto.getGarantieMois() : bien.getGarantieMois();
+            avanceMois = dto.getAvanceMois() != null ? dto.getAvanceMois() : bien.getAvanceMois();
+            if (garantieMois == null || avanceMois == null) {
+                throw new KupangaBusinessException(
+                        "La garantie et l'avance (en mois de loyer) sont obligatoires", HttpStatus.BAD_REQUEST);
+            }
+            depotGarantie = dto.getLoyerMensuel().multiply(BigDecimal.valueOf(garantieMois))
+                    .setScale(2, RoundingMode.HALF_UP);
+        } else {
+            if (dto.getDepotGarantie() == null) {
+                throw new KupangaBusinessException("Le dépôt de garantie est obligatoire", HttpStatus.BAD_REQUEST);
+            }
+            depotGarantie = dto.getDepotGarantie();
+        }
+
         // C5 : montants du bail sous les plafonds de la devise du bien
         juridictionRegistry.verifierMontants(bien.getDevise(), dto.getLoyerMensuel(), dto.getChargesMensuelles(),
-                dto.getDepotGarantie());
+                depotGarantie);
 
         Contrat contrat = Contrat.builder()
                 .bien(bien)
@@ -67,7 +89,9 @@ public class ContratServiceImpl implements ContratService {
                 .adresseBien(bien.getAdresse() + ", " + bien.getVille())
                 .loyerMensuel(dto.getLoyerMensuel())
                 .chargesMensuelles(dto.getChargesMensuelles())
-                .depotGarantie(dto.getDepotGarantie())
+                .depotGarantie(depotGarantie)
+                .garantieMois(garantieMois)
+                .avanceMois(avanceMois)
                 .dateDebut(dto.getDateDebut())
                 .dateFin(dto.getDateFin())
                 .dureeBailMois(dto.getDureeBailMois())

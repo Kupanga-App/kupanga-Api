@@ -18,6 +18,9 @@ import com.kupanga.api.notification.enums.NotificationType;
 import com.kupanga.api.notification.service.NotificationService;
 import com.kupanga.api.user.entity.User;
 import com.kupanga.api.user.service.UserService;
+import com.kupanga.api.immobilier.dto.formDTO.MarquerPayeeDTO;
+import com.kupanga.api.minio.service.MinioService;
+import com.kupanga.api.minio.constant.MinioConstant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -44,6 +47,7 @@ class QuittanceServiceImplTest {
     @Mock private ContratRepository    contratRepository;
     @Mock private EmailService         emailService;
     @Mock private NotificationService  notificationService;
+    @Mock private MinioService         minioService;
     /** J3 : vrai registre (profils et plafonds de application.yml). */
     @Spy  private JuridictionRegistry  juridictionRegistry = JuridictionsDeTest.registre();
 
@@ -89,6 +93,7 @@ class QuittanceServiceImplTest {
 
         quittance = Quittance.builder()
                 .id(1L)
+                .pays(Pays.FR).devise(Devise.EUR)
                 .bien(bien)
                 .proprietaire(proprietaire)
                 .locataire(locataire)
@@ -290,10 +295,13 @@ class QuittanceServiceImplTest {
         doNothing().when(emailService).envoyerQuittance(quittance);
 
         assertDoesNotThrow(() ->
-                quittanceService.marquerPayee(1L, "sig-proprio", proprietaire.getMail()));
+                quittanceService.marquerPayee(1L, paiement("sig-proprio", ModePaiement.VIREMENT, null), proprietaire.getMail()));
 
         assertThat(quittance.getStatut()).isEqualTo(StatutQuittance.PAYEE);
         assertThat(quittance.getSignatureProprietaire()).isEqualTo("sig-proprio");
+        // C8-bis : mode déclaré, date du jour (fuseau du pays) par défaut
+        assertThat(quittance.getModePaiement()).isEqualTo(ModePaiement.VIREMENT);
+        assertThat(quittance.getDatePaiement()).isEqualTo(LocalDate.now(java.time.ZoneId.of("Europe/Paris")));
         assertThat(quittance.getClePdf()).isEqualTo("http://minio/signed.pdf");
         verify(emailService).envoyerQuittance(quittance);
         verify(notificationService).saveAndSend(
@@ -309,7 +317,7 @@ class QuittanceServiceImplTest {
         when(quittanceRepository.findWithAllRelations(1L)).thenReturn(Optional.of(quittance));
 
         KupangaBusinessException ex = assertThrows(KupangaBusinessException.class,
-                () -> quittanceService.marquerPayee(1L, "sig", proprietaire.getMail()));
+                () -> quittanceService.marquerPayee(1L, paiement("sig", ModePaiement.VIREMENT, null), proprietaire.getMail()));
 
         assertThat(ex.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
         verify(quittancePdfService, never()).genererEtUploaderPdf(any());
@@ -321,7 +329,7 @@ class QuittanceServiceImplTest {
         when(quittanceRepository.findWithAllRelations(1L)).thenReturn(Optional.of(quittance));
 
         KupangaBusinessException ex = assertThrows(KupangaBusinessException.class,
-                () -> quittanceService.marquerPayee(1L, "sig", "inconnu@test.com"));
+                () -> quittanceService.marquerPayee(1L, paiement("sig", ModePaiement.VIREMENT, null), "inconnu@test.com"));
 
         assertThat(ex.getStatus()).isEqualTo(HttpStatus.FORBIDDEN);
     }
@@ -500,11 +508,111 @@ class QuittanceServiceImplTest {
                 .when(bienService).verifierDocumentModifiable(any(), any(), any());
 
         KupangaBusinessException ex = assertThrows(KupangaBusinessException.class,
-                () -> quittanceService.marquerPayee(1L, "sig-proprio", proprietaire.getMail()));
+                () -> quittanceService.marquerPayee(1L, paiement("sig-proprio", ModePaiement.VIREMENT, null), proprietaire.getMail()));
 
         assertThat(ex.getStatus()).isEqualTo(HttpStatus.CONFLICT);
         assertThat(quittance.getStatut()).isNotEqualTo(StatutQuittance.PAYEE);
         verify(quittancePdfService, never()).genererEtUploaderPdf(any());
         verify(emailService, never()).envoyerQuittance(any());
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // C8-bis : suivi manuel des paiements
+    // ══════════════════════════════════════════════════════════════
+
+    private static MarquerPayeeDTO paiement(String signature, ModePaiement mode, LocalDate date) {
+        return MarquerPayeeDTO.builder().signatureBase64(signature).modePaiement(mode).datePaiement(date).build();
+    }
+
+    @Test
+    @DisplayName("C8-bis : marquerPayee() — Mobile Money en RDC, date et référence enregistrées")
+    void marquerPayee_mobileMoneyRdc() {
+        quittance.setPays(Pays.CD);
+        quittance.setDevise(Devise.USD);
+        quittance.setAnnee(2026);
+        when(quittanceRepository.findWithAllRelations(1L)).thenReturn(Optional.of(quittance));
+        LocalDate date = LocalDate.of(2026, 1, 3);
+
+        quittanceService.marquerPayee(1L, MarquerPayeeDTO.builder().signatureBase64("sig").modePaiement(ModePaiement.MOBILE_MONEY)
+                .datePaiement(date).referencePaiement("  MP-1234  ").build(), proprietaire.getMail());
+
+        assertThat(quittance.getStatut()).isEqualTo(StatutQuittance.PAYEE);
+        assertThat(quittance.getModePaiement()).isEqualTo(ModePaiement.MOBILE_MONEY);
+        assertThat(quittance.getDatePaiement()).isEqualTo(date);
+        assertThat(quittance.getReferencePaiement()).isEqualTo("MP-1234");
+    }
+
+    @Test
+    @DisplayName("C8-bis : marquerPayee() — Mobile Money pour une quittance française : 400, rien n'est modifié")
+    void marquerPayee_modeHorsPays_400() {
+        when(quittanceRepository.findWithAllRelations(1L)).thenReturn(Optional.of(quittance));
+
+        KupangaBusinessException ex = assertThrows(KupangaBusinessException.class,
+                () -> quittanceService.marquerPayee(1L, paiement("sig", ModePaiement.MOBILE_MONEY, null), proprietaire.getMail()));
+
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(quittance.getStatut()).isEqualTo(StatutQuittance.EN_ATTENTE);
+        verify(quittancePdfService, never()).genererEtUploaderPdf(any());
+    }
+
+    @Test
+    @DisplayName("C8-bis : marquerPayee() — date future ou antérieure à l'année précédant la quittance : 400")
+    void marquerPayee_dateInvalide_400() {
+        when(quittanceRepository.findWithAllRelations(1L)).thenReturn(Optional.of(quittance));
+
+        for (LocalDate date : new LocalDate[]{LocalDate.now().plusDays(2), LocalDate.of(2023, 12, 31)}) {
+            KupangaBusinessException ex = assertThrows(KupangaBusinessException.class,
+                    () -> quittanceService.marquerPayee(1L, paiement("sig", ModePaiement.VIREMENT, date), proprietaire.getMail()));
+            assertThat(ex.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
+        }
+        assertThat(quittance.getStatut()).isEqualTo(StatutQuittance.EN_ATTENTE);
+    }
+
+    @Test
+    @DisplayName("C8-bis : ajouterRecu() — quittance payée : photo dans le bucket privé des reçus, clé enregistrée")
+    void ajouterRecu_succes() {
+        quittance.setStatut(StatutQuittance.PAYEE);
+        when(quittanceRepository.findWithAllRelations(1L)).thenReturn(Optional.of(quittance));
+        org.springframework.mock.web.MockMultipartFile photo =
+                new org.springframework.mock.web.MockMultipartFile("recu", "r.jpg", "image/jpeg", new byte[]{1, 2});
+        when(minioService.uploadImagePrivee(photo, MinioConstant.RECU_BUCKET)).thenReturn("cle-recu.jpg");
+
+        quittanceService.ajouterRecu(1L, photo, proprietaire.getMail());
+
+        assertThat(quittance.getCleRecu()).isEqualTo("cle-recu.jpg");
+        assertThat(MinioConstant.BUCKETS_PRIVES).contains(MinioConstant.RECU_BUCKET);
+        verify(quittanceRepository).saveAndFlush(quittance);
+    }
+
+    @Test
+    @DisplayName("C8-bis : ajouterRecu() — remplacement : l'ancienne photo est supprimée (après commit)")
+    void ajouterRecu_remplacement() {
+        quittance.setStatut(StatutQuittance.PAYEE);
+        quittance.setCleRecu("ancienne.jpg");
+        when(quittanceRepository.findWithAllRelations(1L)).thenReturn(Optional.of(quittance));
+        when(minioService.uploadImagePrivee(any(), any())).thenReturn("nouvelle.jpg");
+
+        quittanceService.ajouterRecu(1L, new org.springframework.mock.web.MockMultipartFile("recu", new byte[]{1}), proprietaire.getMail());
+
+        assertThat(quittance.getCleRecu()).isEqualTo("nouvelle.jpg");
+        // Sans transaction active (test unitaire), ApresCommit exécute tout de suite
+        verify(minioService).supprimer(MinioConstant.RECU_BUCKET, "ancienne.jpg");
+    }
+
+    @Test
+    @DisplayName("C8-bis : ajouterRecu() — quittance non payée : 409 ; autre propriétaire : 403 ; rien n'est envoyé")
+    void ajouterRecu_refus() {
+        when(quittanceRepository.findWithAllRelations(1L)).thenReturn(Optional.of(quittance));
+        org.springframework.mock.web.MockMultipartFile photo =
+                new org.springframework.mock.web.MockMultipartFile("recu", new byte[]{1});
+
+        assertThat(assertThrows(KupangaBusinessException.class,
+                () -> quittanceService.ajouterRecu(1L, photo, proprietaire.getMail())).getStatus())
+                .isEqualTo(HttpStatus.CONFLICT);
+        quittance.setStatut(StatutQuittance.PAYEE);
+        assertThat(assertThrows(KupangaBusinessException.class,
+                () -> quittanceService.ajouterRecu(1L, photo, "intrus@test.com")).getStatus())
+                .isEqualTo(HttpStatus.FORBIDDEN);
+        verifyNoInteractions(minioService);
     }
 }

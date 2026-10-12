@@ -102,7 +102,7 @@
     </thead>
     <tbody>
     <tr th:each="compteur : ${edl.compteurs}">
-        <td th:text="${compteur.typeCompteur}"></td>
+        <td th:text="${compteur.typeCompteur != null ? compteur.typeCompteur.libelle : ''}"></td>
         <td th:text="${compteur.numeroCompteur != null ? compteur.numeroCompteur : '—'}"></td>
         <td class="right" th:text="${compteur.index}"></td>
         <td th:text="${compteur.unite != null ? compteur.unite : '—'}"></td>

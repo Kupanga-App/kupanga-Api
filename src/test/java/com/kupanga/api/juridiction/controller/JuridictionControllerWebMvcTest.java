@@ -69,10 +69,15 @@ class JuridictionControllerWebMvcTest {
                 .andExpect(jsonPath("$.devises[0]").value("USD"))
                 .andExpect(jsonPath("$.devises[1]").value("CDF"))
                 .andExpect(jsonPath("$.deviseDefaut").value("USD"))
-                .andExpect(jsonPath("$.champsObligatoires[0]").value("commune"))
-                .andExpect(jsonPath("$.champsObligatoires[1]").value("quartier"))
-                .andExpect(jsonPath("$.champsMasques", hasSize(3)))
+                .andExpect(jsonPath("$.champsObligatoires", hasSize(4)))
+                .andExpect(jsonPath("$.champsMasques", hasSize(4)))
+                // C10-C13
+                .andExpect(jsonPath("$.typesBien", hasSize(10)))
+                .andExpect(jsonPath("$.equipements", hasSize(10)))
+                .andExpect(jsonPath("$.compteursEdl[2]").value("CASH_POWER"))
+                .andExpect(jsonPath("$.modesPaiement[1]").value("MOBILE_MONEY"))
                 .andExpect(jsonPath("$.typesBien[0]").value("APPARTEMENT"))
+                .andExpect(jsonPath("$.canauxNotification[1]").value("WHATSAPP_LIEN")) // C7-C16
                 // Données de configuration seulement : ni locale, ni fuseau, ni plafonds, ni modèle de document
                 .andExpect(jsonPath("$.modeleDocuments").doesNotExist())
                 .andExpect(jsonPath("$.plafonds").doesNotExist());
@@ -84,8 +89,10 @@ class JuridictionControllerWebMvcTest {
         mockMvc.perform(get("/juridictions/FR"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.champsObligatoires[0]").value("codePostal"))
-                .andExpect(jsonPath("$.champsMasques", hasSize(5)))
-                .andExpect(jsonPath("$.devises[0]").value("EUR"));
+                .andExpect(jsonPath("$.champsObligatoires[1]").value("depotGarantie"))
+                .andExpect(jsonPath("$.champsMasques", hasSize(8)))
+                .andExpect(jsonPath("$.devises[0]").value("EUR"))
+                .andExpect(jsonPath("$.canauxNotification", hasSize(1))); // pas de WhatsApp en France
     }
 
     @Test

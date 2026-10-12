@@ -21,6 +21,9 @@ import com.kupanga.api.notification.service.NotificationService;
 import com.kupanga.api.user.entity.Role;
 import com.kupanga.api.user.entity.User;
 import com.kupanga.api.user.service.UserService;
+import org.springframework.test.util.ReflectionTestUtils;
+import com.kupanga.api.immobilier.repository.BienPoiRepository;
+import com.kupanga.api.immobilier.entity.PrecisionLocalisation;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -51,6 +54,7 @@ class BienServiceImplTest {
     @Mock private UserService         userService;
     @Mock private BienImageService    bienImageService;
     @Mock private GeocodingService    geocodingService;
+    @Mock private BienPoiRepository   bienPoiRepository;
     @Mock private BienRepository      bienRepository;
     @Mock private BienMapper          bienMapper;
     @Mock private BienPoiService      bienPoiService;
@@ -67,7 +71,7 @@ class BienServiceImplTest {
     private BienServiceImpl bienService;
 
     /** En-tête JPEG réel : les photos sont reconnues au contenu (B5). */
-    private static final byte[] PHOTO_JPEG = {(byte) 0xFF, (byte) 0xD8, (byte) 0xFF, (byte) 0xE0, 0, 0x10};
+    private static final byte[] PHOTO_JPEG = com.kupanga.api.minio.image.ImagesDeTest.jpeg(40, 30);
 
     private User proprietaire;
     private User locataire;
@@ -77,6 +81,8 @@ class BienServiceImplTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+        // C2 : vraie chaîne de repli sur un GeocodingService bouchon
+        ReflectionTestUtils.setField(bienService, "localisationBienService", new LocalisationBienService(geocodingService));
 
         proprietaire = User.builder()
                 .id(1L)
@@ -356,6 +362,24 @@ class BienServiceImplTest {
     }
 
     @Test
+    @DisplayName("Revue R1 — createBien() : 2e photo à l'en-tête valide mais indécodable → 400, aucun bien ni envoi")
+    void createBien_photoIndecodable_refuseAvantEnregistrement() {
+        BienFormDTO dto = buildValidFormDTO();
+        MultipartFile abimee = new MockMultipartFile("files", "p.png", "image/png",
+                com.kupanga.api.minio.image.ImagesDeTest.pngEndommage(40, 30));
+
+        when(userService.getUserByEmail(proprietaire.getMail())).thenReturn(proprietaire);
+
+        KupangaBusinessException ex = assertThrows(KupangaBusinessException.class,
+                () -> bienService.createBien(auth, dto, List.of(
+                        new MockMultipartFile("files", "ok.jpg", "image/jpeg", PHOTO_JPEG), abimee)));
+
+        assertEquals(HttpStatus.BAD_REQUEST, ex.getStatus());
+        verify(bienRepository, never()).save(any(Bien.class));
+        verify(bienImageService, never()).uploadImagesImo(anyList(), anyString(), any(Bien.class));
+    }
+
+    @Test
     @DisplayName("createBien() — 21 photos → 400, aucun bien enregistré (B5)")
     void createBien_tropDePhotos_refuse() {
         BienFormDTO dto = buildValidFormDTO();
@@ -401,21 +425,102 @@ class BienServiceImplTest {
     }
 
     @Test
-    @DisplayName("createBien() — géocodage échoue (null) → KupangaBusinessException 404")
-    void createBien_geocodingFails_throwsNotFound() {
+    @DisplayName("C2 / B10 : createBien() — rien trouvé (adresse, zones) → bien créé sans position, sans POI")
+    void createBien_geocodingFails_creeSansPosition() {
         BienFormDTO dto = buildValidFormDTO();
         MultipartFile file = new MockMultipartFile("files", "p.jpg", "image/jpeg", PHOTO_JPEG);
 
         when(userService.getUserByEmail(proprietaire.getMail())).thenReturn(proprietaire);
         doNothing().when(userService).verifyIfUserIsOwner(proprietaire.getRole());
-        when(geocodingService.geocode(anyString(), anyString(), anyString(), any(Pays.class)))
-                .thenReturn(null);
+        when(geocodingService.geocode(anyString(), anyString(), anyString(), any(Pays.class))).thenReturn(null);
+        when(geocodingService.geocodeZone(any(), any())).thenReturn(null);
 
-        KupangaBusinessException ex = assertThrows(KupangaBusinessException.class,
-                () -> bienService.createBien(auth, dto, List.of(file)));
+        bienService.createBien(auth, dto, List.of(file));
 
-        assertThat(ex.getStatus()).isEqualTo(HttpStatus.NOT_FOUND);
-        verify(bienRepository, never()).save(any());
+        ArgumentCaptor<Bien> captor = ArgumentCaptor.forClass(Bien.class);
+        verify(bienRepository).save(captor.capture());
+        assertThat(captor.getValue().getLocalisation()).isNull();
+        assertThat(captor.getValue().getPrecisionLocalisation()).isEqualTo(PrecisionLocalisation.AUCUNE);
+        verify(bienPoiService, never()).calculerEtSauvegarderPoi(any());
+        verify(bienImageService).uploadImagesImo(any(), any(), any());
+    }
+
+    @Test
+    @DisplayName("C2 : createBien() — repère fourni → position du repère (X = longitude), sans appel à Nominatim, POI calculés")
+    void createBien_repere() {
+        BienFormDTO dto = buildValidFormDTOKinshasa();
+        dto.setLatitude(-4.3317);
+        dto.setLongitude(15.3139);
+        when(userService.getUserByEmail(proprietaire.getMail())).thenReturn(proprietaire);
+
+        bienService.createBien(auth, dto, List.of(new MockMultipartFile("files", "p.jpg", "image/jpeg", PHOTO_JPEG)));
+
+        ArgumentCaptor<Bien> captor = ArgumentCaptor.forClass(Bien.class);
+        verify(bienRepository).save(captor.capture());
+        Bien cree = captor.getValue();
+        assertThat(cree.getPrecisionLocalisation()).isEqualTo(PrecisionLocalisation.REPERE);
+        assertThat(cree.getLocalisation().getY()).isEqualTo(-4.3317);
+        assertThat(cree.getLocalisation().getX()).isEqualTo(15.3139);
+        assertThat(cree.getLocalisation().getSRID()).isEqualTo(4326);
+        verifyNoInteractions(geocodingService);
+        verify(bienPoiService).calculerEtSauvegarderPoi(any());
+    }
+
+    @Test
+    @DisplayName("C2 : createBien() à Kinshasa — adresse introuvable → centre du quartier, puis de la commune ; pas de POI")
+    void createBien_replisQuartierPuisCommune() {
+        when(userService.getUserByEmail(proprietaire.getMail())).thenReturn(proprietaire);
+        when(geocodingService.geocode(anyString(), anyString(), any(), any(Pays.class))).thenReturn(null);
+        when(geocodingService.geocodeZone(List.of("Matonge", "Kalamu", "Kinshasa"), Pays.CD)).thenReturn(point);
+        MultipartFile file = new MockMultipartFile("files", "p.jpg", "image/jpeg", PHOTO_JPEG);
+
+        bienService.createBien(auth, buildValidFormDTOKinshasa(), List.of(file));
+
+        when(geocodingService.geocodeZone(List.of("Matonge", "Kalamu", "Kinshasa"), Pays.CD)).thenReturn(null);
+        when(geocodingService.geocodeZone(List.of("Kalamu", "Kinshasa"), Pays.CD)).thenReturn(point);
+        bienService.createBien(auth, buildValidFormDTOKinshasa(), List.of(file));
+
+        ArgumentCaptor<Bien> captor = ArgumentCaptor.forClass(Bien.class);
+        verify(bienRepository, times(2)).save(captor.capture());
+        assertThat(captor.getAllValues().get(0).getPrecisionLocalisation()).isEqualTo(PrecisionLocalisation.QUARTIER);
+        assertThat(captor.getAllValues().get(1).getPrecisionLocalisation()).isEqualTo(PrecisionLocalisation.COMMUNE);
+        assertThat(captor.getAllValues().get(1).getLocalisation()).isSameAs(point);
+        verify(bienPoiService, never()).calculerEtSauvegarderPoi(any());
+    }
+
+    @Test
+    @DisplayName("C2 : createBien() en France — adresse introuvable, pas de quartier/commune → centre de la ville")
+    void createBien_repliVille() {
+        when(userService.getUserByEmail(proprietaire.getMail())).thenReturn(proprietaire);
+        when(geocodingService.geocode(anyString(), anyString(), anyString(), any(Pays.class))).thenReturn(null);
+        BienFormDTO dto = buildValidFormDTO();
+        when(geocodingService.geocodeZone(List.of(dto.getVille()), dto.getPays())).thenReturn(point);
+
+        bienService.createBien(auth, dto, List.of(new MockMultipartFile("files", "p.jpg", "image/jpeg", PHOTO_JPEG)));
+
+        ArgumentCaptor<Bien> captor = ArgumentCaptor.forClass(Bien.class);
+        verify(bienRepository).save(captor.capture());
+        assertThat(captor.getValue().getPrecisionLocalisation()).isEqualTo(PrecisionLocalisation.VILLE);
+        verify(geocodingService, times(1)).geocodeZone(any(), any());
+    }
+
+    @Test
+    @DisplayName("C2 : updateBien() — repère déplacé → position REPERE, anciens POI effacés puis recalculés")
+    void updateBien_repereDeplace() {
+        BienUpdateDTO dto = new BienUpdateDTO();
+        dto.setLatitude(-4.3317);
+        dto.setLongitude(15.3139);
+        bien.setPrecisionLocalisation(PrecisionLocalisation.COMMUNE);
+        when(userService.getUserByEmail(proprietaire.getMail())).thenReturn(proprietaire);
+        when(bienRepository.findById(1L)).thenReturn(Optional.of(bien));
+
+        BienDTO result = bienService.updateBien(auth, 1L, dto);
+
+        assertThat(bien.getPrecisionLocalisation()).isEqualTo(PrecisionLocalisation.REPERE);
+        assertThat(bien.getLocalisation().getY()).isEqualTo(-4.3317);
+        assertThat(result.precisionLocalisation()).isEqualTo(PrecisionLocalisation.REPERE);
+        verify(bienPoiRepository).supprimerParBien(1L);
+        verify(bienPoiService).calculerEtSauvegarderPoi(1L);
     }
 
     // ══════════════════════════════════════════════════════════════
@@ -646,6 +751,9 @@ class BienServiceImplTest {
         assertThat(bien.getTypeBien()).isEqualTo(TypeBien.STUDIO);
         assertThat(bien.getLoyerMensuel()).isEqualByComparingTo("900.0");
         verify(bienRepository).save(bien);
+        // C2 : sans repère, la position et les POI ne bougent pas
+        verifyNoInteractions(bienPoiRepository);
+        verify(bienPoiService, never()).calculerEtSauvegarderPoi(any());
     }
 
     @Test
@@ -857,6 +965,8 @@ class BienServiceImplTest {
     @Test
     @DisplayName("getBienPrive() — propriétaire : vue privée avec e-mail du locataire")
     void getBienPrive_proprietaire_returnsPrivateView() {
+        locataire.setTelephone("+243812345678");
+        proprietaire.setTelephone("+33612345678");
         bien.setLocataire(locataire);
         when(userService.getUserByEmail(proprietaire.getMail())).thenReturn(proprietaire);
         when(bienRepository.findWithAllProperties(1L)).thenReturn(Optional.of(bien));
@@ -864,6 +974,9 @@ class BienServiceImplTest {
         BienDTO dto = bienService.getBienPrive(1L, proprietaire.getMail());
 
         assertThat(dto.locataire().mail()).isEqualTo(locataire.getMail());
+        // C6 : les parties du bien voient le numéro l'une de l'autre (liens wa.me)
+        assertThat(dto.locataire().telephone()).isEqualTo("+243812345678");
+        assertThat(dto.proprietaire().telephone()).isEqualTo("+33612345678");
     }
 
     @Test
@@ -984,6 +1097,10 @@ class BienServiceImplTest {
         dto.setCodePostal(null);
         dto.setCommune("Kalamu");
         dto.setQuartier("Matonge");
+        // C12 : garantie et avance en mois, dépôt en montant masqué
+        dto.setDepotGarantie(null);
+        dto.setGarantieMois(2);
+        dto.setAvanceMois(3);
         return dto;
     }
 
@@ -1002,5 +1119,48 @@ class BienServiceImplTest {
         assertThat(assertThrows(KupangaBusinessException.class,
                 () -> bienService.verifierDocumentModifiable(bien, proprietaire, locataire)).getStatus())
                 .isEqualTo(HttpStatus.CONFLICT);
+    }
+
+    @Test
+    @DisplayName("C10-C12 : createBien() à Kinshasa — villa, équipements, heures de courant, garantie et avance enregistrés")
+    void createBien_equipementsGarantieRdc() {
+        when(userService.getUserByEmail(proprietaire.getMail())).thenReturn(proprietaire);
+        when(geocodingService.geocode(anyString(), anyString(), any(), any(Pays.class))).thenReturn(point);
+        BienFormDTO dto = buildValidFormDTOKinshasa();
+        dto.setTypeBien(TypeBien.VILLA);
+        dto.setEquipements(java.util.Set.of(Equipement.FORAGE, Equipement.GROUPE_ELECTROGENE, Equipement.GARDIENNAGE));
+        dto.setHeuresElectriciteParJour(12);
+
+        bienService.createBien(auth, dto, List.of(new MockMultipartFile("files", "p.jpg", "image/jpeg", PHOTO_JPEG)));
+
+        ArgumentCaptor<Bien> captor = ArgumentCaptor.forClass(Bien.class);
+        verify(bienRepository).save(captor.capture());
+        Bien cree = captor.getValue();
+        assertThat(cree.getTypeBien()).isEqualTo(TypeBien.VILLA);
+        assertThat(cree.getEquipements()).containsExactlyInAnyOrder(Equipement.FORAGE, Equipement.GROUPE_ELECTROGENE, Equipement.GARDIENNAGE);
+        assertThat(cree.getHeuresElectriciteParJour()).isEqualTo(12);
+        assertThat(cree.getGarantieMois()).isEqualTo(2);
+        assertThat(cree.getAvanceMois()).isEqualTo(3);
+        assertThat(cree.getDepotGarantie()).isNull();
+    }
+
+    @Test
+    @DisplayName("C11 : updateBien() — liste d'équipements remplacée ; équipement non proposé en France → 400")
+    void updateBien_equipements() {
+        bien.setPays(Pays.CD);
+        bien.setEquipements(new java.util.HashSet<>(java.util.Set.of(Equipement.CITERNE)));
+        when(userService.getUserByEmail(proprietaire.getMail())).thenReturn(proprietaire);
+        when(bienRepository.findById(1L)).thenReturn(Optional.of(bien));
+        BienUpdateDTO dto = new BienUpdateDTO();
+        dto.setEquipements(java.util.Set.of(Equipement.FORAGE));
+
+        BienDTO result = bienService.updateBien(auth, 1L, dto);
+
+        assertThat(bien.getEquipements()).containsExactly(Equipement.FORAGE);
+        assertThat(result.equipements()).containsExactly(Equipement.FORAGE);
+
+        bien.setPays(Pays.FR);
+        assertThat(assertThrows(KupangaBusinessException.class, () -> bienService.updateBien(auth, 1L, dto)).getStatus())
+                .isEqualTo(HttpStatus.BAD_REQUEST);
     }
 }

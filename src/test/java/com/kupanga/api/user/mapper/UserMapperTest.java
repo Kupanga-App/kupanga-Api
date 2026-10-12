@@ -45,4 +45,16 @@ class UserMapperTest {
                 .doesNotContain(HASH)
                 .contains("john@mail.com");
     }
+
+    @Test
+    @DisplayName("C6 : le téléphone est dans le profil (toDTO) mais jamais dans la recherche de candidats")
+    void telephone_absentDeLaRechercheDeCandidats() {
+        User user = User.builder().id(1L).mail("john@mail.com").telephone("+243812345678").build();
+
+        assertThat(userMapper.toDTO(user).telephone()).isEqualTo("+243812345678");
+        assertThat(userMapper.toDTOWithoutCredentials(user).telephone()).isNull();
+        // Parties d'un contrat : vue aussi servie par le lien de signature public
+        assertThat(Mappers.getMapper(com.kupanga.api.immobilier.mapper.ContratMapper.class)
+                .mapUserSansInfosSensibles(user).telephone()).isNull();
+    }
 }

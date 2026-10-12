@@ -17,6 +17,7 @@ public interface QuittanceMapper {
     @Mapping(target = "adresseBien", source = "bien", qualifiedByName = "buildAdresseBien")
     @Mapping(target = "typeBien", source = "bien", qualifiedByName = "buildTypeBien")
     @Mapping(target = "urlPdf", source = "clePdf", qualifiedByName = "urlQuittance")
+    @Mapping(target = "urlRecu", source = "cleRecu", qualifiedByName = "urlRecu")
     QuittanceDTO toDTO(Quittance q);
 
     // -------------------------

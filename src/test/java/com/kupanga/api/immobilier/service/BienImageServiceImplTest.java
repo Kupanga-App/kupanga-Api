@@ -5,12 +5,15 @@ import com.kupanga.api.immobilier.entity.Bien;
 import com.kupanga.api.immobilier.entity.BienImage;
 import com.kupanga.api.immobilier.repository.BienImageRepository;
 import com.kupanga.api.immobilier.service.impl.BienImageServiceImpl;
+import com.kupanga.api.minio.image.PhotoPreparee;
+import com.kupanga.api.minio.image.PhotoStockee;
 import com.kupanga.api.minio.service.MinioService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
-import org.springframework.web.multipart.MultipartFile;
+import com.kupanga.api.minio.image.FichierImage;
+import com.kupanga.api.minio.image.FormatImage;
 
 import java.util.Collections;
 import java.util.List;
@@ -39,11 +42,13 @@ class BienImageServiceImplTest {
     @DisplayName("uploadImagesImo() — 2 fichiers → MinIO appelé 2x, saveAll avec 2 BienImage")
     @SuppressWarnings("unchecked")
     void uploadImagesImo_twoFiles_uploadsAndSaves() {
-        MultipartFile file1 = mock(MultipartFile.class);
-        MultipartFile file2 = mock(MultipartFile.class);
+        PhotoPreparee file1 = new PhotoPreparee(List.of(new FichierImage(new byte[]{1}, FormatImage.JPEG)));
+        PhotoPreparee file2 = new PhotoPreparee(List.of(new FichierImage(new byte[]{2}, FormatImage.JPEG)));
 
-        when(minioService.uploadImage(file1, "bucket-test")).thenReturn("http://minio/img1.jpg");
-        when(minioService.uploadImage(file2, "bucket-test")).thenReturn("http://minio/img2.jpg");
+        when(minioService.envoyerPhotoAvecVignette(file1, "bucket-test"))
+                .thenReturn(new PhotoStockee("http://minio/img1.jpg", "http://minio/vig1.jpg"));
+        when(minioService.envoyerPhotoAvecVignette(file2, "bucket-test"))
+                .thenReturn(new PhotoStockee("http://minio/img2.jpg", "http://minio/vig2.jpg"));
 
         bienImageService.uploadImagesImo(List.of(file1, file2), "bucket-test", bien);
 
@@ -54,6 +59,9 @@ class BienImageServiceImplTest {
         assertThat(saved).hasSize(2);
         assertThat(saved).extracting(BienImage::getUrl)
                 .containsExactlyInAnyOrder("http://minio/img1.jpg", "http://minio/img2.jpg");
+        // R1 : vignette de 400 px enregistrée avec chaque photo
+        assertThat(saved).extracting(BienImage::getUrlVignette)
+                .containsExactlyInAnyOrder("http://minio/vig1.jpg", "http://minio/vig2.jpg");
         assertThat(saved).extracting(BienImage::getBien).containsOnly(bien);
     }
 
@@ -63,7 +71,7 @@ class BienImageServiceImplTest {
     void uploadImagesImo_emptyList_noUpload() {
         bienImageService.uploadImagesImo(Collections.emptyList(), "bucket-test", bien);
 
-        verify(minioService, never()).uploadImage(any(), any());
+        verify(minioService, never()).envoyerPhotoAvecVignette(any(), any());
 
         ArgumentCaptor<List<BienImage>> captor = ArgumentCaptor.forClass(List.class);
         verify(bienImageRepository).saveAll(captor.capture());

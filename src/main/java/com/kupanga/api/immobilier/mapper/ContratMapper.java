@@ -25,5 +25,6 @@ public interface ContratMapper {
     @Mapping(target = "id",                ignore = true)
     @Mapping(target = "role",              ignore = true)
     @Mapping(target = "hasCompleteProfil", ignore = true)
+    @Mapping(target = "telephone",         ignore = true) // C6 : vue aussi servie par le lien de signature
     UserDTO mapUserSansInfosSensibles(User user);
 }

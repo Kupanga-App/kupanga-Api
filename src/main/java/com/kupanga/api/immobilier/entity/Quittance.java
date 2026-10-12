@@ -58,6 +58,19 @@ public class Quittance {
 
     // ─── Paiement ─────────────────────────────────────────────────────────────
     private LocalDate datePaiement;     // date effective d'encaissement
+
+    /** C8-bis : mode de paiement déclaré par le propriétaire (aucun paiement via l'application). */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "mode_paiement", length = 20)
+    private ModePaiement modePaiement;
+
+    /** C8-bis : référence facultative (n° de transaction Mobile Money, de virement…). */
+    @Column(name = "reference_paiement", length = 100)
+    private String referencePaiement;
+
+    /** C8-bis : clé de la photo du reçu dans le bucket privé des reçus (URL présignée à la lecture). */
+    @Column(name = "cle_recu")
+    private String cleRecu;
     private LocalDate dateEcheance;     // date limite de paiement (ex : 5 du mois)
 
     // ─── Statut ───────────────────────────────────────────────────────────────

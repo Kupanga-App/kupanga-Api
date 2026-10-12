@@ -98,6 +98,9 @@ class SecuriteApiIntegrationTest {
     // Signature valide (B6) : sinon la validation répond 400 avant le contrôle de propriété testé ici
     private static final String SIGNATURE =
             "{\"signatureBase64\": \"" + SignaturesDeTest.signatureValide() + "\"}";
+    /** C8-bis : marquer payée exige aussi le mode de paiement. */
+    private static final String PAIEMENT =
+            "{\"signatureBase64\": \"" + SignaturesDeTest.signatureValide() + "\", \"modePaiement\": \"VIREMENT\"}";
 
     @Autowired private MockMvc mockMvc;
     @Autowired @Qualifier("requestMappingHandlerMapping") private RequestMappingHandlerMapping handlerMapping;
@@ -280,9 +283,18 @@ class SecuriteApiIntegrationTest {
         assertStatut(403, post("/etats-des-lieux/" + edlA.getId() + "/signer-proprietaire").with(b)
                 .contentType(MediaType.APPLICATION_JSON).content(SIGNATURE));
         assertStatut(403, post("/quittances/" + quittanceA.getId() + "/marquer-payee").with(b)
-                .contentType(MediaType.APPLICATION_JSON).content(SIGNATURE));
+                .contentType(MediaType.APPLICATION_JSON).content(PAIEMENT));
         assertStatut(403, get("/quittances/bien/" + bienA.getId()).with(b));
         assertStatut(403, get("/quittances/" + quittanceA.getId()).with(b));
+        // C8-bis : reçu de paiement sur la quittance de A
+        assertStatut(403, multipart("/quittances/" + quittanceA.getId() + "/recu")
+                .file(new org.springframework.mock.web.MockMultipartFile("recu", "r.jpg", "image/jpeg",
+                        com.kupanga.api.minio.image.ImagesDeTest.jpeg(40, 30)))
+                .with(b));
+        // C7-C16 : liens WhatsApp des documents de A (propriété contrôlée avant le pays)
+        assertStatut(403, get("/contrats/" + contratA.getId() + "/lien-whatsapp").with(b));
+        assertStatut(403, get("/etats-des-lieux/" + edlA.getId() + "/lien-whatsapp").with(b));
+        assertStatut(403, get("/quittances/" + quittanceA.getId() + "/lien-whatsapp").with(b));
         // Notification d'autrui : 404, le service ne révèle pas qu'elle existe
         assertStatut(404, patch("/notifications/" + notificationA.getId() + "/lire").with(b));
 
@@ -420,8 +432,10 @@ class SecuriteApiIntegrationTest {
 
         assertStatut(403, get("/locataire/dashboard/" + bienA.getId()).with(a));
         assertStatut(403, get("/quittances/mes-quittances").with(a));
+        // C7-C16 : réservé au propriétaire
+        assertStatut(403, get("/quittances/" + quittanceA.getId() + "/lien-whatsapp").with(locataire));
         assertStatut(403, post("/quittances/" + quittanceA.getId() + "/marquer-payee").with(locataire)
-                .contentType(MediaType.APPLICATION_JSON).content(SIGNATURE));
+                .contentType(MediaType.APPLICATION_JSON).content(PAIEMENT));
         assertStatut(403, post("/contrats/" + contratA.getId() + "/signer-proprio").with(locataire)
                 .contentType(MediaType.APPLICATION_JSON).content(SIGNATURE));
         assertStatut(403, patch("/biens/" + bienA.getId()).with(locataire)

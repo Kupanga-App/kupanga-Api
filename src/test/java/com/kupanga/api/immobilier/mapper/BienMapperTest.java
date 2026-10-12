@@ -67,4 +67,40 @@ class BienMapperTest {
         assertThat(dto.proprietaire().initialeNom()).isNull();
         assertThat(bienMapper.toPublicDTO(Bien.builder().pays(Pays.FR).id(12L).build()).proprietaire()).isNull();
     }
+
+    @Test
+    @DisplayName("C2 : vue publique — repère arrondi à ~100 m, précision exacte non annoncée ; surface intacte")
+    void toPublicDTO_positionArrondie() {
+        Bien bien = Bien.builder().id(1L).pays(Pays.CD).surfaceHabitable(68.5432)
+                .localisation(com.kupanga.api.immobilier.service.LocalisationBienService.repere(-4.331789, 15.313912))
+                .precisionLocalisation(com.kupanga.api.immobilier.entity.PrecisionLocalisation.REPERE)
+                .build();
+
+        BienPublicDTO dto = bienMapper.toPublicDTO(bien);
+
+        assertThat(dto.latitude()).isEqualTo(-4.332);
+        assertThat(dto.longitude()).isEqualTo(15.314);
+        assertThat(dto.precisionLocalisation()).isNull();
+        assertThat(dto.surfaceHabitable()).isEqualTo(68.5432);
+
+        bien.setPrecisionLocalisation(com.kupanga.api.immobilier.entity.PrecisionLocalisation.COMMUNE);
+        assertThat(bienMapper.toPublicDTO(bien).precisionLocalisation())
+                .isEqualTo(com.kupanga.api.immobilier.entity.PrecisionLocalisation.COMMUNE);
+    }
+
+    @Test
+    @DisplayName("R1 : images et vignettes dans le même ordre (envoi) ; photo d'avant R1 servie comme vignette")
+    void toPublicDTO_vignettes() {
+        Bien bien = Bien.builder().id(1L).pays(Pays.CD)
+                .images(new java.util.HashSet<>(java.util.List.of(
+                        com.kupanga.api.immobilier.entity.BienImage.builder().id(3L).url("u3").urlVignette("v3").build(),
+                        com.kupanga.api.immobilier.entity.BienImage.builder().id(1L).url("u1").build(),
+                        com.kupanga.api.immobilier.entity.BienImage.builder().id(2L).url("u2").urlVignette("v2").build())))
+                .build();
+
+        BienPublicDTO dto = bienMapper.toPublicDTO(bien);
+
+        assertThat(dto.images()).containsExactly("u1", "u2", "u3");
+        assertThat(dto.vignettes()).containsExactly("u1", "v2", "v3");
+    }
 }

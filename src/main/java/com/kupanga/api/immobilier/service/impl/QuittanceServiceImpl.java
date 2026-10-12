@@ -8,7 +8,11 @@ import com.kupanga.api.email.service.EmailService;
 import com.kupanga.api.exception.business.KupangaBusinessException;
 import com.kupanga.api.notification.enums.NotificationType;
 import com.kupanga.api.notification.service.NotificationService;
+import com.kupanga.api.config.ApresCommit;
+import com.kupanga.api.immobilier.dto.formDTO.MarquerPayeeDTO;
 import com.kupanga.api.immobilier.dto.formDTO.QuittanceFormDTO;
+import com.kupanga.api.minio.service.MinioService;
+import org.springframework.web.multipart.MultipartFile;
 import com.kupanga.api.immobilier.dto.readDTO.QuittanceDTO;
 import com.kupanga.api.immobilier.entity.*;
 import com.kupanga.api.immobilier.mapper.QuittanceMapper;
@@ -29,6 +33,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static com.kupanga.api.minio.constant.MinioConstant.RECU_BUCKET;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -44,6 +50,7 @@ public class QuittanceServiceImpl implements QuittanceService {
     private final EmailService         emailService;
     private final NotificationService  notificationService;
     private final JuridictionRegistry  juridictionRegistry;
+    private final MinioService         minioService;
 
     // ─────────────────────────────────────────────────────────────────────────
     // Création
@@ -136,7 +143,7 @@ public class QuittanceServiceImpl implements QuittanceService {
     // ─────────────────────────────────────────────────────────────────────────
 
     @Override
-    public void marquerPayee(Long quittanceId, String signatureBase64, String emailProprietaire) {
+    public void marquerPayee(Long quittanceId, MarquerPayeeDTO dto, String emailProprietaire) {
 
         Quittance quittance = findAndVerifyProprietaire(quittanceId, emailProprietaire);
         bienService.verifierDocumentModifiable(quittance.getBien(), quittance.getProprietaire(), quittance.getLocataire());
@@ -146,11 +153,27 @@ public class QuittanceServiceImpl implements QuittanceService {
                     "Cette quittance est déjà marquée comme payée", HttpStatus.BAD_REQUEST);
         }
 
+        // ─── C8-bis : paiement reçu hors application, déclaré par le propriétaire ──
+        // Mode proposé dans le pays figé sur la quittance ; date dans le fuseau de ce pays
+        juridictionRegistry.verifierModePaiement(quittance.getPays(), dto.modePaiement());
+        LocalDate aujourdhui = LocalDate.now(juridictionRegistry.profil(quittance.getPays()).fuseau());
+        LocalDate datePaiement = dto.datePaiement() != null ? dto.datePaiement() : aujourdhui;
+        // Loyer payé d'avance possible, mais pas avant l'année qui précède celle de la quittance
+        LocalDate auPlusTot = quittance.getAnnee() != null
+                ? LocalDate.of(quittance.getAnnee() - 1, 1, 1)
+                : aujourdhui.minusYears(2);
+        if (datePaiement.isAfter(aujourdhui) || datePaiement.isBefore(auPlusTot)) {
+            throw new KupangaBusinessException(
+                    "La date de paiement ne peut pas être dans le futur ni trop ancienne", HttpStatus.BAD_REQUEST);
+        }
+
         quittance.setStatut(StatutQuittance.PAYEE);
-        quittance.setDatePaiement(LocalDate.now());
+        quittance.setDatePaiement(datePaiement);
+        quittance.setModePaiement(dto.modePaiement());
+        quittance.setReferencePaiement(texte(dto.referencePaiement()));
 
         // ─── Signature propriétaire ───────────────────────────────────────────────
-        quittance.setSignatureProprietaire(signatureBase64);
+        quittance.setSignatureProprietaire(dto.signatureBase64());
         quittance.setDateSignatureProprietaire(LocalDateTime.now());
 
         // ─── Régénère le PDF avec signature + date de paiement ───────────────────
@@ -174,8 +197,44 @@ public class QuittanceServiceImpl implements QuittanceService {
                 quittance.getId()
         );
 
-        log.info("Quittance {} marquée payée et signée — email envoyé à {}",
-                quittanceId, quittance.getLocataire().getMail());
+        log.info("Quittance {} marquée payée ({}) et signée — e-mail envoyé au locataire",
+                quittanceId, dto.modePaiement());
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // C8-bis : photo du reçu
+    // ─────────────────────────────────────────────────────────────────────────
+
+    @Override
+    @Transactional
+    public QuittanceDTO ajouterRecu(Long quittanceId, MultipartFile recu, String emailProprietaire) {
+
+        Quittance quittance = findAndVerifyProprietaire(quittanceId, emailProprietaire);
+        bienService.verifierDocumentModifiable(quittance.getBien(), quittance.getProprietaire(), quittance.getLocataire());
+        if (quittance.getStatut() != StatutQuittance.PAYEE) {
+            throw new KupangaBusinessException(
+                    "Marquez d'abord le loyer comme reçu pour joindre le reçu", HttpStatus.CONFLICT);
+        }
+        if (recu == null || recu.isEmpty()) {
+            throw new KupangaBusinessException("La photo du reçu est obligatoire", HttpStatus.BAD_REQUEST);
+        }
+
+        // Bucket privé (P0-7) : format contrôlé au contenu (B5), nom fixé par le serveur
+        String ancienne = quittance.getCleRecu();
+        String cle = minioService.uploadImagePrivee(recu, RECU_BUCKET);
+        quittance.setCleRecu(cle);
+        quittanceRepository.saveAndFlush(quittance);
+
+        // Ancienne photo supprimée une fois le remplacement validé
+        if (ancienne != null) {
+            ApresCommit.executer(() -> minioService.supprimer(RECU_BUCKET, ancienne));
+        }
+        log.info("Reçu joint à la quittance {}", quittanceId);
+        return quittanceMapper.toDTO(quittance);
+    }
+
+    private static String texte(String valeur) {
+        return valeur == null || valeur.isBlank() ? null : valeur.trim();
     }
 
     // ─────────────────────────────────────────────────────────────────────────

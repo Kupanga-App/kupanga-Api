@@ -2,6 +2,7 @@ package com.kupanga.api.immobilier.pdf;
 
 import com.kupanga.api.immobilier.entity.Bien;
 import com.kupanga.api.immobilier.entity.Contrat;
+import com.kupanga.api.immobilier.entity.ModePaiement;
 import com.kupanga.api.immobilier.entity.EtatDesLieux;
 import com.kupanga.api.immobilier.entity.Quittance;
 import com.kupanga.api.immobilier.entity.StatutContrat;
@@ -235,6 +236,12 @@ class ContratTemplateTest {
         String edlFrance = rendre(edl(bien(Pays.FR, Devise.EUR)));
 
         assertThat(recu).contains("À FAIRE VALIDER PAR UN JURISTE").doesNotContain("article 21", "1989");
+        // C8-bis : sans mode déclaré, pas de ligne vide ; avec, « par Mobile Money »
+        assertThat(recu).doesNotContain("Mode de paiement");
+        quittance.setStatut(StatutQuittance.PAYEE);
+        quittance.setDatePaiement(LocalDate.of(2026, 1, 3));
+        quittance.setModePaiement(ModePaiement.MOBILE_MONEY);
+        assertThat(rendre(quittance)).contains("Mode de paiement", "par Mobile Money", "03/01/2026");
         assertThat(edlRdc).contains("À FAIRE VALIDER PAR UN JURISTE").doesNotContain("89-462");
         assertThat(edlFrance).contains("89-462").doesNotContain("MODÈLE PROVISOIRE");
     }
@@ -266,5 +273,29 @@ class ContratTemplateTest {
             assertThatThrownBy(() -> registre.gabarit(TypeDocument.CONTRAT, Pays.CD, version))
                     .isInstanceOf(IllegalStateException.class);
         }
+    }
+
+    @Test
+    @DisplayName("C10-C13 : bail RDC d'un terrain (sans surface ni pièces), garantie et avance en mois ; EDL avec Cash Power")
+    void bailRdc_terrain_garantieEnMois() {
+        Bien terrain = bienKinshasa();
+        terrain.setTypeBien(TypeBien.TERRAIN);
+        terrain.setSurfaceHabitable(null);
+        terrain.setNombrePieces(null);
+        Contrat bail = contrat(terrain);
+        bail.setGarantieMois(3);
+        bail.setAvanceMois(2);
+
+        String html = rendre(bail);
+
+        assertThat(html).contains("Terrain", "3 mois de loyer", "Loyers payés d'avance", "2 mois")
+                .doesNotContain("TERRAIN", "Surface habitable", " m²", "pièce(s) principale(s)");
+
+        assertThat(rendre(edl(terrain))).contains("Terrain").doesNotContain("Surface habitable", "TERRAIN");
+        EtatDesLieux edl = edl(bienKinshasa());
+        edl.getCompteurs().add(com.kupanga.api.immobilier.entity.CompteurReleve.builder()
+                .typeCompteur(com.kupanga.api.immobilier.entity.TypeCompteur.CASH_POWER).index(42.5).unite("kWh")
+                .etatDesLieux(edl).build());
+        assertThat(rendre(edl)).contains("Électricité prépayée (Cash Power)").doesNotContain("CASH_POWER");
     }
 }

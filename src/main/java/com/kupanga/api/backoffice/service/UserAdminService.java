@@ -143,6 +143,7 @@ public class UserAdminService {
         anonyme.setPassword(null);
         anonyme.setGoogleId(null);
         anonyme.setUrlProfile(null);
+        anonyme.setTelephone(null);
         anonyme.setEmailVerifie(false);
         anonyme.setAnonymise(true);
         anonyme.setDateAnonymisation(maintenant);

@@ -401,14 +401,15 @@ class AuthServiceImplTest {
                 "john@mail.com",
                 "John",
                 Role.ROLE_LOCATAIRE,
-                "defaultUrl"
+                "defaultUrl",
+                "+243 81 234-56.78"
         );
 
         MultipartFile image = imagePng();
 
         when(minioService.estUrlDuBucket("defaultUrl", PHOTO_PROFIL_BUCKET)).thenReturn(true);
         when(passwordEncoder.encode("password")).thenReturn("encodedPwd");
-        when(minioService.uploadImage(image, PHOTO_PROFIL_BUCKET))
+        when(minioService.envoyerImagePublique(any(com.kupanga.api.minio.image.PhotoPreparee.class), eq(PHOTO_PROFIL_BUCKET)))
                 .thenReturn("minioUrl");
 
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
@@ -420,6 +421,7 @@ class AuthServiceImplTest {
         User cree = userCaptor.getValue();
         assertThat(cree.isEmailVerifie()).isFalse();
         assertThat(cree.getUrlProfile()).isEqualTo("minioUrl");
+        assertThat(cree.getTelephone()).isEqualTo("+243812345678"); // C6 : normalisé en E.164
         verify(verificationEmailService).envoyerLien(cree);
         verifyNoInteractions(jwtUtils, refreshTokenService);
         verify(emailService, never()).sendWelcomeMessage(any(), any());
@@ -445,7 +447,7 @@ class AuthServiceImplTest {
             verify(userService, never()).save(any(User.class));
             // pas de nouveau lien : il validerait le mot de passe choisi par le premier inscrit
             verifyNoInteractions(verificationEmailService, jwtUtils, refreshTokenService);
-            verify(minioService, never()).uploadImage(any(), any());
+            verify(minioService, never()).envoyerImagePublique(any(), any());
             assertThat(existant.getPassword()).isEqualTo("hashDuPremier");
             assertThat(existant.getRole()).isEqualTo(Role.ROLE_PROPRIETAIRE);
         }
@@ -456,7 +458,7 @@ class AuthServiceImplTest {
     void testCreateAndCompleteUserProfil_avatarExterne_refuse() {
         String pixelDeSuivi = "https://traqueur.example/pixel.gif";
         UserFormDTO form = new UserFormDTO("User", "password", "john@mail.com", "John",
-                Role.ROLE_LOCATAIRE, pixelDeSuivi);
+                Role.ROLE_LOCATAIRE, pixelDeSuivi, null);
         when(minioService.estUrlDuBucket(pixelDeSuivi, PHOTO_PROFIL_BUCKET)).thenReturn(false);
 
         KupangaBusinessException ex = assertThrows(KupangaBusinessException.class,
@@ -468,7 +470,7 @@ class AuthServiceImplTest {
 
     /** Fichier reconnu comme PNG par sa signature (B5). */
     private static MultipartFile imagePng() {
-        byte[] contenu = {(byte) 0x89, 'P', 'N', 'G', 0x0D, 0x0A, 0x1A, 0x0A, 0, 0, 0, 0x0D, 'I', 'H', 'D', 'R'};
+        byte[] contenu = com.kupanga.api.minio.image.ImagesDeTest.png(40, 40);
         return new org.springframework.mock.web.MockMultipartFile("imageProfil", "photo.png", "image/png", contenu);
     }
 
@@ -587,6 +589,7 @@ class AuthServiceImplTest {
                 .firstName("Faux")
                 .lastName("Profil")
                 .urlProfile("photoAttaquant")
+                .telephone("+243999999999")
                 .hasCompleteProfil(true)
                 .emailVerifie(false)
                 .build();
@@ -606,6 +609,7 @@ class AuthServiceImplTest {
         assertThat(squatte.getFirstName()).isEqualTo("Vraie");
         assertThat(squatte.getLastName()).isEqualTo("Personne");
         assertThat(squatte.getUrlProfile()).isEqualTo("photoGoogle");
+        assertThat(squatte.getTelephone()).isNull(); // C6 : numéro saisi par le premier inscrit effacé
         assertThat(squatte.isEmailVerifie()).isTrue();
         assertThat(squatte.getGoogleId()).isEqualTo("g-789");
         verify(verificationEmailService).annulerLien(42L);

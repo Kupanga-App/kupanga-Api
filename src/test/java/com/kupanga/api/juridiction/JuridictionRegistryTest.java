@@ -1,6 +1,8 @@
 package com.kupanga.api.juridiction;
 
 import com.kupanga.api.exception.business.KupangaBusinessException;
+import com.kupanga.api.immobilier.entity.ModePaiement;
+import com.kupanga.api.immobilier.entity.TypeCompteur;
 import com.kupanga.api.immobilier.entity.TypeBien;
 import com.kupanga.api.immobilier.repository.BienRepository;
 import com.kupanga.api.juridiction.regle.RegleFrance;
@@ -28,7 +30,8 @@ class JuridictionRegistryTest {
         return new ProfilJuridiction(Locale.forLanguageTag("fr-FR"), ZoneId.of("Europe/Paris"),
                 List.of(Devise.EUR), Devise.EUR, Set.of("codePostal"), Set.of(),
                 Set.of(TypeBien.APPARTEMENT), "fr-v1",
-                new ProfilJuridiction.Notification(List.of(CanalNotification.EMAIL)));
+                new ProfilJuridiction.Notification(List.of(CanalNotification.EMAIL)),
+                List.of(ModePaiement.VIREMENT), List.of(), List.of(TypeCompteur.EAU_FROIDE));
     }
 
     /** J3 : plafonds valides pour toutes les devises (les profils de test n'en utilisent qu'une partie). */
@@ -109,7 +112,8 @@ class JuridictionRegistryTest {
     void demarrageRefuse_profilIncoherent() {
         ProfilJuridiction incoherent = new ProfilJuridiction(Locale.FRANCE, ZoneId.of("Europe/Paris"),
                 List.of(Devise.EUR), Devise.USD, Set.of("codePostal", "codePostale"), Set.of("codePostal"),
-                Set.of(TypeBien.MAISON), "fr-v1", new ProfilJuridiction.Notification(List.of(CanalNotification.EMAIL)));
+                Set.of(TypeBien.MAISON), "fr-v1", new ProfilJuridiction.Notification(List.of(CanalNotification.EMAIL)),
+                List.of(ModePaiement.VIREMENT), List.of(), List.of(TypeCompteur.EAU_FROIDE));
 
         assertThatThrownBy(() -> registry(Map.of(Pays.FR, incoherent), new RegleFrance()))
                 .isInstanceOf(IllegalStateException.class)
@@ -121,7 +125,7 @@ class JuridictionRegistryTest {
     @Test
     @DisplayName("Démarrage refusé : champs vides (locale, fuseau, devises, types de bien, modèle, canaux)")
     void demarrageRefuse_champsManquants() {
-        ProfilJuridiction vide = new ProfilJuridiction(null, null, null, null, null, null, null, " ", null);
+        ProfilJuridiction vide = new ProfilJuridiction(null, null, null, null, null, null, null, " ", null, null, null, null);
 
         assertThatThrownBy(() -> registry(Map.of(Pays.FR, vide), new RegleFrance()))
                 .isInstanceOf(IllegalStateException.class)
@@ -257,7 +261,7 @@ class JuridictionRegistryTest {
         assertThatThrownBy(() -> registry.verifierBien(Pays.CD,
                 com.kupanga.api.immobilier.dto.formDTO.BienFormDTO.builder().build(), true))
                 .isInstanceOf(KupangaBusinessException.class)
-                .hasMessageContaining("commune : Ce champ est obligatoire");
+                .hasMessageContaining("Ce champ est obligatoire"); // premier champ par ordre alphabétique (avanceMois)
         assertThat(registry.controlerBien(Pays.BE, miseAJour, true)).isEmpty();
     }
 
@@ -266,12 +270,23 @@ class JuridictionRegistryTest {
     void yamlReel_champsAdresse() {
         JuridictionRegistry registry = JuridictionsDeTest.registre();
 
-        assertThat(registry.profil(Pays.FR).champsObligatoires()).containsExactly("codePostal");
+        assertThat(registry.profil(Pays.FR).champsObligatoires()).containsExactlyInAnyOrder("codePostal", "depotGarantie");
         assertThat(registry.profil(Pays.FR).champsMasques())
-                .containsExactlyInAnyOrder("commune", "quartier", "avenue", "numeroParcelle", "pointDeRepere");
-        assertThat(registry.profil(Pays.CD).champsObligatoires()).containsExactlyInAnyOrder("commune", "quartier");
+                .containsExactlyInAnyOrder("commune", "quartier", "avenue", "numeroParcelle", "pointDeRepere",
+                        "garantieMois", "avanceMois", "heuresElectriciteParJour");
+        // C12 : garantie en mois et avance en RDC, dépôt en montant masqué
+        assertThat(registry.profil(Pays.CD).champsObligatoires())
+                .containsExactlyInAnyOrder("commune", "quartier", "garantieMois", "avanceMois");
         assertThat(registry.profil(Pays.CD).champsMasques())
-                .containsExactlyInAnyOrder("codePostal", "classeEnergie", "classeGes");
+                .containsExactlyInAnyOrder("codePostal", "classeEnergie", "classeGes", "depotGarantie");
+        // C10, C11, C13
+        assertThat(registry.profil(Pays.CD).typesBien()).contains(
+                com.kupanga.api.immobilier.entity.TypeBien.VILLA, com.kupanga.api.immobilier.entity.TypeBien.TERRAIN);
+        assertThat(registry.profil(Pays.FR).typesBien()).doesNotContain(com.kupanga.api.immobilier.entity.TypeBien.TERRAIN);
+        assertThat(registry.profil(Pays.CD).equipements()).contains(com.kupanga.api.immobilier.entity.Equipement.FORAGE);
+        assertThat(registry.profil(Pays.FR).equipements()).doesNotContain(com.kupanga.api.immobilier.entity.Equipement.FORAGE);
+        assertThat(registry.profil(Pays.CD).compteursEdl()).contains(TypeCompteur.CASH_POWER, TypeCompteur.GROUPE_ELECTROGENE);
+        assertThat(registry.profil(Pays.FR).compteursEdl()).doesNotContain(TypeCompteur.CASH_POWER);
     }
 
     @Test
@@ -280,7 +295,8 @@ class JuridictionRegistryTest {
         for (String version : new String[]{"cd-v1", "fr-1", "fr-v9"}) {
             ProfilJuridiction profil = new ProfilJuridiction(Locale.forLanguageTag("fr-FR"), ZoneId.of("Europe/Paris"),
                     List.of(Devise.EUR), Devise.EUR, Set.of("codePostal"), Set.of(), Set.of(TypeBien.APPARTEMENT),
-                    version, new ProfilJuridiction.Notification(List.of(CanalNotification.EMAIL)));
+                    version, new ProfilJuridiction.Notification(List.of(CanalNotification.EMAIL)),
+                List.of(ModePaiement.VIREMENT), List.of(), List.of(TypeCompteur.EAU_FROIDE));
 
             assertThatThrownBy(() -> registry(Map.of(Pays.FR, profil), new RegleFrance()))
                     .isInstanceOf(IllegalStateException.class)

@@ -16,7 +16,8 @@ import com.kupanga.api.authentification.utils.JwtUtils;
 import com.kupanga.api.email.service.EmailService;
 import com.kupanga.api.exception.business.InvalidPasswordException;
 import com.kupanga.api.exception.business.KupangaBusinessException;
-import com.kupanga.api.minio.image.ValidationImage;
+import com.kupanga.api.minio.image.CompressionImage;
+import com.kupanga.api.minio.image.PhotoPreparee;
 import com.kupanga.api.minio.service.MinioService;
 import com.kupanga.api.user.dto.formDTO.UserFormDTO;
 import com.kupanga.api.user.dto.readDTO.UserDTO;
@@ -24,6 +25,7 @@ import com.kupanga.api.user.entity.User;
 import com.kupanga.api.user.mapper.UserMapper;
 import com.kupanga.api.user.service.UserService;
 import com.kupanga.api.user.utils.EmailUtils;
+import com.kupanga.api.user.utils.TelephoneUtils;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
@@ -230,10 +232,11 @@ public class AuthServiceImpl implements AuthService {
         if (url != null && !url.isBlank() && !minioService.estUrlDuBucket(url, PHOTO_PROFIL_BUCKET)) {
             throw new KupangaBusinessException("Avatar invalide", HttpStatus.BAD_REQUEST);
         }
-        // Photo contrôlée (B5) même si l'adresse est déjà inscrite : sinon 415 seulement pour une adresse libre
-        if (imageProfil != null && !imageProfil.isEmpty()) {
-            ValidationImage.verifier(imageProfil);
-        }
+        // Photo contrôlée (B5) et préparée (R1 : 400 px, sans EXIF) même si l'adresse est déjà inscrite :
+        // mêmes erreurs (400, 415) et même calcul quelle que soit l'adresse
+        PhotoPreparee photoProfil = imageProfil != null && !imageProfil.isEmpty()
+                ? PhotoPreparee.pourBucketPublic(imageProfil, CompressionImage.COTE_VIGNETTE)
+                : null;
         // Calcul BCrypt dans tous les cas : temps de réponse proche que le compte existe ou non
         String motDePasseHache = passwordEncoder.encode(userFormDTO.password());
 
@@ -253,8 +256,10 @@ public class AuthServiceImpl implements AuthService {
         user.setRole(userFormDTO.role());
         user.setFirstName(userFormDTO.firstName());
         user.setLastName(userFormDTO.lastName());
-        if( imageProfil != null && !imageProfil.isEmpty()){
-            url = minioService.uploadImage(imageProfil , PHOTO_PROFIL_BUCKET);
+        user.setTelephone(TelephoneUtils.normaliser(userFormDTO.telephone()));
+        if (photoProfil != null) {
+            // R1 : avatar jamais affiché en grand → une seule version de 400 px
+            url = minioService.envoyerImagePublique(photoProfil, PHOTO_PROFIL_BUCKET);
         }
 
         user.setUrlProfile(url);
@@ -370,6 +375,7 @@ public class AuthServiceImpl implements AuthService {
         user.setFirstName(googleInfo.firstName());
         user.setLastName(googleInfo.lastName());
         user.setUrlProfile(googleInfo.pictureUrl());
+        user.setTelephone(null); // C6 : saisi par le premier inscrit, peut-être un tiers
         user.setEmailVerifie(true);
         verificationEmailService.annulerLien(user.getId());
         passwordResetTokenService.deleteIfExist(user.getId());

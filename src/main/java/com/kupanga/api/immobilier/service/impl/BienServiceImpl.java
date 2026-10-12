@@ -15,8 +15,11 @@ import com.kupanga.api.immobilier.repository.BienRepository;
 import com.kupanga.api.immobilier.service.BienImageService;
 import com.kupanga.api.immobilier.service.BienPoiService;
 import com.kupanga.api.immobilier.service.BienService;
-import com.kupanga.api.immobilier.service.GeocodingService;
+import com.kupanga.api.immobilier.service.LocalisationBienService;
+import com.kupanga.api.immobilier.repository.BienPoiRepository;
 import com.kupanga.api.juridiction.JuridictionRegistry;
+import com.kupanga.api.minio.image.CompressionImage;
+import com.kupanga.api.minio.image.PhotoPreparee;
 import com.kupanga.api.minio.image.ValidationImage;
 import com.kupanga.api.notification.enums.NotificationType;
 import com.kupanga.api.notification.service.NotificationService;
@@ -35,6 +38,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 
@@ -47,7 +51,8 @@ public class BienServiceImpl implements BienService {
 
     private final UserService        userService;
     private final BienImageService   bienImageService;
-    private final GeocodingService   geocodingService;
+    private final LocalisationBienService localisationBienService;
+    private final BienPoiRepository  bienPoiRepository;
     private final BienRepository     bienRepository;
     private final BienMapper         bienMapper;
     private final BienPoiService     bienPoiService;
@@ -114,6 +119,11 @@ public class BienServiceImpl implements BienService {
                 .loyerMensuel(dto.getLoyerMensuel())
                 .chargesMensuelles(dto.getChargesMensuelles())
                 .depotGarantie(dto.getDepotGarantie())
+                // C11 / C12
+                .garantieMois(dto.getGarantieMois())
+                .avanceMois(dto.getAvanceMois())
+                .heuresElectriciteParJour(dto.getHeuresElectriciteParJour())
+                .equipements(dto.getEquipements() != null ? new HashSet<>(dto.getEquipements()) : new HashSet<>())
                 .devise(devise)
                 .meuble(dto.getMeuble())
                 .colocation(dto.getColocation())
@@ -121,24 +131,28 @@ public class BienServiceImpl implements BienService {
 
                 .build();
 
-        Point point = geocodingService.geocode(dto.getAdresse(), dto.getVille(),
-                bien.getCodePostal(), dto.getPays());
+        // R1 : photos décodées et réduites avant tout enregistrement (une photo indécodable ne laisse ni bien
+        // à moitié créé, ni objet orphelin dans MinIO)
+        List<PhotoPreparee> photos = files.stream()
+                .map(file -> PhotoPreparee.pourBucketPublic(file, CompressionImage.COTE_GRANDE, CompressionImage.COTE_VIGNETTE))
+                .toList();
 
-        if (point == null) {
-            throw new KupangaBusinessException(
-                    "Nous n'avons pas pu géolocaliser votre bien",
-                    HttpStatus.NOT_FOUND
-            );
-        }
-
-        bien.setLocalisation(point);
-        log.info("Géocodage réussi -> {}", point);
+        // C2 / B10 : repère du propriétaire, sinon adresse, sinon centre du quartier, de la commune ou de la ville ;
+        // la création n'est jamais refusée faute de position
+        LocalisationBienService.Localisation localisation = localisationBienService.localiser(
+                dto.getLatitude(), dto.getLongitude(), dto.getAdresse(), dto.getVille(), bien.getCodePostal(),
+                bien.getQuartier(), bien.getCommune(), dto.getPays());
+        bien.setLocalisation(localisation.point());
+        bien.setPrecisionLocalisation(localisation.precision());
 
         bienRepository.save(bien);
 
-        calculerPoiApresCommit(bien.getId());
+        // POI seulement autour d'une position exacte (un centre de commune donnerait des POI faux)
+        if (localisation.precision().estPrecise()) {
+            calculerPoiApresCommit(bien.getId());
+        }
 
-        bienImageService.uploadImagesImo(files, PHOTO_IMO_BUCKET, bien);
+        bienImageService.uploadImagesImo(photos, PHOTO_IMO_BUCKET, bien);
     }
 
     /**
@@ -271,11 +285,31 @@ public class BienServiceImpl implements BienService {
         if (dto.getLoyerMensuel()      != null) bien.setLoyerMensuel(dto.getLoyerMensuel());
         if (dto.getChargesMensuelles() != null) bien.setChargesMensuelles(dto.getChargesMensuelles());
         if (dto.getDepotGarantie()     != null) bien.setDepotGarantie(dto.getDepotGarantie());
+        // C11 / C12 (champs masqués dans le pays déjà refusés par verifierBien)
+        if (dto.getGarantieMois()      != null) bien.setGarantieMois(dto.getGarantieMois());
+        if (dto.getAvanceMois()        != null) bien.setAvanceMois(dto.getAvanceMois());
+        if (dto.getHeuresElectriciteParJour() != null) bien.setHeuresElectriciteParJour(dto.getHeuresElectriciteParJour());
+        if (dto.getEquipements()       != null) {
+            bien.getEquipements().clear();
+            bien.getEquipements().addAll(dto.getEquipements());
+        }
         if (dto.getMeuble()            != null) bien.setMeuble(dto.getMeuble());
         if (dto.getColocation()        != null) bien.setColocation(dto.getColocation());
         if (dto.getDisponibleDe()      != null) bien.setDisponibleDe(dto.getDisponibleDe());
 
+        // C2 : repère déplacé par le propriétaire ; les anciens POI (autour de l'ancienne position) sont effacés
+        boolean repereDeplace = dto.getLatitude() != null && dto.getLongitude() != null;
+        if (repereDeplace) {
+            bien.setLocalisation(LocalisationBienService.repere(dto.getLatitude(), dto.getLongitude()));
+            bien.setPrecisionLocalisation(PrecisionLocalisation.REPERE);
+            bienPoiRepository.supprimerParBien(bien.getId());
+            if (bien.getPois() != null) bien.getPois().clear();
+        }
+
         bienRepository.save(bien);
+        if (repereDeplace) {
+            calculerPoiApresCommit(bien.getId());
+        }
 
         return toPriveDTO(bien, proprietaire);
     }
@@ -414,6 +448,7 @@ public class BienServiceImpl implements BienService {
                 .longitude(bien.getLocalisation() != null
                         ? bien.getLocalisation().getX()
                         : null)
+                .precisionLocalisation(bien.getPrecisionLocalisation())
 
                 // ─── Caractéristiques physiques ───────────────────────────
                 .surfaceHabitable(bien.getSurfaceHabitable())
@@ -432,6 +467,11 @@ public class BienServiceImpl implements BienService {
                 .loyerMensuel(bien.getLoyerMensuel())
                 .chargesMensuelles(bien.getChargesMensuelles())
                 .depotGarantie(bien.getDepotGarantie())
+                .garantieMois(bien.getGarantieMois())
+                .avanceMois(bien.getAvanceMois())
+                .heuresElectriciteParJour(bien.getHeuresElectriciteParJour())
+                .equipements(bien.getEquipements() != null
+                        ? bien.getEquipements().stream().sorted().toList() : List.of())
                 .devise(bien.getDevise())
                 .meuble(bien.getMeuble())
                 .colocation(bien.getColocation())
@@ -445,6 +485,7 @@ public class BienServiceImpl implements BienService {
                         .firstName(bien.getProprietaire().getFirstName())
                         .lastName(bien.getProprietaire().getLastName())
                         .mail(bien.getProprietaire().getMail())
+                        .telephone(bien.getProprietaire().getTelephone()) // C6 : vue réservée aux parties du bien
                         .build()
                         : null)
                 .locataire(bien.getLocataire() != null
@@ -453,6 +494,7 @@ public class BienServiceImpl implements BienService {
                         .firstName(bien.getLocataire().getFirstName())
                         .lastName(bien.getLocataire().getLastName())
                         .mail(bien.getLocataire().getMail())
+                        .telephone(bien.getLocataire().getTelephone()) // C6 : vue réservée aux parties du bien
                         .build()
                         : null)
 
@@ -479,12 +521,12 @@ public class BienServiceImpl implements BienService {
                         .filter(Objects::nonNull)
                         .toList()
                         : List.of())
-                .images(bien.getImages() != null
-                        ? bien.getImages().stream()
+                .images(BienMapper.photosTriees(bien.getImages()).stream()
                         .map(BienImage::getUrl)
-                        .filter(Objects::nonNull)
-                        .toList()
-                        : List.of())
+                        .toList())
+                .vignettes(BienMapper.photosTriees(bien.getImages()).stream()
+                        .map(BienImage::vignetteOuPhoto)
+                        .toList())
                 .pois(bien.getPois() != null
                         ? bien.getPois().stream()
                         .map(p -> p.getPoiType().getLabelFr())

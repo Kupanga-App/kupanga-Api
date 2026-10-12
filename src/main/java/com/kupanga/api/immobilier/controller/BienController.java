@@ -44,9 +44,11 @@ public class BienController {
             summary = "Créer un nouveau bien immobilier",
             description = """
                     Permet à un utilisateur authentifié ayant le rôle `PROPRIETAIRE` d'enregistrer
-                    un nouveau bien immobilier. La localisation géographique est calculée automatiquement
-                    à partir de l'adresse fournie via Nominatim (OpenStreetMap).
-                    Les points d'intérêt (POI) sont calculés de façon asynchrone après la création.
+                    un nouveau bien immobilier. Position (C2) : `latitude` + `longitude` facultatives (repère sur
+                    la carte ou GPS, les deux ensemble) ; sinon adresse géocodée via Nominatim, puis centre du
+                    quartier, de la commune ou de la ville ; à défaut le bien est créé sans position.
+                    `precisionLocalisation` indique l'origine (REPERE, ADRESSE, QUARTIER, COMMUNE, VILLE, AUCUNE).
+                    Les points d'intérêt (POI) ne sont calculés (en asynchrone) qu'autour d'un repère ou d'une adresse.
                     Au moins une photo est obligatoire.
 
                     **Champs obligatoires :** titre, typeBien, adresse, ville, codePostal, pays,
@@ -482,9 +484,10 @@ public class BienController {
                     | `meuble`            | Boolean    | —                                           |
                     | `colocation`        | Boolean    | —                                           |
                     | `disponibleDe`      | LocalDate  | format `YYYY-MM-DD`, aucune contrainte future/passé |
+                    | `latitude` + `longitude` | Double | C2 : ensemble, -90..90 / -180..180 ; repère déplacé, POI recalculés |
 
                     ### Champs non modifiables via cet endpoint
-                    `adresse`, `ville`, `codePostal`, `pays`, `localisation` (géocodage géré séparément),
+                    `adresse`, `ville`, `codePostal`, `pays`,
                     `proprietaire`, `locataire`, `contrats`, `quittances`, `images`, `documents`, `pois`.
 
                     ### Réponse

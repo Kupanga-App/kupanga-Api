@@ -27,7 +27,7 @@ public final class ValidationImage {
     /**
      * Vérifie une photo et renvoie son format réel.
      *
-     * @throws KupangaBusinessException 400 (vide ou illisible), 413 (trop lourde), 415 (format non accepté)
+     * @throws KupangaBusinessException 400 (vide, illisible ou plus de 100 mégapixels), 413 (trop lourde), 415 (format non accepté)
      */
     public static FormatImage verifier(MultipartFile fichier) {
         if (fichier == null || fichier.isEmpty()) {
@@ -36,10 +36,15 @@ public final class ValidationImage {
         if (fichier.getSize() > TAILLE_MAX_OCTETS) {
             throw new KupangaBusinessException("Photo trop volumineuse (10 Mo maximum)", HttpStatus.PAYLOAD_TOO_LARGE);
         }
-        return FormatImage.detecter(lireEntete(fichier))
+        FormatImage format = FormatImage.detecter(lireEntete(fichier))
                 .orElseThrow(() -> new KupangaBusinessException(
                         "Format de photo non accepté (formats acceptés : " + FORMATS_ACCEPTES + ")",
                         HttpStatus.UNSUPPORTED_MEDIA_TYPE));
+        // R1 : dimensions lues sans décoder les pixels, avant tout enregistrement (photo illisible ou > 100 Mpx)
+        if (CompressionImage.estDecodable(format)) {
+            CompressionImage.verifierDimensions(lireTout(fichier));
+        }
+        return format;
     }
 
     /** Vérifie toutes les photos d'un bien avant tout enregistrement (aucun envoi partiel vers MinIO). */
@@ -49,6 +54,14 @@ public final class ValidationImage {
                     "Trop de photos (" + NOMBRE_MAX_PHOTOS_BIEN + " maximum par bien)", HttpStatus.BAD_REQUEST);
         }
         fichiers.forEach(ValidationImage::verifier);
+    }
+
+    private static byte[] lireTout(MultipartFile fichier) {
+        try {
+            return fichier.getBytes();
+        } catch (IOException e) {
+            throw new KupangaBusinessException("Fichier illisible", HttpStatus.BAD_REQUEST);
+        }
     }
 
     private static byte[] lireEntete(MultipartFile fichier) {

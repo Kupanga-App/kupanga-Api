@@ -38,6 +38,8 @@ public record BienPublicDTO(
         String        pointDeRepere,
         Double        latitude,
         Double        longitude,
+        /** C2 : REPERE ou ADRESSE = position exacte ; QUARTIER, COMMUNE, VILLE = approximative ; AUCUNE = pas sur la carte. */
+        PrecisionLocalisation precisionLocalisation,
 
         // ─── Caractéristiques physiques ───────────────────────────────────────
         Double        surfaceHabitable,
@@ -56,6 +58,12 @@ public record BienPublicDTO(
         BigDecimal    loyerMensuel,
         BigDecimal    chargesMensuelles,
         BigDecimal    depotGarantie,
+        /** C12 (RDC) : garantie en mois de loyer et loyers payés d'avance. */
+        Integer       garantieMois,
+        Integer       avanceMois,
+        /** C11 : équipements et heures de courant par jour. */
+        List<Equipement> equipements,
+        Integer       heuresElectriciteParJour,
         Devise        devise,
         Boolean       meuble,
         Boolean       colocation,
@@ -66,6 +74,8 @@ public record BienPublicDTO(
 
         // ─── Médias ───────────────────────────────────────────────────────────
         List<String>  images,
+        /** R1 : vignettes de 400 px, dans le même ordre que {@code images}. */
+        List<String>  vignettes,
         List<String>  pois,
 
         // ─── Audit ────────────────────────────────────────────────────────────

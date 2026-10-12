@@ -2,7 +2,7 @@ package com.kupanga.api.immobilier.controller;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import com.kupanga.api.immobilier.dto.formDTO.QuittanceFormDTO;
-import com.kupanga.api.immobilier.dto.formDTO.SignatureDTO;
+import com.kupanga.api.immobilier.dto.formDTO.MarquerPayeeDTO;
 import com.kupanga.api.immobilier.dto.readDTO.QuittanceDTO;
 import com.kupanga.api.immobilier.research.QuittanceSearchService;
 import com.kupanga.api.immobilier.research.dto.QuittancePageDTO;
@@ -18,7 +18,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -167,13 +169,18 @@ public class QuittanceController {
             )
     })
     @io.swagger.v3.oas.annotations.parameters.RequestBody(
-            description = "Signature du propriétaire en base64 (image PNG capturée depuis le canvas)",
+            description = "C8-bis : signature du propriétaire (PNG en base64), mode de paiement (proposé dans le pays, "
+                    + "cf. GET /juridictions/{pays}), date de réception (facultative, aujourd'hui sinon, jamais dans le futur) "
+                    + "et référence facultative. Aucun paiement ne passe par l'application.",
             required = true,
             content = @Content(
                     mediaType = "application/json",
                     examples = @ExampleObject(value = """
                             {
-                                "signatureBase64": "iVBORw0KGgoAAAANSUhEUgAA..."
+                                "signatureBase64": "iVBORw0KGgoAAAANSUhEUgAA...",
+                                "modePaiement": "MOBILE_MONEY",
+                                "datePaiement": "2026-10-05",
+                                "referencePaiement": "MP261005.1432.A12345"
                             }
                             """)
             )
@@ -183,11 +190,45 @@ public class QuittanceController {
     public ResponseEntity<Void> marquerPayee(
             @Parameter(description = "Identifiant de la quittance", required = true)
             @PathVariable Long id,
-            @Valid @RequestBody SignatureDTO dto
+            @Valid @RequestBody MarquerPayeeDTO dto
     ) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        quittanceService.marquerPayee(id, dto.signatureBase64(), auth.getName());
+        quittanceService.marquerPayee(id, dto, auth.getName());
         return ResponseEntity.noContent().build();
+    }
+
+    // =========================================
+    // C8-BIS : PHOTO DU REÇU
+    // =========================================
+    @Operation(
+            summary = "Joindre la photo du reçu de paiement",
+            description = """
+                    Ajoute ou remplace la photo du reçu (espèces, Mobile Money…) d'une quittance **déjà payée**.
+                    Facultatif. Formats des smartphones (JPEG, PNG, WEBP, AVIF, GIF, HEIC/HEIF), 10 Mo au plus,
+                    reconnus au contenu. Stockée dans un bucket privé ; lue par une URL présignée de 5 minutes
+                    (`urlRecu`), visible du propriétaire et du locataire. Aucun paiement ne passe par l'application.
+                    """
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Reçu joint, quittance renvoyée",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = QuittanceDTO.class))),
+            @ApiResponse(responseCode = "400", description = "Fichier absent ou vide"),
+            @ApiResponse(responseCode = "401", description = "Non authentifié"),
+            @ApiResponse(responseCode = "403", description = "Pas propriétaire de cette quittance"),
+            @ApiResponse(responseCode = "404", description = "Quittance introuvable"),
+            @ApiResponse(responseCode = "409", description = "Quittance non payée, bien archivé ou compte supprimé"),
+            @ApiResponse(responseCode = "413", description = "Fichier trop volumineux"),
+            @ApiResponse(responseCode = "415", description = "Format d'image non accepté")
+    })
+    @PreAuthorize("hasAuthority('ROLE_PROPRIETAIRE')")
+    @PostMapping(value = "/{id}/recu", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<QuittanceDTO> ajouterRecu(
+            @Parameter(description = "Identifiant de la quittance", required = true)
+            @PathVariable Long id,
+            @RequestPart("recu") MultipartFile recu
+    ) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return ResponseEntity.ok(quittanceService.ajouterRecu(id, recu, auth.getName()));
     }
 
 

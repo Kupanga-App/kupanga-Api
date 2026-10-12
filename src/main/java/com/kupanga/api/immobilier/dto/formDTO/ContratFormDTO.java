@@ -55,9 +55,19 @@ public class ContratFormDTO {
     @Digits(integer = 10, fraction = 2, message = "Format invalide (ex: 50.00)")
     private BigDecimal chargesMensuelles;
 
-    @NotNull(message = "Le dépôt de garantie est obligatoire")
+    // C12 : obligatoire si le pays compte la garantie en montant (France) ; en RDC, calculée (loyer × mois)
     @DecimalMin(value = "0.0",      message = "Le dépôt de garantie ne peut pas être négatif")
     @DecimalMax(value = "9999999999.99", message = "Montant trop élevé") // technique (NUMERIC(12,2)), avant les plafonds C5
     @Digits(integer = 10, fraction = 2, message = "Format invalide (ex: 1700.00)")
     private BigDecimal depotGarantie;
+
+    /** C12 (RDC) : garantie en mois de loyer ; celle du bien si absente. */
+    @Min(value = 0,  message = "Entre 0 et 24 mois")
+    @Max(value = 24, message = "Entre 0 et 24 mois")
+    private Integer garantieMois;
+
+    /** C12 (RDC) : loyers payés d'avance, en mois ; ceux du bien si absents. */
+    @Min(value = 0,  message = "Entre 0 et 24 mois")
+    @Max(value = 24, message = "Entre 0 et 24 mois")
+    private Integer avanceMois;
 }

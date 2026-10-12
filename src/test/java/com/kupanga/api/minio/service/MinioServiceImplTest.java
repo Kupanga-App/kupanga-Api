@@ -1,5 +1,8 @@
 package com.kupanga.api.minio.service;
 
+import com.kupanga.api.minio.image.ImagesDeTest;
+import com.kupanga.api.minio.image.PhotoPreparee;
+import com.kupanga.api.minio.image.PhotoStockee;
 import com.kupanga.api.minio.service.impl.MinioServiceImpl;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
@@ -78,9 +81,9 @@ class MinioServiceImplTest {
     // Tests pour uploadFile
     // =======================
 
-    /** En-têtes réels (B5 : le format est reconnu au contenu). */
-    private static final byte[] CONTENU_PNG = {(byte) 0x89, 'P', 'N', 'G', 0x0D, 0x0A, 0x1A, 0x0A, 0, 0, 0, 0x0D};
-    private static final byte[] CONTENU_JPEG = {(byte) 0xFF, (byte) 0xD8, (byte) 0xFF, (byte) 0xE0, 0, 0x10};
+    /** Vraies images (B5 : format reconnu au contenu ; R1 : pixels décodés et réencodés). */
+    private static final byte[] CONTENU_PNG = ImagesDeTest.png(60, 40);
+    private static final byte[] CONTENU_JPEG = ImagesDeTest.jpeg(60, 40);
 
     @Test
     @DisplayName("Upload d'image : l'URL retournée contient le bucket et le nom du fichier")
@@ -96,11 +99,11 @@ class MinioServiceImplTest {
         // Simule que le bucket existe
         when(minioClient.bucketExists(any(BucketExistsArgs.class))).thenReturn(true);
 
-        String result = minioService.uploadImage(file, bucket);
+        String result = minioService.envoyerImagePublique(PhotoPreparee.pourBucketPublic(file, 400), bucket);
 
         assertNotNull(result, "L'URL ne doit pas être null");
         assertTrue(result.startsWith("http://localhost:9000" + "/" + bucket + "/"), "L'URL doit contenir le bucket");
-        assertTrue(result.endsWith(".png"), "Extension déduite du contenu");
+        assertTrue(result.endsWith(".jpg"), "R1 : réencodé en JPEG");
         assertFalse(result.contains("test"), "B5 : le nom d'origine n'est plus repris");
 
         verify(minioClient, times(1)).putObject(any(PutObjectArgs.class));
@@ -120,15 +123,15 @@ class MinioServiceImplTest {
 
         when(minioClient.bucketExists(any(BucketExistsArgs.class))).thenReturn(true);
 
-        minioService.uploadImage(file, bucket);
+        minioService.envoyerImagePublique(PhotoPreparee.pourBucketPublic(file, 400), bucket);
 
         ArgumentCaptor<PutObjectArgs> captor = ArgumentCaptor.forClass(PutObjectArgs.class);
         verify(minioClient).putObject(captor.capture());
 
         PutObjectArgs args = captor.getValue();
         assertEquals(bucket, args.bucket(), "Le bucket doit correspondre à celui configuré");
-        assertTrue(args.object().matches("[0-9a-f-]{36}\\.png"), "Nom généré : UUID + extension réelle");
-        assertEquals("image/png", args.contentType(), "Type MIME déduit du contenu");
+        assertTrue(args.object().matches("[0-9a-f-]{36}\\.jpg"), "Nom généré : UUID + extension du JPEG produit");
+        assertEquals("image/jpeg", args.contentType(), "Type MIME fixé par le serveur (R1 : JPEG)");
     }
 
     @Test
@@ -146,7 +149,7 @@ class MinioServiceImplTest {
         doThrow(new RuntimeException("MinIO error")).when(minioClient).putObject(any(PutObjectArgs.class));
 
         RuntimeException exception = assertThrows(RuntimeException.class,
-                () -> minioService.uploadImage(file, bucket));
+                () -> minioService.envoyerImagePublique(PhotoPreparee.pourBucketPublic(file, 400), bucket));
 
         assertTrue(exception.getMessage().toLowerCase().contains("minio"));
     }
@@ -164,7 +167,7 @@ class MinioServiceImplTest {
 
         when(minioClient.bucketExists(any(BucketExistsArgs.class))).thenReturn(true);
 
-        String result = minioService.uploadImage(file, bucket);
+        String result = minioService.envoyerImagePublique(PhotoPreparee.pourBucketPublic(file, 400), bucket);
 
         assertNotNull(result, "L'URL ne doit pas être null même si le nom du fichier est vide");
         assertTrue(result.startsWith("http://localhost:9000" + "/" + bucket + "/"), "L'URL doit contenir le bucket");
@@ -177,11 +180,92 @@ class MinioServiceImplTest {
                 "file", "photo.jpg", "image/jpeg", "<html><script>alert(1)</script></html>".getBytes());
 
         KupangaBusinessException e = assertThrows(KupangaBusinessException.class,
-                () -> minioService.uploadImage(piege, "avatars"));
+                () -> minioService.uploadImagePrivee(piege, "avatars"));
 
         assertEquals(415, e.getStatus().value());
         verify(minioClient, never()).putObject(any(PutObjectArgs.class));
         verify(minioClient, never()).makeBucket(any(MakeBucketArgs.class));
+    }
+
+    // =======================
+    // R1 : compression
+    // =======================
+
+    /** Contenu envoyé à MinIO pour chaque putObject, dans l'ordre. */
+    private java.util.List<byte[]> contenusEnvoyes() throws Exception {
+        ArgumentCaptor<PutObjectArgs> captor = ArgumentCaptor.forClass(PutObjectArgs.class);
+        verify(minioClient, atLeastOnce()).putObject(captor.capture());
+        java.util.List<byte[]> contenus = new java.util.ArrayList<>();
+        for (PutObjectArgs args : captor.getAllValues()) {
+            contenus.add(args.stream().readAllBytes());
+        }
+        return contenus;
+    }
+
+    @Test
+    @DisplayName("R1 : photo de bien → version de 1600 px et vignette de 400 px, deux JPEG sans EXIF")
+    void uploadPhotoAvecVignette_deuxVersions() throws Exception {
+        when(minioClient.bucketExists(any(BucketExistsArgs.class))).thenReturn(true);
+        MultipartFile photo = new MockMultipartFile("files", "p.jpg", "image/jpeg",
+                ImagesDeTest.jpegAvecExif(3200, 2400, 1, true));
+
+        PhotoStockee stockee = minioService.envoyerPhotoAvecVignette(PhotoPreparee.pourBucketPublic(photo, 1600, 400), "bucket-photo-immobilier");
+
+        assertTrue(stockee.url().startsWith("http://localhost:9000/bucket-photo-immobilier/"));
+        assertTrue(stockee.urlVignette().endsWith(".jpg"));
+        assertNotEquals(stockee.url(), stockee.urlVignette());
+        java.util.List<byte[]> contenus = contenusEnvoyes();
+        assertEquals(2, contenus.size());
+        assertEquals(1600, ImagesDeTest.lire(contenus.get(0)).getWidth());
+        assertEquals(400, ImagesDeTest.lire(contenus.get(1)).getWidth());
+        for (byte[] contenu : contenus) {
+            assertFalse(ImagesDeTest.contient(contenu, "GPS-KINSHASA"), "EXIF/GPS retiré");
+        }
+    }
+
+    @Test
+    @DisplayName("R1 : WEBP (non décodable en Java pur) stocké une seule fois, sans EXIF, servi aussi en vignette")
+    void uploadPhotoAvecVignette_webpTelQuel() throws Exception {
+        when(minioClient.bucketExists(any(BucketExistsArgs.class))).thenReturn(true);
+        byte[] webp = ImagesDeTest.webpAvecExif();
+        MultipartFile photo = new MockMultipartFile("files", "p.webp", "image/webp", webp);
+
+        PhotoStockee stockee = minioService.envoyerPhotoAvecVignette(PhotoPreparee.pourBucketPublic(photo, 1600, 400), "bucket-photo-immobilier");
+
+        assertEquals(stockee.url(), stockee.urlVignette());
+        assertTrue(stockee.url().endsWith(".webp"));
+        ArgumentCaptor<PutObjectArgs> captor = ArgumentCaptor.forClass(PutObjectArgs.class);
+        verify(minioClient, times(1)).putObject(captor.capture());
+        assertEquals("image/webp", captor.getValue().contentType());
+        assertFalse(ImagesDeTest.contient(captor.getValue().stream().readAllBytes(), "GPS-KINSHASA"));
+    }
+
+    @Test
+    @DisplayName("R1 : photo de profil réduite à 400 px")
+    void uploadImage_profil400() throws Exception {
+        when(minioClient.bucketExists(any(BucketExistsArgs.class))).thenReturn(true);
+
+        minioService.envoyerImagePublique(PhotoPreparee.pourBucketPublic(
+                new MockMultipartFile("f", "a.png", "image/png", ImagesDeTest.png(1200, 900)), 400), "bucket-photo-profil");
+
+        assertEquals(400, ImagesDeTest.lire(contenusEnvoyes().get(0)).getWidth());
+    }
+
+    @Test
+    @DisplayName("R1 / C8-bis : reçu réduit à 1600 px, sans EXIF, dans un bucket privé ; renvoie une clé")
+    void uploadImagePrivee_recuCompresse() throws Exception {
+        when(minioClient.bucketExists(any(BucketExistsArgs.class))).thenReturn(true);
+        MultipartFile recu = new MockMultipartFile("recu", "r.jpg", "image/jpeg",
+                ImagesDeTest.jpegAvecExif(2000, 3000, 1, false));
+
+        String cle = minioService.uploadImagePrivee(recu, "bucket-recus-paiement");
+
+        assertTrue(cle.matches("[0-9a-f-]{36}\\.jpg"));
+        byte[] contenu = contenusEnvoyes().get(0);
+        assertEquals(1600, ImagesDeTest.lire(contenu).getHeight());
+        assertFalse(ImagesDeTest.contient(contenu, "GPS-KINSHASA"));
+        verify(minioClient).deleteBucketPolicy(any(DeleteBucketPolicyArgs.class));
+        verify(minioClient, never()).setBucketPolicy(any(SetBucketPolicyArgs.class));
     }
 
     @Test

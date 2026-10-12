@@ -1,6 +1,7 @@
 package com.kupanga.api.user.dto.formDTO;
 
 import com.kupanga.api.user.entity.Role;
+import com.kupanga.api.user.validation.Telephone;
 import jakarta.validation.constraints.*;
 import lombok.Builder;
 
@@ -36,6 +37,10 @@ public record UserFormDTO(
 
         /** Avatar hébergé sur notre MinIO (bucket des photos de profil), contrôlé à l'inscription (revue B5). */
         @Size(max = 500, message = "L'URL de l'avatar ne doit pas dépasser 500 caractères")
-        String urlAvatar
+        String urlAvatar,
+
+        /** C6 : numéro de contact facultatif, non vérifié, au format international. */
+        @Telephone
+        String telephone
 ) {}
 

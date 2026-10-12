@@ -56,7 +56,7 @@ class BienPoiServiceImplTest {
         bienPoiService.calculerEtSauvegarderPoi(1L);
 
         verify(poiSearchService, never()).calculerTousLesPoi(any());
-        verify(bienPoiRepository, never()).saveAll(any());
+        verify(bienPoiRepository, never()).remplacer(any(), any());
     }
 
     @Test
@@ -67,7 +67,7 @@ class BienPoiServiceImplTest {
         bienPoiService.calculerEtSauvegarderPoi(1L);
 
         verifyNoInteractions(poiSearchService);
-        verify(bienPoiRepository, never()).saveAll(any());
+        verify(bienPoiRepository, never()).remplacer(any(), any());
     }
 
     @Test
@@ -78,7 +78,7 @@ class BienPoiServiceImplTest {
 
         bienPoiService.calculerEtSauvegarderPoi(1L);
 
-        verify(bienPoiRepository, never()).saveAll(any());
+        verify(bienPoiRepository, never()).remplacer(any(), any());
     }
 
     @Test
@@ -96,7 +96,8 @@ class BienPoiServiceImplTest {
         bienPoiService.calculerEtSauvegarderPoi(1L);
 
         ArgumentCaptor<List<BienPoi>> captor = ArgumentCaptor.forClass(List.class);
-        verify(bienPoiRepository).saveAll(captor.capture());
+        // C2 : anciens POI (repère déplacé) effacés avant l'enregistrement, contrainte unique bien + type
+        verify(bienPoiRepository).remplacer(any(), captor.capture());
 
         List<BienPoi> saved = captor.getValue();
         assertThat(saved).hasSize(4);
@@ -119,7 +120,7 @@ class BienPoiServiceImplTest {
         bienPoiService.calculerEtSauvegarderPoi(1L);
 
         ArgumentCaptor<List<BienPoi>> captor = ArgumentCaptor.forClass(List.class);
-        verify(bienPoiRepository).saveAll(captor.capture());
+        verify(bienPoiRepository).remplacer(any(), captor.capture());
 
         assertThat(captor.getValue()).extracting(BienPoi::getPresent).containsOnly(false);
     }

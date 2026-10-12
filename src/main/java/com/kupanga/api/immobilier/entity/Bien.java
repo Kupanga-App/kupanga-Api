@@ -57,6 +57,12 @@ public class Bien {
     @Column(columnDefinition = "geometry(Point, 4326)")
     private Point localisation;
 
+    /** C2 : origine de la position (repère, adresse, centre de zone ou aucune). */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "precision_localisation", nullable = false, length = 10)
+    @Builder.Default
+    private PrecisionLocalisation precisionLocalisation = PrecisionLocalisation.AUCUNE;
+
     // ─── Caractéristiques physiques ───────────────────────────────────────────
     private Double          surfaceHabitable;       // en m²
     private Integer         nombrePieces;
@@ -83,6 +89,26 @@ public class Bien {
     private BigDecimal      chargesMensuelles;
     @Column(precision = 12, scale = 2)
     private BigDecimal      depotGarantie;
+
+    /** C12 (RDC) : garantie en mois de loyer et loyers payés d'avance, en mois. */
+    @Column(name = "garantie_mois")
+    private Integer garantieMois;
+
+    @Column(name = "avance_mois")
+    private Integer avanceMois;
+
+    /** C11 : heures de courant par jour (fourniture électrique irrégulière). */
+    @Column(name = "heures_electricite_par_jour")
+    private Integer heuresElectriciteParJour;
+
+    /** C11 : équipements, parmi ceux proposés dans le pays. */
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "bien_equipements", joinColumns = @JoinColumn(name = "bien_id"))
+    @Enumerated(EnumType.STRING)
+    @Column(name = "equipement", length = 30, nullable = false)
+    @org.hibernate.annotations.BatchSize(size = 50)
+    @Builder.Default
+    private Set<Equipement> equipements = new HashSet<>();
 
     /** J3 : devise des montants, parmi celles du profil de juridiction du pays. */
     @Enumerated(EnumType.STRING)

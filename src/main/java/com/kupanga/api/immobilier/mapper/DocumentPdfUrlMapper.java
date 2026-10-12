@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import static com.kupanga.api.minio.constant.MinioConstant.CONTRAT_BUCKET;
 import static com.kupanga.api.minio.constant.MinioConstant.EDL_BUCKET;
 import static com.kupanga.api.minio.constant.MinioConstant.QUITTANCE_BUCKET;
+import static com.kupanga.api.minio.constant.MinioConstant.RECU_BUCKET;
 
 /**
  * Transforme la clé d'un PDF stocké dans un bucket privé en URL présignée de courte durée (P0-7).
@@ -33,5 +34,11 @@ public class DocumentPdfUrlMapper {
     @Named("urlQuittance")
     public String urlQuittance(String clePdf) {
         return minioService.urlPresignee(QUITTANCE_BUCKET, clePdf);
+    }
+
+    /** C8-bis : photo du reçu de paiement (bucket privé). */
+    @Named("urlRecu")
+    public String urlRecu(String cleRecu) {
+        return minioService.urlPresignee(RECU_BUCKET, cleRecu);
     }
 }

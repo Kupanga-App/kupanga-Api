@@ -118,8 +118,11 @@ class ContratServiceImplTest {
     void creerContrat_figeJuridiction() {
         bien.setPays(Pays.CD);
         bien.setDevise(Devise.CDF);
+        bien.setGarantieMois(2);
+        bien.setAvanceMois(3);
         ContratFormDTO dto = buildValidContratFormDTO();
         dto.setLoyerMensuel(new BigDecimal("250000"));
+        dto.setDepotGarantie(null);
 
         when(userService.getUserByEmail(proprietaire.getMail())).thenReturn(proprietaire);
         when(bienService.verifierProprietaire(1L, proprietaire.getMail())).thenReturn(bien);
@@ -133,6 +136,10 @@ class ContratServiceImplTest {
         assertThat(captor.getValue().getPays()).isEqualTo(Pays.CD);
         assertThat(captor.getValue().getDevise()).isEqualTo(Devise.CDF);
         assertThat(captor.getValue().getModeleVersion()).isEqualTo("cd-v1");
+        // C12 : garantie et avance du bien figées, montant de la garantie = loyer × mois
+        assertThat(captor.getValue().getGarantieMois()).isEqualTo(2);
+        assertThat(captor.getValue().getAvanceMois()).isEqualTo(3);
+        assertThat(captor.getValue().getDepotGarantie()).isEqualByComparingTo("500000");
         assertThat(captor.getValue().getLoyerMensuel()).isEqualByComparingTo("250000");
     }
 
@@ -507,5 +514,26 @@ class ContratServiceImplTest {
         assertThat(contrat.getStatut()).isEqualTo(StatutContrat.EN_ATTENTE_SIGNATURE_LOCATAIRE);
         verify(contratPdfService, never()).genererEtUploaderPdf(any());
         verify(emailService, never()).envoyerConfirmationContratSigne(any());
+    }
+
+    @Test
+    @DisplayName("C12 : creerContrat() — France sans dépôt → 400 ; RDC sans garantie ni avance (bien ni formulaire) → 400")
+    void creerContrat_garantieManquante_400() {
+        when(userService.getUserByEmail(proprietaire.getMail())).thenReturn(proprietaire);
+        when(bienService.verifierProprietaire(1L, proprietaire.getMail())).thenReturn(bien);
+        when(bienService.verifierLocataireDuBien(bien, locataire.getMail())).thenReturn(locataire);
+        ContratFormDTO sansDepot = buildValidContratFormDTO();
+        sansDepot.setDepotGarantie(null);
+
+        assertThat(assertThrows(KupangaBusinessException.class,
+                () -> contratService.creerContrat(sansDepot, proprietaire.getMail())).getStatus())
+                .isEqualTo(HttpStatus.BAD_REQUEST);
+
+        bien.setPays(Pays.CD);
+        bien.setDevise(Devise.USD);
+        assertThat(assertThrows(KupangaBusinessException.class,
+                () -> contratService.creerContrat(sansDepot, proprietaire.getMail())).getStatus())
+                .isEqualTo(HttpStatus.BAD_REQUEST);
+        verify(contratRepository, never()).save(any());
     }
 }

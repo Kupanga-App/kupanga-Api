@@ -1,5 +1,7 @@
 package com.kupanga.api.juridiction;
 
+import com.kupanga.api.immobilier.entity.ModePaiement;
+import com.kupanga.api.immobilier.entity.TypeCompteur;
 import com.kupanga.api.exception.business.KupangaBusinessException;
 import com.kupanga.api.immobilier.dto.formDTO.BienFormDTO;
 import com.kupanga.api.immobilier.entity.TypeBien;
@@ -11,6 +13,7 @@ import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
+import java.util.Collection;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -153,6 +156,22 @@ public class JuridictionRegistry {
                 && !profil.typesBien().contains(type)) {
             violations.add(new ViolationChamp("typeBien", "Ce type de bien n'est pas proposé pour " + lieu));
         }
+        // C10 : surface habitable et nombre de pièces exigés sauf pour une parcelle ou un terrain
+        if (creation && !(valeurs.isReadableProperty("typeBien")
+                && valeurs.getPropertyValue("typeBien") instanceof TypeBien type && type.estSansLogement())) {
+            for (String champ : List.of("surfaceHabitable", "nombrePieces")) {
+                if (valeurs.isReadableProperty(champ) && valeurs.getPropertyValue(champ) == null) {
+                    violations.add(new ViolationChamp(champ, "Ce champ est obligatoire pour ce type de bien"));
+                }
+            }
+        }
+        // C11 : équipements proposés dans le pays
+        if (valeurs.isReadableProperty("equipements")
+                && valeurs.getPropertyValue("equipements") instanceof Collection<?> equipements
+                // revue C10-C13 : un élément null (JSON [null]) est refusé ici, containsAll lèverait une NPE
+                && equipements.stream().anyMatch(e -> e == null || !profil.equipements().contains(e))) {
+            violations.add(new ViolationChamp("equipements", "Un des équipements n'est pas proposé pour " + lieu));
+        }
 
         Devise devise = valeurs.isReadableProperty("devise") ? (Devise) valeurs.getPropertyValue("devise") : null;
         if (devise != null && !profil.devises().contains(devise)) {
@@ -230,6 +249,22 @@ public class JuridictionRegistry {
         return new FormatMontant(profil(pays).locale(), devise);
     }
 
+    /** C13 : compteurs d'état des lieux proposés dans le pays du bien (400 sinon). */
+    public void verifierCompteursEdl(Pays pays, Collection<TypeCompteur> types) {
+        if (!profil(pays).compteursEdl().containsAll(types)) {
+            throw new KupangaBusinessException(
+                    "Un des compteurs n'est pas proposé pour les logements de ce pays", HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    /** C8-bis : mode de paiement proposé dans le pays du document (400 sinon). */
+    public void verifierModePaiement(Pays pays, ModePaiement mode) {
+        if (mode == null || !profil(pays).modesPaiement().contains(mode)) {
+            throw new KupangaBusinessException(
+                    "Ce mode de paiement n'est pas proposé pour les logements de ce pays", HttpStatus.BAD_REQUEST);
+        }
+    }
+
     public boolean estPrisEnCharge(Pays pays) {
         return pays != null && profils.containsKey(pays);
     }
@@ -300,6 +335,8 @@ public class JuridictionRegistry {
             }
         }
         if (profil.notification().canaux().isEmpty()) erreurs.add(prefixe + ".notification.canaux vide");
+        if (profil.modesPaiement().isEmpty()) erreurs.add(prefixe + ".modes-paiement vide");
+        if (profil.compteursEdl().isEmpty()) erreurs.add(prefixe + ".compteurs-edl vide");
         champsInconnus(profil.champsObligatoires())
                 .forEach(champ -> erreurs.add(prefixe + ".champs-obligatoires : champ inconnu « " + champ + " »"));
         champsInconnus(profil.champsMasques())

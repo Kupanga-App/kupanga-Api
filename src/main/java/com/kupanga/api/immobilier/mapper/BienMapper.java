@@ -8,16 +8,21 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 
 @Mapper(componentModel = "spring")
 public interface BienMapper {
 
-    @Mapping(target = "latitude",         expression = "java(bien.getLocalisation() != null ? bien.getLocalisation().getY() : null)")
-    @Mapping(target = "longitude",        expression = "java(bien.getLocalisation() != null ? bien.getLocalisation().getX() : null)")
+    // C2 (revue) : position publique arrondie à ~100 m ; la position exacte (repère GPS = porte du logement,
+    // domicile du locataire) reste réservée aux parties du bien (BienDTO)
+    @Mapping(target = "latitude",         expression = "java(bien.getLocalisation() != null ? arrondiPublic(bien.getLocalisation().getY()) : null)")
+    @Mapping(target = "longitude",        expression = "java(bien.getLocalisation() != null ? arrondiPublic(bien.getLocalisation().getX()) : null)")
+    @Mapping(target = "precisionLocalisation", source = "precisionLocalisation", qualifiedByName = "precisionPublique")
     @Mapping(target = "proprietaire",     source = "proprietaire", qualifiedByName = "mapProprietairePublic")
     @Mapping(target = "images",           source = "images",       qualifiedByName = "imageUrls")
+    @Mapping(target = "vignettes",        source = "images",       qualifiedByName = "vignetteUrls")
     @Mapping(target = "pois",         source = "pois",         qualifiedByName = "mapPoisFr")
     // Locataire, contrats, quittances et documents n'existent pas dans BienPublicDTO (P0-6)
     BienPublicDTO toPublicDTO(Bien bien);
@@ -34,11 +39,38 @@ public interface BienMapper {
                 .build();
     }
 
+    // ─── C2 : position publique ───────────────────────────────────────────────
+    /** 3 décimales : environ 110 m en latitude. Nommée : jamais appliquée d'office à d'autres champs Double. */
+    @Named("arrondiPublic")
+    default Double arrondiPublic(double coordonnee) {
+        return Math.round(coordonnee * 1000d) / 1000d;
+    }
+
+    /** Une position exacte (repère, adresse) est arrondie en public : sa précision n'est pas annoncée. */
+    @Named("precisionPublique")
+    default PrecisionLocalisation precisionPublique(PrecisionLocalisation precision) {
+        return precision == null || precision.estPrecise() ? null : precision;
+    }
+
     // ─── Images ───────────────────────────────────────────────────────────────
     @Named("imageUrls")
     default List<String> mapImages(Set<BienImage> images) {
+        return photosTriees(images).stream().map(BienImage::getUrl).toList();
+    }
+
+    /** R1 : vignette de chaque photo (la photo elle-même si elle date d'avant R1), dans l'ordre de {@code images}. */
+    @Named("vignetteUrls")
+    default List<String> mapVignettes(Set<BienImage> images) {
+        return photosTriees(images).stream().map(BienImage::vignetteOuPhoto).toList();
+    }
+
+    /** Ordre d'envoi (id) : stable entre {@code images} et {@code vignettes}, la première photo sert de couverture. */
+    static List<BienImage> photosTriees(Set<BienImage> images) {
         if (images == null) return List.of();
-        return images.stream().map(BienImage::getUrl).toList();
+        return images.stream()
+                .filter(image -> image.getUrl() != null)
+                .sorted(Comparator.comparing(BienImage::getId, Comparator.nullsLast(Comparator.naturalOrder())))
+                .toList();
     }
 
     // ─── POI → labels français ────────────────────────────────────────────────

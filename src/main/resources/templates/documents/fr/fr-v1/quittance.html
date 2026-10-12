@@ -159,6 +159,11 @@
                         <td class="info-lbl">Payée le</td>
                         <td class="info-val" th:text="${#temporals.format(quittance.datePaiement, 'dd/MM/yyyy')}"></td>
                     </tr>
+                    <!-- C8-bis : mode déclaré par le propriétaire (paiement reçu hors application) -->
+                    <tr th:if="${quittance.modePaiement != null}">
+                        <td class="info-lbl">Mode de paiement</td>
+                        <td class="info-val" th:text="${quittance.modePaiement.libelle}"></td>
+                    </tr>
                 </table>
             </div>
         </td>

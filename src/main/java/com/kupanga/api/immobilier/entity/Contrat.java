@@ -39,6 +39,11 @@ public class Contrat {
     private BigDecimal    chargesMensuelles;
     @Column(precision = 12, scale = 2)
     private BigDecimal    depotGarantie;
+    /** C12 (RDC) : garantie en mois de loyer (montant dans depotGarantie) et loyers payés d'avance. */
+    @Column(name = "garantie_mois", updatable = false)
+    private Integer       garantieMois;
+    @Column(name = "avance_mois", updatable = false)
+    private Integer       avanceMois;
     private String    adresseBien;
 
     // ─── Juridiction figée à la création (J3, §4bis) ─────────────────────────

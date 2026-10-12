@@ -70,4 +70,24 @@ class GeocodingServiceTest {
 
         assertThat(result).isNull();
     }
+
+    @Test
+    @DisplayName("C2 : geocodeZone() — recherche libre « quartier, commune, ville » limitée au pays")
+    void geocodeZone_rechercheLibre() {
+        when(responseSpec.bodyToMono(String.class)).thenReturn(Mono.just("[{\"lat\":\"-4.33\",\"lon\":\"15.31\"}]"));
+
+        Point result = geocodingService.geocodeZone(java.util.List.of("Matonge", "", "Kinshasa"), Pays.CD);
+
+        assertThat(result.getY()).isEqualTo(-4.33);
+        ArgumentCaptor<String> url = ArgumentCaptor.forClass(String.class);
+        verify(requestHeadersUriSpec).uri(url.capture());
+        assertThat(url.getValue()).contains("q=Matonge, Kinshasa").contains("countrycodes=cd").doesNotContain("street=");
+    }
+
+    @Test
+    @DisplayName("C2 : geocodeZone() — aucune partie renseignée → null sans appel à Nominatim")
+    void geocodeZone_vide() {
+        assertThat(geocodingService.geocodeZone(java.util.List.of(" ", ""), Pays.CD)).isNull();
+        verify(webClient, never()).get();
+    }
 }
