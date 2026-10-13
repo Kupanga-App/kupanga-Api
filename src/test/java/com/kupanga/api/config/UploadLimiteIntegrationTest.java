@@ -1,5 +1,6 @@
 package com.kupanga.api.config;
 
+import com.kupanga.api.authentification.ratelimit.LimiteTentatives;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
@@ -21,7 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * B3 : dépassement des limites d'upload sur un vrai serveur (MockMvc n'analyse pas le multipart comme Tomcat).
- * Route publique {@code POST /auth/register} : la limite REGISTER_PAR_IP (5 / h) passe avant la lecture du corps.
+ * Route publique {@code POST /auth/register} : la limite REGISTER_PAR_IP (15 / h) passe avant la lecture du corps.
  * Limite ramenée à 1 Ko ici : avec un vrai fichier de 10 Mo, Tomcat ferme la connexion après l'erreur pendant
  * que le client écrit encore (le front doit contrôler la taille avant l'envoi). Les valeurs réelles
  * (10 Mo / 50 Mo) sont vérifiées par {@link MultipartConfigTest}.
@@ -50,12 +51,12 @@ class UploadLimiteIntegrationTest {
         assertThat(corps.get("status").asInt()).isEqualTo(413);
         assertThat(corps.get("path").asText()).isEqualTo("/auth/register");
 
-        // Tentatives 2 à 5 (petites, refusées pour d'autres raisons) : le seau REGISTER_PAR_IP se vide
-        for (int i = 0; i < 4; i++) {
+        // Tentatives suivantes (petites, refusées pour d'autres raisons) : le seau REGISTER_PAR_IP se vide
+        for (int i = 1; i < LimiteTentatives.REGISTER_PAR_IP.getCapacite(); i++) {
             assertThat(inscrire(1).getStatusCode().value()).isNotEqualTo(429);
         }
 
-        // 6e : 429 et non 413 → la limite est vérifiée avant l'analyse du corps
+        // Au-delà du seuil : 429 et non 413 → la limite est vérifiée avant l'analyse du corps
         ResponseEntity<String> bloque = inscrire(TROP_GROS);
         assertThat(bloque.getStatusCode().value()).isEqualTo(429);
         assertThat(bloque.getHeaders().getFirst(HttpHeaders.RETRY_AFTER)).isNotBlank();

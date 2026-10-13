@@ -21,13 +21,20 @@ public enum FormatImage {
     WEBP("image/webp", "webp"),
     AVIF("image/avif", "avif"),
     HEIC("image/heic", "heic"),
-    HEIF("image/heif", "heif");
+    HEIF("image/heif", "heif"),
+    /** Scans et captures d'écran (le front convertit déjà en JPEG ce que le navigateur sait lire). */
+    BMP("image/bmp", "bmp"),
+    TIFF("image/tiff", "tif");
 
     /** Octets lus en tête de fichier pour reconnaître le format (boîte {@code ftyp} ISO BMFF comprise). */
     public static final int TAILLE_ENTETE = 64;
 
     private static final byte[] SIGNATURE_JPEG = {(byte) 0xFF, (byte) 0xD8, (byte) 0xFF};
     private static final byte[] SIGNATURE_PNG = {(byte) 0x89, 'P', 'N', 'G', 0x0D, 0x0A, 0x1A, 0x0A};
+    private static final byte[] SIGNATURE_TIFF_II = {'I', 'I', 0x2A, 0x00};
+    private static final byte[] SIGNATURE_TIFF_MM = {'M', 'M', 0x00, 0x2A};
+    /** Tailles connues de l'en-tête DIB d'un BMP : « BM » seul ne suffit pas à reconnaître le format. */
+    private static final Set<Integer> TAILLES_ENTETE_BMP = Set.of(12, 40, 52, 56, 64, 108, 124);
     private static final Set<String> MARQUES_AVIF = Set.of("avif", "avis");
     private static final Set<String> MARQUES_HEIC = Set.of("heic", "heix", "hevc", "hevx", "heim", "heis");
     private static final Set<String> MARQUES_HEIF = Set.of("mif1", "msf1");
@@ -49,7 +56,15 @@ public enum FormatImage {
         if (debut.equals("GIF87a") || debut.equals("GIF89a")) return Optional.of(GIF);
         if (texte(entete, 0, 4).equals("RIFF") && texte(entete, 8, 4).equals("WEBP")) return Optional.of(WEBP);
         if (texte(entete, 4, 4).equals("ftyp")) return formatIsoBmff(entete);
+        if (commencePar(entete, SIGNATURE_TIFF_II) || commencePar(entete, SIGNATURE_TIFF_MM)) return Optional.of(TIFF);
+        if (estBmp(entete)) return Optional.of(BMP);
         return Optional.empty();
+    }
+
+    private static boolean estBmp(byte[] entete) {
+        if (entete.length < 18 || !texte(entete, 0, 2).equals("BM")) return false;
+        int tailleDib = (entete[14] & 0xFF) | ((entete[15] & 0xFF) << 8) | ((entete[16] & 0xFF) << 16) | ((entete[17] & 0xFF) << 24);
+        return TAILLES_ENTETE_BMP.contains(tailleDib);
     }
 
     /** AVIF / HEIC / HEIF : marque principale (octets 8-11), puis marques compatibles de la boîte {@code ftyp}. */

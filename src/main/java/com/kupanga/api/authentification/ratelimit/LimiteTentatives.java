@@ -15,16 +15,16 @@ import java.time.Duration;
 public enum LimiteTentatives {
 
     /** Couple (e-mail, IP) : un tiers qui force un compte ne bloque que lui-même, pas la victime. */
-    LOGIN_PAR_EMAIL_ET_IP("login-email-ip", 5, Duration.ofMinutes(15)),
+    LOGIN_PAR_EMAIL_ET_IP("login-email-ip", 15, Duration.ofMinutes(15)),
     /** Plafond global par e-mail, contre une attaque répartie sur beaucoup d'IP. */
     LOGIN_PAR_EMAIL("login-email", 30, Duration.ofMinutes(15)),
     LOGIN_PAR_IP("login-ip", 20, Duration.ofMinutes(15)),
     FORGOT_PASSWORD_PAR_EMAIL("forgot-email", 3, Duration.ofHours(1)),
     /** Protège le quota d'e-mails Brevo contre l'envoi de resets vers de nombreux comptes. */
     FORGOT_PASSWORD_PAR_IP("forgot-ip", 20, Duration.ofHours(1)),
-    REGISTER_PAR_IP("register-ip", 5, Duration.ofHours(1)),
+    REGISTER_PAR_IP("register-ip", 15, Duration.ofHours(1)),
     /** A14 : une inscription sur une adresse déjà inscrite envoie un e-mail à son titulaire (quota Brevo, spam). */
-    REGISTER_PAR_EMAIL("register-email", 3, Duration.ofHours(1)),
+    REGISTER_PAR_EMAIL("register-email", 15, Duration.ofHours(1)),
     /** A14 : renvoi du lien de confirmation, mêmes seuils que le mot de passe oublié (quota Brevo). */
     RENVOI_VERIFICATION_PAR_EMAIL("verif-email", 3, Duration.ofHours(1)),
     RENVOI_VERIFICATION_PAR_IP("verif-ip", 20, Duration.ofHours(1)),

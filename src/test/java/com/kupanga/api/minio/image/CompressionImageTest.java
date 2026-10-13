@@ -55,6 +55,18 @@ class CompressionImageTest {
     }
 
     @Test
+    @DisplayName("BMP et TIFF (scans, captures) : réencodés en JPEG comme les autres formats")
+    void bmpEtTiff_enJpeg() {
+        for (byte[] source : new byte[][]{ImagesDeTest.bmp(120, 80), ImagesDeTest.tiff(120, 80)}) {
+            byte[] jpeg = CompressionImage.versJpeg(source, 1600).get(0);
+            assertThat(FormatImage.detecter(jpeg)).contains(FormatImage.JPEG);
+            BufferedImage image = ImagesDeTest.lire(jpeg);
+            assertThat(image.getWidth()).isEqualTo(120);
+            assertThat(image.getHeight()).isEqualTo(80);
+        }
+    }
+
+    @Test
     @DisplayName("PNG transparent : fond blanc (le JPEG n'a pas de transparence, pas de fond noir)")
     void transparence_fondBlanc() {
         BufferedImage image = ImagesDeTest.lire(CompressionImage.versJpeg(ImagesDeTest.pngTransparent(50, 50), 400).get(0));

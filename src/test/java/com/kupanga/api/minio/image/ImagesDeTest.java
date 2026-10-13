@@ -34,6 +34,14 @@ public final class ImagesDeTest {
         return encoder(deuxCouleurs(largeur, hauteur, BufferedImage.TYPE_INT_RGB), "gif");
     }
 
+    public static byte[] bmp(int largeur, int hauteur) {
+        return encoder(deuxCouleurs(largeur, hauteur, BufferedImage.TYPE_INT_RGB), "bmp");
+    }
+
+    public static byte[] tiff(int largeur, int hauteur) {
+        return encoder(deuxCouleurs(largeur, hauteur, BufferedImage.TYPE_INT_RGB), "tiff");
+    }
+
     /** PNG entièrement transparent. */
     public static byte[] pngTransparent(int largeur, int hauteur) {
         return encoder(new BufferedImage(largeur, hauteur, BufferedImage.TYPE_INT_ARGB), "png");

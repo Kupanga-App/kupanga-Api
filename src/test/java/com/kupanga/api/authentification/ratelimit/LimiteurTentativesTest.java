@@ -20,10 +20,10 @@ class LimiteurTentativesTest {
     private final LimiteurTentatives limiteur = new LimiteurTentatives(new RateLimitConfig().stockageSeauxMemoire());
 
     @Test
-    @DisplayName("Login : 5 essais par (e-mail, IP), le 6e est refusé (429, Retry-After ≤ 15 min)")
-    void login_sixiemeEssaiParEmailEtIp_refuse() {
+    @DisplayName("Login : 15 essais par (e-mail, IP), le 16e est refusé (429, Retry-After ≤ 15 min)")
+    void login_seiziemeEssaiParEmailEtIp_refuse() {
         MockHttpServletRequest attaquant = requeteDepuis("203.0.113.66");
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < LOGIN_PAR_EMAIL_ET_IP.getCapacite(); i++) {
             limiteur.verifierEmailEtIp(LOGIN_PAR_EMAIL_ET_IP, "alice@test.com", attaquant);
         }
 
@@ -40,7 +40,7 @@ class LimiteurTentativesTest {
     void login_tiersNeBloquePasLaVictime() {
         MockHttpServletRequest attaquant = requeteDepuis("203.0.113.66");
         MockHttpServletRequest victime = requeteDepuis("198.51.100.7");
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < LOGIN_PAR_EMAIL_ET_IP.getCapacite(); i++) {
             limiteur.verifierEmailEtIp(LOGIN_PAR_EMAIL_ET_IP, "alice@test.com", attaquant);
         }
 
@@ -84,11 +84,11 @@ class LimiteurTentativesTest {
     }
 
     @Test
-    @DisplayName("Register : 5 par heure et par IP ; une autre IP et une autre limite restent libres")
+    @DisplayName("Register : 15 par heure et par IP ; une autre IP et une autre limite restent libres")
     void register_parIp_independant() {
         MockHttpServletRequest ip1 = requeteDepuis("203.0.113.1");
         MockHttpServletRequest ip2 = requeteDepuis("203.0.113.2");
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < REGISTER_PAR_IP.getCapacite(); i++) {
             limiteur.verifierIp(REGISTER_PAR_IP, ip1);
         }
 

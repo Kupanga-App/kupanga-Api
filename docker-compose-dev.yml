@@ -16,6 +16,10 @@ services:
       - .env.dev
     environment:
       SPRING_PROFILES_ACTIVE: dev   # l'image démarre en prod par défaut (Dockerfile)
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      # .env.dev pointe sur localhost:9000 (lancement hors Docker) ; dans le conteneur, localhost = l'application elle-même
+      MINIO_ENDPOINT: http://minio:9000
     depends_on:
       - db
       - minio

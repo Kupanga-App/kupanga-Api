@@ -31,6 +31,8 @@ class ValidationImageTest {
     static final byte[] JPEG = ImagesDeTest.jpeg(40, 30);
     static final byte[] PNG = ImagesDeTest.png(40, 30);
     static final byte[] GIF = ImagesDeTest.gif(40, 30);
+    static final byte[] BMP = ImagesDeTest.bmp(40, 30);
+    static final byte[] TIFF = ImagesDeTest.tiff(40, 30);
     static final byte[] WEBP = concat(ascii("RIFF"), octets(0x24, 0, 0, 0), ascii("WEBPVP8 "));
 
     static byte[] ftyp(String marquePrincipale, String... compatibles) {
@@ -46,6 +48,8 @@ class ValidationImageTest {
                 arguments(PNG, FormatImage.PNG),
                 arguments(GIF, FormatImage.GIF),
                 arguments(WEBP, FormatImage.WEBP),
+                arguments(BMP, FormatImage.BMP),
+                arguments(TIFF, FormatImage.TIFF),
                 arguments(ftyp("avif", "mif1", "miaf"), FormatImage.AVIF),
                 arguments(ftyp("heic", "mif1", "heic"), FormatImage.HEIC),
                 // Marque générique mif1 : le codec vient des marques compatibles
@@ -70,6 +74,8 @@ class ValidationImageTest {
                 arguments("HTML", ascii("<!DOCTYPE html><script>alert(1)</script>")),
                 arguments("SVG", ascii("<svg xmlns=\"http://www.w3.org/2000/svg\" onload=\"alert(1)\"/>")),
                 arguments("exécutable Windows", concat(ascii("MZ"), new byte[30])),
+                // « BM » sans en-tête DIB valide
+                arguments("faux BMP", concat(ascii("BM"), new byte[30])),
                 arguments("PDF", ascii("%PDF-1.7\n")),
                 arguments("vidéo MP4", ftyp("isom", "isom", "mp42")),
                 arguments("texte", ascii("dummy content"))
