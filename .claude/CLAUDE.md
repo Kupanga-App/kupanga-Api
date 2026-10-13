@@ -225,6 +225,7 @@ Légende : `[ ]` à faire · `[~]` en cours · `[x]` fait (préciser date + comm
 | 2026-10-13 | **Seuils A3 relevés à 15** : `LOGIN_PAR_EMAIL_ET_IP` 15 / 15 min (au lieu de 5), `REGISTER_PAR_IP` 15 / h (au lieu de 5), `REGISTER_PAR_EMAIL` 15 / h (au lieu de 3) ; mot de passe oublié et renvoi du lien inchangés (3 / h par e-mail, quota Brevo) | Demande de l'utilisateur : bloqué après 3-4 essais d'inscription en test |
 | 2026-10-13 | **Bandeau d’installation de la PWA** en haut du site, téléphone et ordinateur ; relancé 14 jours après « Plus tard » ; iPhone : explication (Safari n’a pas de fenêtre d’installation) | Demande de l’utilisateur ; délai de 14 jours et textes : choix de Claude |
 | 2026-10-13 | **Image Docker pour Render** : `PORT=10000`, tas fixe `-Xms128m -Xmx300m` (au lieu de `MaxRAMPercentage=75`) ; le test D2 accepte les deux formes | Offre gratuite de Render (512 Mo) : la mémoire manquait. Choix de l'utilisateur (`b2a1254`) |
+| 2026-10-14 | **Redis n'est jamais requis au démarrage** : le stockage de la limite de tentatives se connecte au premier usage ; délais Redis de prod 5 s (commande) / 10 s (connexion) | Le démarrage sur Render plantait si la poignée de main TLS avec Upstash dépassait 2 s (CPU très limité de l'offre gratuite) ; cohérent avec le fail-open d'A3 |
 | 2026-10-07 | `CLAUDE.md` = mémoire partagée du projet, mise à jour automatiquement par Claude | Garder le contexte entre les conversations |
 
 ## 7. Points ouverts / questions
@@ -404,6 +405,7 @@ Légende : `[ ]` à faire · `[~]` en cours · `[x]` fait (préciser date + comm
 
 > Format : `AAAA-MM-JJ — quoi (fichiers / commit)`. Le plus récent en haut.
 
+- 2026-10-14 — Déploiement Render en échec (`RedisConnectionException` … `Connection initialization timed out after 2 second(s)` vers Upstash, au démarrage) : `RateLimitConfig.stockageSeauxRedis` ne se connecte plus au démarrage (connexion Bucket4j au premier usage, retentée si Redis est injoignable, fail-open A3) ; `application-prod.yml` : `spring.data.redis.timeout` 2 s → 5 s, `connect-timeout` 10 s ; test `RateLimitConfigTest` (3) ; tests ciblés verts — non commité
 - 2026-10-13 — CI rouge après `b2a1254` (tas fixé à `-Xms128m -Xmx300m` pour l'offre gratuite de Render, `PORT=10000`) : `DockerfileTest.jvmEtHealthcheck` exigeait `-XX:MaxRAMPercentage=75` → accepte désormais `MaxRAMPercentage` **ou** `-Xmx`, et exige `-XX:+ExitOnOutOfMemoryError` ; 4/4 verts — non commité
 
 - 2026-10-13 — Front : carte du bien sur les fiches détaillées : composant `shared/components/carte-bien` (Leaflet en lecture seule ; point si position exacte + lien « Itinéraire » ; zone de 150 m sur l'annonce publique arrondie ; zone de 800 m / 2,5 km / 6 km pour quartier / commune / ville ; rien si `AUCUNE` ; déplacement à un doigt désactivé sur mobile) + spec (4 tests) ; ajouté à `annonces/:id` (section Adresse), `biens/:id` (nouvelle section « Localisation ») et `mon-logement` ; `ng build` OK, `ng test` 75/75 — non commité

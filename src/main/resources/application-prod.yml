@@ -20,8 +20,10 @@ spring:
   # Upstash Redis — connexion binaire TLS via URL (rediss://)
   data:
     redis:
-      url: ${REDIS_URL}
-      timeout: 2000ms
+      url: ${REDIS_URL}   # doit commencer par rediss:// (Upstash exige TLS)
+      # 2 s ne suffisaient pas à la poignée de main TLS sur l'offre gratuite de Render (CPU très limité)
+      timeout: 5000ms
+      connect-timeout: 10000ms
   cache:
     type: redis
   lifecycle:
