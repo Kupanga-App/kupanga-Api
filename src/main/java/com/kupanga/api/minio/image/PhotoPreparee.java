@@ -12,7 +12,7 @@ import java.util.Set;
 /**
  * R1 : photo contrôlée (B5) et préparée <b>avant</b> tout enregistrement, une version par grand côté demandé.
  * <ul>
- *   <li>JPEG, PNG, GIF : réencodés en JPEG réduit, sans métadonnées ;</li>
+ *   <li>JPEG, PNG, GIF, BMP, TIFF : réencodés en JPEG réduit, sans métadonnées ;</li>
  *   <li>WEBP : non décodable en Java pur, stocké tel quel sans ses blocs EXIF/XMP ;</li>
  *   <li>AVIF, HEIC, HEIF : métadonnées impossibles à retirer sans dépendance native → refusés (415) pour une
  *       photo publique (décision 2026-10-12 ; le front convertit HEIC et réencode AVIF), stockés tels quels

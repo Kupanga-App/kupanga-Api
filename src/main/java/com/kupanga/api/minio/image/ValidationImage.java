@@ -19,7 +19,7 @@ public final class ValidationImage {
     /** Nombre maximal de photos par bien (décision 2026-10-09). */
     public static final int NOMBRE_MAX_PHOTOS_BIEN = 20;
 
-    static final String FORMATS_ACCEPTES = "JPEG, PNG, WEBP, AVIF, GIF, HEIC";
+    static final String FORMATS_ACCEPTES = "JPEG, PNG, WEBP, AVIF, GIF, HEIC, BMP, TIFF";
 
     private ValidationImage() {
     }

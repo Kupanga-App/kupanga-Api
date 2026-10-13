@@ -63,7 +63,8 @@ public final class CompressionImage {
 
     private static final float QUALITE_JPEG = 0.82f;
 
-    private static final Set<FormatImage> DECODABLES = Set.of(FormatImage.JPEG, FormatImage.PNG, FormatImage.GIF);
+    private static final Set<FormatImage> DECODABLES = Set.of(
+            FormatImage.JPEG, FormatImage.PNG, FormatImage.GIF, FormatImage.BMP, FormatImage.TIFF);
 
     private CompressionImage() {
     }
