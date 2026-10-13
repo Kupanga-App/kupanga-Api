@@ -73,6 +73,7 @@ springdoc:
 # IP réelle du client derrière le reverse proxy (X-Forwarded-For lu par Tomcat RemoteIpValve,
 # seulement depuis des proxys internes) : utilisée par la limite de tentatives (A3)
 server:
+  port: ${PORT:8089}
   forward-headers-strategy: native
   # Arrêt propre (B11, D2) : les requêtes en cours se terminent et l'exécuteur des e-mails vide sa file
   shutdown: graceful
