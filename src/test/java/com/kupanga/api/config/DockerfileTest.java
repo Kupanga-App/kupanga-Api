@@ -39,9 +39,11 @@ class DockerfileTest {
     }
 
     @Test
-    @DisplayName("D2 : mémoire JVM bornée par le conteneur, sonde de vivacité, java en PID 1 (SIGTERM)")
+    @DisplayName("D2 : mémoire JVM bornée, sonde de vivacité, java en PID 1 (SIGTERM)")
     void jvmEtHealthcheck() {
-        assertThat(dockerfile).contains("-XX:MaxRAMPercentage=75");
+        // Tas borné : en pourcentage de la limite du conteneur ou en valeur fixe (-Xmx, offre gratuite de Render)
+        assertThat(dockerfile).containsPattern("-XX:MaxRAMPercentage=\\d+|-Xmx\\d+[mMgG]");
+        assertThat(dockerfile).contains("-XX:+ExitOnOutOfMemoryError");
         assertThat(dockerfile).contains("HEALTHCHECK").contains("/actuator/health/liveness");
         assertThat(dockerfile).contains("exec java $JAVA_OPTS");
     }
