@@ -40,12 +40,11 @@ USER app
 ENV SPRING_PROFILES_ACTIVE=prod
 
 # Exposer le port (Spring Boot écoute sur 8089, variable PORT)
-ENV PORT=8089
+ENV PORT=10000
 EXPOSE 8089
 
 # D2 : le tas suit la limite mémoire du conteneur (512 Mo dans le compose) au lieu de la RAM de l'hôte
-ENV JAVA_OPTS="-XX:MaxRAMPercentage=75 -XX:+ExitOnOutOfMemoryError"
-
+ENV JAVA_OPTS="-Xms128m -Xmx300m -XX:+ExitOnOutOfMemoryError"
 # D2 : sonde de vivacité (état interne de l'app seulement) : une panne de Redis ou de la base ne doit pas
 # faire redémarrer le conteneur en boucle (Redis est en fail-open). wget est fourni par busybox (alpine).
 HEALTHCHECK --interval=30s --timeout=5s --start-period=90s --retries=3 \
