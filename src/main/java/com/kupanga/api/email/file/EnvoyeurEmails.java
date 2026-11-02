@@ -94,8 +94,12 @@ public class EnvoyeurEmails {
         }
     }
 
-    /** Reprise : e-mails dont le nouvel essai est dû, ou réservés par un envoyeur arrêté. */
-    @Scheduled(fixedDelayString = "${email.envoi.intervalle:30s}", initialDelayString = "${email.envoi.delai-initial:20s}")
+    /**
+     * Reprise : e-mails dont le nouvel essai est dû, ou réservés par un envoyeur arrêté.
+     * Durées en ISO-8601 ({@code PT30S}, {@code PT5M}) ou en millisecondes : Spring 6.1 refuse « 30s »
+     * (format court seulement depuis Spring 6.2) et l'application ne démarre plus.
+     */
+    @Scheduled(fixedDelayString = "${email.envoi.intervalle:PT30S}", initialDelayString = "${email.envoi.delai-initial:PT20S}")
     public void reprendre() {
         if (actif) {
             traiter();

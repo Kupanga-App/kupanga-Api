@@ -191,7 +191,7 @@ stockage (RustFS) et les e-mails (Mailpit) sont configurés par `docker-compose-
 | `SMTP_PORT`, `SMTP_STARTTLS`, `SMTP_SSL`, `SMTP_AUTH` | non (`587`, `true`, `false`, `true`) | connexion SMTP ; **chiffrement obligatoire en prod** (STARTTLS ou SSL, sinon refus de démarrer) |
 | `EMAIL_EXPEDITEUR` | oui | adresse d'envoi, sur un domaine authentifié (SPF, DKIM, DMARC) |
 | `EMAIL_NOM_EXPEDITEUR`, `EMAIL_REPONDRE_A` | non (`Kupanga`, vide) | nom affiché, adresse de réponse |
-| `EMAIL_ENVOI_INTERVALLE` | non (`30s`) | reprise de la file d'e-mails |
+| `EMAIL_ENVOI_INTERVALLE` | non (`PT30S`) | reprise de la file d'e-mails (format ISO-8601 : `PT30S`, `PT5M` ; « 30s » empêche le démarrage) |
 | `SENTRY_DSN` | oui | suivi des erreurs |
 
 **Buckets** créés au démarrage : `bucket-photo-immobilier` (public) ; `bucket-photo-profil`, `contrat-de-bail`,
