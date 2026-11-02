@@ -1,7 +1,7 @@
 package com.kupanga.api.immobilier.service;
 
 import com.kupanga.api.immobilier.entity.Bien;
-import com.kupanga.api.minio.image.PhotoPreparee;
+import com.kupanga.api.stockage.image.PhotoPreparee;
 
 import java.util.List;
 

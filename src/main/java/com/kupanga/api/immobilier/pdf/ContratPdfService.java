@@ -3,7 +3,7 @@ package com.kupanga.api.immobilier.pdf;
 import com.kupanga.api.juridiction.JuridictionRegistry;
 import com.kupanga.api.juridiction.TypeDocument;
 import com.kupanga.api.immobilier.entity.Contrat;
-import com.kupanga.api.minio.service.MinioService;
+import com.kupanga.api.stockage.service.StockageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -13,7 +13,7 @@ import org.xhtmlrenderer.pdf.ITextRenderer;
 
 import java.io.ByteArrayOutputStream;
 
-import static com.kupanga.api.minio.constant.MinioConstant.CONTRAT_BUCKET;
+import static com.kupanga.api.stockage.constant.StockageConstant.CONTRAT_BUCKET;
 
 @Service
 @RequiredArgsConstructor
@@ -22,7 +22,7 @@ public class ContratPdfService {
 
     private final TemplateEngine templateEngine;
     private final JuridictionRegistry juridictionRegistry;
-    private final MinioService minioService;
+    private final StockageService stockageService;
 
     /**
      * Génère le PDF depuis le template Thymeleaf et l'upload sur MinIO.
@@ -49,7 +49,7 @@ public class ContratPdfService {
             // 4 — nom du pdf
             String originalName = "contrats_numero_" + contrat.getId() + ".pdf";
 
-            return minioService.uploadPdf(pdfBytes, originalName, CONTRAT_BUCKET);
+            return stockageService.uploadPdf(pdfBytes, originalName, CONTRAT_BUCKET);
 
         } catch (Exception e) {
             log.error("Erreur génération PDF contrat {} : {}", contrat.getId(), e.getMessage());

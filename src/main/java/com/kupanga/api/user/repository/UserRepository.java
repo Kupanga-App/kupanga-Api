@@ -18,5 +18,5 @@ public interface UserRepository extends JpaRepository<User, Long> , JpaSpecifica
     long countByRole(Role role);
 
     /** B12 : la photo de profil est-elle aussi celle d'un autre compte ? */
-    boolean existsByUrlProfileAndIdNot(String urlProfile, Long id);
+    boolean existsByClePhotoProfilAndIdNot(String clePhotoProfil, Long id);
 }

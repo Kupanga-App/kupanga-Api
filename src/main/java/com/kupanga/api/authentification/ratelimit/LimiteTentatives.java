@@ -20,12 +20,12 @@ public enum LimiteTentatives {
     LOGIN_PAR_EMAIL("login-email", 30, Duration.ofMinutes(15)),
     LOGIN_PAR_IP("login-ip", 20, Duration.ofMinutes(15)),
     FORGOT_PASSWORD_PAR_EMAIL("forgot-email", 3, Duration.ofHours(1)),
-    /** Protège le quota d'e-mails Brevo contre l'envoi de resets vers de nombreux comptes. */
+    /** Protège le quota du fournisseur d'e-mails contre l'envoi de resets vers de nombreux comptes. */
     FORGOT_PASSWORD_PAR_IP("forgot-ip", 20, Duration.ofHours(1)),
     REGISTER_PAR_IP("register-ip", 15, Duration.ofHours(1)),
-    /** A14 : une inscription sur une adresse déjà inscrite envoie un e-mail à son titulaire (quota Brevo, spam). */
+    /** A14 : une inscription sur une adresse déjà inscrite envoie un e-mail à son titulaire (quota d'envoi, spam). */
     REGISTER_PAR_EMAIL("register-email", 15, Duration.ofHours(1)),
-    /** A14 : renvoi du lien de confirmation, mêmes seuils que le mot de passe oublié (quota Brevo). */
+    /** A14 : renvoi du lien de confirmation, mêmes seuils que le mot de passe oublié (quota d'envoi). */
     RENVOI_VERIFICATION_PAR_EMAIL("verif-email", 3, Duration.ofHours(1)),
     RENVOI_VERIFICATION_PAR_IP("verif-ip", 20, Duration.ofHours(1)),
     GOOGLE_PAR_IP("google-ip", 20, Duration.ofMinutes(15)),

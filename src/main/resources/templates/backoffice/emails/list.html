@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head th:replace="~{backoffice/fragments/layout :: head('E-mails')}"></head>
+<body>
+
+<div th:replace="~{backoffice/fragments/layout :: sidebar('emails')}"></div>
+
+<div class="main-wrapper">
+
+    <div th:replace="~{backoffice/fragments/layout :: topbar}"></div>
+
+    <div class="container-fluid px-4 py-4">
+
+        <!-- En-tête -->
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <div>
+                <h5 class="mb-0">E-mails envoyés par l'application</h5>
+                <p class="text-muted small mb-0">
+                    <span th:text="${enAttente}">0</span> en attente d'envoi ·
+                    <span th:text="${echecs}">0</span> en échec ·
+                    <span th:text="${page.totalElements}">0</span> affiché(s) avec ces filtres
+                </p>
+            </div>
+        </div>
+
+        <!-- ── Message après une action ──────── -->
+        <div th:if="${message}" class="alert alert-info small py-2" role="status" th:text="${message}"></div>
+
+        <!-- ── Filtres ──────────────── -->
+        <div class="search-card">
+            <form th:action="@{/backoffice/emails}" method="get">
+                <div class="row g-2 align-items-end">
+                    <div class="col-sm-6 col-md-4">
+                        <label class="form-label" for="filtre-statut">Statut</label>
+                        <select id="filtre-statut" name="statut" class="form-select">
+                            <option value="">Tous les statuts</option>
+                            <option th:each="s : ${statuts}"
+                                    th:value="${s.name()}"
+                                    th:text="${s.name()}"
+                                    th:selected="${s == statut}"></option>
+                        </select>
+                    </div>
+                    <div class="col-sm-6 col-md-4">
+                        <label class="form-label" for="filtre-type">Type</label>
+                        <select id="filtre-type" name="type" class="form-select">
+                            <option value="">Tous les types</option>
+                            <option th:each="t : ${types}"
+                                    th:value="${t.name()}"
+                                    th:text="${t.name()}"
+                                    th:selected="${t == type}"></option>
+                        </select>
+                    </div>
+                    <input type="hidden" name="size" th:value="${size}"/>
+                    <div class="col-sm-12 col-md-2 d-flex gap-2">
+                        <button type="submit" class="btn btn-search flex-grow-1" aria-label="Filtrer">
+                            <i data-lucide="search" style="width:16px;height:16px;" aria-hidden="true"></i>
+                        </button>
+                        <a th:href="@{/backoffice/emails}"
+                           class="btn btn-reset flex-grow-1 d-flex align-items-center justify-content-center"
+                           aria-label="Réinitialiser">
+                            <i data-lucide="x" style="width:16px;height:16px;" aria-hidden="true"></i>
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- ── Table ──────────────────────────────── -->
+        <div class="card content-card">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Créé le (UTC)</th>
+                                <th>Type</th>
+                                <th>Destinataire</th>
+                                <th>Statut</th>
+                                <th>Essais</th>
+                                <th>Dernière erreur</th>
+                                <th class="text-end">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="email : ${page.contenu}">
+                                <td class="text-muted small"
+                                    style="font-family:'DM Mono',monospace;font-size:0.75rem;"
+                                    th:text="${email.id}"></td>
+                                <td class="small" style="font-family:'DM Mono',monospace;font-size:0.75rem;"
+                                    th:text="${#temporals.format(email.creeLe, 'dd/MM/yyyy HH:mm')}">—</td>
+                                <td class="small">
+                                    <span th:text="${email.type}">—</span>
+                                    <span th:if="${email.priorite.name() == 'CRITIQUE'}"
+                                          class="badge-proprietaire small ms-1">critique</span>
+                                </td>
+                                <td class="small" style="font-family:'DM Mono',monospace;font-size:0.75rem;"
+                                    th:text="${email.destinataireMasque}">—</td>
+                                <td class="small">
+                                    <span th:switch="${email.statut.name()}">
+                                        <span th:case="'ENVOYE'" class="icon-complete">Envoyé</span>
+                                        <span th:case="'ECHEC_DEFINITIF'" class="text-danger fw-medium">Échec</span>
+                                        <span th:case="'PERIME'" class="badge-default">Périmé</span>
+                                        <span th:case="*" class="icon-pending">En attente</span>
+                                    </span>
+                                    <div th:if="${email.statut.name() == 'A_ENVOYER' and email.tentatives > 0}"
+                                         class="text-muted" style="font-size:0.7rem;"
+                                         th:text="'prochain essai ' + ${#temporals.format(email.prochainEssai, 'dd/MM HH:mm')}"></div>
+                                </td>
+                                <td class="small" th:text="${email.tentatives}">0</td>
+                                <td class="small text-muted" style="max-width:260px;" th:text="${email.derniereErreur}">—</td>
+                                <td class="text-end">
+                                    <form th:if="${email.renvoyable}"
+                                          th:action="@{/backoffice/emails/{id}/renvoyer(id=${email.id})}" method="post"
+                                          class="d-inline">
+                                        <button type="submit"
+                                                class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center gap-1"
+                                                title="Renvoyer">
+                                            <i data-lucide="rotate-cw" style="width:14px;height:14px;" aria-hidden="true"></i>
+                                            Renvoyer
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(page.contenu)}">
+                                <td colspan="8" class="text-center text-muted py-5">
+                                    <i data-lucide="mail-check"
+                                       style="width:36px;height:36px;display:block;margin:0 auto 0.75rem;opacity:0.5;"
+                                       aria-hidden="true"></i>
+                                    Aucun e-mail
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            <div th:if="${page.totalPages > 1}"
+                 class="card-footer d-flex align-items-center justify-content-between py-2 px-3">
+                <span class="text-muted small">
+                    Page <strong th:text="${page.pageActuelle + 1}"></strong>
+                    sur <strong th:text="${page.totalPages}"></strong>
+                </span>
+                <nav>
+                    <ul class="pagination pagination-sm mb-0">
+                        <li class="page-item" th:classappend="${page.premierePage} ? 'disabled'">
+                            <a class="page-link"
+                               th:href="@{/backoffice/emails(page=${page.pageActuelle - 1}, size=${size}, statut=${statut}, type=${type})}">
+                                <i data-lucide="chevron-left" style="width:14px;height:14px;" aria-hidden="true"></i>
+                            </a>
+                        </li>
+                        <li class="page-item" th:classappend="${page.dernierePage} ? 'disabled'">
+                            <a class="page-link"
+                               th:href="@{/backoffice/emails(page=${page.pageActuelle + 1}, size=${size}, statut=${statut}, type=${type})}">
+                                <i data-lucide="chevron-right" style="width:14px;height:14px;" aria-hidden="true"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div th:replace="~{backoffice/fragments/layout :: scripts}"></div>
+</body>
+</html>

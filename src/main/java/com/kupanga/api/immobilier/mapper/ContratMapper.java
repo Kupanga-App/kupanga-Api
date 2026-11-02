@@ -4,10 +4,11 @@ import com.kupanga.api.immobilier.dto.readDTO.ContratDTO;
 import com.kupanga.api.immobilier.entity.Contrat;
 import com.kupanga.api.user.entity.User;
 import com.kupanga.api.user.dto.readDTO.UserDTO;
+import com.kupanga.api.user.mapper.PhotoProfilUrlMapper;
 import com.kupanga.api.user.mapper.UserMapper;
 import org.mapstruct.*;
 
-@Mapper(componentModel = "spring", uses = {UserMapper.class, DocumentPdfUrlMapper.class})
+@Mapper(componentModel = "spring", uses = {UserMapper.class, DocumentPdfUrlMapper.class, PhotoProfilUrlMapper.class})
 public interface ContratMapper {
 
     @Mapping(target = "bienId",                source = "bien.id")
@@ -26,5 +27,6 @@ public interface ContratMapper {
     @Mapping(target = "role",              ignore = true)
     @Mapping(target = "hasCompleteProfil", ignore = true)
     @Mapping(target = "telephone",         ignore = true) // C6 : vue aussi servie par le lien de signature
+    @Mapping(target = "urlProfile",        source = "user", qualifiedByName = "urlPhotoProfil")
     UserDTO mapUserSansInfosSensibles(User user);
 }

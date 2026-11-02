@@ -94,6 +94,13 @@ public interface UserService {
     Optional<User> findOptionalByMail(String mail);
 
     /**
+     * S2 : indique si un autre compte désigne la même photo de profil (avatar choisi par URL avant S2).
+     * @param clePhotoProfil clé de la photo dans le stockage
+     * @param idCompte       compte à exclure
+     */
+    boolean photoProfilUtiliseeAilleurs(String clePhotoProfil, Long idCompte);
+
+    /**
      * C6 : enregistre, change ou efface ({@code null} ou vide) le numéro de contact de l'utilisateur connecté.
      * Le numéro n'est pas vérifié ; il est stocké au format E.164.
      *

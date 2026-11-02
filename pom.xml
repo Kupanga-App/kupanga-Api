@@ -31,7 +31,21 @@
         <mapstruct.version>1.5.5.Final</mapstruct.version>
         <lombok.version>1.18.30</lombok.version>
         <bucket4j.version>8.14.0</bucket4j.version>
+        <!-- S1 : client S3 standard, indépendant du serveur (RustFS, Garage, MinIO, S3 managé) -->
+        <aws.sdk.version>2.46.7</aws.sdk.version>
     </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>software.amazon.awssdk</groupId>
+                <artifactId>bom</artifactId>
+                <version>${aws.sdk.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <!-- ========================= -->
     <!-- Dependencies              -->
@@ -70,11 +84,30 @@
         </dependency>
 
 
-        <!-- MinIO -->
+        <!-- Stockage S3 (S1) : client HTTP du JDK seulement (ni Netty ni Apache HttpClient) -->
         <dependency>
-            <groupId>io.minio</groupId>
-            <artifactId>minio</artifactId>
-            <version>8.5.4</version>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>s3</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>software.amazon.awssdk</groupId>
+                    <artifactId>netty-nio-client</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>software.amazon.awssdk</groupId>
+                    <artifactId>apache-client</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>url-connection-client</artifactId>
+        </dependency>
+
+        <!-- M1 : e-mails par n'importe quel serveur SMTP (spring.mail.*), plus d'API propre à un fournisseur -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
         </dependency>
 
         <!-- Google OAuth2 token verification -->
@@ -172,6 +205,14 @@
         </dependency>
 
         <!-- Spring Security Tests -->
+        <!-- M1 : faux serveur SMTP pour les tests d'envoi -->
+        <dependency>
+            <groupId>com.icegreen</groupId>
+            <artifactId>greenmail-junit5</artifactId>
+            <version>2.1.3</version>
+            <scope>test</scope>
+        </dependency>
+
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-test</artifactId>

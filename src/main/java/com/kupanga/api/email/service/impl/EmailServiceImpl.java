@@ -2,11 +2,10 @@ package com.kupanga.api.email.service.impl;
 
 import com.kupanga.api.juridiction.FormatMontant;
 import com.kupanga.api.juridiction.JuridictionRegistry;
-import com.kupanga.api.email.dto.BrevoEmail;
-import com.kupanga.api.email.dto.BrevoEmail.Recipient;
-import com.kupanga.api.email.dto.BrevoEmail.Sender;
-import com.kupanga.api.email.event.EmailAEnvoyer;
-import com.kupanga.api.email.event.EmailAEnvoyer.PdfAJoindre;
+import com.kupanga.api.email.dto.EmailSortant;
+import com.kupanga.api.email.file.FileEmails;
+import com.kupanga.api.email.file.PdfAJoindre;
+import com.kupanga.api.email.file.TypeEmail;
 import com.kupanga.api.email.service.EmailService;
 import com.kupanga.api.immobilier.entity.Bien;
 import com.kupanga.api.immobilier.entity.Contrat;
@@ -14,43 +13,38 @@ import com.kupanga.api.immobilier.entity.EtatDesLieux;
 import com.kupanga.api.immobilier.entity.Quittance;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.HtmlUtils;
 
 import java.util.List;
 
 import static com.kupanga.api.email.constantes.Constante.*;
-import static com.kupanga.api.minio.constant.MinioConstant.CONTRAT_BUCKET;
-import static com.kupanga.api.minio.constant.MinioConstant.EDL_BUCKET;
-import static com.kupanga.api.minio.constant.MinioConstant.QUITTANCE_BUCKET;
+import static com.kupanga.api.stockage.constant.StockageConstant.CONTRAT_BUCKET;
+import static com.kupanga.api.stockage.constant.StockageConstant.EDL_BUCKET;
+import static com.kupanga.api.stockage.constant.StockageConstant.QUITTANCE_BUCKET;
 
 /**
- * Prépare les e-mails (contenu HTML échappé) dans le thread et la transaction de l'appelant, puis publie
- * un {@link EmailAEnvoyer}. B11 : l'envoi lui-même ({@code EmailEnvoiListener}) n'a lieu qu'après le commit.
+ * Prépare les e-mails (contenu HTML échappé) dans le thread et la transaction de l'appelant, puis les met en file
+ * ({@link FileEmails}, M2). B11 : l'envoi lui-même ({@code EnvoyeurEmails}) n'a lieu qu'après le commit.
  */
 @Service
 @Slf4j
 public class EmailServiceImpl implements EmailService {
 
-    private final ApplicationEventPublisher evenements;
-    private final Sender sender;
+    private final FileEmails fileEmails;
     private final String resetLink;
     private final String urlLogin;
     private final String appUrl;
     private final JuridictionRegistry juridictionRegistry;
 
     public EmailServiceImpl(
-            ApplicationEventPublisher evenements,
-            @Value("${brevo.sender-email}") String senderEmail,
-            @Value("${brevo.sender-name}") String senderName,
+            FileEmails fileEmails,
             @Value("${app.reset-link}") String resetLink,
             @Value("${app.url-login}") String urlLogin,
             @Value("${app.url}") String appUrl,
             JuridictionRegistry juridictionRegistry
     ) {
-        this.evenements = evenements;
-        this.sender = new Sender(senderName, senderEmail);
+        this.fileEmails = fileEmails;
         this.resetLink = resetLink;
         this.urlLogin = urlLogin;
         this.appUrl = appUrl;
@@ -59,56 +53,46 @@ public class EmailServiceImpl implements EmailService {
 
     @Override
     public void sendWelcomeMessage(String destinataire, String prenom) {
-        publier(new BrevoEmail(
-                sender,
-                List.of(new Recipient(destinataire)),
+        publier(TypeEmail.BIENVENUE, EmailSortant.html(
+                destinataire,
                 String.format(SUJET_MAIL_BIENVENUE_PROFIL_COMPLETE, prenom),
-                String.format(CONTENU_MAIL_BIENVENUE_PROFIL_COMPLETE, echapper(prenom), echapper(prenom)),
-                null
+                String.format(CONTENU_MAIL_BIENVENUE_PROFIL_COMPLETE, echapper(prenom), echapper(prenom))
         ), null);
     }
 
     @Override
     public void envoyerVerificationEmail(String destinataire, String prenom, String token) {
-        publier(new BrevoEmail(
-                sender,
-                List.of(new Recipient(destinataire)),
+        publier(TypeEmail.VERIFICATION_EMAIL, EmailSortant.html(
+                destinataire,
                 SUJET_MAIL_VERIFICATION_EMAIL,
-                String.format(CONTENU_MAIL_VERIFICATION_EMAIL, echapper(prenom), appUrl + "auth/verifier-email?token=" + token),
-                null
+                String.format(CONTENU_MAIL_VERIFICATION_EMAIL, echapper(prenom), appUrl + "auth/verifier-email?token=" + token)
         ), null);
     }
 
     @Override
     public void envoyerTentativeInscription(String destinataire) {
-        publier(new BrevoEmail(
-                sender,
-                List.of(new Recipient(destinataire)),
+        publier(TypeEmail.TENTATIVE_INSCRIPTION, EmailSortant.html(
+                destinataire,
                 SUJET_MAIL_TENTATIVE_INSCRIPTION,
-                String.format(CONTENU_MAIL_TENTATIVE_INSCRIPTION, appUrl + "auth/forgot"),
-                null
+                String.format(CONTENU_MAIL_TENTATIVE_INSCRIPTION, appUrl + "auth/forgot")
         ), null);
     }
 
     @Override
     public void sendPasswordResetMail(String destinataire, String resetToken) {
-        publier(new BrevoEmail(
-                sender,
-                List.of(new Recipient(destinataire)),
+        publier(TypeEmail.RESET_MOT_DE_PASSE, EmailSortant.html(
+                destinataire,
                 SUJET_MAIL_REINITIALISATION_MOT_DE_PASSE,
-                String.format(CONTENU_MAIL_REINITIALISATION_MOT_DE_PASSE, resetLink + resetToken),
-                null
+                String.format(CONTENU_MAIL_REINITIALISATION_MOT_DE_PASSE, resetLink + resetToken)
         ), null);
     }
 
     @Override
     public void sendPasswordUpdatedConfirmation(String destinataire) {
-        publier(new BrevoEmail(
-                sender,
-                List.of(new Recipient(destinataire)),
+        publier(TypeEmail.MOT_DE_PASSE_MODIFIE, EmailSortant.html(
+                destinataire,
                 SUJET_MAIL_CONFIRMATION_MOT_DE_PASSE,
-                String.format(CONTENU_MAIL_CONFIRMATION_MOT_DE_PASSE, urlLogin),
-                null
+                String.format(CONTENU_MAIL_CONFIRMATION_MOT_DE_PASSE, urlLogin)
         ), null);
     }
 
@@ -120,9 +104,8 @@ public class EmailServiceImpl implements EmailService {
                 contrat.getProprietaire().getLastName());
         String lienSignature = appUrl + "contrats/signer/" + token;
 
-        publier(new BrevoEmail(
-                sender,
-                List.of(new Recipient(contrat.getLocataire().getMail())),
+        publier(TypeEmail.INVITATION_SIGNATURE_CONTRAT, EmailSortant.html(
+                contrat.getLocataire().getMail(),
                 SUJET_MAIL_INVITATION_SIGNATURE,
                 String.format(CONTENU_MAIL_INVITATION_SIGNATURE,
                         prenomProprietaire,
@@ -134,8 +117,7 @@ public class EmailServiceImpl implements EmailService {
                         montants(contrat).f(contrat.getDepotGarantie()),
                         contrat.getDateDebut(),
                         contrat.getDureeBailMois(),
-                        lienSignature),
-                null
+                        lienSignature)
         ), null);
     }
 
@@ -157,9 +139,8 @@ public class EmailServiceImpl implements EmailService {
         String typeEdl = resolveTypeEdl(edl);
         String lienSignature = appUrl + "edl/signer/" + token;
 
-        publier(new BrevoEmail(
-                sender,
-                List.of(new Recipient(edl.getLocataire().getMail())),
+        publier(TypeEmail.INVITATION_SIGNATURE_EDL, EmailSortant.html(
+                edl.getLocataire().getMail(),
                 SUJET_MAIL_INVITATION_SIGNATURE_EDL,
                 String.format(CONTENU_MAIL_INVITATION_SIGNATURE_EDL,
                         prenomNomLocataire,
@@ -167,8 +148,7 @@ public class EmailServiceImpl implements EmailService {
                         adresse,
                         typeEdl,
                         edl.getDateRealisation().toString(),
-                        lienSignature),
-                null
+                        lienSignature)
         ), null);
         log.debug("E-mail d'invitation à signer l'EDL {} préparé", edl.getId());
     }
@@ -189,9 +169,8 @@ public class EmailServiceImpl implements EmailService {
         PdfAJoindre pdf = pdfAJoindre(QUITTANCE_BUCKET, quittance.getClePdf(),
                 String.format("Quittance_%d_%d_%s.pdf", quittance.getId(), quittance.getAnnee(), quittance.getMois()));
 
-        publier(new BrevoEmail(
-                sender,
-                List.of(new Recipient(quittance.getLocataire().getMail())),
+        publier(TypeEmail.QUITTANCE, EmailSortant.html(
+                quittance.getLocataire().getMail(),
                 SUJET_MAIL_QUITTANCE,
                 String.format(CONTENU_MAIL_QUITTANCE,
                         fullName(quittance.getLocataire().getFirstName(),
@@ -202,8 +181,7 @@ public class EmailServiceImpl implements EmailService {
                         montants(quittance).f(quittance.getChargesMensuelles()),
                         montants(quittance).f(quittance.getMontantTotal()),
                         quittance.getDatePaiement() != null
-                                ? quittance.getDatePaiement().toString() : "—"),
-                null
+                                ? quittance.getDatePaiement().toString() : "—")
         ), pdf);
         log.debug("E-mail de la quittance {} préparé", quittance.getId());
     }
@@ -225,9 +203,8 @@ public class EmailServiceImpl implements EmailService {
         PdfAJoindre pdf = pdfAJoindre(CONTRAT_BUCKET, contrat.getClePdf(),
                 "Contrat_" + contrat.getId() + ".pdf");
 
-        publier(new BrevoEmail(
-                sender,
-                List.of(new Recipient(destinataire)),
+        publier(TypeEmail.CONTRAT_SIGNE, EmailSortant.html(
+                destinataire,
                 SUJET_MAIL_CONTRAT_SIGNE,
                 String.format(CONTENU_MAIL_CONTRAT_SIGNE,
                         prenomNom,
@@ -236,8 +213,7 @@ public class EmailServiceImpl implements EmailService {
                         montants(contrat).f(contrat.getChargesMensuelles()),
                         montants(contrat).f(contrat.getDepotGarantie()),
                         contrat.getDateDebut(),
-                        contrat.getDureeBailMois()),
-                null
+                        contrat.getDureeBailMois())
         ), pdf);
     }
 
@@ -248,16 +224,14 @@ public class EmailServiceImpl implements EmailService {
         PdfAJoindre pdf = pdfAJoindre(EDL_BUCKET, edl.getClePdf(),
                 String.format("EDL_%s_%d.pdf", edl.getType().name(), edl.getId()));
 
-        publier(new BrevoEmail(
-                sender,
-                List.of(new Recipient(destinataire)),
+        publier(TypeEmail.EDL_SIGNE, EmailSortant.html(
+                destinataire,
                 SUJET_MAIL_EDL_SIGNE,
                 String.format(CONTENU_MAIL_EDL_SIGNE,
                         prenomNom,
                         adresse,
                         typeEdl,
-                        edl.getDateRealisation().toString()),
-                null
+                        edl.getDateRealisation().toString())
         ), pdf);
         log.debug("E-mail de confirmation de l'EDL signé {} préparé", edl.getId());
     }
@@ -289,8 +263,11 @@ public class EmailServiceImpl implements EmailService {
         return clePdf == null ? null : new PdfAJoindre(bucket, clePdf, nomFichier);
     }
 
-    /** B11 : publie l'e-mail ; il part après le commit de la transaction en cours (rien en cas d'annulation). */
-    private void publier(BrevoEmail email, PdfAJoindre pdf) {
-        evenements.publishEvent(new EmailAEnvoyer(email, pdf == null ? List.of() : List.of(pdf)));
+    /**
+     * M2 : met l'e-mail en file, dans la transaction en cours (B11 : rien n'est envoyé si elle est annulée) ;
+     * il part après le commit, avec de nouveaux essais en cas de panne.
+     */
+    private void publier(TypeEmail type, EmailSortant email, PdfAJoindre pdf) {
+        fileEmails.ajouter(email, type, pdf == null ? List.of() : List.of(pdf));
     }
 }

@@ -134,6 +134,25 @@
                 </div>
             </div>
 
+            <!-- M4 : e-mails non distribués (file persistante) -->
+            <div class="col-sm-6 col-xl-4">
+                <a th:href="@{/backoffice/emails(statut='ECHEC_DEFINITIF')}" class="text-decoration-none">
+                    <div class="card stat-card">
+                        <div class="card-body d-flex align-items-center gap-3">
+                            <div class="stat-icon">
+                                <i data-lucide="mail-warning" aria-hidden="true"></i>
+                            </div>
+                            <div>
+                                <div class="stat-label">E-mails en échec</div>
+                                <div class="stat-value" th:classappend="${emailsEnEchec > 0} ? ' text-danger'"
+                                     th:text="${emailsEnEchec}">0</div>
+                                <div class="text-muted small" th:text="${emailsEnAttente} + ' en attente'">0 en attente</div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
         </div>
 
         <!-- ── Tables reporting ────────────────────── -->

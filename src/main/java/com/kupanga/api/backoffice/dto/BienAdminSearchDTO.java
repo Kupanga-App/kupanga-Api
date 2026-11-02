@@ -18,7 +18,7 @@ public record BienAdminSearchDTO(
 
     /** Paramètres hors bornes ramenés dans les limites (pas de 500 sur page=-1 / size=0). */
     public BienAdminSearchDTO {
-        page = Math.max(0, page);
+        page = Math.min(Math.max(0, page), Integer.MAX_VALUE / SIZE_MAX); // décalage SQL sans débordement
         size = Math.min(Math.max(1, size), SIZE_MAX);
     }
 

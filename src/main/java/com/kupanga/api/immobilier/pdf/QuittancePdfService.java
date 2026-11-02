@@ -3,7 +3,7 @@ package com.kupanga.api.immobilier.pdf;
 import com.kupanga.api.juridiction.JuridictionRegistry;
 import com.kupanga.api.juridiction.TypeDocument;
 import com.kupanga.api.immobilier.entity.Quittance;
-import com.kupanga.api.minio.service.MinioService;
+import com.kupanga.api.stockage.service.StockageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -14,7 +14,7 @@ import org.xhtmlrenderer.pdf.ITextRenderer;
 import java.io.ByteArrayOutputStream;
 import java.util.Map;
 
-import static com.kupanga.api.minio.constant.MinioConstant.QUITTANCE_BUCKET;
+import static com.kupanga.api.stockage.constant.StockageConstant.QUITTANCE_BUCKET;
 
 @Service
 @RequiredArgsConstructor
@@ -23,7 +23,7 @@ public class QuittancePdfService {
 
     private final TemplateEngine templateEngine;
     private final JuridictionRegistry juridictionRegistry;
-    private final MinioService   minioService;
+    private final StockageService   stockageService;
 
 
     /**
@@ -56,7 +56,7 @@ public class QuittancePdfService {
             String fileName = buildFileName(quittance);
 
             // 5 — Upload MinIO
-            return minioService.uploadPdf(pdfBytes, fileName, QUITTANCE_BUCKET);
+            return stockageService.uploadPdf(pdfBytes, fileName, QUITTANCE_BUCKET);
 
         } catch (Exception e) {
             log.error("Erreur génération PDF quittance {} : {}", quittance.getId(), e.getMessage(), e);

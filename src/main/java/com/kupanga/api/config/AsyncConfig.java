@@ -32,20 +32,21 @@ public class AsyncConfig {
     }
 
     /**
-     * B11 : exécuteur réservé aux e-mails, pour qu'ils ne restent pas derrière des tâches lentes (POI, ~23 s).
-     * File pleine : l'envoi se fait dans le thread appelant plutôt que d'être perdu ou de faire échouer
-     * une requête déjà validée en base (rejet levé dans afterCommit).
+     * B11 / M2 : exécuteur réservé au réveil de l'envoyeur d'e-mails ({@code EnvoyeurEmails}), pour qu'il ne reste
+     * pas derrière des tâches lentes (POI, ~23 s). Les e-mails eux-mêmes attendent en base (file persistante) :
+     * un réveil refusé (file pleine) ou perdu à l'arrêt ne perd aucun e-mail, la tâche planifiée les reprend.
+     * Un seul thread : l'envoyeur traite toute la file à chaque passage.
      */
     @Bean(name = "emailExecutor")
     public Executor emailExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
 
-        executor.setCorePoolSize(2);
-        executor.setMaxPoolSize(4);
-        executor.setQueueCapacity(500);
+        executor.setCorePoolSize(1);
+        executor.setMaxPoolSize(1);
+        executor.setQueueCapacity(10);
         executor.setThreadNamePrefix("email-");
-        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
-        // Arrêt (déploiement) : les e-mails en file partent avant la fermeture, sinon ils seraient perdus
+        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.DiscardPolicy());
+        // Arrêt (déploiement) : le passage en cours se termine (un envoi coupé repartirait à l'expiration du verrou)
         executor.setWaitForTasksToCompleteOnShutdown(true);
         executor.setAwaitTerminationSeconds(30);
 

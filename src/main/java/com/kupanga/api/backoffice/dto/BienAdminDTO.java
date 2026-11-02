@@ -21,11 +21,8 @@ public record BienAdminDTO(
         List<String>  images,
         boolean       archive
 ) {
-    public static BienAdminDTO from(Bien bien) {
-        List<String> urls = bien.getImages() == null
-                ? List.of()
-                : bien.getImages().stream().map(img -> img.getUrl()).toList();
-
+    /** @param urls URL des photos (S2 : construites depuis les clés par {@code PhotoBienUrlMapper}) */
+    public static BienAdminDTO from(Bien bien, List<String> urls) {
         return new BienAdminDTO(
                 bien.getId(),
                 bien.getTitre(),

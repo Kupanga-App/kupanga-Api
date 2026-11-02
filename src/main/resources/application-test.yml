@@ -16,10 +16,25 @@ spring:
   cache:
     type: none
 
-minio:
+  # M1 : aucun serveur SMTP en test (les envois passent par des doubles ou GreenMail)
+  mail:
+    host: localhost
+    port: 3025
+    properties:
+      mail.smtp.auth: false
+      mail.smtp.starttls.enable: false
+      mail.smtp.starttls.required: false
+
+email:
+  expediteur: noreply@kupanga.test
+  # M2 : ni envoi ni purge en arrière-plan (les tests appellent l'envoyeur eux-mêmes)
+  envoi:
+    actif: false
+stockage:
   endpoint: http://localhost:9000
-  access-key: minioadmin
-  secret-key: minioadmin
+  url-publique: http://localhost:9000
+  access-key: kupanga-dev
+  secret-key: kupanga-dev-secret
 
 app:
   url: http://localhost:4200/
@@ -31,7 +46,6 @@ app:
     verifier-biens-au-demarrage: false   # base partagée sans Flyway (JuridictionConfig)
   reset-link: http://localhost:4200/auth/reset-password?token=
   url-login: http://localhost:4200/auth/login
-  url-mino: http://localhost:9000
   cookie:
     secure: false
     same-site: Lax

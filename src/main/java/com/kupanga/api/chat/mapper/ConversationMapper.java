@@ -3,9 +3,10 @@ package com.kupanga.api.chat.mapper;
 import com.kupanga.api.chat.dto.ConversationDTO;
 import com.kupanga.api.chat.entity.Conversation;
 import com.kupanga.api.user.entity.User;
+import com.kupanga.api.user.mapper.PhotoProfilUrlMapper;
 import org.mapstruct.*;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = PhotoProfilUrlMapper.class)
 public interface ConversationMapper {
 
     @Mapping(source = "conversation.id", target = "id")
@@ -18,8 +19,9 @@ public interface ConversationMapper {
     @Mapping(source = "conversation.createdAt", target = "createdAt")
     @Mapping(expression = "java(expediteur.getFirstName() + ' ' + expediteur.getLastName())", target = "expediteurName")
     @Mapping(expression = "java(destinataire.getFirstName() + ' ' + destinataire.getLastName())", target = "destinataireName")
-    @Mapping(source = "expediteur.urlProfile", target = "expediteurPhotoUrl")
-    @Mapping(source = "destinataire.urlProfile", target = "destinatairePhotoUrl")
+    // S2 : photo de profil privée → URL présignée de 24 h
+    @Mapping(source = "expediteur", target = "expediteurPhotoUrl", qualifiedByName = "urlPhotoProfil")
+    @Mapping(source = "destinataire", target = "destinatairePhotoUrl", qualifiedByName = "urlPhotoProfil")
     @Mapping(target = "nonLuCount", constant = "0l")
     ConversationDTO toDto(Conversation conversation, User expediteur, User destinataire);
 }

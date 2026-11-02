@@ -4,15 +4,15 @@ import com.kupanga.api.immobilier.dto.readDTO.BienPublicDTO;
 import com.kupanga.api.immobilier.dto.readDTO.ProprietairePublicDTO;
 import com.kupanga.api.immobilier.entity.*;
 import com.kupanga.api.user.entity.User;
+import com.kupanga.api.user.mapper.PhotoProfilUrlMapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = {PhotoBienUrlMapper.class, PhotoProfilUrlMapper.class})
 public interface BienMapper {
 
     // C2 (revue) : position publique arrondie à ~100 m ; la position exacte (repère GPS = porte du logement,
@@ -28,15 +28,15 @@ public interface BienMapper {
     BienPublicDTO toPublicDTO(Bien bien);
 
     // ─── Propriétaire public : prénom + initiale du nom + photo (jamais l'e-mail) ──
+    // S2 : photo de profil privée → URL présignée de 24 h (PhotoProfilUrlMapper)
     @Named("mapProprietairePublic")
-    default ProprietairePublicDTO mapProprietairePublic(User user) {
-        if (user == null) return null;
-        String nom = user.getLastName();
-        return ProprietairePublicDTO.builder()
-                .firstName(user.getFirstName())
-                .initialeNom(nom == null || nom.isBlank() ? null : nom.trim().substring(0, 1).toUpperCase() + ".")
-                .urlProfile(user.getUrlProfile())
-                .build();
+    @Mapping(target = "initialeNom", source = "lastName", qualifiedByName = "initialeNom")
+    @Mapping(target = "urlProfile",  source = "user",     qualifiedByName = "urlPhotoProfil")
+    ProprietairePublicDTO mapProprietairePublic(User user);
+
+    @Named("initialeNom")
+    default String initialeNom(String nom) {
+        return nom == null || nom.isBlank() ? null : nom.trim().substring(0, 1).toUpperCase() + ".";
     }
 
     // ─── C2 : position publique ───────────────────────────────────────────────
@@ -50,27 +50,6 @@ public interface BienMapper {
     @Named("precisionPublique")
     default PrecisionLocalisation precisionPublique(PrecisionLocalisation precision) {
         return precision == null || precision.estPrecise() ? null : precision;
-    }
-
-    // ─── Images ───────────────────────────────────────────────────────────────
-    @Named("imageUrls")
-    default List<String> mapImages(Set<BienImage> images) {
-        return photosTriees(images).stream().map(BienImage::getUrl).toList();
-    }
-
-    /** R1 : vignette de chaque photo (la photo elle-même si elle date d'avant R1), dans l'ordre de {@code images}. */
-    @Named("vignetteUrls")
-    default List<String> mapVignettes(Set<BienImage> images) {
-        return photosTriees(images).stream().map(BienImage::vignetteOuPhoto).toList();
-    }
-
-    /** Ordre d'envoi (id) : stable entre {@code images} et {@code vignettes}, la première photo sert de couverture. */
-    static List<BienImage> photosTriees(Set<BienImage> images) {
-        if (images == null) return List.of();
-        return images.stream()
-                .filter(image -> image.getUrl() != null)
-                .sorted(Comparator.comparing(BienImage::getId, Comparator.nullsLast(Comparator.naturalOrder())))
-                .toList();
     }
 
     // ─── POI → labels français ────────────────────────────────────────────────

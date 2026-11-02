@@ -38,6 +38,9 @@ class BienAdminServiceTest {
     @Mock private EtatDesLieuxRepository etatDesLieuxRepository;
     @Mock private BienAdminSpecification bienAdminSpecification;
 
+    @Mock private com.kupanga.api.immobilier.mapper.PhotoBienUrlMapper photoBienUrlMapper;
+    @Mock private com.kupanga.api.user.mapper.PhotoProfilUrlMapper photoProfilUrlMapper;
+
     @InjectMocks
     private BienAdminService bienAdminService;
 

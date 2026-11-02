@@ -1,14 +1,14 @@
 package com.kupanga.api.immobilier.mapper;
 
-import com.kupanga.api.minio.service.MinioService;
+import com.kupanga.api.stockage.service.StockageService;
 import lombok.RequiredArgsConstructor;
 import org.mapstruct.Named;
 import org.springframework.stereotype.Component;
 
-import static com.kupanga.api.minio.constant.MinioConstant.CONTRAT_BUCKET;
-import static com.kupanga.api.minio.constant.MinioConstant.EDL_BUCKET;
-import static com.kupanga.api.minio.constant.MinioConstant.QUITTANCE_BUCKET;
-import static com.kupanga.api.minio.constant.MinioConstant.RECU_BUCKET;
+import static com.kupanga.api.stockage.constant.StockageConstant.CONTRAT_BUCKET;
+import static com.kupanga.api.stockage.constant.StockageConstant.EDL_BUCKET;
+import static com.kupanga.api.stockage.constant.StockageConstant.QUITTANCE_BUCKET;
+import static com.kupanga.api.stockage.constant.StockageConstant.RECU_BUCKET;
 
 /**
  * Transforme la clé d'un PDF stocké dans un bucket privé en URL présignée de courte durée (P0-7).
@@ -19,26 +19,26 @@ import static com.kupanga.api.minio.constant.MinioConstant.RECU_BUCKET;
 @RequiredArgsConstructor
 public class DocumentPdfUrlMapper {
 
-    private final MinioService minioService;
+    private final StockageService stockageService;
 
     @Named("urlContrat")
     public String urlContrat(String clePdf) {
-        return minioService.urlPresignee(CONTRAT_BUCKET, clePdf);
+        return stockageService.urlPresignee(CONTRAT_BUCKET, clePdf);
     }
 
     @Named("urlEtatDesLieux")
     public String urlEtatDesLieux(String clePdf) {
-        return minioService.urlPresignee(EDL_BUCKET, clePdf);
+        return stockageService.urlPresignee(EDL_BUCKET, clePdf);
     }
 
     @Named("urlQuittance")
     public String urlQuittance(String clePdf) {
-        return minioService.urlPresignee(QUITTANCE_BUCKET, clePdf);
+        return stockageService.urlPresignee(QUITTANCE_BUCKET, clePdf);
     }
 
     /** C8-bis : photo du reçu de paiement (bucket privé). */
     @Named("urlRecu")
     public String urlRecu(String cleRecu) {
-        return minioService.urlPresignee(RECU_BUCKET, cleRecu);
+        return stockageService.urlPresignee(RECU_BUCKET, cleRecu);
     }
 }

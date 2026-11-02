@@ -11,6 +11,7 @@ import com.kupanga.api.immobilier.dto.readDTO.BienPublicDTO;
 import com.kupanga.api.immobilier.entity.*;
 import com.kupanga.api.immobilier.mapper.BienMapper;
 import com.kupanga.api.immobilier.mapper.DocumentPdfUrlMapper;
+import com.kupanga.api.immobilier.mapper.PhotoBienUrlMapper;
 import com.kupanga.api.immobilier.repository.BienRepository;
 import com.kupanga.api.immobilier.service.BienImageService;
 import com.kupanga.api.immobilier.service.BienPoiService;
@@ -18,14 +19,15 @@ import com.kupanga.api.immobilier.service.BienService;
 import com.kupanga.api.immobilier.service.LocalisationBienService;
 import com.kupanga.api.immobilier.repository.BienPoiRepository;
 import com.kupanga.api.juridiction.JuridictionRegistry;
-import com.kupanga.api.minio.image.CompressionImage;
-import com.kupanga.api.minio.image.PhotoPreparee;
-import com.kupanga.api.minio.image.ValidationImage;
+import com.kupanga.api.stockage.image.CompressionImage;
+import com.kupanga.api.stockage.image.PhotoPreparee;
+import com.kupanga.api.stockage.image.ValidationImage;
 import com.kupanga.api.notification.enums.NotificationType;
 import com.kupanga.api.notification.service.NotificationService;
 import com.kupanga.api.user.dto.readDTO.UserDTO;
 import com.kupanga.api.user.entity.User;
 import com.kupanga.api.user.entity.Role;
+import com.kupanga.api.user.mapper.PhotoProfilUrlMapper;
 import com.kupanga.api.user.service.UserService;
 import com.kupanga.api.user.utils.EmailUtils;
 import lombok.RequiredArgsConstructor;
@@ -42,7 +44,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 
-import static com.kupanga.api.minio.constant.MinioConstant.PHOTO_IMO_BUCKET;
+import static com.kupanga.api.stockage.constant.StockageConstant.PHOTO_IMO_BUCKET;
 
 @Service
 @RequiredArgsConstructor
@@ -60,6 +62,8 @@ public class BienServiceImpl implements BienService {
     private final DocumentPdfUrlMapper documentPdfUrlMapper;
     private final ConversationRepository conversationRepository;
     private final JuridictionRegistry juridictionRegistry;
+    private final PhotoBienUrlMapper photoBienUrlMapper;
+    private final PhotoProfilUrlMapper photoProfilUrlMapper;
 
     public void createBien(Authentication auth, BienFormDTO dto, List<MultipartFile> files) {
 
@@ -485,6 +489,7 @@ public class BienServiceImpl implements BienService {
                         .firstName(bien.getProprietaire().getFirstName())
                         .lastName(bien.getProprietaire().getLastName())
                         .mail(bien.getProprietaire().getMail())
+                        .urlProfile(photoProfilUrlMapper.urlPhotoProfil(bien.getProprietaire()))
                         .telephone(bien.getProprietaire().getTelephone()) // C6 : vue réservée aux parties du bien
                         .build()
                         : null)
@@ -494,6 +499,7 @@ public class BienServiceImpl implements BienService {
                         .firstName(bien.getLocataire().getFirstName())
                         .lastName(bien.getLocataire().getLastName())
                         .mail(bien.getLocataire().getMail())
+                        .urlProfile(photoProfilUrlMapper.urlPhotoProfil(bien.getLocataire()))
                         .telephone(bien.getLocataire().getTelephone()) // C6 : vue réservée aux parties du bien
                         .build()
                         : null)
@@ -521,12 +527,8 @@ public class BienServiceImpl implements BienService {
                         .filter(Objects::nonNull)
                         .toList()
                         : List.of())
-                .images(BienMapper.photosTriees(bien.getImages()).stream()
-                        .map(BienImage::getUrl)
-                        .toList())
-                .vignettes(BienMapper.photosTriees(bien.getImages()).stream()
-                        .map(BienImage::vignetteOuPhoto)
-                        .toList())
+                .images(photoBienUrlMapper.images(bien.getImages()))
+                .vignettes(photoBienUrlMapper.vignettes(bien.getImages()))
                 .pois(bien.getPois() != null
                         ? bien.getPois().stream()
                         .map(p -> p.getPoiType().getLabelFr())

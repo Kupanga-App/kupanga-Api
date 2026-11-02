@@ -11,7 +11,7 @@ import com.kupanga.api.notification.service.NotificationService;
 import com.kupanga.api.config.ApresCommit;
 import com.kupanga.api.immobilier.dto.formDTO.MarquerPayeeDTO;
 import com.kupanga.api.immobilier.dto.formDTO.QuittanceFormDTO;
-import com.kupanga.api.minio.service.MinioService;
+import com.kupanga.api.stockage.service.StockageService;
 import org.springframework.web.multipart.MultipartFile;
 import com.kupanga.api.immobilier.dto.readDTO.QuittanceDTO;
 import com.kupanga.api.immobilier.entity.*;
@@ -33,7 +33,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static com.kupanga.api.minio.constant.MinioConstant.RECU_BUCKET;
+import static com.kupanga.api.stockage.constant.StockageConstant.RECU_BUCKET;
 
 @Service
 @RequiredArgsConstructor
@@ -50,7 +50,7 @@ public class QuittanceServiceImpl implements QuittanceService {
     private final EmailService         emailService;
     private final NotificationService  notificationService;
     private final JuridictionRegistry  juridictionRegistry;
-    private final MinioService         minioService;
+    private final StockageService         stockageService;
 
     // ─────────────────────────────────────────────────────────────────────────
     // Création
@@ -221,13 +221,13 @@ public class QuittanceServiceImpl implements QuittanceService {
 
         // Bucket privé (P0-7) : format contrôlé au contenu (B5), nom fixé par le serveur
         String ancienne = quittance.getCleRecu();
-        String cle = minioService.uploadImagePrivee(recu, RECU_BUCKET);
+        String cle = stockageService.uploadImagePrivee(recu, RECU_BUCKET);
         quittance.setCleRecu(cle);
         quittanceRepository.saveAndFlush(quittance);
 
         // Ancienne photo supprimée une fois le remplacement validé
         if (ancienne != null) {
-            ApresCommit.executer(() -> minioService.supprimer(RECU_BUCKET, ancienne));
+            ApresCommit.executer(() -> stockageService.supprimer(RECU_BUCKET, ancienne));
         }
         log.info("Reçu joint à la quittance {}", quittanceId);
         return quittanceMapper.toDTO(quittance);

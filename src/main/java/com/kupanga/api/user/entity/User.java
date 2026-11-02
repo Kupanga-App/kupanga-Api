@@ -43,8 +43,13 @@ public class User {
     @Column(name = "a_completer_profil")
     private Boolean hasCompleteProfil = false;
 
+    /** Photo externe (compte Google) ; nos photos sont stockées par {@link #clePhotoProfil} (S2). */
     @Column(name = "url_photo_profil")
     private String urlProfile;
+
+    /** S2 : clé de la photo de profil dans le bucket privé ; lue par URL présignée de 24 h. */
+    @Column(name = "cle_photo_profil")
+    private String clePhotoProfil;
 
     @Column(name = "google_id")
     private String googleId;

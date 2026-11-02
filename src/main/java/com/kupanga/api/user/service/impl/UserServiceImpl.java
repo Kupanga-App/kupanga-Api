@@ -113,4 +113,9 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
         return userMapper.toDTO(user);
     }
+
+    @Override
+    public boolean photoProfilUtiliseeAilleurs(String clePhotoProfil, Long idCompte) {
+        return userRepository.existsByClePhotoProfilAndIdNot(clePhotoProfil, idCompte);
+    }
 }

@@ -16,7 +16,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class BienMapperTest {
 
-    private final BienMapper bienMapper = Mappers.getMapper(BienMapper.class);
+    private final BienMapper bienMapper = com.kupanga.api.stockage.service.MappersDeTest.bienMapper();
     private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
 
     @Test
@@ -102,5 +102,28 @@ class BienMapperTest {
 
         assertThat(dto.images()).containsExactly("u1", "u2", "u3");
         assertThat(dto.vignettes()).containsExactly("u1", "v2", "v3");
+    }
+
+    @Test
+    @DisplayName("S2 : photos stockées par clé → URL publique construite à la lecture ; photo de profil privée → lien signé de 24 h")
+    void toPublicDTO_clesEnUrl() {
+        Bien bien = Bien.builder().id(1L).pays(Pays.FR)
+                .proprietaire(User.builder().id(1L).firstName("Jean").clePhotoProfil("avatar.jpg").build())
+                .images(new java.util.HashSet<>(java.util.List.of(
+                        com.kupanga.api.immobilier.entity.BienImage.builder().id(1L).cle("p1.jpg").cleVignette("v1.jpg").build(),
+                        com.kupanga.api.immobilier.entity.BienImage.builder().id(2L).cle("p2.webp").cleVignette("p2.webp").build())))
+                .build();
+
+        BienPublicDTO dto = bienMapper.toPublicDTO(bien);
+
+        assertThat(dto.images()).containsExactly(
+                "https://fichiers.test/bucket-photo-immobilier/p1.jpg",
+                "https://fichiers.test/bucket-photo-immobilier/p2.webp");
+        assertThat(dto.vignettes()).containsExactly(
+                "https://fichiers.test/bucket-photo-immobilier/v1.jpg",
+                "https://fichiers.test/bucket-photo-immobilier/p2.webp");
+        assertThat(dto.proprietaire().urlProfile())
+                .startsWith("https://fichiers.test/bucket-photo-profil/avatar.jpg?")
+                .contains("X-Amz-Expires=86400");
     }
 }

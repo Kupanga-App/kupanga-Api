@@ -16,17 +16,24 @@ public class BienImage {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 500)
+    /** S2 : clé de la photo (1600 px) dans le bucket des photos de biens ; l'URL est construite à la lecture. */
+    @Column(name = "cle")
+    private String cle;
+
+    /** S2 / R1 : clé de la vignette de 400 px ; {@code null} pour une photo envoyée avant R1. */
+    @Column(name = "cle_vignette")
+    private String cleVignette;
+
+    /**
+     * Ancienne URL complète (avant S2), gardée pour la transition (V51) ; jamais écrite pour une nouvelle photo.
+     * Lue seulement si la clé est absente (URL d'un format inattendu).
+     */
+    @Column(length = 500)
     private String url;
 
-    /** R1 : vignette de 400 px ; {@code null} pour une photo envoyée avant R1 (la photo d'origine sert alors). */
+    /** Ancienne URL de la vignette (avant S2), même rôle que {@link #url}. */
     @Column(name = "url_vignette", length = 500)
     private String urlVignette;
-
-    /** Vignette, ou la photo elle-même si elle n'en a pas. */
-    public String vignetteOuPhoto() {
-        return urlVignette != null ? urlVignette : url;
-    }
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "bien_id", nullable = false)

@@ -16,7 +16,7 @@ class UserMapperTest {
 
     private static final String HASH = "$2a$10$vsVhkaAc3xSXEjwWRn1/y.47LEcuQ0SrlL6qlyRtezJVQZauUVVtS";
 
-    private final UserMapper userMapper = Mappers.getMapper(UserMapper.class);
+    private final UserMapper userMapper = com.kupanga.api.stockage.service.MappersDeTest.userMapper();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Test
@@ -54,7 +54,7 @@ class UserMapperTest {
         assertThat(userMapper.toDTO(user).telephone()).isEqualTo("+243812345678");
         assertThat(userMapper.toDTOWithoutCredentials(user).telephone()).isNull();
         // Parties d'un contrat : vue aussi servie par le lien de signature public
-        assertThat(Mappers.getMapper(com.kupanga.api.immobilier.mapper.ContratMapper.class)
+        assertThat(com.kupanga.api.stockage.service.MappersDeTest.contratMapper()
                 .mapUserSansInfosSensibles(user).telephone()).isNull();
     }
 }

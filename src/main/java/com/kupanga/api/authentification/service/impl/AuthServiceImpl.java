@@ -1,5 +1,6 @@
 package com.kupanga.api.authentification.service.impl;
 
+import com.kupanga.api.config.ApresCommit;
 import com.kupanga.api.authentification.dto.AuthResponseDTO;
 import com.kupanga.api.authentification.dto.CompleteGoogleProfileDTO;
 import com.kupanga.api.authentification.dto.GoogleLoginDTO;
@@ -16,9 +17,9 @@ import com.kupanga.api.authentification.utils.JwtUtils;
 import com.kupanga.api.email.service.EmailService;
 import com.kupanga.api.exception.business.InvalidPasswordException;
 import com.kupanga.api.exception.business.KupangaBusinessException;
-import com.kupanga.api.minio.image.CompressionImage;
-import com.kupanga.api.minio.image.PhotoPreparee;
-import com.kupanga.api.minio.service.MinioService;
+import com.kupanga.api.stockage.image.CompressionImage;
+import com.kupanga.api.stockage.image.PhotoPreparee;
+import com.kupanga.api.stockage.service.StockageService;
 import com.kupanga.api.user.dto.formDTO.UserFormDTO;
 import com.kupanga.api.user.dto.readDTO.UserDTO;
 import com.kupanga.api.user.entity.User;
@@ -47,7 +48,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static com.kupanga.api.authentification.constant.AuthConstant.*;
-import static com.kupanga.api.minio.constant.MinioConstant.PHOTO_PROFIL_BUCKET;
+import static com.kupanga.api.stockage.constant.StockageConstant.PHOTO_PROFIL_BUCKET;
 
 @Service
 @RequiredArgsConstructor
@@ -61,7 +62,7 @@ public class AuthServiceImpl implements AuthService {
     private final JwtUtils             jwtUtils;
     private final RefreshTokenService  refreshTokenService;
     private final PasswordResetTokenService passwordResetTokenService;
-    private final MinioService         minioService;
+    private final StockageService         stockageService;
     private final GoogleTokenVerifier  googleTokenVerifier;
     private final VerificationEmailService verificationEmailService;
     @Value("${app.cookie.secure}")
@@ -227,9 +228,10 @@ public class AuthServiceImpl implements AuthService {
 
         // Contrôles du formulaire avant de chercher le compte : mêmes erreurs que l'adresse soit inscrite ou non
         userService.verifyIfRoleOfUserValid(userFormDTO.role());
-        String url = userFormDTO.urlAvatar();
-        // Revue B5 : pas d'URL externe (pixel de suivi, contenu non contrôlé) en photo de profil publique
-        if (url != null && !url.isBlank() && !minioService.estUrlDuBucket(url, PHOTO_PROFIL_BUCKET)) {
+        // Revue B5 : pas d'URL externe (pixel de suivi, contenu non contrôlé) en photo de profil.
+        // S2 : les avatars prédéfinis n'existent plus (front du 2026-10-13) et le bucket des photos de profil est
+        // privé : plus aucune URL n'est acceptée, la photo passe par le fichier envoyé
+        if (userFormDTO.urlAvatar() != null && !userFormDTO.urlAvatar().isBlank()) {
             throw new KupangaBusinessException("Avatar invalide", HttpStatus.BAD_REQUEST);
         }
         // Photo contrôlée (B5) et préparée (R1 : 400 px, sans EXIF) même si l'adresse est déjà inscrite :
@@ -258,11 +260,10 @@ public class AuthServiceImpl implements AuthService {
         user.setLastName(userFormDTO.lastName());
         user.setTelephone(TelephoneUtils.normaliser(userFormDTO.telephone()));
         if (photoProfil != null) {
-            // R1 : avatar jamais affiché en grand → une seule version de 400 px
-            url = minioService.envoyerImagePublique(photoProfil, PHOTO_PROFIL_BUCKET);
+            // R1 : avatar jamais affiché en grand → une seule version de 400 px ; S2 : bucket privé, clé en base
+            user.setClePhotoProfil(stockageService.envoyerImage(photoProfil, PHOTO_PROFIL_BUCKET));
         }
 
-        user.setUrlProfile(url);
         user.setHasCompleteProfil(true);
         user.setEmailVerifie(false);
 
@@ -375,6 +376,13 @@ public class AuthServiceImpl implements AuthService {
         user.setFirstName(googleInfo.firstName());
         user.setLastName(googleInfo.lastName());
         user.setUrlProfile(googleInfo.pictureUrl());
+        // Photo envoyée par le premier inscrit (peut-être un tiers) : retirée du stockage après le commit
+        String anciennePhoto = user.getClePhotoProfil();
+        user.setClePhotoProfil(null);
+        // Revue S2 : avant S2, un avatar pouvait désigner la photo d'un autre compte ; on ne supprime pas la sienne
+        if (anciennePhoto != null && !userService.photoProfilUtiliseeAilleurs(anciennePhoto, user.getId())) {
+            ApresCommit.executer(() -> stockageService.supprimer(PHOTO_PROFIL_BUCKET, anciennePhoto));
+        }
         user.setTelephone(null); // C6 : saisi par le premier inscrit, peut-être un tiers
         user.setEmailVerifie(true);
         verificationEmailService.annulerLien(user.getId());

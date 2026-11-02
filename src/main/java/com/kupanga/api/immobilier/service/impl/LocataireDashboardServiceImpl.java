@@ -6,6 +6,7 @@ import com.kupanga.api.immobilier.dto.readDTO.LocataireDashboardDTO;
 import com.kupanga.api.immobilier.dto.readDTO.QuittanceDTO;
 import com.kupanga.api.immobilier.entity.*;
 import com.kupanga.api.immobilier.mapper.EtatDesLieuxMapper;
+import com.kupanga.api.immobilier.mapper.PhotoBienUrlMapper;
 import com.kupanga.api.immobilier.mapper.QuittanceMapper;
 import com.kupanga.api.immobilier.repository.BienRepository;
 import com.kupanga.api.immobilier.repository.ContratRepository;
@@ -38,6 +39,7 @@ public class LocataireDashboardServiceImpl implements LocataireDashboardService 
     private final EtatDesLieuxRepository etatDesLieuxRepository;
     private final QuittanceMapper        quittanceMapper;
     private final EtatDesLieuxMapper     etatDesLieuxMapper;
+    private final PhotoBienUrlMapper     photoBienUrlMapper;
 
     @Override
     public LocataireDashboardDTO getDashboard(Authentication auth, Long bienId) {
@@ -115,12 +117,7 @@ public class LocataireDashboardServiceImpl implements LocataireDashboardService 
         dto.setNomProprietaire(bien.getProprietaire() != null
                 ? bien.getProprietaire().getFirstName() + " " + bien.getProprietaire().getLastName()
                 : null);
-        dto.setPhotos(bien.getImages() != null
-                ? bien.getImages().stream()
-                        .map(BienImage::getUrl)
-                        .filter(Objects::nonNull)
-                        .toList()
-                : List.of());
+        dto.setPhotos(photoBienUrlMapper.images(bien.getImages())); // S2 : URL construites depuis les clés
         dto.setColocation(bien.getColocation());
         return dto;
     }

@@ -289,7 +289,7 @@ class SecuriteApiIntegrationTest {
         // C8-bis : reçu de paiement sur la quittance de A
         assertStatut(403, multipart("/quittances/" + quittanceA.getId() + "/recu")
                 .file(new org.springframework.mock.web.MockMultipartFile("recu", "r.jpg", "image/jpeg",
-                        com.kupanga.api.minio.image.ImagesDeTest.jpeg(40, 30)))
+                        com.kupanga.api.stockage.image.ImagesDeTest.jpeg(40, 30)))
                 .with(b));
         // C7-C16 : liens WhatsApp des documents de A (propriété contrôlée avant le pays)
         assertStatut(403, get("/contrats/" + contratA.getId() + "/lien-whatsapp").with(b));

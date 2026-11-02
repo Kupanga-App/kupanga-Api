@@ -37,7 +37,7 @@ class UserServiceImplTest {
     private PasswordEncoder passwordEncoder;
 
     @Spy
-    private UserMapper userMapper = Mappers.getMapper(UserMapper.class);
+    private UserMapper userMapper = com.kupanga.api.stockage.service.MappersDeTest.userMapper();
 
     @Spy
     @InjectMocks

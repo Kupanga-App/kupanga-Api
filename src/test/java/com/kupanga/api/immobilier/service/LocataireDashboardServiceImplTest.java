@@ -20,6 +20,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
@@ -49,6 +50,9 @@ class LocataireDashboardServiceImplTest {
     @Mock private QuittanceMapper        quittanceMapper;
     @Mock private EtatDesLieuxMapper     etatDesLieuxMapper;
     @Mock private Authentication         auth;
+    // S2 : vrai convertisseur clé → URL, sur un stockage simulé
+    @Spy  private com.kupanga.api.immobilier.mapper.PhotoBienUrlMapper photoBienUrlMapper =
+            new com.kupanga.api.immobilier.mapper.PhotoBienUrlMapper(new com.kupanga.api.stockage.service.StockageFactice());
 
     @InjectMocks
     private LocataireDashboardServiceImpl dashboardService;
@@ -268,10 +272,10 @@ class LocataireDashboardServiceImplTest {
     }
 
     @Test
-    @DisplayName("getDashboard() — photos du bien : URLs extraites des BienImage")
+    @DisplayName("getDashboard() — photos du bien : URL construites depuis les clés (S2), ancienne URL sinon")
     void getDashboard_bienImages_urlsExtracted() {
 
-        BienImage img1 = BienImage.builder().id(1L).url("https://cdn.kupanga.fr/photo1.jpg").build();
+        BienImage img1 = BienImage.builder().id(1L).cle("photo1.jpg").build();
         BienImage img2 = BienImage.builder().id(2L).url("https://cdn.kupanga.fr/photo2.jpg").build();
         bien.setImages(Set.of(img1, img2));
 
@@ -280,9 +284,8 @@ class LocataireDashboardServiceImplTest {
         LocataireDashboardDTO result = dashboardService.getDashboard(auth, 10L);
 
         assertThat(result.getBien().getPhotos())
-                .hasSize(2)
-                .containsExactlyInAnyOrder(
-                        "https://cdn.kupanga.fr/photo1.jpg",
+                .containsExactly(
+                        "https://fichiers.test/bucket-photo-immobilier/photo1.jpg",
                         "https://cdn.kupanga.fr/photo2.jpg"
                 );
     }

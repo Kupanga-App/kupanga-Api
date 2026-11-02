@@ -1,0 +1,34 @@
+---
+name: sprint-6-deploiement
+description: Sprint 6 Kupanga — serveur de production auto-hébergé (VPS + Docker Compose + Caddy + Cloudflare) : durcissement, compose de prod, IP réelle, sauvegardes, mise en service sur une infrastructure neuve, supervision. Argument optionnel : un ID (ex. H2) ou "tout".
+argument-hint: "[ID | tout]"
+disable-model-invocation: true
+---
+
+# Sprint 6 — Serveur de production
+
+Argument reçu : `$ARGUMENTS`
+
+1. Lis `.claude/CLAUDE.md` (§6, §7) et **`AUDIT-INFRA.md`** (§3 hébergement, §4 sauvegardes, §5 prêt pour de vrais clients), puis **suis** `.claude/sprint-workflow.md` pour chaque tâche (audit de référence : `AUDIT-INFRA.md`).
+2. Vérifie que le Sprint 5 est terminé (stockage S3 portable, SMTP, outbox) : le compose de prod en dépend.
+3. Règles propres à ce sprint :
+   - **Claude n'agit jamais sur le serveur, le DNS, Cloudflare ni les comptes des fournisseurs.** Il écrit les fichiers (`deploy/…`) et des **runbooks** pas à pas que l'utilisateur exécute ; il lui demande de coller les sorties utiles (`! <commande>` ou copie) pour vérifier.
+   - **Aucun secret dans le dépôt** : `deploy/.env.prod.exemple` avec des valeurs factices et la liste complète des variables ; `.env.prod` ajouté au `.gitignore`.
+   - Images Docker **figées par version** (D7) ; aucun port de PostgreSQL, Redis, du stockage ou de RabbitMQ exposé sur l'hôte.
+   - Chaque runbook a une étape « vérifier » et une étape « revenir en arrière ».
+   - **Infrastructure et base neuves, aucune donnée à reprendre** (décision du 2026-11-02) : pas de migration depuis Render / Neon / Upstash / MinIO, pas de `flyway repair` ; Flyway crée le schéma au premier démarrage.
+   - Tests : pour les fichiers de config, ajouter des tests de contenu comme `DockerfileTest` / `ProdConfigTest` (ex. aucun `ports:` sur les services internes, versions figées, limites mémoire) ; `docker compose -f deploy/docker-compose-prod.yml config` doit passer.
+
+## Ordre des tâches et points d'attention
+
+| Ordre | ID | Tâche | Points d'attention |
+|---|---|---|---|
+| 1 | `H1` | Serveur, domaine, durcissement | **Décisions de l'utilisateur** (`AskUserQuestion`) : **VPS OVHcloud retenu ; l'utilisateur dira lui-même au lancement du sprint lequel prendre (VPS-1 à VPS-4, cf. `CHOIX-SERVEUR.md`, recommandation VPS-2) — s'il ne le dit pas, lui demander avant toute autre chose, ne pas choisir à sa place** ; dimensionner ensuite la mémoire des services (`CHOIX-SERVEUR.md` §3) selon ce VPS ; nom de domaine, relais SMTP, front servi par le VPS ou Cloudflare Pages, stockage des sauvegardes hors site. Noter en §6. Écrire `deploy/README.md` (vue d'ensemble) et `deploy/runbooks/01-preparer-serveur.md` : Ubuntu 24.04 LTS, utilisateur non root, SSH par clé seulement (mot de passe et root désactivés), `ufw` (22, 80, 443), `unattended-upgrades`, fail2ban, Docker Engine + plugin Compose depuis le dépôt officiel, fuseau UTC, swap de 2 Go, enregistrements DNS (`api.`, `fichiers.`, front) en proxy Cloudflare, SPF/DKIM/DMARC du domaine expéditeur |
+| 2 | `H2` | Compose de production | `deploy/docker-compose-prod.yml` : `api` (image construite par le `Dockerfile`, profil prod, `JAVA_OPTS` revus pour ~1,5 Go et `PORT` — adapter `Dockerfile`/`DockerfileTest` : plus de contrainte Render), `db` (`postgis/postgis` figé, volume, `shared_buffers`), `redis` (mot de passe, `maxmemory 128mb`, `allkeys-lru` à discuter : les compteurs A3 vivent aussi dans Redis → plutôt `volatile-lru`), stockage S3 (RustFS figé, compte de service non root créé par un script d'initialisation), `caddy` (seul service avec `ports: 80, 443`), RabbitMQ seulement si l'option B a été choisie en M3. Réseau interne, `restart: unless-stopped`, healthchecks, limites mémoire (cf. `AUDIT-INFRA.md` §3.2), rotation des logs (`json-file`, `max-size`). `deploy/Caddyfile` (`api.`, `fichiers.` vers le stockage **sans réécrire `Host`**, front éventuel, en-têtes HSTS / `X-Content-Type-Options` / `Referrer-Policy`, compression). `application-prod.yml` : Redis `redis://` interne avec mot de passe (plus d'exigence `rediss://`), config `stockage.*`, `email.*` et `spring.mail.*` par variables |
+| 3 | `H3` | IP réelle, Cloudflare, limites | Caddy : `trusted_proxies` = plages IP de Cloudflare (IPv4 + IPv6, procédure de mise à jour notée), `client_ip_headers CF-Connecting-IP`, transmission de la vraie IP à l'API ; vérifier que Tomcat (`forward-headers-strategy: native`, proxys internes) lit bien cette IP — **test d'intégration** si possible (requête avec `X-Forwarded-For` depuis un proxy de confiance ou non). Pare-feu : 80/443 ouverts **aux seules plages Cloudflare** (script `deploy/pare-feu/cloudflare-ufw.sh`). Limites de corps par route (50 Mo `POST /biens`, 12 Mo `/auth/register`, 10 Mo reçus, 1 Mo ailleurs). Règles Cloudflare à documenter : cache des photos publiques (noms UUID immuables, `Cache-Control` long), **aucun cache** sur l'API, les URL présignées (`X-Amz-Signature`), `ngsw-worker.js` et `ngsw.json`. WebSocket `/ws` à travers Cloudflare. Reprendre la recette A3 « IP réelle » de `CLAUDE.md` §7 dans le runbook |
+| 4 | `H4` | Sauvegardes | `deploy/sauvegarde/` : `sauvegarder-postgres.sh` (`pg_dump -Fc` depuis le conteneur, rétention 7 j / 4 sem. / 12 mois), `sauvegarder-fichiers.sh` (`rclone sync` chiffré `rclone crypt` vers le stockage hors site choisi en H1), unités `systemd` timer ou cron, signal de vie (`healthchecks.io` ou Uptime Kuma) et alerte si rien depuis 26 h. `deploy/runbooks/04-restaurer.md` : restauration complète sur un VPS neuf, chronométrée, à répéter chaque mois. Mettre à jour `docs/sauvegardes.md` |
+| 5 | `H5` | Mise en service | `deploy/runbooks/05-mise-en-service.md` : (1) premier démarrage sur base vide (Flyway V1-V52, buckets créés, contrôle SMTP dans les logs) ; (2) DNS et Cloudflare ; (3) **front** : `environment.prod.ts` **et** `ngsw-config.json` vers `https://api.<domaine>` (dépôt `kupanga-front`, ensemble) et `CORS_ALLOWED_ORIGINS` ; (4) contrôles (inscription → e-mail réellement reçu, photo, PDF présigné, WebSocket, login 429 depuis deux IP, `curl` anonyme sur un avatar → 403) ; (5) retour arrière : rien à restaurer (aucune donnée reprise) |
+| 6 | `H6` | Supervision et recette finale | Sondes externes (UptimeRobot ou Uptime Kuma hors du VPS) sur `/actuator/health/liveness` et le front ; alertes disque > 80 %, mémoire, redémarrages de conteneurs ; Sentry en prod vérifié ; aucun « keep-alive » nécessaire. Checklist « prêt pour de vrais clients » (`AUDIT-INFRA.md` §5) cochée avec l'utilisateur : ce qui reste ouvert est noté en §7 de `CLAUDE.md` |
+
+## Fin de sprint
+Lance `testeur` (suite complète : le `Dockerfile` et `application-prod.yml` peuvent avoir changé), puis `revue-securite` sur `deploy/`, `Dockerfile` et la config de prod. Ajoute au Journal de `.claude/CLAUDE.md` une ligne « Sprint 6 (déploiement) terminé » et mets à jour §2 (hébergement réel) et le README (schéma d'architecture).

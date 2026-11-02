@@ -15,7 +15,7 @@ import com.kupanga.api.authentification.utils.JwtUtils;
 import com.kupanga.api.email.service.EmailService;
 import com.kupanga.api.exception.business.InvalidPasswordException;
 import com.kupanga.api.exception.business.KupangaBusinessException;
-import com.kupanga.api.minio.service.MinioService;
+import com.kupanga.api.stockage.service.StockageService;
 import com.kupanga.api.user.dto.formDTO.UserFormDTO;
 import com.kupanga.api.user.dto.readDTO.UserDTO;
 import com.kupanga.api.user.entity.Role;
@@ -39,7 +39,7 @@ import java.time.LocalDateTime;
 import static com.kupanga.api.authentification.constant.AuthConstant.MAIL_REINITIALISATION_ENVOYE;
 import static com.kupanga.api.authentification.constant.AuthConstant.MOT_DE_PASSE_A_JOUR;
 import static com.kupanga.api.authentification.constant.AuthConstant.TOKEN_REINITIALISATION_INVALIDE;
-import static com.kupanga.api.minio.constant.MinioConstant.PHOTO_PROFIL_BUCKET;
+import static com.kupanga.api.stockage.constant.StockageConstant.PHOTO_PROFIL_BUCKET;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -72,7 +72,7 @@ class AuthServiceImplTest {
     private HttpServletResponse response;
 
     @Mock
-    private MinioService minioService;
+    private StockageService stockageService;
 
     @Mock
     private GoogleTokenVerifier googleTokenVerifier;
@@ -401,16 +401,15 @@ class AuthServiceImplTest {
                 "john@mail.com",
                 "John",
                 Role.ROLE_LOCATAIRE,
-                "defaultUrl",
+                null,
                 "+243 81 234-56.78"
         );
 
         MultipartFile image = imagePng();
 
-        when(minioService.estUrlDuBucket("defaultUrl", PHOTO_PROFIL_BUCKET)).thenReturn(true);
         when(passwordEncoder.encode("password")).thenReturn("encodedPwd");
-        when(minioService.envoyerImagePublique(any(com.kupanga.api.minio.image.PhotoPreparee.class), eq(PHOTO_PROFIL_BUCKET)))
-                .thenReturn("minioUrl");
+        when(stockageService.envoyerImage(any(com.kupanga.api.stockage.image.PhotoPreparee.class), eq(PHOTO_PROFIL_BUCKET)))
+                .thenReturn("cle-photo.jpg");
 
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
         doNothing().when(userService).save(userCaptor.capture());
@@ -420,7 +419,8 @@ class AuthServiceImplTest {
         assertThat(result).isEqualTo(COMPTE_CREE_VERIFIER_EMAIL);
         User cree = userCaptor.getValue();
         assertThat(cree.isEmailVerifie()).isFalse();
-        assertThat(cree.getUrlProfile()).isEqualTo("minioUrl");
+        assertThat(cree.getClePhotoProfil()).isEqualTo("cle-photo.jpg"); // S2 : clé, jamais une URL
+        assertThat(cree.getUrlProfile()).isNull();
         assertThat(cree.getTelephone()).isEqualTo("+243812345678"); // C6 : normalisé en E.164
         verify(verificationEmailService).envoyerLien(cree);
         verifyNoInteractions(jwtUtils, refreshTokenService);
@@ -431,7 +431,7 @@ class AuthServiceImplTest {
     @DisplayName("createAndCompleteUserProfil() : adresse déjà inscrite (vérifiée ou non) → même réponse, aucun compte ni lien, titulaire prévenu (A14)")
     void testCreateAndCompleteUserProfil_adresseDejaInscrite_memeReponse() {
         for (boolean verifie : new boolean[]{true, false}) {
-            reset(userService, emailService, verificationEmailService, minioService, passwordEncoder);
+            reset(userService, emailService, verificationEmailService, stockageService, passwordEncoder);
             User existant = User.builder().id(7L).mail("john@mail.com").password("hashDuPremier")
                     .role(Role.ROLE_PROPRIETAIRE).emailVerifie(verifie).build();
             UserFormDTO form = UserFormDTO.builder().firstName("John").lastName("User")
@@ -447,30 +447,32 @@ class AuthServiceImplTest {
             verify(userService, never()).save(any(User.class));
             // pas de nouveau lien : il validerait le mot de passe choisi par le premier inscrit
             verifyNoInteractions(verificationEmailService, jwtUtils, refreshTokenService);
-            verify(minioService, never()).envoyerImagePublique(any(), any());
+            verify(stockageService, never()).envoyerImage(any(), any());
             assertThat(existant.getPassword()).isEqualTo("hashDuPremier");
             assertThat(existant.getRole()).isEqualTo(Role.ROLE_PROPRIETAIRE);
         }
     }
 
     @Test
-    @DisplayName("createAndCompleteUserProfil() : avatar hors de notre MinIO → 400, aucun compte créé (revue B5)")
-    void testCreateAndCompleteUserProfil_avatarExterne_refuse() {
-        String pixelDeSuivi = "https://traqueur.example/pixel.gif";
-        UserFormDTO form = new UserFormDTO("User", "password", "john@mail.com", "John",
-                Role.ROLE_LOCATAIRE, pixelDeSuivi, null);
-        when(minioService.estUrlDuBucket(pixelDeSuivi, PHOTO_PROFIL_BUCKET)).thenReturn(false);
+    @DisplayName("createAndCompleteUserProfil() : avatar par URL (externe ou de notre stockage) → 400, aucun compte créé (B5, S2)")
+    void testCreateAndCompleteUserProfil_avatarParUrl_refuse() {
+        for (String url : new String[]{"https://traqueur.example/pixel.gif",
+                "http://localhost:9000/bucket-photo-profil/photo-d-un-autre.jpg"}) {
+            UserFormDTO form = new UserFormDTO("User", "password", "john@mail.com", "John",
+                    Role.ROLE_LOCATAIRE, url, null);
 
-        KupangaBusinessException ex = assertThrows(KupangaBusinessException.class,
-                () -> loginService.createAndCompleteUserProfil(form, null));
+            KupangaBusinessException ex = assertThrows(KupangaBusinessException.class,
+                    () -> loginService.createAndCompleteUserProfil(form, null));
 
-        assertThat(ex.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
+            assertThat(ex.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
+        }
         verify(userService, never()).save(any(User.class));
+        verifyNoInteractions(stockageService);
     }
 
     /** Fichier reconnu comme PNG par sa signature (B5). */
     private static MultipartFile imagePng() {
-        byte[] contenu = com.kupanga.api.minio.image.ImagesDeTest.png(40, 40);
+        byte[] contenu = com.kupanga.api.stockage.image.ImagesDeTest.png(40, 40);
         return new org.springframework.mock.web.MockMultipartFile("imageProfil", "photo.png", "image/png", contenu);
     }
 
@@ -588,7 +590,7 @@ class AuthServiceImplTest {
                 .role(Role.ROLE_PROPRIETAIRE)
                 .firstName("Faux")
                 .lastName("Profil")
-                .urlProfile("photoAttaquant")
+                .clePhotoProfil("photo-attaquant.jpg")
                 .telephone("+243999999999")
                 .hasCompleteProfil(true)
                 .emailVerifie(false)
@@ -609,6 +611,9 @@ class AuthServiceImplTest {
         assertThat(squatte.getFirstName()).isEqualTo("Vraie");
         assertThat(squatte.getLastName()).isEqualTo("Personne");
         assertThat(squatte.getUrlProfile()).isEqualTo("photoGoogle");
+        assertThat(squatte.getClePhotoProfil()).isNull();
+        // Photo du premier inscrit retirée du stockage (hors transaction dans ce test : tout de suite)
+        verify(stockageService).supprimer(PHOTO_PROFIL_BUCKET, "photo-attaquant.jpg");
         assertThat(squatte.getTelephone()).isNull(); // C6 : numéro saisi par le premier inscrit effacé
         assertThat(squatte.isEmailVerifie()).isTrue();
         assertThat(squatte.getGoogleId()).isEqualTo("g-789");
@@ -616,6 +621,25 @@ class AuthServiceImplTest {
         verify(passwordResetTokenService).deleteIfExist(42L);
         verify(refreshTokenService).revokeAllForUser(squatte);
         verify(userService).save(squatte);
+    }
+
+    @Test
+    @DisplayName("loginWithGoogle() — reprise d'un compte dont la photo est aussi celle d'un autre compte : photo gardée (revue S2)")
+    void loginWithGoogle_reprise_photoPartagee_nonSupprimee() {
+        GoogleUserInfo googleInfo = new GoogleUserInfo("g-790", "victime2@example.com", "Vraie", "Personne", null);
+        User squatte = User.builder().id(43L).mail("victime2@example.com").password("hash")
+                .clePhotoProfil("photo-de-quelqu-un-d-autre.jpg").emailVerifie(false).build();
+        when(googleTokenVerifier.verify("jeton")).thenReturn(googleInfo);
+        when(userService.findOptionalByGoogleId("g-790")).thenReturn(Optional.empty());
+        when(userService.findOptionalByMail("victime2@example.com")).thenReturn(Optional.of(squatte));
+        when(userService.photoProfilUtiliseeAilleurs("photo-de-quelqu-un-d-autre.jpg", 43L)).thenReturn(true);
+        when(jwtUtils.generateAccessToken("victime2@example.com", "")).thenReturn("accessToken");
+        when(refreshTokenService.createRefreshToken(squatte)).thenReturn("refreshToken");
+
+        loginService.loginWithGoogle(new GoogleLoginDTO("jeton"), response);
+
+        assertThat(squatte.getClePhotoProfil()).isNull();
+        verify(stockageService, never()).supprimer(any(), any());
     }
 
     @Test

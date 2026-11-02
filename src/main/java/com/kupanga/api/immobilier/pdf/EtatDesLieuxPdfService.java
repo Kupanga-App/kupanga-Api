@@ -3,7 +3,7 @@ package com.kupanga.api.immobilier.pdf;
 import com.kupanga.api.juridiction.JuridictionRegistry;
 import com.kupanga.api.juridiction.TypeDocument;
 import com.kupanga.api.immobilier.entity.EtatDesLieux;
-import com.kupanga.api.minio.service.MinioService;
+import com.kupanga.api.stockage.service.StockageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -13,7 +13,7 @@ import org.xhtmlrenderer.pdf.ITextRenderer;
 
 import java.io.ByteArrayOutputStream;
 
-import static com.kupanga.api.minio.constant.MinioConstant.EDL_BUCKET;
+import static com.kupanga.api.stockage.constant.StockageConstant.EDL_BUCKET;
 
 @Service
 @RequiredArgsConstructor
@@ -22,7 +22,7 @@ public class EtatDesLieuxPdfService {
 
     private final TemplateEngine templateEngine;
     private final JuridictionRegistry juridictionRegistry;
-    private final MinioService   minioService;
+    private final StockageService   stockageService;
 
     /**
      * Génère le PDF de l'état des lieux depuis le template Thymeleaf
@@ -51,7 +51,7 @@ public class EtatDesLieuxPdfService {
             String fileName = buildFileName(edl);
 
             // 5 — Upload sur MinIO et retour de l'URL
-            return minioService.uploadPdf(pdfBytes, fileName, EDL_BUCKET);
+            return stockageService.uploadPdf(pdfBytes, fileName, EDL_BUCKET);
 
         } catch (Exception e) {
             log.error("Erreur génération PDF EDL {} : {}", edl.getId(), e.getMessage(), e);

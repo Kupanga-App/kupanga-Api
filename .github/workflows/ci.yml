@@ -75,31 +75,33 @@ jobs:
             -password=devpassword \
             info
 
-      # minio/minio n'existe plus sur Docker Hub : image Chainguard figée par digest.
-      # Elle tourne en non root par défaut : --user 0:0 pour pouvoir écrire dans /data.
-      - name: Start MinIO
+      # S3 (Sprint 5) : stockage S3 RustFS (MinIO n'est plus maintenu), figé par version et digest.
+      # L'image tourne en non root (UID 10001) : --user 0:0 pour écrire dans /data sans volume préparé.
+      - name: Start RustFS (stockage S3)
         run: |
           docker run -d \
-            --name minio \
+            --name stockage \
             --user 0:0 \
             -p 9000:9000 \
-            -p 9001:9001 \
-            -e MINIO_ROOT_USER=minioadmin \
-            -e MINIO_ROOT_PASSWORD=minioadmin \
-            cgr.dev/chainguard/minio@sha256:59667194421209c2c1eacbe761e24787e047985c5dfa96b15da9b59fe9b55cd0 \
-            server /data --console-address ":9001"
+            -e RUSTFS_ACCESS_KEY=kupanga-dev \
+            -e RUSTFS_SECRET_KEY=kupanga-dev-secret \
+            -e RUSTFS_ADDRESS=:9000 \
+            -e RUSTFS_CONSOLE_ENABLE=false \
+            rustfs/rustfs:1.0.3@sha256:9ca9559533b537d10482fe923288b676ad08f92a7069d9a17327fbae3cab688b \
+            /data
 
-      - name: Wait for MinIO
+      - name: Wait for RustFS
         run: |
-          for i in {1..10}; do
-            if curl -f http://localhost:9000/minio/health/live > /dev/null 2>&1; then
-              echo "✅ MinIO prêt"
+          for i in {1..20}; do
+            if curl -f http://localhost:9000/health > /dev/null 2>&1; then
+              echo "✅ RustFS prêt"
               exit 0
             fi
-            echo "⏳ Attente MinIO... ($i/10)"
+            echo "⏳ Attente RustFS... ($i/20)"
             sleep 3
           done
-          echo "❌ MinIO non démarré"
+          echo "❌ RustFS non démarré"
+          docker logs stockage
           exit 1
 
   # ──────────────────────────────────────────────────────────────────
@@ -210,29 +212,33 @@ jobs:
             -validateOnMigrate=false \
             migrate
 
-      # minio/minio n'existe plus sur Docker Hub : image Chainguard figée par digest.
-      # Elle tourne en non root par défaut : --user 0:0 pour pouvoir écrire dans /data.
-      - name: Start MinIO
+      # S3 (Sprint 5) : stockage S3 RustFS (MinIO n'est plus maintenu), figé par version et digest.
+      # L'image tourne en non root (UID 10001) : --user 0:0 pour écrire dans /data sans volume préparé.
+      - name: Start RustFS (stockage S3)
         run: |
           docker run -d \
-            --name minio \
+            --name stockage \
             --user 0:0 \
             -p 9000:9000 \
-            -p 9001:9001 \
-            -e MINIO_ROOT_USER=minioadmin \
-            -e MINIO_ROOT_PASSWORD=minioadmin \
-            cgr.dev/chainguard/minio@sha256:59667194421209c2c1eacbe761e24787e047985c5dfa96b15da9b59fe9b55cd0 \
-            server /data --console-address ":9001"
+            -e RUSTFS_ACCESS_KEY=kupanga-dev \
+            -e RUSTFS_SECRET_KEY=kupanga-dev-secret \
+            -e RUSTFS_ADDRESS=:9000 \
+            -e RUSTFS_CONSOLE_ENABLE=false \
+            rustfs/rustfs:1.0.3@sha256:9ca9559533b537d10482fe923288b676ad08f92a7069d9a17327fbae3cab688b \
+            /data
 
-      - name: Wait for MinIO
+      - name: Wait for RustFS
         run: |
-          for i in {1..10}; do
-            if curl -f http://localhost:9000/minio/health/live > /dev/null 2>&1; then
-              echo "✅ MinIO prêt"
+          for i in {1..20}; do
+            if curl -f http://localhost:9000/health > /dev/null 2>&1; then
+              echo "✅ RustFS prêt"
               exit 0
             fi
+            echo "⏳ Attente RustFS... ($i/20)"
             sleep 3
           done
+          echo "❌ RustFS non démarré"
+          docker logs stockage
           exit 1
 
       - name: Start Redis

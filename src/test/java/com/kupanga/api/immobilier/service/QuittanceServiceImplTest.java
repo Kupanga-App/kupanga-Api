@@ -19,8 +19,8 @@ import com.kupanga.api.notification.service.NotificationService;
 import com.kupanga.api.user.entity.User;
 import com.kupanga.api.user.service.UserService;
 import com.kupanga.api.immobilier.dto.formDTO.MarquerPayeeDTO;
-import com.kupanga.api.minio.service.MinioService;
-import com.kupanga.api.minio.constant.MinioConstant;
+import com.kupanga.api.stockage.service.StockageService;
+import com.kupanga.api.stockage.constant.StockageConstant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -47,7 +47,7 @@ class QuittanceServiceImplTest {
     @Mock private ContratRepository    contratRepository;
     @Mock private EmailService         emailService;
     @Mock private NotificationService  notificationService;
-    @Mock private MinioService         minioService;
+    @Mock private StockageService         stockageService;
     /** J3 : vrai registre (profils et plafonds de application.yml). */
     @Spy  private JuridictionRegistry  juridictionRegistry = JuridictionsDeTest.registre();
 
@@ -575,12 +575,12 @@ class QuittanceServiceImplTest {
         when(quittanceRepository.findWithAllRelations(1L)).thenReturn(Optional.of(quittance));
         org.springframework.mock.web.MockMultipartFile photo =
                 new org.springframework.mock.web.MockMultipartFile("recu", "r.jpg", "image/jpeg", new byte[]{1, 2});
-        when(minioService.uploadImagePrivee(photo, MinioConstant.RECU_BUCKET)).thenReturn("cle-recu.jpg");
+        when(stockageService.uploadImagePrivee(photo, StockageConstant.RECU_BUCKET)).thenReturn("cle-recu.jpg");
 
         quittanceService.ajouterRecu(1L, photo, proprietaire.getMail());
 
         assertThat(quittance.getCleRecu()).isEqualTo("cle-recu.jpg");
-        assertThat(MinioConstant.BUCKETS_PRIVES).contains(MinioConstant.RECU_BUCKET);
+        assertThat(StockageConstant.BUCKETS_PRIVES).contains(StockageConstant.RECU_BUCKET);
         verify(quittanceRepository).saveAndFlush(quittance);
     }
 
@@ -590,13 +590,13 @@ class QuittanceServiceImplTest {
         quittance.setStatut(StatutQuittance.PAYEE);
         quittance.setCleRecu("ancienne.jpg");
         when(quittanceRepository.findWithAllRelations(1L)).thenReturn(Optional.of(quittance));
-        when(minioService.uploadImagePrivee(any(), any())).thenReturn("nouvelle.jpg");
+        when(stockageService.uploadImagePrivee(any(), any())).thenReturn("nouvelle.jpg");
 
         quittanceService.ajouterRecu(1L, new org.springframework.mock.web.MockMultipartFile("recu", new byte[]{1}), proprietaire.getMail());
 
         assertThat(quittance.getCleRecu()).isEqualTo("nouvelle.jpg");
         // Sans transaction active (test unitaire), ApresCommit exécute tout de suite
-        verify(minioService).supprimer(MinioConstant.RECU_BUCKET, "ancienne.jpg");
+        verify(stockageService).supprimer(StockageConstant.RECU_BUCKET, "ancienne.jpg");
     }
 
     @Test
@@ -613,6 +613,6 @@ class QuittanceServiceImplTest {
         assertThat(assertThrows(KupangaBusinessException.class,
                 () -> quittanceService.ajouterRecu(1L, photo, "intrus@test.com")).getStatus())
                 .isEqualTo(HttpStatus.FORBIDDEN);
-        verifyNoInteractions(minioService);
+        verifyNoInteractions(stockageService);
     }
 }

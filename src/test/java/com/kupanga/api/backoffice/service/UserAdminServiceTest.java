@@ -16,7 +16,7 @@ import com.kupanga.api.immobilier.repository.EtatDesLieuxRepository;
 import com.kupanga.api.immobilier.entity.StatutContrat;
 import com.kupanga.api.immobilier.entity.StatutEdl;
 import com.kupanga.api.immobilier.repository.QuittanceRepository;
-import com.kupanga.api.minio.service.MinioService;
+import com.kupanga.api.stockage.service.StockageService;
 import com.kupanga.api.user.entity.Role;
 import com.kupanga.api.user.entity.User;
 import com.kupanga.api.user.repository.UserRepository;
@@ -51,7 +51,9 @@ class UserAdminServiceTest {
     @Mock private EtatDesLieuxRepository        etatDesLieuxRepository;
     @Mock private MessageRepository             messageRepository;
     @Mock private ConversationRepository        conversationRepository;
-    @Mock private MinioService                  minioService;
+    @Mock private StockageService                  stockageService;
+    @Mock private com.kupanga.api.user.mapper.PhotoProfilUrlMapper photoProfilUrlMapper;
+    @Mock private com.kupanga.api.email.file.EmailEnFileRepository emailEnFileRepository;
 
     @InjectMocks
     private UserAdminService userAdminService;
@@ -97,25 +99,28 @@ class UserAdminServiceTest {
         order.verify(conversationRepository).supprimerParEmail("alice@test.com");
         order.verify(userRepository).deleteById(1L);
         verify(jetonVerificationEmailRepository).deleteByUserId(1L);
+        // Revue M2 : e-mails de la file vers cette adresse supprimés avec le compte
+        verify(emailEnFileRepository).findByDestinataire("alice@test.com");
+        verify(emailEnFileRepository).deleteAll(any());
         verify(bienRepository, never()).archiverParProprietaire(anyLong(), any());
-        verifyNoInteractions(minioService);
+        verifyNoInteractions(stockageService);
     }
 
     @Test
-    @DisplayName("B12 : supprimer() — photo de profil supprimée de MinIO, sauf si un autre compte l'utilise")
+    @DisplayName("B12 / S2 : supprimer() — photo de profil supprimée du stockage par sa clé, sauf si un autre compte l'utilise")
     void supprimer_photoDeProfil() {
-        user.setUrlProfile("http://minio/bucket-photo-profil/a.jpg");
+        user.setClePhotoProfil("a.jpg");
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
 
         userAdminService.supprimer(1L);
-        verify(minioService).supprimerParUrl("http://minio/bucket-photo-profil/a.jpg", "bucket-photo-profil");
+        verify(stockageService).supprimer("bucket-photo-profil", "a.jpg");
 
-        User autre = User.builder().id(2L).mail("bob@test.com").urlProfile("http://minio/bucket-photo-profil/b.jpg").build();
+        User autre = User.builder().id(2L).mail("bob@test.com").clePhotoProfil("b.jpg").build();
         when(userRepository.findById(2L)).thenReturn(Optional.of(autre));
-        when(userRepository.existsByUrlProfileAndIdNot("http://minio/bucket-photo-profil/b.jpg", 2L)).thenReturn(true);
+        when(userRepository.existsByClePhotoProfilAndIdNot("b.jpg", 2L)).thenReturn(true);
 
         userAdminService.supprimer(2L);
-        verify(minioService, never()).supprimerParUrl(eq("http://minio/bucket-photo-profil/b.jpg"), anyString());
+        verify(stockageService, never()).supprimer(anyString(), eq("b.jpg"));
     }
 
     @Test
@@ -125,7 +130,8 @@ class UserAdminServiceTest {
         user.setLastName("Martin");
         user.setPassword("hash-bcrypt");
         user.setGoogleId("google-123");
-        user.setUrlProfile("http://minio/photo.jpg");
+        user.setUrlProfile("https://lh3.googleusercontent.com/photo");
+        user.setClePhotoProfil("photo.jpg");
         user.setTelephone("+243812345678");
         user.setEmailVerifie(true);
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
@@ -143,7 +149,7 @@ class UserAdminServiceTest {
         verify(conversationRepository).remplacerEmail(eq("alice@test.com"), mailAnonyme.capture());
         verify(contratRepository).expirerNonSignesDeUtilisateur(1L, StatutContrat.SIGNE, StatutContrat.EXPIRE);
         verify(etatDesLieuxRepository).expirerNonSignesDeUtilisateur(1L, StatutEdl.SIGNE, StatutEdl.EXPIRE);
-        verify(minioService).supprimerParUrl("http://minio/photo.jpg", "bucket-photo-profil");
+        verify(stockageService).supprimer("bucket-photo-profil", "photo.jpg");
         verify(notificationRepository).deleteByDestinataireId(1L);
         verify(passwordResetTokenRepository).deleteByUserId(1L);
         verify(userRepository).save(user);
@@ -158,6 +164,7 @@ class UserAdminServiceTest {
         assertThat(user.getPassword()).isNull();
         assertThat(user.getGoogleId()).isNull();
         assertThat(user.getUrlProfile()).isNull();
+        assertThat(user.getClePhotoProfil()).isNull(); // S2
         assertThat(user.getTelephone()).isNull(); // C6
         assertThat(user.isEmailVerifie()).isFalse();
     }

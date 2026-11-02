@@ -18,10 +18,12 @@ import com.kupanga.api.immobilier.repository.BienRepository;
 import com.kupanga.api.immobilier.repository.ContratRepository;
 import com.kupanga.api.immobilier.repository.EtatDesLieuxRepository;
 import com.kupanga.api.immobilier.repository.QuittanceRepository;
-import com.kupanga.api.minio.service.MinioService;
+import com.kupanga.api.stockage.service.StockageService;
 import com.kupanga.api.pagination.Pagination;
 import com.kupanga.api.user.entity.Role;
 import com.kupanga.api.user.entity.User;
+import com.kupanga.api.email.file.EmailEnFileRepository;
+import com.kupanga.api.user.mapper.PhotoProfilUrlMapper;
 import com.kupanga.api.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -34,7 +36,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import static com.kupanga.api.minio.constant.MinioConstant.PHOTO_PROFIL_BUCKET;
+import static com.kupanga.api.stockage.constant.StockageConstant.PHOTO_PROFIL_BUCKET;
 
 /**
  * Service d'administration des utilisateurs.
@@ -64,7 +66,9 @@ public class UserAdminService {
     private final EtatDesLieuxRepository    etatDesLieuxRepository;
     private final MessageRepository         messageRepository;
     private final ConversationRepository    conversationRepository;
-    private final MinioService              minioService;
+    private final StockageService              stockageService;
+    private final EmailEnFileRepository     emailEnFileRepository;
+    private final PhotoProfilUrlMapper      photoProfilUrlMapper;
 
     /**
      * Recherche paginée des utilisateurs selon les critères admin.
@@ -82,7 +86,7 @@ public class UserAdminService {
         );
         Page<UserAdminDTO> page = userRepository
                 .findAll(userAdminSpecification.build(dto), pageable)
-                .map(UserAdminDTO::from);
+                .map(user -> UserAdminDTO.from(user, photoProfilUrlMapper.urlPhotoProfil(user)));
         return UserAdminPageDTO.from(page);
     }
 
@@ -108,7 +112,7 @@ public class UserAdminService {
             return ResultatSuppressionCompte.DEJA_ANONYMISE;
         }
         String mail = user.getMail();
-        String photo = user.getUrlProfile();
+        String photo = user.getClePhotoProfil();
 
         RefreshToken refreshToken = refreshTokenRepository.findByUserId(id);
         if (refreshToken != null) {
@@ -117,6 +121,8 @@ public class UserAdminService {
         passwordResetTokenRepository.deleteByUserId(id);
         jetonVerificationEmailRepository.deleteByUserId(id);
         notificationRepository.deleteByDestinataireId(id);
+        // Revue M2 : plus aucun e-mail vers cette adresse, ni adresse ni contenu gardés dans la file
+        emailEnFileRepository.deleteAll(emailEnFileRepository.findByDestinataire(mail));
 
         if (!aDesDonneesLiees(id)) {
             messageRepository.supprimerParUtilisateur(id);
@@ -143,6 +149,7 @@ public class UserAdminService {
         anonyme.setPassword(null);
         anonyme.setGoogleId(null);
         anonyme.setUrlProfile(null);
+        anonyme.setClePhotoProfil(null);
         anonyme.setTelephone(null);
         anonyme.setEmailVerifie(false);
         anonyme.setAnonymise(true);
@@ -153,14 +160,14 @@ public class UserAdminService {
     }
 
     /**
-     * La photo de profil est dans un bucket public : supprimée une fois la transaction validée,
-     * sauf si un autre compte pointe vers le même objet (avatar choisi par URL).
+     * La photo de profil est supprimée du stockage une fois la transaction validée, sauf si un autre compte
+     * désigne le même objet (avatar choisi par URL avant S2).
      */
-    private void supprimerPhotoApresCommit(String photo, Long id) {
-        if (photo == null || userRepository.existsByUrlProfileAndIdNot(photo, id)) {
+    private void supprimerPhotoApresCommit(String clePhoto, Long id) {
+        if (clePhoto == null || userRepository.existsByClePhotoProfilAndIdNot(clePhoto, id)) {
             return;
         }
-        ApresCommit.executer(() -> minioService.supprimerParUrl(photo, PHOTO_PROFIL_BUCKET));
+        ApresCommit.executer(() -> stockageService.supprimer(PHOTO_PROFIL_BUCKET, clePhoto));
     }
 
     private boolean aDesDonneesLiees(Long id) {

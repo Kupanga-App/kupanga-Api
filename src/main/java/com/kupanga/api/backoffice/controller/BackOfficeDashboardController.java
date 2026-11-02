@@ -2,6 +2,7 @@ package com.kupanga.api.backoffice.controller;
 
 import com.kupanga.api.backoffice.service.BienAdminService;
 import com.kupanga.api.backoffice.service.DocumentAdminService;
+import com.kupanga.api.backoffice.service.EmailAdminService;
 import com.kupanga.api.backoffice.service.UserAdminService;
 import com.kupanga.api.user.entity.Role;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,7 @@ public class BackOfficeDashboardController {
     private final UserAdminService    userAdminService;
     private final BienAdminService    bienAdminService;
     private final DocumentAdminService documentAdminService;
+    private final EmailAdminService   emailAdminService;
 
     @GetMapping
     public String dashboard(Model model, Principal principal) {
@@ -34,6 +36,8 @@ public class BackOfficeDashboardController {
         model.addAttribute("totalContrats",      documentAdminService.countTotalContrats());
         model.addAttribute("totalEdl",           documentAdminService.countTotalEdl());
         model.addAttribute("totalQuittances",    documentAdminService.countTotalQuittances());
+        model.addAttribute("emailsEnEchec",      emailAdminService.compterEchecs());
+        model.addAttribute("emailsEnAttente",    emailAdminService.compterEnAttente());
         return "backoffice/dashboard";
     }
 }

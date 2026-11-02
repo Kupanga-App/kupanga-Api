@@ -14,6 +14,23 @@ spring:
       # Analyse du corps à la lecture des @RequestPart : le 413 passe par l'API (ApiErrorResponse),
       # les routes non multipart n'analysent rien, et les intercepteurs (limite d'inscription) passent avant.
       resolve-lazily: true
+  # M1 : e-mails par n'importe quel serveur SMTP, réglé par les variables SMTP_* (Brevo : smtp-relay.brevo.com:587,
+  # identifiant et clé SMTP du compte ; Scaleway, Mailjet, SES, boîte du nom de domaine…). Port 587 + STARTTLS par
+  # défaut ; port 465 : SMTP_SSL=true et SMTP_STARTTLS=false.
+  mail:
+    host: ${SMTP_HOST:localhost}
+    port: ${SMTP_PORT:587}
+    username: ${SMTP_USERNAME:}
+    password: ${SMTP_PASSWORD:}
+    default-encoding: UTF-8
+    properties:
+      mail.smtp.auth: ${SMTP_AUTH:true}
+      mail.smtp.starttls.enable: ${SMTP_STARTTLS:true}
+      mail.smtp.starttls.required: ${SMTP_STARTTLS:true}
+      mail.smtp.ssl.enable: ${SMTP_SSL:false}
+      mail.smtp.connectiontimeout: 10000
+      mail.smtp.timeout: 20000
+      mail.smtp.writetimeout: 20000
 
 server:
   port: ${PORT:8089}
@@ -30,6 +47,10 @@ management:
     health:
       probes:
         enabled: true
+  # M1 : une panne du serveur SMTP ne rend pas l'application « DOWN » (les e-mails sont réessayés)
+  health:
+    mail:
+      enabled: false
 
 springdoc:
   api-docs:
@@ -37,10 +58,24 @@ springdoc:
   swagger-ui:
     path: /swagger-ui.html
 
-brevo:
-  api-key: ${BREVO_API_KEY:test-api-key}
-  sender-email: ${BREVO_SENDER_EMAIL:noreplydevback@gmail.com}
-  sender-name: ${BREVO_SENDER_NAME:Kupanga}
+
+# M1 / S1 : sections à la racine, hors de « kupanga » : JuridictionProperties lie tout le préfixe « kupanga »
+# en refusant les clés inconnues (J2)
+# M1 : identité de l'expéditeur, sur un domaine à soi (SPF, DKIM, DMARC autorisant le serveur SMTP)
+email:
+  expediteur: ${EMAIL_EXPEDITEUR:noreply@kupanga.test}
+  nom-expediteur: ${EMAIL_NOM_EXPEDITEUR:Kupanga}
+  repondre-a: ${EMAIL_REPONDRE_A:}
+# S1 : stockage S3 indépendant du serveur (RustFS, Garage, MinIO, S3 managé), réglé par les variables STOCKAGE_*
+stockage:
+  endpoint: ${STOCKAGE_ENDPOINT:http://localhost:9000}         # vu par l'application (réseau interne)
+  url-publique: ${STOCKAGE_URL_PUBLIQUE:http://localhost:9000} # vu par le navigateur (photos, URL présignées)
+  region: ${STOCKAGE_REGION:us-east-1}
+  path-style: ${STOCKAGE_PATH_STYLE:true}
+  access-key: ${STOCKAGE_ACCESS_KEY:}
+  secret-key: ${STOCKAGE_SECRET_KEY:}
+  # false : droits des buckets réglés au déploiement (serveur sans politiques de bucket, ex. Garage)
+  gerer-politiques: ${STOCKAGE_GERER_POLITIQUES:true}
 
 # ─── Juridictions (CLAUDE.md §4bis, J2) ───────────────────────────────────────
 # Un pays sans profil n'est pas pris en charge. Profil contrôlé au démarrage (JuridictionRegistry) :

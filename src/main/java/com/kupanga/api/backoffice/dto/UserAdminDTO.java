@@ -13,7 +13,8 @@ public record UserAdminDTO(
         String  urlProfile,
         boolean anonymise
 ) {
-    public static UserAdminDTO from(User user) {
+    /** @param urlProfile URL de la photo (S2 : présignée, construite par {@code PhotoProfilUrlMapper}) */
+    public static UserAdminDTO from(User user, String urlProfile) {
         return new UserAdminDTO(
                 user.getId(),
                 user.getFirstName(),
@@ -21,7 +22,7 @@ public record UserAdminDTO(
                 user.getMail(),
                 user.getRole(),
                 user.getHasCompleteProfil(),
-                user.getUrlProfile(),
+                urlProfile,
                 user.isAnonymise()
         );
     }

@@ -1,402 +1,286 @@
 # Kupanga API
 
 ![Java 21](https://img.shields.io/badge/Java_21-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)
-![Maven](https://img.shields.io/badge/Maven-C71A36?style=for-the-badge&logo=apachemaven&logoColor=white)
-![Spring Boot](https://img.shields.io/badge/Spring_Boot-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white)
+![Spring Boot 3.2](https://img.shields.io/badge/Spring_Boot_3.2-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white)
 ![Spring Security](https://img.shields.io/badge/Spring_Security-6DB33F?style=for-the-badge&logo=spring-security&logoColor=white)
-![JWT](https://img.shields.io/badge/JWT-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white)
-![WebSocket](https://img.shields.io/badge/WebSocket_STOMP-010101?style=for-the-badge&logo=websocket&logoColor=white)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)
-![PostGIS](https://img.shields.io/badge/PostGIS-336791?style=for-the-badge&logo=postgresql&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL_+_PostGIS-316192?style=for-the-badge&logo=postgresql&logoColor=white)
 ![Flyway](https://img.shields.io/badge/Flyway-CC0200?style=for-the-badge&logo=flyway&logoColor=white)
 ![Redis](https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)
-![MinIO](https://img.shields.io/badge/MinIO-C72E49?style=for-the-badge&logo=minio&logoColor=white)
+![S3](https://img.shields.io/badge/Stockage-S3_(RustFS)-C72E49?style=for-the-badge)
+![SMTP](https://img.shields.io/badge/E--mails-SMTP-0B7285?style=for-the-badge)
+![WebSocket](https://img.shields.io/badge/WebSocket_STOMP-010101?style=for-the-badge&logo=websocket&logoColor=white)
 ![Thymeleaf](https://img.shields.io/badge/Thymeleaf-005F0F?style=for-the-badge&logo=thymeleaf&logoColor=white)
-![Flying Saucer PDF](https://img.shields.io/badge/Flying_Saucer_PDF-FF0000?style=for-the-badge&logo=adobeacrobatreader&logoColor=white)
-![Lombok](https://img.shields.io/badge/Lombok-BC4521?style=for-the-badge&logo=lombok&logoColor=white)
-![MapStruct](https://img.shields.io/badge/MapStruct-DF2C2C?style=for-the-badge&logoColor=white)
-![Swagger](https://img.shields.io/badge/Swagger-85EA2D?style=for-the-badge&logo=swagger&logoColor=black)
 ![JUnit5](https://img.shields.io/badge/JUnit5-25A162?style=for-the-badge&logo=junit5&logoColor=white)
-![Mockito](https://img.shields.io/badge/Mockito-788BD2?style=for-the-badge&logoColor=white)
 ![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?style=for-the-badge&logo=github-actions&logoColor=white)
 ![Sentry](https://img.shields.io/badge/Sentry-362D59?style=for-the-badge&logo=sentry&logoColor=white)
 
-**Kupanga** est une plateforme de gestion locative immobilière complète. Elle couvre l'intégralité du cycle de vie d'une location : publication et recherche de biens, signature de contrats, états des lieux, génération de documents administratifs (contrats, quittances, EDL…), messagerie temps réel entre locataires et propriétaires, et suivi des notifications.
+**Kupanga** est une plateforme de gestion locative entre propriétaires et locataires, pensée pour la **France** et le
+**Congo (RDC, Kinshasa)** : publication et recherche de biens, bail signé en ligne, états des lieux, quittances PDF,
+suivi des loyers reçus, messagerie temps réel, notifications et back-office d'administration.
 
-L'API est construite avec Spring Boot selon une architecture modulaire, sécurisée par JWT + RBAC, et expose des endpoints RESTful documentés via Swagger.
+Ce dépôt contient l'**API** (Spring Boot). Le front Angular est dans
+[`kupanga-front`](https://github.com/Kupanga-App/kupanga-front).
 
-## ✨ Fonctionnalités
-
-| Module | Description |
-| :--- | :--- |
-| 🔐 **Authentification & Sécurité** | Inscription, connexion classique (email/mot de passe) et **connexion Google OAuth2**, JWT, refresh token (cookie HttpOnly), contrôle d'accès par rôle (RBAC) |
-| 🏠 **Gestion des Biens** | CRUD complet des biens immobiliers, géolocalisation PostGIS, photos via MinIO |
-| 🔍 **Recherche Avancée** | Filtres multi-critères, recherche géographique par rayon, recherche par points d'intérêt (POI) — proximité écoles, crèches, pharmacies, hôpitaux, etc., cache Redis des résultats |
-| 💬 **Messagerie Temps Réel** | Conversations propriétaire ↔ locataire via WebSocket STOMP |
-| 📋 **États des Lieux** | Création, édition et validation bipartite des EDL avec pièces jointes |
-| 📄 **Documents Administratifs** | Génération PDF automatisée : contrats de location, quittances de loyer, EDL signés |
-| 🔔 **Notifications in-app** | Notifications persistées en base + push WebSocket temps réel (signature contrat, EDL, quittances, assignation bien) — notifications manquées récupérées à la reconnexion |
-| 📧 **Emails transactionnels** | Bienvenue, reset mot de passe, confirmation de signature, alertes |
-| 👤 **Gestion Utilisateurs** | Profils propriétaires et locataires, gestion des documents d'identité |
-| 🖥️ **Back-Office Administration** | Interface web dédiée (Thymeleaf + Bootstrap 5) — reporting, modération et gestion des utilisateurs & biens |
-
-## 🚀 Installation & Démarrage
-
-### Prérequis
-
-*   Git
-*   Docker & Docker Compose
-*   Java 21 (pour le développement local sans Docker)
-
-### 1. Cloner le dépôt
-
-Via HTTPS :
-```bash
-git clone https://github.com/Kupanga-App/kupanga-Api.git
-```
-
-Ou via SSH :
-```bash
-git clone git@github.com:Kupanga-App/kupanga-Api.git
-```
-
-### 2. Lancer l'environnement (Docker)
-
-Utilisez Docker Compose pour construire l'image et lancer tous les services (API, Base de données, MinIO) en arrière-plan :
-
-```bash
-docker compose -f docker-compose-dev.yml up -d
-```
-| Service              | URL / Commande                                                   | Identifiants / Info                                                                                     |
-| :------------------- | :--------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------ |
-| **API Backend**      | `http://localhost:8089/`                                         | Point d'entrée de l'API                                                                                 |
-| **Swagger UI**       | [Accéder à Swagger](http://localhost:8089/swagger-ui/index.html) | Documentation interactive de l'API                                                                      |
-| **PostgreSQL**       | `localhost:5433/kupanga_dev`                                     | **User:** `kupanga`<br>**Password:** `devpassword`                                                      |
-| **MinIO Console**    | [http://localhost:9001](http://localhost:9001)                   | **User:** `minioadmin`<br>**Password:** `minioadmin`                                                    |
-| **Redis Cache**      | via CLI / terminal                                               | `redis-cli -h localhost -p 6379`<br>Exemples : `KEYS *` / `GET geocode::Paris:75001`                    |
-| **RedisInsight GUI** | [http://localhost:5540](http://localhost:5540)                   | Ajouter une DB : <br>**URL:** `redis://redis-dev:6379`<br>**Host:** `redis-dev`<br>**Port:** `6379`<br>**Username:** (vide)<br>**Password:** (vide) |
-> **Note :** Pour se connecter à la base de données via un outil externe comme pgAdmin, utilisez le port `5433` exposé par Docker.
-
-## 🧪 Tests et Intégration Continue (CI/CD)
-
-Le projet intègre des tests unitaires et d'intégration via **JUnit 5** et **Mockito**.
-L'intégration continue est gérée par **GitHub Actions** pour assurer la qualité du code à chaque push.
-
-```bash
-# Lancer les tests manuellement (si Maven est installé)
-./mvnw test
-```
-
-## 🏗️ Architecture Backend
-
-L'API est découpée en **modules métier indépendants** (Biens, Utilisateurs, Contrats, Messagerie, EDL…) orchestrés par une couche sécurité centralisée (JWT + RBAC). Les données relationnelles et géospatiales sont gérées par PostgreSQL + PostGIS, le cache par Redis, et les fichiers (photos, PDFs) par MinIO.
-
-```mermaid
-graph TD
-    %% Canvas Styles
-    classDef apiLayer fill:#fffde7,stroke:#d4e157,stroke-width:2px;
-    classDef serviceLayer fill:#fff9c4,stroke:#fbc02d,stroke-width:2px;
-    classDef dataLayer fill:#fff59d,stroke:#f57f17,stroke-width:2px;
-    
-    %% Node Styles
-    classDef apiNode fill:#ffcc80,stroke:#e65100,color:black,stroke-width:2px;
-    classDef secNode fill:#e1bee7,stroke:#4a148c,color:black,stroke-width:2px;
-    classDef searchNode fill:#e1f5fe,stroke:#01579b,color:black,stroke-width:2px;
-    classDef notifNode fill:#f8bbd0,stroke:#880e4f,color:black,stroke-width:2px;
-    classDef msgNode fill:#fff9c4,stroke:#fbc02d,color:black,stroke-width:2px;
-    classDef edlNode fill:#e0f2f1,stroke:#004d40,color:black,stroke-width:2px;
-    classDef propNode fill:#d1c4e9,stroke:#311b92,color:black,stroke-width:2px;
-    classDef userNode fill:#ffecb3,stroke:#ff6f00,color:black,stroke-width:2px;
-    classDef docNode fill:#f3e5f5,stroke:#4a148c,color:black,stroke-width:2px;
-    classDef dbNode fill:#b2dfdb,stroke:#004d40,color:black,stroke-width:2px;
-    classDef storageNode fill:#ffccbc,stroke:#bf360c,color:black,stroke-width:2px;
-    classDef cacheNode fill:#ffcdd2,stroke:#c62828,color:black,stroke-width:2px;
-
-    subgraph API["Couche API"]
-        direction TB
-        ApiBoot["API REST Spring Boot<br/>Endpoints RESTful<br/>Validation & Sécurité"]:::apiNode
-    end
-    class API apiLayer
-
-    subgraph Services["Couche Services - Back-end Core"]
-        direction TB
-        %% Core Security
-        Security["Sécurité & Auth<br/>JWT Tokens<br/>Spring Security<br/>RBAC"]:::secNode
-
-        %% Modules
-        Search["Recherche Avancée<br/>Filtres Multi-critères<br/>Recherche Géographique"]:::searchNode
-        Notif["Notifications<br/>Alertes Système<br/>Emails"]:::notifNode
-        Msg["Messagerie Interne<br/>Conversations<br/>Temps Réel"]:::msgNode
-        EDL["États des Lieux<br/>Création EDL<br/>Validation Bipartite"]:::edlNode
-        Prop["Gestion Biens<br/>CRUD Biens Immobiliers<br/>Géolocalisation PostGIS"]:::propNode
-        Users["Gestion Utilisateurs<br/>Authentification<br/>Profils"]:::userNode
-        Docs["Contrats & Documents<br/>Création Contrats<br/>Signatures Électroniques"]:::docNode
-    end
-    class Services serviceLayer
-
-    subgraph Data["Couche Données"]
-        direction TB
-        Postgres[("PostgreSQL + PostGIS<br/>Données Relationnelles<br/>Géolocalisation")]:::dbNode
-        Redis[("Redis Cache<br/>Sessions & Tokens<br/>Géocodage")]:::cacheNode
-        Minio[("Stockage Fichiers - MinIO<br/>Photos Biens<br/>Documents PDF")]:::storageNode
-    end
-    class Data dataLayer
-
-    %% Relations API -> Services
-    ApiBoot --> Search
-    ApiBoot --> Notif
-    ApiBoot --> Msg
-    ApiBoot --> EDL
-    ApiBoot --> Security
-    ApiBoot --> Prop
-    ApiBoot --> Users
-    ApiBoot --> Docs
-
-    %% Auth Relations
-    Security -.->|autorise| Msg
-    Security -.->|autorise| EDL
-    Security -.->|autorise| Prop
-    Security -.->|authentifie| Users
-    Security -.->|autorise| Docs
-
-    %% Services -> Data
-    Search --> Postgres
-    Search -->|cache géocodage| Redis
-    Notif --> Postgres
-    Msg --> Postgres
-    EDL --> Postgres
-    EDL --> Minio
-    Prop --> Postgres
-    Prop --> Minio
-    Prop -->|cache résultats| Redis
-    Users --> Postgres
-    Users --> Minio
-    Users -->|cache session| Redis
-    Docs --> Postgres
-    Docs --> Minio
-```
+> **Démarrer en local : [GUIDE-DEMARRAGE.md](GUIDE-DEMARRAGE.md)** (de zéro, environ 30 minutes).
 
 ---
 
-## 🖥️ Back-Office Administration
+## Sommaire
 
-![Thymeleaf](https://img.shields.io/badge/Thymeleaf-005F0F?style=for-the-badge&logo=thymeleaf&logoColor=white)
-![Bootstrap](https://img.shields.io/badge/Bootstrap_5-7952B3?style=for-the-badge&logo=bootstrap&logoColor=white)
-![Spring Security](https://img.shields.io/badge/Session_Auth-6DB33F?style=for-the-badge&logo=spring-security&logoColor=white)
-
-Le back-office est une interface web **server-side** (Thymeleaf + Bootstrap 5) embarquée directement dans le même serveur Spring Boot. Il est accessible sur la même URL que l'API, sous le préfixe `/backoffice`, et ne nécessite aucun déploiement front séparé.
-
-### 🔑 Accès & Authentification
-
-> 🔗 **Accès direct :** [https://kupanga-api.onrender.com/backoffice/](https://kupanga-api.onrender.com/backoffice/)
-
-L'authentification du back-office est **totalement isolée** de l'authentification JWT de l'application principale. Elle repose sur une session HTTP Spring Security classique (formLogin) et des credentials stockés en variables d'environnement — aucun utilisateur en base de données n'est requis.
-
-| Variable d'environnement | Rôle |
-| :--- | :--- |
-| `ADMIN_EMAIL` | Email de connexion de l'administrateur |
-| `ADMIN_PASSWORD` | Mot de passe de connexion de l'administrateur |
-
-| Route | Description |
-| :--- | :--- |
-| `/backoffice/login` | Page de connexion admin |
-| `/backoffice/dashboard` | Tableau de bord — statistiques globales |
-| `/backoffice/users` | Gestion et modération des utilisateurs |
-| `/backoffice/biens` | Gestion et modération des biens |
-| `/backoffice/logout` | Déconnexion (invalidation session + cookie) |
-
-### 📊 Fonctionnalités
-
-| Section | Reporting | Modération |
-| :--- | :--- | :--- |
-| **Tableau de bord** | Total utilisateurs, locataires, propriétaires · Total biens · Villes couvertes · Répartition par ville et par type | — |
-| **Utilisateurs** | Recherche paginée multi-critères (prénom, nom, email, rôle) · Photo de profil ou avatar par défaut | Suppression unitaire avec confirmation |
-| **Biens** | Recherche paginée multi-critères (titre, ville, type) · Carousel photos (MinIO) + compteur | Suppression unitaire avec confirmation |
-
-### 🏗️ Architecture dédiée
-
-Le back-office est entièrement isolé dans le package `com.kupanga.api.backoffice`, calqué sur l'architecture modulaire existante.
-
-```
-com.kupanga.api.backoffice/
-│
-├── config/
-│   ├── BackOfficeSecurityConfig.java   ← SecurityFilterChain @Order(1), /backoffice/**
-│   └── AdminCredentialsAuthProvider.java ← AuthenticationProvider sans BDD
-│
-├── controller/
-│   ├── BackOfficeAuthController.java   ← GET /backoffice/login
-│   ├── BackOfficeDashboardController.java ← GET /backoffice/dashboard
-│   ├── BackOfficeUserController.java   ← GET /backoffice/users · POST /{id}/supprimer
-│   └── BackOfficeBienController.java   ← GET /backoffice/biens · POST /{id}/supprimer
-│
-├── service/
-│   ├── UserAdminService.java           ← Recherche paginée, comptages, suppression
-│   └── BienAdminService.java           ← Recherche paginée, stats reporting, suppression
-│
-├── specification/
-│   ├── UserAdminSpecification.java     ← Filtres JPA : prénom, nom, email, rôle
-│   └── BienAdminSpecification.java     ← Filtres JPA : titre, ville, type
-│
-└── dto/
-    ├── UserAdminSearchDTO / UserAdminDTO / UserAdminPageDTO
-    └── BienAdminSearchDTO / BienAdminDTO / BienAdminPageDTO
-
-resources/templates/backoffice/
-├── login.html
-├── dashboard.html
-├── users/list.html
-├── biens/list.html
-└── fragments/layout.html              ← Sidebar, topbar, styles Bootstrap 5 (fragments réutilisables)
-```
-
-### 🔐 Double chaîne de sécurité + Google OAuth2
-
-L'application fait coexister deux `SecurityFilterChain` Spring Security sans conflit, grâce à `securityMatcher` et `@Order`. La chaîne API est **strictement stateless** (`SessionCreationPolicy.STATELESS`) : les cookies de session du back-office ne peuvent jamais interférer avec les requêtes JWT de l'API.
-
-```mermaid
-graph TD
-    classDef chainA fill:#e8eaf6,stroke:#3949ab,stroke-width:2px,color:black;
-    classDef chainB fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:black;
-    classDef googleNode fill:#fce4ec,stroke:#c62828,stroke-width:2px,color:black;
-    classDef infra fill:#fff9c4,stroke:#f9a825,stroke-width:2px,color:black;
-
-    Request["Requête HTTP entrante"]
-
-    subgraph Chain1["SecurityFilterChain @Order(1) — Back-Office"]
-        direction TB
-        Matcher1["securityMatcher('/backoffice/**')"]:::chainA
-        FormLogin["formLogin · Session HTTP<br/>AdminCredentialsAuthProvider<br/>CSRF activé"]:::chainA
-        BackControllers["Controllers Back-Office<br/>Dashboard · Users · Biens"]:::chainA
-    end
-
-    subgraph Chain2["SecurityFilterChain @Order(2) — API REST (STATELESS)"]
-        direction TB
-        Matcher2["Toutes les autres routes"]:::chainB
-        JwtFilter["Filtre JWT · Stateless<br/>UserDetailsService → BDD (rôle null accepté)<br/>CSRF désactivé"]:::chainB
-        ApiControllers["Controllers API REST<br/>Auth · Biens · Users · Chat · Notifications"]:::chainB
-    end
-
-    subgraph GoogleOAuth["Flux Google OAuth2"]
-        direction TB
-        FrontGoogle["Front-end Angular<br/>Google Identity Services SDK"]:::googleNode
-        GoogleAPI["Google API<br/>(vérification ID token)"]:::googleNode
-        PostGoogle["POST /auth/google<br/>GoogleTokenVerifierImpl"]:::googleNode
-        PatchProfile["PATCH /auth/complete-profile<br/>(premier login — choix du rôle)"]:::googleNode
-    end
-
-    subgraph Shared["Couche données partagée"]
-        direction LR
-        DB[("PostgreSQL")]:::infra
-        Minio[("MinIO")]:::infra
-    end
-
-    Request --> Matcher1
-    Matcher1 -->|"/backoffice/**"| FormLogin
-    FormLogin --> BackControllers
-    BackControllers --> DB
-    BackControllers --> Minio
-
-    Matcher1 -->|"Autre route"| Matcher2
-    Matcher2 --> JwtFilter
-    JwtFilter --> ApiControllers
-    ApiControllers --> DB
-    ApiControllers --> Minio
-
-    FrontGoogle -->|"idToken Google"| PostGoogle
-    PostGoogle -->|"verify(idToken)"| GoogleAPI
-    GoogleAPI -->|"payload vérifié"| PostGoogle
-    PostGoogle -->|"requiresRoleSelection: true\n+ JWT temporaire (sans rôle)"| FrontGoogle
-    FrontGoogle -->|"Bearer JWT temporaire\n{ role: ROLE_LOCATAIRE }"| PatchProfile
-    PatchProfile -->|"JWT définitif avec rôle"| FrontGoogle
-```
-
-**Comportement clé du JwtFilter avec un token Google temporaire :**
-- Les nouveaux utilisateurs Google reçoivent un JWT avec `role: ""` (vide)
-- `UserDetailsServiceImpl` retourne un `UserDetails` avec authorities vides plutôt que de lever une exception
-- Le JwtFilter accepte ce token — `PATCH /auth/complete-profile` est accessible
-- Une fois le rôle attribué, un JWT complet est émis
+1. [Fonctionnalités](#fonctionnalités)
+2. [Démarrage rapide](#démarrage-rapide)
+3. [Architecture](#architecture)
+4. [Configuration](#configuration)
+5. [Sécurité](#sécurité)
+6. [Back-office](#back-office)
+7. [Tests et CI](#tests-et-ci)
+8. [Mise en production](#mise-en-production)
+9. [Documentation du projet](#documentation-du-projet)
 
 ---
 
-## ☁️ Infrastructure & DevOps
+## Fonctionnalités
 
-![Render](https://img.shields.io/badge/Render-46E3B7?style=for-the-badge&logo=render&logoColor=white)
-![Neon](https://img.shields.io/badge/Neon-00E599?style=for-the-badge&logo=neon&logoColor=black)
-![Upstash](https://img.shields.io/badge/Upstash-00E9A3?style=for-the-badge&logo=upstash&logoColor=black)
-![Sentry](https://img.shields.io/badge/Sentry-362D59?style=for-the-badge&logo=sentry&logoColor=white)
-![UptimeRobot](https://img.shields.io/badge/UptimeRobot-3BD671?style=for-the-badge&logo=uptimerobot&logoColor=white)
-![Oracle Cloud](https://img.shields.io/badge/Oracle_Cloud-F80000?style=for-the-badge&logo=oracle&logoColor=white)
+| Domaine | Ce que fait l'API |
+|---|---|
+| **Comptes** | Inscription avec **confirmation de l'adresse e-mail** (lien 24 h), connexion e-mail / mot de passe ou **Google**, refresh token en cookie HttpOnly, mot de passe oublié, téléphone de contact facultatif (format international), suppression ou anonymisation d'un compte |
+| **Biens** | Création, modification et archivage (jamais supprimés), photos réduites (1600 px + vignette 400 px, sans données EXIF/GPS), repère sur la carte ou position calculée (adresse → quartier → commune → ville), points d'intérêt à proximité (écoles, pharmacies…), recherche publique multi-critères, position publique arrondie à ~100 m |
+| **Plusieurs pays** | Un **profil par pays** (FR, CD) : devises (EUR ; USD et CDF), champs d'adresse (code postal, ou commune / quartier / avenue / parcelle), champs obligatoires et masqués, types de bien et équipements, modes de paiement, compteurs d'EDL, canaux de notification. Le pays, la devise et la version du modèle sont **figés sur chaque bail, EDL et quittance** |
+| **Documents** | Bail, état des lieux et quittance en PDF, un modèle par pays et par version (modèle RDC provisoire, à faire valider par un juriste), signature en ligne du propriétaire puis du locataire, liens de signature valables 72 h |
+| **Loyers** | Le propriétaire déclare le loyer reçu hors application (espèces, Mobile Money, virement…) avec la photo du reçu ; **aucun paiement ne transite par l'application** |
+| **Messagerie** | Conversations propriétaire ↔ candidat / locataire en temps réel (WebSocket STOMP), règles d'ouverture d'une conversation, accusés d'envoi, rattrapage après reconnexion |
+| **Notifications** | Notifications en base et en temps réel ; liens **WhatsApp** préremplis (`wa.me`) pour les invitations à signer et les rappels de loyer, envoyés par le propriétaire depuis son téléphone |
+| **E-mails** | Par **n'importe quel serveur SMTP** ; **aucun e-mail perdu** : file d'envoi en base, écrite avec l'action qui le demande, nouveaux essais pendant ~46 h, alerte en cas d'échec d'un e-mail important |
+| **Fichiers** | Stockage **compatible S3** (RustFS en dev et en CI ; tout serveur S3 par configuration) : photos des biens publiques ; documents, reçus et photos de profil privés, lus par URL signée à durée limitée |
+| **Back-office** | Interface d'administration web : statistiques, utilisateurs, biens, documents d'un bien, suivi des e-mails |
 
-### 🧱 Stack technique
+---
 
-| Technologie | Rôle |
-| :--- | :--- |
-| **Spring Boot** | API backend |
-| **Render** | Déploiement cloud — [https://kupanga-api.onrender.com](https://kupanga-api.onrender.com) |
-| **Neon** | Base de données PostgreSQL serverless |
-| **Upstash** | Cache Redis serverless |
-| **Sentry** | Monitoring et tracking d'erreurs — [Traces & Performance](https://apprentissage.sentry.io/explore/traces/?mode=samples&project=-1&statsPeriod=14d) |
-| **UptimeRobot** | Keep-alive et monitoring HTTP — [Page de statut](https://stats.uptimerobot.com/TGJ2ot3L7D) |
-| **Oracle Cloud** | Hébergement MinIO stockage fichiers (VM Always Free) |
+## Démarrage rapide
 
-### 🗺️ Architecture d'Infrastructure
+Prérequis : Git, Docker, JDK 21. Le pas à pas est dans le [guide de démarrage](GUIDE-DEMARRAGE.md).
+
+```bash
+git clone https://github.com/Kupanga-App/kupanga-Api.git && cd kupanga-Api
+cp .env.dev.exemple .env.dev        # puis changer JWT_SECRET_KEY et ADMIN_PASSWORD
+docker compose -f docker-compose-dev.yml up -d --build
+```
+
+| Service | Adresse |
+|---|---|
+| API | http://localhost:8089 |
+| Swagger | http://localhost:8089/swagger-ui.html |
+| Back-office | http://localhost:8089/backoffice/login |
+| Mailpit (e-mails capturés) | http://localhost:8025 |
+| Console RustFS (fichiers) | http://localhost:9001 — `kupanga-dev` / `kupanga-dev-secret` |
+| PostgreSQL + PostGIS | `localhost:5433` / `kupanga_dev` |
+| Redis / RedisInsight | `localhost:6379` / http://localhost:5540 |
+
+---
+
+## Architecture
+
+### Stack
+
+| Couche | Choix |
+|---|---|
+| Langage, framework | Java 21, Spring Boot 3.2 (Web, Security, Data JPA, Validation, WebSocket, Mail, Cache, Actuator) |
+| Base de données | PostgreSQL 15 + PostGIS ; schéma géré par **Flyway** (migrations `V1` à `V52`), vérifié par Hibernate (`validate`) |
+| Cache et limites de tentatives | Redis (Bucket4j) ; l'application continue de fonctionner si Redis tombe |
+| Fichiers | SDK AWS v2 (S3 générique) — RustFS en dev et en CI |
+| E-mails | SMTP générique (`spring.mail.*`) et file d'envoi persistante `emails_sortants` |
+| Documents PDF | Thymeleaf + Flying Saucer, modèles `templates/documents/<pays>/<version>/` |
+| Temps réel | STOMP sur WebSocket / SockJS (broker en mémoire, battements 5 s / 10 s) |
+| Mapping, code | MapStruct, Lombok |
+| Observabilité | Sentry (sans données personnelles), Actuator (`/actuator/health`) |
+| Documentation de l'API | springdoc OpenAPI (Swagger), désactivé en production |
+
+### Modules (`com.kupanga.api.*`)
+
+| Package | Rôle |
+|---|---|
+| `authentification` | Inscription, connexion, Google, JWT, refresh token, confirmation d'adresse, limites de tentatives |
+| `user` | Comptes, profils, téléphone, recherche de candidats |
+| `immobilier` | Biens, photos, localisation, points d'intérêt, contrats, états des lieux, quittances, PDF |
+| `juridiction` | Pays, profils de juridiction (`application.yml` → `kupanga.juridictions`), règles par pays, devises, plafonds |
+| `chat` | Conversations, messages, WebSocket STOMP |
+| `notification` | Notifications en base et temps réel, liens WhatsApp |
+| `email` | Préparation des e-mails, envoi SMTP (`envoi`), file d'envoi persistante (`file`) |
+| `stockage` | Stockage S3, préparation des buckets, traitement des images (réduction, nettoyage EXIF) |
+| `backoffice` | Administration (Thymeleaf) et sa chaîne de sécurité |
+| `config`, `exception`, `pagination` | Configuration transverse, erreurs JSON homogènes, pagination |
+
+### Vue d'ensemble
 
 ```mermaid
-graph TD
-    %% Canvas Styles
-    classDef clientLayer fill:#e3f2fd,stroke:#1565c0,stroke-width:2px;
-    classDef hostLayer fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px;
-    classDef dataLayer fill:#fff3e0,stroke:#e65100,stroke-width:2px;
-    classDef monitorLayer fill:#fce4ec,stroke:#880e4f,stroke-width:2px;
+graph LR
+    classDef client fill:#e3f2fd,stroke:#1565c0,color:black;
+    classDef app fill:#e8f5e9,stroke:#2e7d32,color:black;
+    classDef data fill:#fff3e0,stroke:#e65100,color:black;
+    classDef ext fill:#fce4ec,stroke:#880e4f,color:black;
 
-    %% Node Styles
-    classDef clientNode fill:#90caf9,stroke:#1565c0,color:black,stroke-width:2px;
-    classDef renderNode fill:#b2dfdb,stroke:#00695c,color:black,stroke-width:2px;
-    classDef neonNode fill:#ffcc80,stroke:#e65100,color:black,stroke-width:2px;
-    classDef upstashNode fill:#a5d6a7,stroke:#1b5e20,color:black,stroke-width:2px;
-    classDef minioNode fill:#ffccbc,stroke:#bf360c,color:black,stroke-width:2px;
-    classDef sentryNode fill:#ce93d8,stroke:#4a148c,color:black,stroke-width:2px;
-    classDef uptimeNode fill:#80cbc4,stroke:#004d40,color:black,stroke-width:2px;
+    Front["Front Angular (PWA)"]:::client
+    Admin["Navigateur admin"]:::client
 
-    subgraph Client["Client"]
-        direction TB
-        ClientApp["Application Client<br/>Web / Mobile"]:::clientNode
+    subgraph API["API Spring Boot"]
+        Rest["API REST (JWT)"]:::app
+        Ws["WebSocket STOMP"]:::app
+        BO["Back-office Thymeleaf (session)"]:::app
+        File["File d'e-mails + envoyeur"]:::app
     end
-    class Client clientLayer
 
-    subgraph Hosting["Hébergement Cloud — Render"]
-        direction TB
-        Render["Spring Boot API<br/>Déploiement Continu<br/>kupanga-api.onrender.com"]:::renderNode
-    end
-    class Hosting hostLayer
+    PG[("PostgreSQL + PostGIS")]:::data
+    Redis[("Redis")]:::data
+    S3[("Stockage S3 (RustFS)")]:::data
+    SMTP["Serveur SMTP"]:::ext
+    Google["Google (connexion)"]:::ext
+    OSM["Nominatim / Overpass (OSM)"]:::ext
+    Sentry["Sentry"]:::ext
 
-    subgraph Data["Couche Données & Stockage"]
-        direction TB
-        Neon[("Neon<br/>PostgreSQL Serverless<br/>Base de données")]:::neonNode
-        Upstash[("Upstash<br/>Redis Serverless<br/>Cache")]:::upstashNode
-        MinIO[("Oracle Cloud — MinIO<br/>Stockage Fichiers<br/>VM Always Free")]:::minioNode
-    end
-    class Data dataLayer
-
-    subgraph Monitor["Observabilité & Monitoring"]
-        direction TB
-        Sentry["Sentry<br/>Tracking d'erreurs<br/>Traces & Performance"]:::sentryNode
-        UptimeRobot["UptimeRobot<br/>Keep-Alive HTTP<br/>Page de statut"]:::uptimeNode
-    end
-    class Monitor monitorLayer
-
-    %% Relations Client → API
-    ClientApp --> Render
-
-    %% Relations API → Données
-    Render --> Neon
-    Render --> Upstash
-    Render --> MinIO
-
-    %% Relations API → Observabilité
-    Render --> Sentry
-
-    %% UptimeRobot surveille l'API
-    UptimeRobot -->|ping keep-alive| Render
+    Front --> Rest
+    Front <--> Ws
+    Front -->|photos, PDF signés| S3
+    Admin --> BO
+    Rest --> PG
+    Rest --> Redis
+    Rest --> S3
+    Rest --> Google
+    Rest --> OSM
+    Rest -->|même transaction| File
+    File --> PG
+    File --> SMTP
+    BO --> PG
+    API --> Sentry
 ```
+
+**Envoi d'un e-mail** : l'action (inscription, signature, quittance…) écrit l'e-mail dans `emails_sortants` **dans
+la même transaction** ; rien ne part si elle est annulée. Après le commit, l'envoyeur l'expédie en quelques
+secondes ; une tâche planifiée reprend toutes les 30 s ce qui n'est pas parti (panne SMTP, redémarrage). Essais à
+1 min, 5 min, 15 min, 1 h, 3 h, 6 h, 12 h puis 24 h ; un e-mail dont le lien a expiré entre-temps n'est pas envoyé ;
+le contenu (qui contient des liens à jeton) est effacé dès l'envoi.
+
+---
+
+## Configuration
+
+Tout se règle par variables d'environnement. Profils : `dev` (défaut en local, lit `.env.dev`), `test`, `prod`
+(défaut de l'image Docker).
+
+### Développement
+
+Voir [`.env.dev.exemple`](.env.dev.exemple) : seules `JWT_SECRET_KEY` et `ADMIN_PASSWORD` sont à choisir. Le
+stockage (RustFS) et les e-mails (Mailpit) sont configurés par `docker-compose-dev.yml`.
+
+### Production
+
+| Variable | Obligatoire | Rôle |
+|---|---|---|
+| `SPRING_PROFILES_ACTIVE` | non (`prod` par défaut dans l'image) | profil |
+| `PORT` | non | port HTTP (10000 dans l'image) |
+| `DB_URL`, `POSTGRES_USER`, `POSTGRES_PASSWORD` | oui | base PostgreSQL + PostGIS |
+| `REDIS_URL` | oui | Redis (`redis://…` ou `rediss://…`) |
+| `JWT_SECRET_KEY` | oui | clé de signature des JWT (base64, ≥ 32 octets) |
+| `ADMIN_EMAIL`, `ADMIN_PASSWORD` | oui | compte du back-office |
+| `GOOGLE_CLIENT_ID` | non | connexion Google |
+| `FRONTEND_URL`, `CORS_ALLOWED_ORIGINS` | non (domaine actuel par défaut) | adresse du front (liens des e-mails), origines autorisées |
+| `STOCKAGE_ENDPOINT` | oui | URL du serveur S3 vue par l'API |
+| `STOCKAGE_URL_PUBLIQUE` | oui | URL du serveur S3 vue par le navigateur (photos, URL signées) |
+| `STOCKAGE_ACCESS_KEY`, `STOCKAGE_SECRET_KEY` | oui | compte de **service** limité aux buckets de Kupanga |
+| `STOCKAGE_REGION`, `STOCKAGE_PATH_STYLE`, `STOCKAGE_GERER_POLITIQUES` | non (`us-east-1`, `true`, `true`) | région, style d'URL, droits des buckets posés par l'API (`false` pour un serveur sans politiques de bucket) |
+| `SMTP_HOST`, `SMTP_USERNAME`, `SMTP_PASSWORD` | oui | serveur SMTP (Brevo : `smtp-relay.brevo.com` et la clé SMTP du compte) |
+| `SMTP_PORT`, `SMTP_STARTTLS`, `SMTP_SSL`, `SMTP_AUTH` | non (`587`, `true`, `false`, `true`) | connexion SMTP ; **chiffrement obligatoire en prod** (STARTTLS ou SSL, sinon refus de démarrer) |
+| `EMAIL_EXPEDITEUR` | oui | adresse d'envoi, sur un domaine authentifié (SPF, DKIM, DMARC) |
+| `EMAIL_NOM_EXPEDITEUR`, `EMAIL_REPONDRE_A` | non (`Kupanga`, vide) | nom affiché, adresse de réponse |
+| `EMAIL_ENVOI_INTERVALLE` | non (`30s`) | reprise de la file d'e-mails |
+| `SENTRY_DSN` | oui | suivi des erreurs |
+
+**Buckets** créés au démarrage : `bucket-photo-immobilier` (public) ; `bucket-photo-profil`, `contrat-de-bail`,
+`bucket-etats-des-lieux`, `bucket-des-quittances`, `bucket-recus-paiement` (privés). Droits du compte de service :
+`s3:ListBucket` et `s3:GetBucketLocation` sur les buckets ; `s3:GetObject`, `s3:PutObject`, `s3:DeleteObject` sur
+leurs objets ; `s3:GetBucketPolicy`, `s3:PutBucketPolicy`, `s3:DeleteBucketPolicy` si `STOCKAGE_GERER_POLITIQUES=true` ;
+`s3:CreateBucket` pour le premier démarrage. Si un bucket privé se révèle lisible sans authentification, l'API le
+signale (log ERROR) et refuse d'y écrire.
+
+---
+
+## Sécurité
+
+- **Deux chaînes Spring Security** : `/backoffice/**` (session + formulaire, CSRF, compte admin unique défini par
+  variables d'environnement) et le reste de l'API (**JWT sans état**, fermée par défaut, rôles propriétaire /
+  locataire, 401 sans jeton, 403 sur la ressource d'autrui).
+- Comptes : adresse confirmée avant la première connexion, adresse Google exigée confirmée, inscription et mot de
+  passe oublié sans révéler l'existence d'un compte, e-mails insensibles à la casse.
+- **Limites de tentatives** (Bucket4j sur Redis) : connexion, inscription, mot de passe oublié, renvoi du lien,
+  Google, login du back-office, ouverture de conversations.
+- Données personnelles : aucune adresse e-mail ni donnée du locataire dans les vues publiques ; documents, reçus
+  et photos de profil en buckets privés (URL signées : 5 min pour les documents, 24 h pour les avatars) ; ni contenu
+  de message, ni adresse, ni jeton dans les logs ; Sentry sans données personnelles.
+- Fichiers envoyés reconnus à leur contenu (et non à leur nom), photos réencodées sans métadonnées, bornes contre
+  les images piégées ; tailles limitées (10 Mo par fichier, 50 Mo par requête).
+- WebSocket : JWT exigé à la connexion, abonnements limités à ses propres files, destinations contrôlées.
+- CORS et origines WebSocket restreintes ; Swagger désactivé en production ; SMTP chiffré exigé en production.
+
+Le détail des contrôles est dans [`AUDIT-PRODUCTION.md`](AUDIT-PRODUCTION.md), l'historique dans `.claude/CLAUDE.md`.
+
+---
+
+## Back-office
+
+Interface web **côté serveur** (Thymeleaf + Bootstrap 5) servie par l'API sous `/backoffice`, avec sa propre
+authentification (session, compte admin unique `ADMIN_EMAIL` / `ADMIN_PASSWORD`, limite de tentatives).
+
+| Route | Contenu |
+|---|---|
+| `/backoffice/login` | Connexion |
+| `/backoffice/dashboard` | Utilisateurs, propriétaires, locataires, biens, villes, contrats, EDL, quittances, **e-mails en échec** |
+| `/backoffice/analytics` | Statistiques détaillées |
+| `/backoffice/users` | Recherche des comptes ; suppression (ou anonymisation si le compte a des biens ou des documents) |
+| `/backoffice/biens` | Recherche des biens (dont filtre par pays) ; **archivage** et désarchivage (un bien n'est jamais supprimé) ; documents du bien |
+| `/backoffice/emails` | File d'envoi : en attente, envoyés, en échec (adresse masquée, erreur SMTP) ; **renvoi** d'un e-mail en échec |
+
+---
+
+## Tests et CI
+
+```bash
+docker compose -f docker-compose-dev.yml --profile test up -d db-test   # base de test PostGIS (port 5434)
+./mvnw verify
+```
+
+- ~840 tests : unitaires (JUnit 5, Mockito), intégration sur base réelle (`@DataJpaTest`, `@SpringBootTest`),
+  sécurité (401 / 403 sur toutes les routes), WebSocket, SMTP réel (GreenMail), S3 réel (RustFS, ignorés s'il
+  est absent), file d'e-mails avec deux envoyeurs concurrents.
+- CI GitHub Actions (`.github/workflows/ci.yml`) : PostGIS, migrations Flyway, RustFS, Redis, build Maven, tests,
+  image Docker.
+
+---
+
+## Mise en production
+
+Image Docker (`Dockerfile`) : build Maven, exécution en utilisateur non root, profil `prod` par défaut, sonde
+`/actuator/health/liveness`, arrêt propre.
+
+L'hébergement cible est un **serveur unique** (VPS en France) avec Docker Compose, Caddy (HTTPS), Cloudflare,
+PostgreSQL + PostGIS, Redis, RustFS et des sauvegardes chiffrées hors site : c'est le **Sprint 6**, décrit dans
+[`AUDIT-INFRA.md`](AUDIT-INFRA.md) §3 et §4, **pas encore réalisé**. La mise en service partira d'une infrastructure
+et d'une base neuves : Flyway crée tout le schéma au premier démarrage.
+
+Serveur envisagé : **VPS-2 d'OVHcloud** (4 vCores, 8 Go, 75 Go NVMe, ~8,65 € TTC / mois) — comparaison des offres,
+consommation du back-end et capacités estimées (requêtes par seconde, utilisateurs, connexions WebSocket) dans
+[CHOIX-SERVEUR.md](CHOIX-SERVEUR.md).
+
+Avant d'accueillir de vrais clients : CGU et politique de confidentialité, validation juridique des modèles de
+documents RDC, recette sur téléphones réels (`AUDIT-INFRA.md` §5).
+
+---
+
+## Documentation du projet
+
+| Document | Contenu |
+|---|---|
+| [GUIDE-DEMARRAGE.md](GUIDE-DEMARRAGE.md) | Installation et premier parcours, de zéro |
+| [AUDIT-PRODUCTION.md](AUDIT-PRODUCTION.md) | Audit sécurité et fonctionnel (France + Congo), plan des Sprints 1 à 4 |
+| [AUDIT-INFRA.md](AUDIT-INFRA.md) | Stockage, e-mails, hébergement (Sprints 5 et 6) |
+| [CHOIX-SERVEUR.md](CHOIX-SERVEUR.md) | Choix du VPS OVHcloud : prix, consommation, capacités estimées par offre |
+| `.claude/CLAUDE.md` | Mémoire du projet : décisions, avancement, points ouverts, journal |
+| [`kupanga-front`](https://github.com/Kupanga-App/kupanga-front) | Front Angular (PWA) |

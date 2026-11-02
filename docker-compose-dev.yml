@@ -18,12 +18,19 @@ services:
       SPRING_PROFILES_ACTIVE: dev   # l'image démarre en prod par défaut (Dockerfile)
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
-      # .env.dev pointe sur localhost:9000 (lancement hors Docker) ; dans le conteneur, localhost = l'application elle-même
-      MINIO_ENDPOINT: http://minio:9000
+      # Dans le conteneur, localhost = l'application elle-même : le stockage est joint par son nom de service
+      STOCKAGE_ENDPOINT: http://stockage:9000
+      # M1 : e-mails capturés par Mailpit (http://localhost:8025), rien n'est vraiment envoyé.
+      # Pour un vrai envoi en dev : retirer ces lignes et renseigner SMTP_* dans .env.dev
+      SMTP_HOST: mailpit
+      SMTP_PORT: 1025
+      SMTP_AUTH: "false"
+      SMTP_STARTTLS: "false"
     depends_on:
       - db
-      - minio
+      - stockage
       - redis
+      - mailpit
     restart: always
     deploy:
       resources:
@@ -79,28 +86,50 @@ services:
       retries: 5
 
   # ------------------------
-  # 3️. MinIO Storage
+  # 3️. Stockage S3 : RustFS (S3, Sprint 5)
   # ------------------------
-  minio:
-    # minio/minio n'existe plus sur Docker Hub : image Chainguard figée par digest (comme la CI).
-    # user 0:0 : l'image est non root par défaut et le volume existant appartient à root.
-    image: cgr.dev/chainguard/minio@sha256:59667194421209c2c1eacbe761e24787e047985c5dfa96b15da9b59fe9b55cd0
+  # MinIO n'est plus maintenu en open source : RustFS (Apache 2.0), figé par version et digest (D7).
+  # Identifiants de développement seulement ; l'application parle S3 et ne dépend pas de RustFS.
+  stockage:
+    image: rustfs/rustfs:1.0.3@sha256:9ca9559533b537d10482fe923288b676ad08f92a7069d9a17327fbae3cab688b
+    # Image non root (UID 10001) : root en dev pour écrire dans le volume sans étape de préparation
     user: "0:0"
-    container_name: minio-dev
-    env_file:
-      - .env.dev
+    container_name: rustfs-dev
+    environment:
+      RUSTFS_ACCESS_KEY: kupanga-dev
+      RUSTFS_SECRET_KEY: kupanga-dev-secret
+      RUSTFS_ADDRESS: ":9000"
+      RUSTFS_CONSOLE_ENABLE: "true"
+      RUSTFS_CONSOLE_ADDRESS: ":9001"
     ports:
-      - "9000:9000"
-      - "9001:9001"
-    command: server /data --console-address ":9001"
+      # Revue S2 : identifiants de dev connus → écoute sur la machine seulement
+      - "127.0.0.1:9000:9000"   # API S3
+      - "127.0.0.1:9001:9001"   # console
+    command: /data
     volumes:
-      - minio-data-dev:/data
+      - stockage-data-dev:/data
     restart: always
     deploy:
       resources:
         limits:
           cpus: '0.5'
           memory: 256M
+
+  # ------------------------
+  # 3c. Mailpit : faux serveur SMTP de développement (M1)
+  # ------------------------
+  mailpit:
+    image: axllent/mailpit:v1.31.5@sha256:94f6b70c1436defae6799d9ac7ff0eeff9540465b842026d5cdb018f1c0234ea
+    container_name: mailpit-dev
+    ports:
+      - "127.0.0.1:1025:1025"   # SMTP
+      - "127.0.0.1:8025:8025"   # interface web : e-mails reçus
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 64M
 
   # ------------------------
   # 4. Redis Cache
@@ -149,6 +178,6 @@ services:
 # ------------------------
 volumes:
   db-data-dev:
-  minio-data-dev:
+  stockage-data-dev:
   redis-data-dev:
   redisinsight-data-dev:

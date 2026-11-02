@@ -5,6 +5,7 @@ import com.kupanga.api.backoffice.dto.BienAdminPageDTO;
 import com.kupanga.api.backoffice.dto.BienAdminSearchDTO;
 import com.kupanga.api.backoffice.specification.BienAdminSpecification;
 import com.kupanga.api.immobilier.entity.Bien;
+import com.kupanga.api.immobilier.mapper.PhotoBienUrlMapper;
 import com.kupanga.api.immobilier.entity.StatutContrat;
 import com.kupanga.api.immobilier.entity.StatutEdl;
 import com.kupanga.api.immobilier.repository.BienRepository;
@@ -36,6 +37,7 @@ public class BienAdminService {
     private final BienAdminSpecification bienAdminSpecification;
     private final ContratRepository     contratRepository;
     private final EtatDesLieuxRepository etatDesLieuxRepository;
+    private final PhotoBienUrlMapper    photoBienUrlMapper;
 
     /**
      * Recherche paginée des biens selon les critères admin.
@@ -53,7 +55,7 @@ public class BienAdminService {
         );
         Page<BienAdminDTO> page = bienRepository
                 .findAll(bienAdminSpecification.build(dto), pageable)
-                .map(BienAdminDTO::from);
+                .map(bien -> BienAdminDTO.from(bien, photoBienUrlMapper.images(bien.getImages())));
         return BienAdminPageDTO.from(page);
     }
 

@@ -67,11 +67,14 @@ class BienServiceImplTest {
     @Mock
     private DocumentPdfUrlMapper documentPdfUrlMapper;
 
+    @Mock private com.kupanga.api.immobilier.mapper.PhotoBienUrlMapper photoBienUrlMapper;
+    @Mock private com.kupanga.api.user.mapper.PhotoProfilUrlMapper photoProfilUrlMapper;
+
     @InjectMocks
     private BienServiceImpl bienService;
 
     /** En-tête JPEG réel : les photos sont reconnues au contenu (B5). */
-    private static final byte[] PHOTO_JPEG = com.kupanga.api.minio.image.ImagesDeTest.jpeg(40, 30);
+    private static final byte[] PHOTO_JPEG = com.kupanga.api.stockage.image.ImagesDeTest.jpeg(40, 30);
 
     private User proprietaire;
     private User locataire;
@@ -366,7 +369,7 @@ class BienServiceImplTest {
     void createBien_photoIndecodable_refuseAvantEnregistrement() {
         BienFormDTO dto = buildValidFormDTO();
         MultipartFile abimee = new MockMultipartFile("files", "p.png", "image/png",
-                com.kupanga.api.minio.image.ImagesDeTest.pngEndommage(40, 30));
+                com.kupanga.api.stockage.image.ImagesDeTest.pngEndommage(40, 30));
 
         when(userService.getUserByEmail(proprietaire.getMail())).thenReturn(proprietaire);
 

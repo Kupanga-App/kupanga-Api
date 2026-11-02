@@ -540,6 +540,12 @@
                         <i data-lucide="building-2" aria-hidden="true"></i>Biens
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:classappend="${active == 'emails'} ? ' active'"
+                       th:href="@{/backoffice/emails}">
+                        <i data-lucide="mail" aria-hidden="true"></i>E-mails
+                    </a>
+                </li>
             </ul>
         </nav>
 
