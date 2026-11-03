@@ -24,7 +24,9 @@ public enum TypeEmail {
     /** Même durée que le lien de signature ({@code EtatDesLieuxServiceImpl}, 72 h). */
     INVITATION_SIGNATURE_EDL(CRITIQUE, Duration.ofHours(72)),
     EDL_SIGNE(CRITIQUE, null),
-    QUITTANCE(CRITIQUE, null);
+    QUITTANCE(CRITIQUE, null),
+    /** Même durée que la demande ({@code DemandeLocationService.VALIDITE}, 72 h). */
+    DEMANDE_LOCATION(CRITIQUE, Duration.ofHours(72));
 
     private final PrioriteEmail priorite;
     private final Duration validiteLien;

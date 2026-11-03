@@ -255,15 +255,6 @@ class BienControllerWebMvcTest {
     }
 
     @Test
-    @DisplayName("POST /biens/{id}/assigne-locataire — sans token : 401 (P0-1)")
-    void assignLocataire_withoutToken_shouldReturn401() throws Exception {
-        mockMvc.perform(post("/biens/1/assigne-locataire/2"))
-                .andExpect(status().isUnauthorized());
-
-        verify(bienService, never()).affectLocataire(any(), any(), any());
-    }
-
-    @Test
     @DisplayName("GET /biens/{id} — public : accessible sans token (P0-1)")
     void getBienInfos_withoutToken_shouldReturn200() throws Exception {
         when(bienService.getBienInfos(1L)).thenReturn(BienPublicDTO.builder().id(1L).build());
@@ -446,31 +437,6 @@ class BienControllerWebMvcTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{invalid}"))
                 .andExpect(status().isBadRequest());
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // POST /biens/{bienId}/assigne-locataire/{userId}
-    // ─────────────────────────────────────────────────────────────
-
-    @Test
-    @DisplayName("POST /biens/{bienId}/assigne-locataire/{userId} — succès : 204")
-    @WithMockUser(username = "proprietaire@test.com", roles = "PROPRIETAIRE")
-    void assignLocataire_success_shouldReturn204() throws Exception {
-        doNothing().when(bienService).affectLocataire(any(), eq(1L), eq(2L));
-
-        mockMvc.perform(post("/biens/1/assigne-locataire/2"))
-                .andExpect(status().isNoContent());
-    }
-
-    @Test
-    @DisplayName("POST /biens/{bienId}/assigne-locataire/{userId} — bien introuvable : 404")
-    @WithMockUser(username = "proprietaire@test.com", roles = "PROPRIETAIRE")
-    void assignLocataire_notFound_shouldReturn404() throws Exception {
-        doThrow(new KupangaBusinessException("Bien introuvable", HttpStatus.NOT_FOUND))
-                .when(bienService).affectLocataire(any(), eq(99L), eq(2L));
-
-        mockMvc.perform(post("/biens/99/assigne-locataire/2"))
-                .andExpect(status().isNotFound());
     }
 
     private BienFormDTO bienFormValide() {

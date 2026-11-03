@@ -1,6 +1,7 @@
 package com.kupanga.api.email.service;
 
 import com.kupanga.api.immobilier.entity.Contrat;
+import com.kupanga.api.immobilier.entity.DemandeLocation;
 import com.kupanga.api.immobilier.entity.EtatDesLieux;
 import com.kupanga.api.immobilier.entity.Quittance;
 
@@ -85,4 +86,10 @@ public interface EmailService {
      */
     void envoyerQuittance(Quittance quittance);
 
+
+    /**
+     * Prévient le locataire qu'un propriétaire lui propose son logement (lien vers ses demandes reçues,
+     * valable autant que la demande).
+     */
+    void envoyerDemandeLocation(DemandeLocation demande);
 }

@@ -27,6 +27,8 @@ import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @DisplayName("Tests unitaires — BienAdminService")
@@ -36,6 +38,7 @@ class BienAdminServiceTest {
     @Mock private BienRepository        bienRepository;
     @Mock private ContratRepository contratRepository;
     @Mock private EtatDesLieuxRepository etatDesLieuxRepository;
+    @Mock private com.kupanga.api.immobilier.repository.DemandeLocationRepository demandeLocationRepository;
     @Mock private BienAdminSpecification bienAdminSpecification;
 
     @Mock private com.kupanga.api.immobilier.mapper.PhotoBienUrlMapper photoBienUrlMapper;
@@ -80,6 +83,7 @@ class BienAdminServiceTest {
         verify(bienRepository, never()).delete(any(Bien.class));
         verify(contratRepository).expirerNonSignesDuBien(42L, StatutContrat.SIGNE, StatutContrat.EXPIRE);
         verify(etatDesLieuxRepository).expirerNonSignesDuBien(42L, StatutEdl.SIGNE, StatutEdl.EXPIRE);
+        verify(demandeLocationRepository).annulerEnAttenteDuBien(eq(42L), any());
     }
 
     @Test

@@ -93,6 +93,26 @@ public class LienWhatsAppController {
         return ResponseEntity.ok(lienWhatsAppService.rappelLoyer(id, emailConnecte()));
     }
 
+    @Operation(
+            summary = "Prévenir un candidat par WhatsApp d'une demande de location",
+            description = """
+                    Message prérempli invitant le candidat à se connecter pour accepter ou refuser la demande.
+                    Le lien ne contient jamais le numéro du candidat : WhatsApp fait choisir le contact.
+                    """
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Lien préparé"),
+            @ApiResponse(responseCode = "401", description = "Non authentifié"),
+            @ApiResponse(responseCode = "403", description = "Demande d'un autre propriétaire"),
+            @ApiResponse(responseCode = "404", description = "Demande introuvable"),
+            @ApiResponse(responseCode = "409", description = "Pays sans WhatsApp ou demande qui n'est plus en attente")
+    })
+    @GetMapping("/demandes-location/{id}/lien-whatsapp")
+    public ResponseEntity<LienWhatsAppDTO> demandeLocation(
+            @Parameter(description = "Identifiant de la demande") @PathVariable Long id) {
+        return ResponseEntity.ok(lienWhatsAppService.demandeLocation(id, emailConnecte()));
+    }
+
     private static String emailConnecte() {
         return SecurityContextHolder.getContext().getAuthentication().getName();
     }

@@ -17,4 +17,10 @@ public interface LienWhatsAppService {
 
     /** Rappel de loyer pour une quittance non payée (404, 403, 409). */
     LienWhatsAppDTO rappelLoyer(Long quittanceId, String emailProprietaire);
+
+    /**
+     * Prévient un candidat qu'une demande de location l'attend sur Kupanga. Le lien ne contient jamais le numéro
+     * du candidat (C6 : il n'est pas encore partie au bien) : WhatsApp fait choisir le contact.
+     */
+    LienWhatsAppDTO demandeLocation(Long demandeId, String emailProprietaire);
 }

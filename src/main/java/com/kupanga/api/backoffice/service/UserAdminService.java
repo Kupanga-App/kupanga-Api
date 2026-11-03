@@ -16,6 +16,7 @@ import com.kupanga.api.immobilier.entity.StatutContrat;
 import com.kupanga.api.immobilier.entity.StatutEdl;
 import com.kupanga.api.immobilier.repository.BienRepository;
 import com.kupanga.api.immobilier.repository.ContratRepository;
+import com.kupanga.api.immobilier.repository.DemandeLocationRepository;
 import com.kupanga.api.immobilier.repository.EtatDesLieuxRepository;
 import com.kupanga.api.immobilier.repository.QuittanceRepository;
 import com.kupanga.api.stockage.service.StockageService;
@@ -62,6 +63,7 @@ public class UserAdminService {
     private final JetonVerificationEmailRepository jetonVerificationEmailRepository;
     private final BienRepository            bienRepository;
     private final ContratRepository         contratRepository;
+    private final DemandeLocationRepository demandeLocationRepository;
     private final QuittanceRepository       quittanceRepository;
     private final EtatDesLieuxRepository    etatDesLieuxRepository;
     private final MessageRepository         messageRepository;
@@ -127,6 +129,7 @@ public class UserAdminService {
         if (!aDesDonneesLiees(id)) {
             messageRepository.supprimerParUtilisateur(id);
             conversationRepository.supprimerParEmail(mail);
+            demandeLocationRepository.supprimerParUtilisateur(id);
             userRepository.deleteById(id);
             supprimerPhotoApresCommit(photo, id);
             return ResultatSuppressionCompte.SUPPRIME;
@@ -137,6 +140,8 @@ public class UserAdminService {
         // Liens de signature en cours invalidés (la personne supprimée ne signe plus, rien ne lui est envoyé)
         contratRepository.expirerNonSignesDeUtilisateur(id, StatutContrat.SIGNE, StatutContrat.EXPIRE);
         etatDesLieuxRepository.expirerNonSignesDeUtilisateur(id, StatutEdl.SIGNE, StatutEdl.EXPIRE);
+        // Demandes de location en attente (envoyées ou reçues) retirées
+        demandeLocationRepository.annulerEnAttenteDeUtilisateur(id, maintenant);
         bienRepository.archiverParProprietaire(id, maintenant);
         bienRepository.retirerLocataire(id);
         conversationRepository.remplacerEmail(mail, mailAnonyme);

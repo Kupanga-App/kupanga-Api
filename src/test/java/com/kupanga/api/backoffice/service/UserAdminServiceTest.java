@@ -51,6 +51,7 @@ class UserAdminServiceTest {
     @Mock private EtatDesLieuxRepository        etatDesLieuxRepository;
     @Mock private MessageRepository             messageRepository;
     @Mock private ConversationRepository        conversationRepository;
+    @Mock private com.kupanga.api.immobilier.repository.DemandeLocationRepository demandeLocationRepository;
     @Mock private StockageService                  stockageService;
     @Mock private com.kupanga.api.user.mapper.PhotoProfilUrlMapper photoProfilUrlMapper;
     @Mock private com.kupanga.api.email.file.EmailEnFileRepository emailEnFileRepository;
@@ -97,6 +98,7 @@ class UserAdminServiceTest {
         order.verify(notificationRepository).deleteByDestinataireId(1L);
         order.verify(messageRepository).supprimerParUtilisateur(1L);
         order.verify(conversationRepository).supprimerParEmail("alice@test.com");
+        verify(demandeLocationRepository).supprimerParUtilisateur(1L);
         order.verify(userRepository).deleteById(1L);
         verify(jetonVerificationEmailRepository).deleteByUserId(1L);
         // Revue M2 : e-mails de la file vers cette adresse supprimés avec le compte
@@ -149,6 +151,7 @@ class UserAdminServiceTest {
         verify(conversationRepository).remplacerEmail(eq("alice@test.com"), mailAnonyme.capture());
         verify(contratRepository).expirerNonSignesDeUtilisateur(1L, StatutContrat.SIGNE, StatutContrat.EXPIRE);
         verify(etatDesLieuxRepository).expirerNonSignesDeUtilisateur(1L, StatutEdl.SIGNE, StatutEdl.EXPIRE);
+        verify(demandeLocationRepository).annulerEnAttenteDeUtilisateur(eq(1L), any());
         verify(stockageService).supprimer("bucket-photo-profil", "photo.jpg");
         verify(notificationRepository).deleteByDestinataireId(1L);
         verify(passwordResetTokenRepository).deleteByUserId(1L);

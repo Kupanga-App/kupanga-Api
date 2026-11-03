@@ -77,13 +77,6 @@ public interface BienService {
      */
     boolean existsByIdAndProprietaireId(Long id, Long proprietaireId);
 
-    /**
-     * Affecter un locataire à un bien.
-     * @param auth pour vérifier les accès
-     * @param userId id du locataire
-     * @param bienId id du bien
-     */
-    void affectLocataire( Authentication auth , Long bienId , Long userId);
 
     /**
      * Charge le bien (avec ses relations) et vérifie qu'il appartient à l'utilisateur connecté.

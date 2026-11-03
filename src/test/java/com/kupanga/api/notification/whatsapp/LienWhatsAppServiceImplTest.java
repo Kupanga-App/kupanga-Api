@@ -37,6 +37,7 @@ class LienWhatsAppServiceImplTest {
     @Mock private ContratRepository contratRepository;
     @Mock private EtatDesLieuxRepository edlRepository;
     @Mock private QuittanceRepository quittanceRepository;
+    @Mock private com.kupanga.api.immobilier.repository.DemandeLocationRepository demandeLocationRepository;
     @Mock private BienService bienService;
 
     private LienWhatsAppServiceImpl service;
@@ -46,7 +47,7 @@ class LienWhatsAppServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        service = new LienWhatsAppServiceImpl(contratRepository, edlRepository, quittanceRepository, bienService,
+        service = new LienWhatsAppServiceImpl(contratRepository, edlRepository, quittanceRepository, demandeLocationRepository, bienService,
                 JuridictionsDeTest.registre(), URL_CONNEXION);
         proprietaire = User.builder().id(1L).mail("proprio@test.cd").firstName("Jean").build();
         locataire = User.builder().id(2L).mail("locataire@test.cd").firstName("Grâce").telephone("+243812345678").build();
@@ -204,5 +205,44 @@ class LienWhatsAppServiceImplTest {
 
         assertThatThrownBy(() -> service.rappelLoyer(9L, "intrus@test.cd"))
                 .extracting("status").isEqualTo(HttpStatus.FORBIDDEN);
+    }
+
+    // ── Demande de location ─────────────────────────────────────────────────
+
+    private com.kupanga.api.immobilier.entity.DemandeLocation demande(Bien bien, LocalDateTime expiration) {
+        return com.kupanga.api.immobilier.entity.DemandeLocation.builder().id(20L).bien(bien)
+                .proprietaire(proprietaire).locataire(locataire)
+                .statut(com.kupanga.api.immobilier.entity.StatutDemandeLocation.EN_ATTENTE)
+                .dateCreation(expiration.minusHours(72)).dateExpiration(expiration).build();
+    }
+
+    @Test
+    @DisplayName("demande de location en RDC : message sans le numéro du candidat (C6), échéance indiquée")
+    void demandeLocation_sansNumeroDuCandidat() {
+        when(demandeLocationRepository.findAvecParties(20L))
+                .thenReturn(Optional.of(demande(bienCd, LocalDateTime.now().plusHours(10))));
+
+        LienWhatsAppDTO lien = service.demandeLocation(20L, "proprio@test.cd");
+
+        assertThat(lien.url()).startsWith("https://wa.me/?text=").doesNotContain("243812345678");
+        assertThat(lien.numeroConnu()).isFalse();
+        assertThat(lien.texte()).contains("Grâce", "Kasa-Vubu", URL_CONNEXION, "valable jusqu'au");
+    }
+
+    @Test
+    @DisplayName("demande de location expirée : 409 ; autre propriétaire : 403 ; bien en France : 409")
+    void demandeLocation_refus() {
+        when(demandeLocationRepository.findAvecParties(20L))
+                .thenReturn(Optional.of(demande(bienCd, LocalDateTime.now().minusMinutes(1))));
+        assertThatThrownBy(() -> service.demandeLocation(20L, "proprio@test.cd"))
+                .extracting("status").isEqualTo(HttpStatus.CONFLICT);
+        assertThatThrownBy(() -> service.demandeLocation(20L, "intrus@test.cd"))
+                .extracting("status").isEqualTo(HttpStatus.FORBIDDEN);
+
+        Bien bienFr = Bien.builder().id(11L).pays(Pays.FR).adresse("1 rue A").ville("Paris").build();
+        when(demandeLocationRepository.findAvecParties(21L))
+                .thenReturn(Optional.of(demande(bienFr, LocalDateTime.now().plusHours(10))));
+        assertThatThrownBy(() -> service.demandeLocation(21L, "proprio@test.cd"))
+                .extracting("status").isEqualTo(HttpStatus.CONFLICT);
     }
 }

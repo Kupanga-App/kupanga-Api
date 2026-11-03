@@ -131,4 +131,28 @@ class EmailServiceImplTest {
 
         assertThat(emailMisEnFile(TypeEmail.VERIFICATION_EMAIL).html()).contains("auth/verifier-email?token=JETON");
     }
+
+    @Test
+    @DisplayName("envoyerDemandeLocation — au locataire, type DEMANDE_LOCATION, titre échappé, lien et échéance")
+    void envoyerDemandeLocation() {
+        com.kupanga.api.user.entity.User proprio = com.kupanga.api.user.entity.User.builder()
+                .firstName("Paul").lastName("Proprio").mail("p@test.fr").build();
+        com.kupanga.api.user.entity.User loc = com.kupanga.api.user.entity.User.builder()
+                .firstName("Lea").lastName("Loc").mail("l@test.fr").build();
+        com.kupanga.api.immobilier.entity.Bien bien = com.kupanga.api.immobilier.entity.Bien.builder()
+                .titre("<b>T2</b>").adresse("12 rue A").codePostal("44000").ville("Nantes").build();
+        com.kupanga.api.immobilier.entity.DemandeLocation demande = com.kupanga.api.immobilier.entity.DemandeLocation
+                .builder().id(50L).bien(bien).proprietaire(proprio).locataire(loc)
+                .dateCreation(java.time.LocalDateTime.of(2026, 11, 3, 9, 5))
+                .dateExpiration(java.time.LocalDateTime.of(2026, 11, 6, 9, 5)).build();
+
+        emailService.envoyerDemandeLocation(demande);
+
+        EmailSortant email = emailMisEnFile(TypeEmail.DEMANDE_LOCATION);
+        assertThat(email.destinataire()).isEqualTo("l@test.fr");
+        assertThat(email.html())
+                .contains("Paul Proprio", "Lea Loc", "&lt;b&gt;T2&lt;/b&gt;", "06/11/2026 à 09h05",
+                        "http://localhost:4200/demandes-location")
+                .doesNotContain("<b>T2</b>");
+    }
 }

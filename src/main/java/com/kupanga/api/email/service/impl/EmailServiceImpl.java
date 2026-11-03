@@ -9,6 +9,7 @@ import com.kupanga.api.email.file.TypeEmail;
 import com.kupanga.api.email.service.EmailService;
 import com.kupanga.api.immobilier.entity.Bien;
 import com.kupanga.api.immobilier.entity.Contrat;
+import com.kupanga.api.immobilier.entity.DemandeLocation;
 import com.kupanga.api.immobilier.entity.EtatDesLieux;
 import com.kupanga.api.immobilier.entity.Quittance;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +17,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.HtmlUtils;
 
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import static com.kupanga.api.email.constantes.Constante.*;
@@ -159,6 +161,22 @@ public class EmailServiceImpl implements EmailService {
                 fullName(edl.getProprietaire().getFirstName(), edl.getProprietaire().getLastName()));
         envoyerConfirmationEdl(edl, edl.getLocataire().getMail(),
                 fullName(edl.getLocataire().getFirstName(), edl.getLocataire().getLastName()));
+    }
+
+    @Override
+    public void envoyerDemandeLocation(DemandeLocation demande) {
+        publier(TypeEmail.DEMANDE_LOCATION, EmailSortant.html(
+                demande.getLocataire().getMail(),
+                SUJET_MAIL_DEMANDE_LOCATION,
+                String.format(CONTENU_MAIL_DEMANDE_LOCATION,
+                        fullName(demande.getLocataire().getFirstName(), demande.getLocataire().getLastName()),
+                        fullName(demande.getProprietaire().getFirstName(), demande.getProprietaire().getLastName()),
+                        buildAdresse(demande.getBien()),
+                        echapper(demande.getBien().getTitre()),
+                        demande.getDateExpiration().format(DateTimeFormatter.ofPattern("dd/MM/yyyy 'à' HH'h'mm")),
+                        appUrl + "demandes-location")
+        ), null);
+        log.debug("E-mail de demande de location {} préparé", demande.getId());
     }
 
     @Override

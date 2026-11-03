@@ -319,64 +319,6 @@ public class BienServiceImpl implements BienService {
     }
 
     @Override
-    public void affectLocataire( Authentication auth, Long bienId , Long userId) {
-
-        User proprietaire = userService.getUserByEmail(auth.getName());
-        userService.verifyIfUserIsOwner(proprietaire.getRole());
-        Bien bien = verifierProprietaire(bienId, proprietaire.getMail());
-        verifierBienActif(bien);
-        // Seuls les candidats du bien (conversation avec le propriétaire sur ce bien) peuvent être assignés :
-        // sinon un propriétaire pourrait assigner n'importe quel compte et lire son e-mail (revue TESTS-SECU).
-        // Id inconnu et non-candidat donnent la même réponse : rien n'indique si le compte existe.
-        User locataire;
-        try {
-            locataire = userService.findById(userId);
-        } catch (KupangaBusinessException e) {
-            throw locataireIntrouvable();
-        }
-        // B12 : un compte anonymisé ne peut plus être assigné
-        if (locataire.isAnonymise() || conversationRepository.findConversationWithBienIdAndEmailExpediteur(
-                bienId, proprietaire.getMail(), locataire.getMail()).isEmpty()) {
-            throw locataireIntrouvable();
-        }
-        if (locataire.getRole() != Role.ROLE_LOCATAIRE) {
-            throw new KupangaBusinessException(
-                    "L'utilisateur à assigner doit être un locataire", HttpStatus.BAD_REQUEST);
-        }
-        bien.setLocataire(locataire);
-        bienRepository.save(bien);
-
-        // Notification au locataire
-        notificationService.saveAndSend(
-                locataire,
-                NotificationType.BIEN_ASSIGNE,
-                "Un bien vous a été assigné",
-                "Le propriétaire " + proprietaire.getFirstName() + " "
-                        + proprietaire.getLastName()
-                        + " vous a assigné le bien : "
-                        + bien.getAdresse() + ", " + bien.getVille(),
-                null,
-                bien.getId()
-        );
-
-        // Confirmation au propriétaire
-        notificationService.saveAndSend(
-                proprietaire,
-                NotificationType.BIEN_ASSIGNATION_CONFIRMEE,
-                "Locataire assigné avec succès",
-                locataire.getFirstName() + " " + locataire.getLastName()
-                        + " a été assigné au bien "
-                        + bien.getAdresse() + ", " + bien.getVille() + ".",
-                null,
-                bien.getId()
-        );
-    }
-
-    private KupangaBusinessException locataireIntrouvable() {
-        return new KupangaBusinessException("Locataire introuvable pour ce bien", HttpStatus.NOT_FOUND);
-    }
-
-    @Override
     public Bien verifierProprietaire(Long bienId, String emailProprietaire) {
 
         Bien bien = findWithAllProperties(bienId);

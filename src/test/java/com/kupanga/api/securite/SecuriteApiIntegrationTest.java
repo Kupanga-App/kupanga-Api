@@ -114,6 +114,7 @@ class SecuriteApiIntegrationTest {
     @Autowired private EtatDesLieuxRepository etatDesLieuxRepository;
     @Autowired private NotificationRepository notificationRepository;
     @Autowired private ConversationRepository conversationRepository;
+    @Autowired private com.kupanga.api.immobilier.repository.DemandeLocationRepository demandeLocationRepository;
 
     // A et son locataire sont les victimes ; B et l'autre locataire sont les « intrus »
     private User proprietaireA;
@@ -274,7 +275,8 @@ class SecuriteApiIntegrationTest {
 
         assertStatut(403, patch("/biens/" + bienA.getId()).with(b)
                 .contentType(MediaType.APPLICATION_JSON).content("{\"typeBien\": \"STUDIO\", \"titre\": \"Piraté\"}"));
-        assertStatut(403, post("/biens/" + bienA.getId() + "/assigne-locataire/" + autreLocataire.getId()).with(b));
+        assertStatut(403, post("/biens/" + bienA.getId() + "/demandes-location/" + autreLocataire.getId()).with(b));
+        assertStatut(403, get("/biens/" + bienA.getId() + "/demandes-location").with(b));
         assertStatut(403, get("/users/biens/" + bienA.getId()).with(b));
         assertStatut(403, post("/users/" + bienA.getId() + "/recherche-locataire").with(b)
                 .contentType(MediaType.APPLICATION_JSON).content("{}"));
@@ -342,38 +344,63 @@ class SecuriteApiIntegrationTest {
     }
 
     @Test
-    @DisplayName("Propriétaire B : assigner à SON bien un locataire sans conversation avec lui → 404, rien d'assigné")
-    void assignation_locataireNonCandidat_refusee() throws Exception {
+    @DisplayName("Propriétaire B : demande de location à un compte sans conversation sur SON bien → 404, rien d'envoyé")
+    void demandeLocation_nonCandidat_refusee() throws Exception {
         RequestPostProcessor b = connecte(proprietaireB);
+        long demandes = demandeLocationRepository.count();
 
-        assertStatut(404, post("/biens/" + bienB.getId() + "/assigne-locataire/" + locataireA.getId()).with(b));
+        assertStatut(404, post("/biens/" + bienB.getId() + "/demandes-location/" + locataireA.getId()).with(b));
         // Conversation avec B sur un AUTRE bien que celui visé : ne rend pas candidat (filtre bienId)
         Bien autreBienB = bien("Garage B", proprietaireB, null);
         conversationRepository.save(Conversation.builder()
                 .bien(autreBienB).emailExpediteur(locataireA.getMail()).emailDestinataire(proprietaireB.getMail())
                 .build());
-        assertStatut(404, post("/biens/" + bienB.getId() + "/assigne-locataire/" + locataireA.getId()).with(b));
+        assertStatut(404, post("/biens/" + bienB.getId() + "/demandes-location/" + locataireA.getId()).with(b));
         // Id inconnu : même réponse (pas d'énumération des comptes)
-        assertStatut(404, post("/biens/" + bienB.getId() + "/assigne-locataire/999999").with(b));
+        assertStatut(404, post("/biens/" + bienB.getId() + "/demandes-location/999999").with(b));
 
+        assertThat(demandeLocationRepository.count()).isEqualTo(demandes);
         assertThat(bienRepository.findById(bienB.getId()).orElseThrow().getLocataire()).isNull();
-        // L'e-mail du locataire A n'est pas apparu dans le bien de B
-        mockMvc.perform(get("/users/biens/" + bienB.getId()).with(b))
-                .andExpect(jsonPath("$.locataire").doesNotExist());
     }
 
     @Test
-    @DisplayName("Témoin : un candidat (conversation sur le bien) peut être assigné")
-    void assignation_candidat_acceptee() throws Exception {
+    @DisplayName("Demande de location : le bien n'est assigné qu'à l'acceptation, par le seul destinataire")
+    void demandeLocation_assigneeSeulementALAcceptation() throws Exception {
         conversationRepository.save(Conversation.builder()
                 .bien(bienB).emailExpediteur(autreLocataire.getMail()).emailDestinataire(proprietaireB.getMail())
                 .build());
 
-        assertStatut(204, post("/biens/" + bienB.getId() + "/assigne-locataire/" + autreLocataire.getId())
+        String reponse = mockMvc.perform(post("/biens/" + bienB.getId() + "/demandes-location/" + autreLocataire.getId())
+                        .with(connecte(proprietaireB)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.statut").value("EN_ATTENTE"))
+                .andReturn().getResponse().getContentAsString();
+        long id = com.jayway.jsonpath.JsonPath.parse(reponse).read("$.id", Long.class);
+        // Rien n'est assigné tant que le locataire n'a pas répondu
+        assertThat(bienRepository.findById(bienB.getId()).orElseThrow().getLocataire()).isNull();
+        // Une seule demande en attente par bien
+        assertStatut(409, post("/biens/" + bienB.getId() + "/demandes-location/" + autreLocataire.getId())
                 .with(connecte(proprietaireB)));
+        // Un autre locataire ne voit pas la demande et ne peut pas y répondre
+        assertStatut(404, post("/demandes-location/" + id + "/accepter").with(connecte(locataireA)));
+        mockMvc.perform(get("/demandes-location/recues").with(connecte(locataireA)))
+                .andExpect(jsonPath("$[?(@.id == " + id + ")]").isEmpty());
+        // Le propriétaire ne peut pas accepter à la place du locataire (rôle)
+        assertStatut(403, post("/demandes-location/" + id + "/accepter").with(connecte(proprietaireB)));
+
+        mockMvc.perform(get("/demandes-location/recues").with(connecte(autreLocataire)))
+                .andExpect(jsonPath("$[0].id").value(id))
+                .andExpect(jsonPath("$[0].nomProprietaire").exists());
+        assertStatut(200, post("/demandes-location/" + id + "/accepter").with(connecte(autreLocataire)));
 
         assertThat(bienRepository.findById(bienB.getId()).orElseThrow().getLocataire().getId())
                 .isEqualTo(autreLocataire.getId());
+        // Déjà acceptée : ni nouvelle réponse, ni retrait
+        assertStatut(409, post("/demandes-location/" + id + "/refuser").with(connecte(autreLocataire)));
+        assertStatut(409, delete("/demandes-location/" + id).with(connecte(proprietaireB)));
+        // Bien désormais loué : plus de demande possible
+        assertStatut(409, post("/biens/" + bienB.getId() + "/demandes-location/" + autreLocataire.getId())
+                .with(connecte(proprietaireB)));
     }
 
     @Test

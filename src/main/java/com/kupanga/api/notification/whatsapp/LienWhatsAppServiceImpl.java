@@ -3,6 +3,7 @@ package com.kupanga.api.notification.whatsapp;
 import com.kupanga.api.exception.business.KupangaBusinessException;
 import com.kupanga.api.immobilier.entity.*;
 import com.kupanga.api.immobilier.repository.ContratRepository;
+import com.kupanga.api.immobilier.repository.DemandeLocationRepository;
 import com.kupanga.api.immobilier.repository.EtatDesLieuxRepository;
 import com.kupanga.api.immobilier.repository.QuittanceRepository;
 import com.kupanga.api.immobilier.service.BienService;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Set;
 
 @Service
@@ -35,12 +37,16 @@ public class LienWhatsAppServiceImpl implements LienWhatsAppService {
             Bonjour %s, petit rappel : le loyer de %s %d du logement situé %s (%s) \
             n'est pas encore réglé. Merci de me prévenir dès que le paiement est fait.""";
 
+    static final String TEXTE_DEMANDE_LOCATION = """
+            Bonjour %s, je vous propose de louer mon logement situé %s.             Pour accepter ou refuser, connectez-vous sur Kupanga (%s)             puis ouvrez la demande reçue dans vos notifications ou par e-mail.             Elle est valable jusqu'au %s.""";
+
     private static final Set<StatutQuittance> NON_PAYEES =
             Set.of(StatutQuittance.EN_ATTENTE, StatutQuittance.EN_RETARD, StatutQuittance.IMPAYEE);
 
     private final ContratRepository contratRepository;
     private final EtatDesLieuxRepository edlRepository;
     private final QuittanceRepository quittanceRepository;
+    private final DemandeLocationRepository demandeLocationRepository;
     private final BienService bienService;
     private final JuridictionRegistry juridictionRegistry;
     private final String urlConnexion;
@@ -49,6 +55,7 @@ public class LienWhatsAppServiceImpl implements LienWhatsAppService {
             ContratRepository contratRepository,
             EtatDesLieuxRepository edlRepository,
             QuittanceRepository quittanceRepository,
+            DemandeLocationRepository demandeLocationRepository,
             BienService bienService,
             JuridictionRegistry juridictionRegistry,
             @Value("${app.url-login}") String urlConnexion
@@ -56,6 +63,7 @@ public class LienWhatsAppServiceImpl implements LienWhatsAppService {
         this.contratRepository = contratRepository;
         this.edlRepository = edlRepository;
         this.quittanceRepository = quittanceRepository;
+        this.demandeLocationRepository = demandeLocationRepository;
         this.bienService = bienService;
         this.juridictionRegistry = juridictionRegistry;
         this.urlConnexion = urlConnexion;
@@ -115,6 +123,23 @@ public class LienWhatsAppServiceImpl implements LienWhatsAppService {
         return LienWhatsApp.creer(locataire.getTelephone(), TEXTE_RAPPEL_LOYER.formatted(
                 locataire.getFirstName(), quittance.getMois(), quittance.getAnnee(),
                 quittance.getBien().adresseComplete(), montant));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public LienWhatsAppDTO demandeLocation(Long demandeId, String emailProprietaire) {
+        DemandeLocation demande = demandeLocationRepository.findAvecParties(demandeId)
+                .orElseThrow(() -> new KupangaBusinessException("Demande de location introuvable", HttpStatus.NOT_FOUND));
+        verifierProprietaire(demande.getProprietaire(), emailProprietaire);
+        verifierCanal(demande.getBien().getPays());
+        if (demande.statutA(LocalDateTime.now()) != StatutDemandeLocation.EN_ATTENTE) {
+            throw new KupangaBusinessException(
+                    "Cette demande n'est plus en attente : envoyez-en une nouvelle", HttpStatus.CONFLICT);
+        }
+        String echeance = demande.getDateExpiration().format(DateTimeFormatter.ofPattern("dd/MM/yyyy 'à' HH'h'mm"));
+        // Jamais le numéro du candidat (C6) : WhatsApp fait choisir le contact
+        return LienWhatsApp.creer(null, TEXTE_DEMANDE_LOCATION.formatted(
+                demande.getLocataire().getFirstName(), demande.getBien().adresseComplete(), urlConnexion, echeance));
     }
 
     private static void verifierProprietaire(User proprietaire, String email) {
