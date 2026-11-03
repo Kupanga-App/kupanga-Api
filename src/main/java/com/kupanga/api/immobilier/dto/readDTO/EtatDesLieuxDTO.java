@@ -8,7 +8,7 @@ import lombok.Setter;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.Set;
+import java.util.List;
 
 @Getter
 @Setter
@@ -38,10 +38,10 @@ public class EtatDesLieuxDTO {
     private String adresseBien;
     private String typeBien;
 
-    // ─── Collections ──────────────────────────────────────────────────────────
-    private Set<PieceEdlDTO> pieces;
-    private Set<CompteurReleveDTO> compteurs;
-    private Set<CleRemiseDTO> cles;
+    // ─── Collections (ordonnées : pièces par ordre d'affichage, le reste par ordre de saisie) ─────────
+    private List<PieceEdlDTO> pieces;
+    private List<CompteurReleveDTO> compteurs;
+    private List<CleRemiseDTO> cles;
 
     // ── Sous-DTOs ─────────────────────────────────────────────────────────────
 
@@ -51,7 +51,7 @@ public class EtatDesLieuxDTO {
         private String nomPiece;
         private Integer ordre;
         private String observations;
-        private Set<ElementEdlDTO> elements;
+        private List<ElementEdlDTO> elements;   // ordre de saisie
     }
 
     @Getter @Setter

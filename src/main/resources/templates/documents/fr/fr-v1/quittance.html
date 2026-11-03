@@ -2,182 +2,110 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8"/>
-    <style th:replace="~{documents/commun/styles :: quittance}"></style>
+    <title>Quittance de loyer</title>
+    <style th:replace="~{documents/commun/styles :: document}"></style>
 </head>
-<body>
+<body th:with="nomBailleur=${proprietaire.firstName + ' ' + proprietaire.lastName},
+               nomLocataire=${locataire.firstName + ' ' + locataire.lastName},
+               terme=${moisLabel + ' ' + quittance.annee}">
 
-<!-- ── Header ── -->
-<div style="background-color: #10212B; padding: 16px 20px; margin-bottom: 28px;">
-    <table style="width: 100%; border-collapse: collapse;">
+<div class="pied">
+    <table>
         <tr>
-            <td style="vertical-align: bottom;">
-                <div class="brand">kupanga</div>
-                <div class="brand-tagline">Gestion locative</div>
-            </td>
-            <td style="text-align: right; vertical-align: bottom;">
-                <div class="doc-ref">QUITTANCE N° <span th:text="${quittance.id}"></span></div>
-                <div class="doc-ref">ÉMISE LE <span th:text="${#temporals.format(quittance.createdAt, 'dd/MM/yyyy')}"></span></div>
-            </td>
+            <td>Quittance de loyer n° <span th:text="${quittance.id}"></span></td>
+            <td style="text-align: right;">Page <span class="numero-page"></span> sur <span class="total-pages"></span></td>
         </tr>
     </table>
 </div>
 
-<!-- ── Title ── -->
-<div style="text-align: center; margin-bottom: 28px;">
-    <div class="pre-title">Reçu de paiement — Loyer <span th:text="${moisLabel + ' ' + quittance.annee}"></span></div>
-    <div class="main-title">Quittance <em>de loyer</em></div>
-    <p class="subtitle-text">
-        Atteste du paiement intégral du loyer et des charges pour le terme du mois indiqué,
-        en application de l'article 21 de la loi du 6 juillet 1989.
+<table class="entete">
+    <tr>
+        <td class="emetteur">Kupanga</td>
+        <td class="reference">
+            Quittance n° <span th:text="${quittance.id}"></span>, émise le <span th:text="${#temporals.format(quittance.createdAt, 'dd/MM/yyyy')}"></span>
+        </td>
+    </tr>
+</table>
+
+<div class="titre-bloc">
+    <p class="titre">Quittance de loyer</p>
+    <p class="sous-titre">Terme de <span th:text="${terme}"></span></p>
+    <p class="cadre-legal">Délivrée en application de l'article 21 de la loi n° 89-462 du 6 juillet 1989.</p>
+    <div class="filet-double"></div>
+</div>
+
+<table class="parties">
+    <tr>
+        <td>
+            <div class="qualite">Bailleur</div>
+            <div class="nom" th:text="${nomBailleur}"></div>
+            <div>Adresse électronique : <span th:text="${proprietaire.mail}"></span></div>
+        </td>
+        <td>
+            <div class="qualite">Locataire</div>
+            <div class="nom" th:text="${nomLocataire}"></div>
+            <div>Adresse électronique : <span th:text="${locataire.mail}"></span></div>
+        </td>
+    </tr>
+</table>
+
+<div class="article">Objet</div>
+<p>
+    Le bailleur, <strong th:text="${nomBailleur}"></strong>, déclare avoir reçu de
+    <strong th:text="${nomLocataire}"></strong>, locataire, la somme de
+    <strong th:text="${montants.f(quittance.montantTotal)}"></strong>
+    au titre du loyer et des charges du terme de <span th:text="${terme}"></span>
+    (échéance du <span th:text="${#temporals.format(quittance.dateEcheance, 'dd/MM/yyyy')}"></span>),
+    pour le logement situé au <strong th:text="${quittance.bien.adresseComplete()}"></strong>,
+    et lui en donne quittance.
+</p>
+
+<div class="indivisible">
+    <div class="article">Détail du règlement</div>
+    <table class="tableau">
+        <tr><th>Désignation</th><th class="montant">Montant</th></tr>
+        <tr>
+            <td>Loyer hors charges</td>
+            <td class="montant" th:text="${montants.f(quittance.loyerMensuel)}"></td>
+        </tr>
+        <tr>
+            <td>Provision sur charges</td>
+            <td class="montant" th:text="${montants.f(quittance.chargesMensuelles)}"></td>
+        </tr>
+        <tr class="total">
+            <td>Total reçu</td>
+            <td class="montant" th:text="${montants.f(quittance.montantTotal)}"></td>
+        </tr>
+    </table>
+
+    <table class="tableau">
+        <tr><td class="libelle">Terme</td><td th:text="${terme}"></td></tr>
+        <tr>
+            <td class="libelle">Date d'échéance</td>
+            <td th:text="${#temporals.format(quittance.dateEcheance, 'dd/MM/yyyy')}"></td>
+        </tr>
+        <tr th:if="${quittance.datePaiement != null}">
+            <td class="libelle">Date du paiement</td>
+            <td th:text="${#temporals.format(quittance.datePaiement, 'dd/MM/yyyy')}"></td>
+        </tr>
+        <!-- C8-bis : mode déclaré par le propriétaire (paiement reçu hors application) -->
+        <tr th:if="${quittance.modePaiement != null}">
+            <td class="libelle">Mode de paiement</td>
+            <td th:text="${quittance.modePaiement.libelle}"></td>
+        </tr>
+    </table>
+
+    <p style="font-size: 9.5pt;">
+        La présente quittance est délivrée sous réserve de tous les droits du bailleur, et notamment de ceux relatifs
+        à la régularisation annuelle des charges. Elle vaut décharge pour le terme considéré.
     </p>
 </div>
 
-<!-- ── 01. Désignation des parties ── -->
-<div class="section-head">01 — Désignation des parties</div>
-<table style="width: 100%; border-collapse: collapse;">
-    <tr>
-        <td style="width: 49%; vertical-align: top;">
-            <div class="partie-card">
-                <div class="partie-role-lbl">Bailleur</div>
-                <div class="name-sublabel">Nom complet</div>
-                <div class="name-big" th:text="${proprietaire.firstName + ' ' + proprietaire.lastName}"></div>
-                <div class="email-txt">Email &nbsp;<span th:text="${proprietaire.mail}"></span></div>
-            </div>
-        </td>
-        <td style="width: 2%;"></td>
-        <td style="width: 49%; vertical-align: top;">
-            <div class="partie-card">
-                <div class="partie-role-lbl">Locataire</div>
-                <div class="name-sublabel">Nom complet</div>
-                <div class="name-big" th:text="${locataire.firstName + ' ' + locataire.lastName}"></div>
-                <div class="email-txt">Email &nbsp;<span th:text="${locataire.mail}"></span></div>
-            </div>
-        </td>
-    </tr>
-</table>
-
-<!-- ── 02. Détail du règlement ── -->
-<div class="section-head">02 — Détail du règlement</div>
-
-<p class="para">
-    La présente quittance atteste avoir reçu de
-    <strong th:text="${locataire.firstName + ' ' + locataire.lastName}"></strong>,
-    locataire, la somme de <strong th:text="${montants.f(quittance.montantTotal)}"></strong>,
-    en règlement intégral du loyer et des accessoires du terme du
-    <span th:text="${#temporals.format(quittance.dateEcheance, 'dd/MM/yyyy')}"></span>,
-    pour les locaux sis au
-    <strong th:text="${quittance.bien.adresseComplete()}"></strong>.
-</p>
-
-<div style="page-break-inside: avoid;">
-<table class="fin-table">
-    <thead>
-    <tr>
-        <th>Désignation</th>
-        <th class="right">Montant</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr>
-        <td>Loyer mensuel hors charges</td>
-        <td class="right"><span th:text="${montants.f(quittance.loyerMensuel)}"></span></td>
-    </tr>
-    <tr>
-        <td>Provision sur charges</td>
-        <td class="right"><span th:text="${montants.f(quittance.chargesMensuelles)}"></span></td>
-    </tr>
-    <tr class="total-row">
-        <td>Total reçu</td>
-        <td class="right"><span th:text="${montants.f(quittance.montantTotal)}"></span></td>
-    </tr>
-    </tbody>
-</table>
-
-<div class="note">
-    La présente quittance est délivrée sous réserve de tous les droits du bailleur, et notamment de ceux relatifs
-    à la régularisation annuelle des charges. Elle vaut décharge pour le terme considéré.
-</div>
-</div><!-- end no-break table financière -->
-
-<!-- ── 03. Signature du bailleur ── -->
-<div style="page-break-inside: avoid;">
-<div class="section-head">03 — Signature du bailleur</div>
-
-<table style="width: 100%; border-collapse: collapse;">
-    <tr>
-        <td style="width: 55%; vertical-align: top; padding-right: 10px;">
-            <div class="box-card">
-                <div class="sig-role-lbl">Bailleur</div>
-                <div class="sig-name-big" th:text="${proprietaire.firstName + ' ' + proprietaire.lastName}"></div>
-
-                <img th:if="${quittance.signatureProprietaire != null}"
-                     class="sig-img"
-                     th:src="'data:image/png;base64,' + ${quittance.signatureProprietaire}"
-                     alt="Signature bailleur"/>
-                <table th:if="${quittance.signatureProprietaire == null}"
-                       style="width: 200px; height: 70px; border-collapse: collapse; border: 1px dashed #ccc7be; background-color: #edeae4;">
-                    <tr>
-                        <td style="text-align: center; vertical-align: middle; color: #b0aca4; font-size: 9px; font-style: italic;">
-                            En attente de signature
-                        </td>
-                    </tr>
-                </table>
-
-                <p th:if="${quittance.dateSignatureProprietaire != null}"
-                   class="sig-date-lbl"
-                   th:text="'Signé le ' + ${#temporals.format(quittance.dateSignatureProprietaire, 'dd/MM/yyyy à HH:mm')}"></p>
-
-                <div class="sig-made-lbl">
-                    Fait le <span th:text="${#temporals.format(quittance.createdAt, 'dd/MM/yyyy')}"></span>
-                </div>
-            </div>
-        </td>
-        <td style="width: 45%; vertical-align: top; padding-left: 10px;">
-            <div class="box-card">
-                <div style="padding-bottom: 8px; border-bottom: 1px solid #dedad3; margin-bottom: 10px;">
-                    <table style="width: 100%; border-collapse: collapse;">
-                        <tr>
-                            <td class="info-section-lbl">Émission</td>
-                            <td style="text-align: right;" class="info-section-lbl">Quittance n°</td>
-                        </tr>
-                    </table>
-                </div>
-                <table style="width: 100%; border-collapse: collapse;">
-                    <tr>
-                        <td class="info-lbl">Référence</td>
-                        <td class="info-val" th:text="${quittance.id}"></td>
-                    </tr>
-                    <tr>
-                        <td class="info-lbl">Terme</td>
-                        <td class="info-val" th:text="${moisLabel + ' ' + quittance.annee}"></td>
-                    </tr>
-                    <tr>
-                        <td class="info-lbl">Échéance</td>
-                        <td class="info-val" th:text="${#temporals.format(quittance.dateEcheance, 'dd/MM/yyyy')}"></td>
-                    </tr>
-                    <tr>
-                        <td class="info-lbl">Payée le</td>
-                        <td class="info-val" th:text="${#temporals.format(quittance.datePaiement, 'dd/MM/yyyy')}"></td>
-                    </tr>
-                    <!-- C8-bis : mode déclaré par le propriétaire (paiement reçu hors application) -->
-                    <tr th:if="${quittance.modePaiement != null}">
-                        <td class="info-lbl">Mode de paiement</td>
-                        <td class="info-val" th:text="${quittance.modePaiement.libelle}"></td>
-                    </tr>
-                </table>
-            </div>
-        </td>
-    </tr>
-</table>
-
-</div><!-- end no-break signature -->
-
-<!-- ── Footer ── -->
-<div class="page-footer">
-    <table style="width: 100%; border-collapse: collapse;">
+<div class="indivisible">
+    <table class="signatures" style="width: 50%; margin-left: 50%;">
         <tr>
-            <td class="footer-brand">Kupanga — Gestion locative</td>
-            <td class="footer-ref-txt">Quittance n° <span th:text="${quittance.id}"></span> — Page 1 / 1</td>
+            <td th:replace="~{documents/commun/fragments :: signature('Le bailleur', ${nomBailleur},
+                    ${quittance.signatureProprietaire}, ${quittance.dateSignatureProprietaire}, ${quittance.createdAt})}"></td>
         </tr>
     </table>
 </div>

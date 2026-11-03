@@ -6,6 +6,8 @@ import com.kupanga.api.user.entity.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
+import java.util.List;
+
 @Mapper(componentModel = "spring", uses = DocumentPdfUrlMapper.class)
 public interface EtatDesLieuxMapper {
 
@@ -24,13 +26,25 @@ public interface EtatDesLieuxMapper {
             "java(edl.getBien() != null && edl.getBien().getTypeBien() != null ? edl.getBien().getTypeBien().name() : null)"
     )
     @Mapping(target = "urlPdf", source = "clePdf", qualifiedByName = "urlEtatDesLieux")
-
+    // Même ordre que le PDF : pièces par « ordre » puis saisie, compteurs et clés par ordre de saisie
+    @Mapping(target = "pieces", expression = "java(piecesDTO(edl.piecesTriees()))")
+    @Mapping(target = "compteurs", expression = "java(compteursDTO(edl.compteursTries()))")
+    @Mapping(target = "cles", expression = "java(clesDTO(edl.clesTriees()))")
     EtatDesLieuxDTO toDTO(EtatDesLieux edl);
+
+    List<EtatDesLieuxDTO.PieceEdlDTO> piecesDTO(List<PieceEdl> pieces);
+
+    List<EtatDesLieuxDTO.ElementEdlDTO> elementsDTO(List<ElementEdl> elements);
+
+    List<EtatDesLieuxDTO.CompteurReleveDTO> compteursDTO(List<CompteurReleve> compteurs);
+
+    List<EtatDesLieuxDTO.CleRemiseDTO> clesDTO(List<CleRemise> cles);
 
     // ─────────────────────────────────────────────────────────────
     // PieceEdl → PieceEdlDTO
     // ─────────────────────────────────────────────────────────────
 
+    @Mapping(target = "elements", expression = "java(elementsDTO(piece.elementsTries()))")
     EtatDesLieuxDTO.PieceEdlDTO toDTO(PieceEdl piece);
 
     // ─────────────────────────────────────────────────────────────

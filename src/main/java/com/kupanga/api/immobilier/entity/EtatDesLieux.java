@@ -10,7 +10,9 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.Comparator;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -109,4 +111,28 @@ public class EtatDesLieux {
 
     @OneToMany(mappedBy = "etatDesLieux", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<CleRemise> cles = new HashSet<>();
+
+    // ─── Ordre d'affichage (PDF) ──────────────────────────────────────────────
+    // Méthodes sans préfixe « get » : ni Hibernate ni MapStruct ne les prennent pour des propriétés.
+
+    /** Pièces dans l'ordre d'affichage : {@code ordre}, puis ordre de saisie (id). */
+    public List<PieceEdl> piecesTriees() {
+        return trier(pieces, Comparator.comparing(PieceEdl::getOrdre, Comparator.nullsLast(Comparator.<Integer>naturalOrder()))
+                .thenComparing(PieceEdl::getId, Comparator.nullsLast(Comparator.<Long>naturalOrder())));
+    }
+
+    /** Compteurs dans l'ordre de saisie. */
+    public List<CompteurReleve> compteursTries() {
+        return trier(compteurs, Comparator.comparing(CompteurReleve::getId, Comparator.nullsLast(Comparator.<Long>naturalOrder())));
+    }
+
+    /** Clés dans l'ordre de saisie. */
+    public List<CleRemise> clesTriees() {
+        return trier(cles, Comparator.comparing(CleRemise::getId, Comparator.nullsLast(Comparator.<Long>naturalOrder())));
+    }
+
+    /** Tri stable : à clé égale (ou absente), l'ordre d'itération de l'ensemble est conservé. */
+    static <T> List<T> trier(Set<T> elements, Comparator<T> ordre) {
+        return elements == null ? List.of() : elements.stream().sorted(ordre).toList();
+    }
 }

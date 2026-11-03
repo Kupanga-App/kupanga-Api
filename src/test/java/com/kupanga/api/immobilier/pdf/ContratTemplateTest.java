@@ -199,7 +199,7 @@ class ContratTemplateTest {
     void bailRdc_provisoire_sansDroitFrancais() {
         String html = rendre(contrat(bienKinshasa()));
 
-        assertThat(html).contains("MODÈLE PROVISOIRE — À FAIRE VALIDER PAR UN JURISTE");
+        assertThat(html).contains("MODÈLE PROVISOIRE, À FAIRE VALIDER PAR UN JURISTE");
         assertThat(html).contains("À RÉDIGER ET À FAIRE VALIDER PAR UN JURISTE");
         assertThat(html).contains("Obligations du bailleur", "Durée du préavis et conditions de résiliation");
         assertThat(html).doesNotContain("89-462", "6 juillet 1989", "Diagnostic de performance énergétique");
@@ -297,5 +297,71 @@ class ContratTemplateTest {
                 .typeCompteur(com.kupanga.api.immobilier.entity.TypeCompteur.CASH_POWER).index(42.5).unite("kWh")
                 .etatDesLieux(edl).build());
         assertThat(rendre(edl)).contains("Électricité prépayée (Cash Power)").doesNotContain("CASH_POWER");
+    }
+
+    @Test
+    @DisplayName("PDF de l'EDL : pièces dans l'ordre d'affichage, éléments dans l'ordre de saisie, quel que soit l'ordre de l'ensemble")
+    void edl_piecesEtElementsTries() {
+        EtatDesLieux edl = edl(bien(Pays.FR, Devise.EUR));
+        // ordre d'itération volontairement désordonné : Cuisine (3), Entrée (1), Séjour (2)
+        Object[][] pieces = {{"Cuisine", 3, 30L}, {"Entrée", 1, 10L}, {"Séjour", 2, 20L}};
+        for (Object[] p : pieces) {
+            com.kupanga.api.immobilier.entity.PieceEdl piece = com.kupanga.api.immobilier.entity.PieceEdl.builder()
+                    .id((Long) p[2]).nomPiece((String) p[0]).ordre((Integer) p[1]).etatDesLieux(edl)
+                    .elements(new java.util.LinkedHashSet<>()).build();
+            for (long id : new long[]{3, 1, 2}) {
+                piece.getElements().add(com.kupanga.api.immobilier.entity.ElementEdl.builder().id((Long) p[2] + id)
+                        .typeElement(com.kupanga.api.immobilier.entity.TypeElement.MUR)
+                        .etatElement(com.kupanga.api.immobilier.entity.EtatElement.BON)
+                        .description(p[0] + "-elt" + id).piece(piece).build());
+            }
+            edl.getPieces().add(piece);
+        }
+
+        String html = rendre(edl);
+
+        assertThat(html).containsSubsequence("5.1 Entrée", "5.2 Séjour", "5.3 Cuisine");
+        assertThat(html).containsSubsequence("Entrée-elt1", "Entrée-elt2", "Entrée-elt3");
+        assertThat(html).contains("Murs", "Bon état").doesNotContain(">MUR<", ">BON<");
+    }
+
+    @Test
+    @DisplayName("Texte des documents : ni tiret long comme séparateur, ni forme « (e) » / « (s) », ni formule de remplissage")
+    void texteSansTournuresMecaniques() {
+        Quittance quittance = Quittance.builder().id(5L).bien(bienKinshasa()).proprietaire(proprio).locataire(locataire)
+                .pays(Pays.CD).devise(Devise.USD).modeleVersion("cd-v1").mois("janvier").annee(2026)
+                .loyerMensuel(new BigDecimal("500")).chargesMensuelles(BigDecimal.ZERO)
+                .montantTotal(new BigDecimal("500")).dateEcheance(LocalDate.of(2026, 1, 5))
+                .statut(StatutQuittance.EN_ATTENTE).build();
+        Quittance quittanceFr = Quittance.builder().id(7L).bien(bien(Pays.FR, Devise.EUR)).proprietaire(proprio)
+                .locataire(locataire).pays(Pays.FR).devise(Devise.EUR).modeleVersion("fr-v1").mois("janvier").annee(2026)
+                .loyerMensuel(new BigDecimal("500")).chargesMensuelles(BigDecimal.ZERO)
+                .montantTotal(new BigDecimal("500")).dateEcheance(LocalDate.of(2026, 1, 5))
+                .statut(StatutQuittance.EN_ATTENTE).build();
+
+        for (String html : new String[]{rendre(contrat(bien(Pays.FR, Devise.EUR))), rendre(contrat(bienKinshasa())),
+                rendre(quittanceFr), rendre(quittance), rendre(edl(bien(Pays.FR, Devise.EUR))), rendre(edl(bienKinshasa()))}) {
+            String texte = html.replaceAll("(?s)<!--.*?-->", "").replaceAll("(?s)<style.*?</style>", "");
+            assertThat(texte).doesNotContain(" — ", "— ", "(e)", "(s)", "soussigné(e)",
+                    "ont été portées à la connaissance", "déclarent avoir pris connaissance", "comme suit",
+                    "qui en reconnaissent", "expressément");
+        }
+    }
+
+    @Test
+    @DisplayName("Nombres à la française : surface et index de compteur sans « .0 », virgule décimale ; « Article premier »")
+    void nombresALaFrancaise() {
+        Bien bien = bien(Pays.FR, Devise.EUR);
+        bien.setSurfaceHabitable(48.0);
+        String bail = rendre(contrat(bien));
+        assertThat(bail).contains("48 m²", "Article premier").doesNotContain("48.0", "Article 1er");
+
+        bien.setSurfaceHabitable(48.5);
+        EtatDesLieux edl = edl(bien);
+        edl.getCompteurs().add(com.kupanga.api.immobilier.entity.CompteurReleve.builder().id(1L)
+                .typeCompteur(com.kupanga.api.immobilier.entity.TypeCompteur.ELECTRICITE).index(12345.0).etatDesLieux(edl).build());
+        edl.getCompteurs().add(com.kupanga.api.immobilier.entity.CompteurReleve.builder().id(2L)
+                .typeCompteur(com.kupanga.api.immobilier.entity.TypeCompteur.EAU_FROIDE).index(42.5).etatDesLieux(edl).build());
+        assertThat(rendre(edl)).contains("48,50 m²", "12 345", "42,50").doesNotContain("12345.0", "42.5");
     }
 }

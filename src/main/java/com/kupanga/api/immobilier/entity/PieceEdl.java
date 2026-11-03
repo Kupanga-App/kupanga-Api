@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -38,4 +39,9 @@ public class PieceEdl {
     @OneToMany(mappedBy = "piece", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("id ASC")
     private Set<ElementEdl> elements = new HashSet<>();
+
+    /** Éléments dans l'ordre de saisie (id) ; méthode sans préfixe « get » (pas une propriété JPA ni MapStruct). */
+    public List<ElementEdl> elementsTries() {
+        return EtatDesLieux.trier(elements, Comparator.comparing(ElementEdl::getId, Comparator.nullsLast(Comparator.<Long>naturalOrder())));
+    }
 }

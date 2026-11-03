@@ -22,7 +22,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.UUID;
 
 @Service
@@ -77,12 +77,16 @@ public class EtatDesLieuxServiceImpl implements EtatDesLieuxService {
 
         // ← Le builder ignore les initialiseurs inline = new HashSet<>()
         //   sur les entités JPA — initialisation explicite obligatoire
-        edl.setPieces(new HashSet<>());
-        edl.setCompteurs(new HashSet<>());
-        edl.setCles(new HashSet<>());
+        //   LinkedHashSet : l'ordre de saisie est conservé jusqu'à l'insertion (ids croissants) et dans le PDF
+        edl.setPieces(new LinkedHashSet<>());
+        edl.setCompteurs(new LinkedHashSet<>());
+        edl.setCles(new LinkedHashSet<>());
 
         if (dto.getPieces() != null) {
-            dto.getPieces().forEach(pDto -> edl.getPieces().add(buildPiece(pDto, edl)));
+            int position = 0;
+            for (EtatDesLieuxFormDTO.PieceEdlFormDTO pDto : dto.getPieces()) {
+                edl.getPieces().add(buildPiece(pDto, edl, ++position));
+            }
         }
 
         if (dto.getCompteurs() != null) {
@@ -257,16 +261,17 @@ public class EtatDesLieuxServiceImpl implements EtatDesLieuxService {
         return edl;
     }
 
-    private PieceEdl buildPiece(EtatDesLieuxFormDTO.PieceEdlFormDTO dto, EtatDesLieux edl) {
+    /** {@code position} : rang de la pièce dans la saisie, utilisé comme ordre d'affichage si aucun n'est fourni. */
+    private PieceEdl buildPiece(EtatDesLieuxFormDTO.PieceEdlFormDTO dto, EtatDesLieux edl, int position) {
         PieceEdl piece = PieceEdl.builder()
                 .nomPiece(dto.getNomPiece())
-                .ordre(dto.getOrdre())
+                .ordre(dto.getOrdre() != null ? dto.getOrdre() : position)
                 .observations(dto.getObservations())
                 .etatDesLieux(edl)
                 .build();
 
         // ← Même problème sur PieceEdl
-        piece.setElements(new HashSet<>());
+        piece.setElements(new LinkedHashSet<>());
 
         if (dto.getElements() != null) {
             dto.getElements().forEach(eDto -> {

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   J5 : fragments communs aux modèles de documents de tous les pays.
-  Styles en ligne (Flying Saucer) : ces fragments ne dépendent pas des feuilles de style de chaque document.
+  Styles en ligne (Flying Saucer) : ces fragments ne dépendent pas de la feuille de style du document.
 -->
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
@@ -11,13 +11,10 @@
   été validé par un juriste du pays. À retirer du modèle seulement après cette validation.
 -->
 <div th:fragment="bandeauProvisoire"
-     style="border: 2px solid #b3261e; background-color: #fdecea; color: #b3261e; padding: 10px 14px; margin-bottom: 20px; text-align: center; font-size: 10px; font-weight: bold;">
-    MODÈLE PROVISOIRE — À FAIRE VALIDER PAR UN JURISTE AVANT TOUTE UTILISATION.
+     style="border: 1pt solid #000000; padding: 6pt 8pt; margin-bottom: 14pt; text-align: center; font-size: 9pt;">
+    <strong>MODÈLE PROVISOIRE, À FAIRE VALIDER PAR UN JURISTE AVANT TOUTE UTILISATION.</strong>
     <br/>
-    <span style="font-weight: normal;">
-        Ce document n'a pas encore été relu par un juriste du pays où se situe le logement :
-        les clauses marquées « à rédiger » ne sont pas encore écrites et aucune référence légale n'y figure.
-    </span>
+    Les clauses marquées « à rédiger » ne sont pas encore écrites. Aucune référence légale n'y figure.
 </div>
 
 <!--
@@ -25,11 +22,27 @@
   Paramètre : titre de la clause.
 -->
 <div th:fragment="clauseAValider(titre)"
-     style="border: 1px dashed #b3261e; background-color: #fff8f6; padding: 10px 12px; margin: 6px 0 14px 0; font-size: 9.5px; color: #5c1a14; page-break-inside: avoid;">
-    <strong th:text="${titre}">Clause</strong>
-    — <em>À RÉDIGER ET À FAIRE VALIDER PAR UN JURISTE.</em>
-    Le texte de cette clause sera fourni après relecture juridique ; en attendant, elle n'engage pas les parties.
+     style="border: 0.5pt dashed #000000; padding: 5pt 8pt; margin: 4pt 0 8pt 0; font-size: 9.5pt; page-break-inside: avoid;">
+    <strong th:text="${titre + '.'}">Clause.</strong>
+    <em>À RÉDIGER ET À FAIRE VALIDER PAR UN JURISTE.</em>
+    Tant que son texte n'est pas rédigé, cette clause n'engage pas les parties.
 </div>
+
+<!--
+  Bloc de signature d'une partie. Paramètres : qualité (« Le bailleur »), nom complet, image PNG en base64
+  (ou null), date et heure de la signature (ou null), date de l'acte (« Fait le »).
+-->
+<td th:fragment="signature(qualite, nom, image, signeLe, faitLe)">
+    <div style="font-weight: bold;" th:text="${qualite}">Le bailleur</div>
+    <div th:text="${nom}">Nom</div>
+    <img th:if="${image != null}" class="signature-img"
+         th:src="'data:image/png;base64,' + ${image}" alt="Signature"/>
+    <div th:if="${image == null}" class="signature-attente">En attente de signature</div>
+    <div class="mention" th:if="${signeLe != null}"
+         th:text="'Signé électroniquement le ' + ${#temporals.format(signeLe, 'dd/MM/yyyy à HH:mm')}"></div>
+    <div class="mention" th:if="${faitLe != null}"
+         th:text="'Fait le ' + ${#temporals.format(faitLe, 'dd/MM/yyyy')}"></div>
+</td>
 
 </body>
 </html>
