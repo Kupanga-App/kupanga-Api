@@ -72,7 +72,7 @@ class EtatDesLieuxSpecificationTest {
     @DisplayName("parUtilisateur PROPRIETAIRE — retourne les EDL du proprio")
     void build_roleProprietaire_retourneEdlDuProprio() {
         List<EtatDesLieux> result = edlRepository.findAll(
-                spec.build(emptyDto(), proprio.getId(), Role.ROLE_PROPRIETAIRE));
+                spec.build(emptyDto(), proprio.getId()));
 
         assertThat(result).extracting(EtatDesLieux::getId)
                 .containsExactlyInAnyOrder(e1.getId(), e2.getId());
@@ -85,7 +85,7 @@ class EtatDesLieuxSpecificationTest {
                 0, 10, null, Sort.Direction.ASC);
 
         List<EtatDesLieux> result = edlRepository.findAll(
-                spec.build(dto, proprio.getId(), Role.ROLE_PROPRIETAIRE));
+                spec.build(dto, proprio.getId()));
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getType()).isEqualTo(TypeEtat.ENTREE);
@@ -98,7 +98,7 @@ class EtatDesLieuxSpecificationTest {
                 0, 10, null, Sort.Direction.ASC);
 
         List<EtatDesLieux> result = edlRepository.findAll(
-                spec.build(dto, proprio.getId(), Role.ROLE_PROPRIETAIRE));
+                spec.build(dto, proprio.getId()));
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getStatut()).isEqualTo(StatutEdl.SIGNE);

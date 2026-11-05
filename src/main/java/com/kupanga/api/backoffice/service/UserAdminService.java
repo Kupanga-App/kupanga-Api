@@ -17,6 +17,7 @@ import com.kupanga.api.immobilier.entity.StatutEdl;
 import com.kupanga.api.immobilier.repository.BienRepository;
 import com.kupanga.api.immobilier.repository.ContratRepository;
 import com.kupanga.api.immobilier.repository.DemandeLocationRepository;
+import com.kupanga.api.immobilier.repository.LocationRepository;
 import com.kupanga.api.immobilier.repository.EtatDesLieuxRepository;
 import com.kupanga.api.immobilier.repository.QuittanceRepository;
 import com.kupanga.api.stockage.service.StockageService;
@@ -64,6 +65,7 @@ public class UserAdminService {
     private final BienRepository            bienRepository;
     private final ContratRepository         contratRepository;
     private final DemandeLocationRepository demandeLocationRepository;
+    private final LocationRepository locationRepository;
     private final QuittanceRepository       quittanceRepository;
     private final EtatDesLieuxRepository    etatDesLieuxRepository;
     private final MessageRepository         messageRepository;
@@ -129,6 +131,8 @@ public class UserAdminService {
         if (!aDesDonneesLiees(id)) {
             messageRepository.supprimerParUtilisateur(id);
             conversationRepository.supprimerParEmail(mail);
+            // Locations avant les demandes (clé étrangère locations.demande_id)
+            locationRepository.supprimerParUtilisateur(id);
             demandeLocationRepository.supprimerParUtilisateur(id);
             userRepository.deleteById(id);
             supprimerPhotoApresCommit(photo, id);
@@ -142,8 +146,14 @@ public class UserAdminService {
         etatDesLieuxRepository.expirerNonSignesDeUtilisateur(id, StatutEdl.SIGNE, StatutEdl.EXPIRE);
         // Demandes de location en attente (envoyées ou reçues) retirées
         demandeLocationRepository.annulerEnAttenteDeUtilisateur(id, maintenant);
+        // Réservations (comme candidat ou propriétaire) annulées, locations en cours du locataire terminées
+        locationRepository.annulerReservationsDeUtilisateur(id, maintenant);
+        locationRepository.terminerActivesDuLocataire(id, maintenant);
+        // Fin de bail : propriétaire anonymisé, ses locations se terminent et ses biens sont libérés
+        locationRepository.terminerActivesDuProprietaire(id, maintenant);
         bienRepository.archiverParProprietaire(id, maintenant);
         bienRepository.retirerLocataire(id);
+        bienRepository.libererBiensDuProprietaire(id);
         conversationRepository.remplacerEmail(mail, mailAnonyme);
 
         // Relu après les mises à jour en masse (elles vident le contexte de persistance)
@@ -201,5 +211,23 @@ public class UserAdminService {
     @Transactional(readOnly = true)
     public long countByRole(Role role) {
         return userRepository.countByRole(role);
+    }
+
+    /**
+     * Lot 3 : le rôle choisi à l'inscription ne dit plus rien (un compte peut posséder et louer) ; les statistiques
+     * comptent les comptes qui possèdent au moins un bien.
+     */
+    public long countProprietaires() {
+        return bienRepository.countProprietaires();
+    }
+
+    /** Lot 3 : comptes actifs sans bien ni logement (inscrits qui cherchent, ou pas encore lancés). */
+    public long countSansBienNiLogement() {
+        return userRepository.countSansBienNiLogement();
+    }
+
+    /** Lot 3 : comptes qui louent actuellement au moins un logement. */
+    public long countLocataires() {
+        return bienRepository.countLocataires();
     }
 }

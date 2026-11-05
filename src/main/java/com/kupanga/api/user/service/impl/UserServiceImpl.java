@@ -59,23 +59,6 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    @Override
-    public void verifyIfUserIsTenant(Role role) throws InvalidRoleException{
-
-        if(!Role.ROLE_LOCATAIRE.equals(role)){
-
-            throw new InvalidRoleException("L'utilisateur n'a pas le rôle de locataire pour accéder à cette ressource :" + role);
-        }
-    }
-
-    @Override
-    public void verifyIfUserIsOwner(Role role) throws InvalidRoleException{
-
-        if(!Role.ROLE_PROPRIETAIRE.equals(role)){
-
-            throw new InvalidRoleException("L'utilisateur n'a pas le rôle de propriétaire pour accéder à cette ressource :" + role);
-        }
-    }
 
     @Override
     public void isCorrectPassword(String passwordLogin , String passwordUser){

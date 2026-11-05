@@ -1,5 +1,6 @@
 package com.kupanga.api.chat.service;
 
+import com.kupanga.api.immobilier.service.LocationService;
 import com.kupanga.api.juridiction.Pays;
 import com.kupanga.api.authentification.ratelimit.LimiteTentatives;
 import com.kupanga.api.authentification.ratelimit.LimiteurTentatives;
@@ -47,6 +48,11 @@ class MessageServiceImplTest {
     @Mock private SimpMessagingTemplate  messagingTemplate;
     @Mock private BienService            bienService;
     @Mock private LimiteurTentatives     limiteurTentatives;
+
+    @Mock
+
+    private LocationService locationService;
+
 
     @InjectMocks
     private MessageServiceImpl messageService;
@@ -353,6 +359,23 @@ class MessageServiceImplTest {
 
         verify(conversationService).createConversation(1L, "alice@test.com", "bob@test.com");
         verify(messagingTemplate).convertAndSendToUser(eq("bob@test.com"), eq("/queue/messages"), eq(messageDTO));
+    }
+
+    @Test
+    @DisplayName("Réservation (2026-11-05) — nouveau contact sur un bien réservé par un autre → 403, aucune conversation")
+    void envoyerMessage_bienReserve_nouveauContactRefuse() {
+        MessagePayload payload = new MessagePayload("Bonjour", "bob@test.com", 1L);
+        User candidat = User.builder().id(99L).mail("carol@test.com").build();
+
+        when(userService.getUserByEmail("alice@test.com")).thenReturn(expediteur);
+        when(bienService.findById(1L)).thenReturn(bienDeBob(null));
+        when(conversationService.findConversationWithBienIdAndEmailExpediteur(1L, "alice@test.com", "bob@test.com"))
+                .thenReturn(null);
+        when(locationService.reservationValable(1L)).thenReturn(java.util.Optional.of(
+                com.kupanga.api.immobilier.entity.Location.builder().id(5L).locataire(candidat).build()));
+
+        assertRefus(payload, "alice@test.com", HttpStatus.FORBIDDEN);
+        verify(conversationService, never()).createConversation(any(), any(), any());
     }
 
     @Test

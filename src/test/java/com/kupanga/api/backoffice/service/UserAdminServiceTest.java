@@ -1,5 +1,6 @@
 package com.kupanga.api.backoffice.service;
 
+import com.kupanga.api.immobilier.repository.LocationRepository;
 import com.kupanga.api.authentification.entity.RefreshToken;
 import com.kupanga.api.authentification.repository.JetonVerificationEmailRepository;
 import com.kupanga.api.authentification.repository.PasswordResetTokenRepository;
@@ -55,6 +56,11 @@ class UserAdminServiceTest {
     @Mock private StockageService                  stockageService;
     @Mock private com.kupanga.api.user.mapper.PhotoProfilUrlMapper photoProfilUrlMapper;
     @Mock private com.kupanga.api.email.file.EmailEnFileRepository emailEnFileRepository;
+
+    @Mock
+
+    private LocationRepository locationRepository;
+
 
     @InjectMocks
     private UserAdminService userAdminService;

@@ -10,7 +10,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -41,7 +40,6 @@ public class DemandeLocationController {
             @ApiResponse(responseCode = "404", description = "Bien introuvable, ou personne qui n'a pas écrit au sujet de ce bien"),
             @ApiResponse(responseCode = "409", description = "Bien archivé, déjà loué, ou demande déjà en attente")
     })
-    @PreAuthorize("hasAuthority('ROLE_PROPRIETAIRE')")
     @PostMapping("/biens/{bienId}/demandes-location/{locataireId}")
     public ResponseEntity<DemandeLocationDTO> envoyer(
             @Parameter(description = "Identifiant du bien") @PathVariable Long bienId,
@@ -57,7 +55,6 @@ public class DemandeLocationController {
             @ApiResponse(responseCode = "403", description = "Pas propriétaire de ce bien"),
             @ApiResponse(responseCode = "404", description = "Bien introuvable")
     })
-    @PreAuthorize("hasAuthority('ROLE_PROPRIETAIRE')")
     @GetMapping("/biens/{bienId}/demandes-location")
     public ResponseEntity<List<DemandeLocationDTO>> duBien(@PathVariable Long bienId, Authentication auth) {
         return ResponseEntity.ok(demandeLocationService.duBien(auth.getName(), bienId));
@@ -70,7 +67,6 @@ public class DemandeLocationController {
             @ApiResponse(responseCode = "404", description = "Demande introuvable"),
             @ApiResponse(responseCode = "409", description = "La demande n'est plus en attente")
     })
-    @PreAuthorize("hasAuthority('ROLE_PROPRIETAIRE')")
     @DeleteMapping("/demandes-location/{id}")
     public ResponseEntity<Void> annuler(@PathVariable Long id, Authentication auth) {
         demandeLocationService.annuler(auth.getName(), id);
@@ -78,7 +74,6 @@ public class DemandeLocationController {
     }
 
     @Operation(summary = "Demandes reçues par le locataire connecté", description = "Demandes en attente et non expirées.")
-    @PreAuthorize("hasAuthority('ROLE_LOCATAIRE')")
     @GetMapping("/demandes-location/recues")
     public ResponseEntity<List<DemandeLocationDTO>> recues(Authentication auth) {
         return ResponseEntity.ok(demandeLocationService.recues(auth.getName()));
@@ -91,7 +86,6 @@ public class DemandeLocationController {
             @ApiResponse(responseCode = "409", description = "Demande déjà traitée, bien archivé ou déjà loué"),
             @ApiResponse(responseCode = "410", description = "Demande expirée")
     })
-    @PreAuthorize("hasAuthority('ROLE_LOCATAIRE')")
     @PostMapping("/demandes-location/{id}/accepter")
     public ResponseEntity<DemandeLocationDTO> accepter(@PathVariable Long id, Authentication auth) {
         return ResponseEntity.ok(demandeLocationService.accepter(auth.getName(), id));
@@ -104,7 +98,6 @@ public class DemandeLocationController {
             @ApiResponse(responseCode = "409", description = "Demande déjà traitée"),
             @ApiResponse(responseCode = "410", description = "Demande expirée")
     })
-    @PreAuthorize("hasAuthority('ROLE_LOCATAIRE')")
     @PostMapping("/demandes-location/{id}/refuser")
     public ResponseEntity<DemandeLocationDTO> refuser(@PathVariable Long id, Authentication auth) {
         return ResponseEntity.ok(demandeLocationService.refuser(auth.getName(), id));

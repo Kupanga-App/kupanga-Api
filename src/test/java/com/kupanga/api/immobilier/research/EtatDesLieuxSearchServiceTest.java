@@ -72,7 +72,7 @@ class EtatDesLieuxSearchServiceTest {
                 0, 10, null, Sort.Direction.DESC);
 
         when(userService.getUserByEmail(proprietaire.getMail())).thenReturn(proprietaire);
-        when(edlSpecification.build(eq(dto), eq(1L), eq(Role.ROLE_PROPRIETAIRE)))
+        when(edlSpecification.build(eq(dto), eq(1L)))
                 .thenReturn(mock(Specification.class));
         when(edlRepository.findAll(any(Specification.class), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of(edl)));
@@ -91,7 +91,7 @@ class EtatDesLieuxSearchServiceTest {
                 0, 10, null, Sort.Direction.DESC);
 
         when(userService.getUserByEmail(proprietaire.getMail())).thenReturn(proprietaire);
-        when(edlSpecification.build(any(), anyLong(), any())).thenReturn(mock(Specification.class));
+        when(edlSpecification.build(any(), anyLong())).thenReturn(mock(Specification.class));
         when(edlRepository.findAll(any(Specification.class), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(Collections.emptyList()));
 
@@ -107,7 +107,7 @@ class EtatDesLieuxSearchServiceTest {
                 1, 3, "dateRealisation", Sort.Direction.ASC);
 
         when(userService.getUserByEmail(proprietaire.getMail())).thenReturn(proprietaire);
-        when(edlSpecification.build(any(), anyLong(), any())).thenReturn(mock(Specification.class));
+        when(edlSpecification.build(any(), anyLong())).thenReturn(mock(Specification.class));
 
         ArgumentCaptor<Pageable> captor = ArgumentCaptor.forClass(Pageable.class);
         when(edlRepository.findAll(any(Specification.class), captor.capture()))

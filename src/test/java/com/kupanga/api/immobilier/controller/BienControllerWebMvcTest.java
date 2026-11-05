@@ -238,20 +238,17 @@ class BienControllerWebMvcTest {
     }
 
     @Test
-    @DisplayName("POST /biens — locataire : 403 (P0-1)")
+    @DisplayName("Lot 3 : POST /biens — un compte au profil « locataire » peut publier un bien (il en devient propriétaire)")
     @WithMockUser(username = "locataire@test.com", roles = "LOCATAIRE")
-    void createBien_asLocataire_shouldReturn403() throws Exception {
+    void createBien_asLocataire_autorise() throws Exception {
         MockMultipartFile bienPart = new MockMultipartFile(
                 "bienFormDTO", "", "application/json",
                 objectMapper.writeValueAsBytes(bienFormValide()));
 
         mockMvc.perform(multipart("/biens").file(bienPart))
-                .andExpect(status().isForbidden())
-                // EXC : corps ApiErrorResponse, pas une 500
-                .andExpect(jsonPath("$.status").value(403))
-                .andExpect(jsonPath("$.message").value("Accès refusé"));
+                .andExpect(status().is2xxSuccessful());
 
-        verify(bienService, never()).createBien(any(), any(), any());
+        verify(bienService).createBien(any(), any(), any());
     }
 
     @Test

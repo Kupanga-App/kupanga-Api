@@ -8,7 +8,8 @@ import com.kupanga.api.immobilier.dto.readDTO.DemandeLocationDTO;
 import com.kupanga.api.immobilier.entity.Bien;
 import com.kupanga.api.immobilier.entity.DemandeLocation;
 import com.kupanga.api.immobilier.entity.StatutDemandeLocation;
-import com.kupanga.api.immobilier.repository.BienRepository;
+import com.kupanga.api.immobilier.entity.Location;
+import com.kupanga.api.immobilier.entity.StatutLocation;
 import com.kupanga.api.immobilier.repository.DemandeLocationRepository;
 import com.kupanga.api.immobilier.service.impl.DemandeLocationServiceImplAccess;
 import com.kupanga.api.juridiction.Pays;
@@ -38,7 +39,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-@DisplayName("DemandeLocationService : le bien n'est assigné qu'avec l'accord du locataire")
+@DisplayName("DemandeLocationService : le bien n'est réservé qu'avec l'accord du candidat")
 class DemandeLocationServiceImplTest {
 
     private static final ZoneId ZONE = ZoneId.of("Europe/Paris");
@@ -46,7 +47,7 @@ class DemandeLocationServiceImplTest {
     private static final LocalDateTime MAINTENANT = LocalDateTime.ofInstant(INSTANT, ZONE);
 
     @Mock private DemandeLocationRepository demandeRepository;
-    @Mock private BienRepository bienRepository;
+    @Mock private LocationService locationService;
     @Mock private ConversationRepository conversationRepository;
     @Mock private BienService bienService;
     @Mock private UserService userService;
@@ -60,7 +61,7 @@ class DemandeLocationServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        service = DemandeLocationServiceImplAccess.creer(demandeRepository, bienRepository, conversationRepository,
+        service = DemandeLocationServiceImplAccess.creer(demandeRepository, locationService, conversationRepository,
                 bienService, userService, notificationService, emailService, Clock.fixed(INSTANT, ZONE));
         proprietaire = User.builder().id(1L).firstName("Paul").lastName("Proprio").mail("proprio@test.fr")
                 .role(Role.ROLE_PROPRIETAIRE).build();
@@ -104,7 +105,8 @@ class DemandeLocationServiceImplTest {
         assertThat(dto.statut()).isEqualTo(StatutDemandeLocation.EN_ATTENTE);
         assertThat(dto.dateExpiration()).isEqualTo(MAINTENANT.plusHours(72));
         assertThat(bien.getLocataire()).isNull();
-        verify(bienRepository, never()).save(any());
+        verify(locationService).verifierBienLibre(bien, MAINTENANT);
+        verify(locationService, never()).reserver(any(), any());
         verify(demandeRepository).expirerEchuesDuBien(10L, MAINTENANT);
         verify(notificationService).saveAndSend(eq(locataire), eq(NotificationType.DEMANDE_LOCATION),
                 anyString(), anyString(), isNull(), eq(50L));
@@ -112,10 +114,11 @@ class DemandeLocationServiceImplTest {
     }
 
     @Test
-    @DisplayName("envoyer : bien déjà loué → 409, rien n'est envoyé")
+    @DisplayName("envoyer : bien déjà loué ou réservé → 409, rien n'est envoyé")
     void envoyer_bienLoue_409() {
-        bien.setLocataire(User.builder().id(7L).build());
         proprietaireConnecte();
+        doThrow(new KupangaBusinessException("Ce bien est réservé", HttpStatus.CONFLICT))
+                .when(locationService).verifierBienLibre(bien, MAINTENANT);
 
         assertThatThrownBy(() -> service.envoyer("proprio@test.fr", 10L, 2L))
                 .extracting("status").isEqualTo(HttpStatus.CONFLICT);
@@ -168,16 +171,9 @@ class DemandeLocationServiceImplTest {
     }
 
     @Test
-    @DisplayName("envoyer : compte non locataire → 400 ; bien archivé → 409 (vérification du BienService)")
+    @DisplayName("envoyer : bien archivé → 409 (vérification du BienService)")
     void envoyer_refusDivers() {
         proprietaireConnecte();
-        User autreProprio = User.builder().id(3L).mail("p2@test.fr").role(Role.ROLE_PROPRIETAIRE).build();
-        when(userService.findById(3L)).thenReturn(autreProprio);
-        when(conversationRepository.findConversationWithBienIdAndEmailExpediteur(10L, "proprio@test.fr", "p2@test.fr"))
-                .thenReturn(Optional.of(new Conversation()));
-        assertThatThrownBy(() -> service.envoyer("proprio@test.fr", 10L, 3L))
-                .extracting("status").isEqualTo(HttpStatus.BAD_REQUEST);
-
         doThrow(new KupangaBusinessException("Ce bien est archivé", HttpStatus.CONFLICT))
                 .when(bienService).verifierBienActif(bien);
         assertThatThrownBy(() -> service.envoyer("proprio@test.fr", 10L, 2L))
@@ -185,20 +181,41 @@ class DemandeLocationServiceImplTest {
         verify(demandeRepository, never()).saveAndFlush(any());
     }
 
+    @Test
+    @DisplayName("Lot 3 : un candidat au profil « propriétaire » (il loue aussi ailleurs) peut recevoir une demande")
+    void envoyer_candidatProprietaire_accepte() {
+        proprietaireConnecte();
+        User autreProprio = User.builder().id(3L).firstName("Max").lastName("P").mail("p2@test.fr")
+                .role(Role.ROLE_PROPRIETAIRE).build();
+        when(userService.findById(3L)).thenReturn(autreProprio);
+        when(conversationRepository.findConversationWithBienIdAndEmailExpediteur(10L, "proprio@test.fr", "p2@test.fr"))
+                .thenReturn(Optional.of(new Conversation()));
+        when(demandeRepository.saveAndFlush(any())).thenAnswer(i -> i.getArgument(0));
+
+        assertThat(service.envoyer("proprio@test.fr", 10L, 3L).statut()).isEqualTo(StatutDemandeLocation.EN_ATTENTE);
+        verify(notificationService).saveAndSend(eq(autreProprio), eq(NotificationType.DEMANDE_LOCATION),
+                anyString(), anyString(), isNull(), any());
+    }
+
     // ── Réponse du locataire ─────────────────────────────────────────────────
 
     @Test
-    @DisplayName("accepter : le bien est assigné, le propriétaire est prévenu")
-    void accepter_assigneLeBien() {
+    @DisplayName("accepter : le bien est réservé (pas encore assigné), le propriétaire est prévenu")
+    void accepter_reserveLeBien() {
         DemandeLocation d = demande(StatutDemandeLocation.EN_ATTENTE, MAINTENANT.plusHours(5));
         when(demandeRepository.findAvecParties(50L)).thenReturn(Optional.of(d));
+        when(demandeRepository.saveAndFlush(d)).thenReturn(d);
+        when(locationService.reserver(d, MAINTENANT)).thenReturn(
+                Location.builder().id(80L).statut(StatutLocation.RESERVEE).build());
 
         DemandeLocationDTO dto = service.accepter("loc@test.fr", 50L);
 
         assertThat(dto.statut()).isEqualTo(StatutDemandeLocation.ACCEPTEE);
         assertThat(d.getDateReponse()).isEqualTo(MAINTENANT);
-        assertThat(bien.getLocataire()).isEqualTo(locataire);
-        verify(bienRepository).save(bien);
+        // Locataire seulement à la signature du bail (décision du 2026-11-05)
+        assertThat(bien.getLocataire()).isNull();
+        verify(locationService).verifierBienLibre(bien, MAINTENANT);
+        verify(locationService).reserver(d, MAINTENANT);
         verify(notificationService).saveAndSend(eq(proprietaire), eq(NotificationType.DEMANDE_LOCATION_ACCEPTEE),
                 anyString(), anyString(), isNull(), eq(10L));
     }
@@ -218,10 +235,12 @@ class DemandeLocationServiceImplTest {
                 .thenReturn(Optional.of(demande(StatutDemandeLocation.EN_ATTENTE, MAINTENANT.plusHours(5))));
         assertThatThrownBy(() -> service.accepter("intrus@test.fr", 50L)).extracting("status").isEqualTo(HttpStatus.NOT_FOUND);
 
-        bien.setLocataire(User.builder().id(7L).build());
-        assertThatThrownBy(() -> service.accepter("loc@test.fr", 50L)).extracting("status").isEqualTo(HttpStatus.CONFLICT);
+        doThrow(new KupangaBusinessException("Ce bien a déjà un locataire", HttpStatus.CONFLICT))
+                .when(locationService).verifierBienLibre(bien, MAINTENANT);
+        assertThatThrownBy(() -> service.accepter("loc@test.fr", 50L))
+                .hasMessage("Ce logement n'est plus disponible").extracting("status").isEqualTo(HttpStatus.CONFLICT);
 
-        verify(bienRepository, never()).save(any());
+        verify(locationService, never()).reserver(any(), any());
         verifyNoInteractions(notificationService);
     }
 
@@ -234,7 +253,7 @@ class DemandeLocationServiceImplTest {
         assertThat(service.refuser("loc@test.fr", 50L).statut()).isEqualTo(StatutDemandeLocation.REFUSEE);
 
         assertThat(bien.getLocataire()).isNull();
-        verify(bienRepository, never()).save(any());
+        verify(locationService, never()).reserver(any(), any());
         verify(notificationService).saveAndSend(eq(proprietaire), eq(NotificationType.DEMANDE_LOCATION_REFUSEE),
                 anyString(), anyString(), isNull(), eq(10L));
     }

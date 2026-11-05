@@ -230,14 +230,14 @@ class LienWhatsAppServiceImplTest {
     }
 
     @Test
-    @DisplayName("demande de location expirée : 409 ; autre propriétaire : 403 ; bien en France : 409")
+    @DisplayName("demande de location expirée : 409 ; autre propriétaire : 404 comme un id inconnu ; bien en France : 409")
     void demandeLocation_refus() {
         when(demandeLocationRepository.findAvecParties(20L))
                 .thenReturn(Optional.of(demande(bienCd, LocalDateTime.now().minusMinutes(1))));
         assertThatThrownBy(() -> service.demandeLocation(20L, "proprio@test.cd"))
                 .extracting("status").isEqualTo(HttpStatus.CONFLICT);
         assertThatThrownBy(() -> service.demandeLocation(20L, "intrus@test.cd"))
-                .extracting("status").isEqualTo(HttpStatus.FORBIDDEN);
+                .hasMessage("Demande de location introuvable").extracting("status").isEqualTo(HttpStatus.NOT_FOUND);
 
         Bien bienFr = Bien.builder().id(11L).pays(Pays.FR).adresse("1 rue A").ville("Paris").build();
         when(demandeLocationRepository.findAvecParties(21L))

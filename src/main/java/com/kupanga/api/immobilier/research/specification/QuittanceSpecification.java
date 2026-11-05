@@ -3,32 +3,26 @@ package com.kupanga.api.immobilier.research.specification;
 import com.kupanga.api.immobilier.entity.Quittance;
 import com.kupanga.api.immobilier.entity.StatutQuittance;
 import com.kupanga.api.immobilier.research.dto.QuittanceSearchDTO;
-import com.kupanga.api.user.entity.Role;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
 @Component
 public class QuittanceSpecification {
 
-    public Specification<Quittance> build(QuittanceSearchDTO dto, Long userId, Role role) {
+    public Specification<Quittance> build(QuittanceSearchDTO dto, Long userId) {
         return Specification
-                .where(parUtilisateur(userId, role))
+                .where(parUtilisateur(userId))
                 .and(parAnnee(dto.annee()))
                 .and(parMois(dto.mois()))
                 .and(parStatut(dto.statut()))
                 .and(parBien(dto.bienId()));
     }
 
-    private Specification<Quittance> parUtilisateur(Long userId, Role role) {
-        return (root, query, cb) -> {
-            if (role == Role.ROLE_PROPRIETAIRE) {
-                return cb.or(
-                        cb.equal(root.get("proprietaire").get("id"), userId),
-                        cb.equal(root.get("locataire").get("id"), userId)
-                );
-            }
-            return cb.equal(root.get("locataire").get("id"), userId);
-        };
+    /** Lot 3 : documents dont le compte est le propriétaire ou le locataire, quel que soit son profil. */
+    private Specification<Quittance> parUtilisateur(Long userId) {
+        return (root, query, cb) -> cb.or(
+                cb.equal(root.get("proprietaire").get("id"), userId),
+                cb.equal(root.get("locataire").get("id"), userId));
     }
 
     private Specification<Quittance> parAnnee(Integer annee) {

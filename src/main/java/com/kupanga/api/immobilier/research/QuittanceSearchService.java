@@ -54,7 +54,7 @@ public class QuittanceSearchService {
         Pageable pageable = PageRequest.of(pagination.page(), pagination.size(), sort);
 
         Page<QuittanceDTO> page = quittanceRepository
-                .findAll(quittanceSpecification.build(dto, user.getId(), user.getRole()), pageable)
+                .findAll(quittanceSpecification.build(dto, user.getId()), pageable)
                 .map(quittanceMapper::toDTO);
 
         return QuittancePageDTO.from(page);

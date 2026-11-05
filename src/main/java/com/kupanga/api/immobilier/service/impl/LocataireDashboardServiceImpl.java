@@ -46,11 +46,10 @@ public class LocataireDashboardServiceImpl implements LocataireDashboardService 
 
         User locataire = userService.getUserByEmail(auth.getName());
 
-        Bien bien = bienRepository.findById(bienId)
-                .orElseThrow(() -> new KupangaBusinessException(
-                        "Bien introuvable pour l'id : " + bienId, HttpStatus.NOT_FOUND));
+        // Lot 3 : route ouverte à tout compte ; bien inconnu → même 403 que le bien d'autrui (pas d'énumération)
+        Bien bien = bienRepository.findById(bienId).orElse(null);
 
-        if (bien.getLocataire() == null
+        if (bien == null || bien.getLocataire() == null
                 || !bien.getLocataire().getId().equals(locataire.getId())) {
             throw new KupangaBusinessException(
                     "Accès refusé : vous n'êtes pas le locataire de ce bien",

@@ -1,5 +1,8 @@
 package com.kupanga.api.email.service.impl;
 
+import com.kupanga.api.user.entity.User;
+import com.kupanga.api.immobilier.entity.StatutLocation;
+import com.kupanga.api.immobilier.entity.Location;
 import com.kupanga.api.juridiction.FormatMontant;
 import com.kupanga.api.juridiction.JuridictionRegistry;
 import com.kupanga.api.email.dto.EmailSortant;
@@ -177,6 +180,105 @@ public class EmailServiceImpl implements EmailService {
                         appUrl + "demandes-location")
         ), null);
         log.debug("E-mail de demande de location {} préparé", demande.getId());
+    }
+
+    @Override
+    public void envoyerConge(Location location, User destinataire, boolean retire) {
+        Bien bien = location.getBien();
+        boolean auProprietaire = destinataire.getId().equals(location.getProprietaire().getId());
+        User auteur = auProprietaire ? location.getLocataire() : location.getProprietaire();
+        String adresse = buildAdresse(bien);
+        String date = location.getDateFinPrevue() != null
+                ? location.getDateFinPrevue().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) : null;
+        String message = retire
+                ? "<strong>" + fullName(auteur.getFirstName(), auteur.getLastName()) + "</strong> a retiré son congé "
+                  + "pour le logement situé au <strong>" + adresse + "</strong> : le bail continue."
+                : "<strong>" + fullName(auteur.getFirstName(), auteur.getLastName()) + "</strong> a donné congé pour "
+                  + "le logement situé au <strong>" + adresse + "</strong>. Le bail prendra fin le <strong>" + date
+                  + "</strong>. Pensez à prévoir l'état des lieux de sortie.";
+        String lien = auProprietaire ? appUrl + "biens/" + bien.getId() : appUrl + "mon-logement?bien=" + bien.getId();
+        publier(TypeEmail.CONGE, EmailSortant.html(
+                destinataire.getMail(),
+                retire ? "Kupanga : congé retiré" : "Kupanga : congé pour votre location",
+                String.format(CONTENU_MAIL_FIN_RESERVATION,
+                        fullName(destinataire.getFirstName(), destinataire.getLastName()),
+                        retire ? "Congé retiré" : "Congé", message, "Voir le logement", lien, adresse,
+                        echapper(bien.getTitre()))
+        ), null);
+        log.debug("E-mail de congé (location {}) préparé", location.getId());
+    }
+
+    @Override
+    public void envoyerFinDeBail(Location location) {
+        Bien bien = location.getBien();
+        User locataire = location.getLocataire();
+        String adresse = buildAdresse(bien);
+        FormatMontant montants = juridictionRegistry.formatMontant(bien.getPays(), bien.getDevise());
+        String depot = location.getDepotRestitue() != null ? montants.f(location.getDepotRestitue()) : "—";
+        String message = "Le bail du logement situé au <strong>" + adresse + "</strong> est terminé. "
+                + "Dépôt de garantie restitué : <strong>" + depot + "</strong>."
+                + (location.getMotifRetenue() != null
+                   ? " Motif de la retenue : " + echapper(location.getMotifRetenue()) + "." : "")
+                + " Votre bail, vos états des lieux et vos quittances restent disponibles dans Kupanga.";
+        publier(TypeEmail.FIN_DE_BAIL, EmailSortant.html(
+                locataire.getMail(),
+                "Kupanga : fin de votre bail",
+                String.format(CONTENU_MAIL_FIN_RESERVATION,
+                        fullName(locataire.getFirstName(), locataire.getLastName()),
+                        "Fin du bail", message, "Mes documents", appUrl + "documents", adresse,
+                        echapper(bien.getTitre()))
+        ), null);
+        log.debug("E-mail de fin de bail (location {}) préparé", location.getId());
+    }
+
+    @Override
+    public void envoyerFinReservation(Location location, StatutLocation motif, User destinataire) {
+        Bien bien = location.getBien();
+        boolean auProprietaire = destinataire.getId().equals(location.getProprietaire().getId());
+        String adresse = buildAdresse(bien);
+        String candidat = fullName(location.getLocataire().getFirstName(), location.getLocataire().getLastName());
+        String proprietaire = fullName(location.getProprietaire().getFirstName(),
+                location.getProprietaire().getLastName());
+        String sujet;
+        String surtitre;
+        String message;
+        switch (motif) {
+            case DESISTEE -> {
+                sujet = "Kupanga : désistement pour votre logement";
+                surtitre = "Désistement";
+                message = "<strong>" + candidat + "</strong> s'est désisté pour votre logement situé au <strong>"
+                        + adresse + "</strong>, avant de signer le bail. Le bail non signé est annulé et l'annonce "
+                        + "est de nouveau en ligne : vous pouvez proposer le logement à une autre personne.";
+            }
+            case ANNULEE -> {
+                sujet = "Kupanga : votre réservation a été retirée";
+                surtitre = "Réservation retirée";
+                message = "<strong>" + proprietaire + "</strong> a retiré votre réservation du logement situé au "
+                        + "<strong>" + adresse + "</strong>. Le bail non signé est annulé.";
+            }
+            case EXPIREE -> {
+                sujet = "Kupanga : la réservation a expiré";
+                surtitre = "Réservation expirée";
+                message = auProprietaire
+                        ? "Le bail de votre logement situé au <strong>" + adresse + "</strong> n'a pas été signé "
+                          + "dans les 14 jours : la réservation de <strong>" + candidat + "</strong> a pris fin "
+                          + "et l'annonce est de nouveau en ligne."
+                        : "Votre réservation du logement situé au <strong>" + adresse + "</strong> a pris fin : "
+                          + "le bail n'a pas été signé dans les 14 jours.";
+            }
+            default -> throw new IllegalArgumentException("Motif de fin de réservation inattendu : " + motif);
+        }
+        String bouton = auProprietaire ? "Proposer la location" : "Voir les annonces";
+        String lien = auProprietaire ? appUrl + "biens/" + bien.getId() + "/locataire" : appUrl + "explorer";
+
+        publier(TypeEmail.FIN_RESERVATION, EmailSortant.html(
+                destinataire.getMail(),
+                sujet,
+                String.format(CONTENU_MAIL_FIN_RESERVATION,
+                        fullName(destinataire.getFirstName(), destinataire.getLastName()),
+                        surtitre, message, bouton, lien, adresse, echapper(bien.getTitre()))
+        ), null);
+        log.debug("E-mail de fin de réservation {} ({}) préparé", location.getId(), motif);
     }
 
     @Override

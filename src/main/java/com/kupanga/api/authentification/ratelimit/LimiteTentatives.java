@@ -35,6 +35,8 @@ public enum LimiteTentatives {
      */
     NOUVELLE_CONVERSATION_PAR_HEURE("conversation-heure", 10, Duration.ofHours(1)),
     NOUVELLE_CONVERSATION_PAR_JOUR("conversation-jour", 30, Duration.ofDays(1)),
+    /** Lot 3 : tout compte peut publier un bien (jusqu'à 50 Mo de photos par envoi) ; plafond par compte. */
+    PUBLICATION_BIEN_PAR_JOUR("bien-jour", 10, Duration.ofDays(1)),
     /** Login du back-office (BO-LOGIN), par IP. */
     BACKOFFICE_LOGIN_PAR_IP("backoffice-login-ip", 5, Duration.ofMinutes(15)),
     /**

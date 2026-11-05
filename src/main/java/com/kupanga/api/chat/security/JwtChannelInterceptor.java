@@ -95,7 +95,9 @@ public class JwtChannelInterceptor implements ChannelInterceptor {
                             new UsernamePasswordAuthenticationToken(
                                     email,
                                     null,
-                                    List.of(new SimpleGrantedAuthority(role.name()))
+                                    // Lot 3 : le rôle ne donne aucun droit ; un compte Google sans profil
+                                    // d'accueil n'en a pas encore (sinon NullPointerException, CONNECT refusé)
+                                    role != null ? List.of(new SimpleGrantedAuthority(role.name())) : List.of()
                             );
                     // Associer l'utilisateur authentifié à la session WebSocket
                     accessor.setUser(auth);

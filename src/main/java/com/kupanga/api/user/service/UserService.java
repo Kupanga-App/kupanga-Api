@@ -46,21 +46,6 @@ public interface UserService {
      */
     void verifyIfRoleOfUserValid(Role role) throws InvalidRoleException;
 
-    /**
-     * Vérifie que le rôle fourni correspond au rôle "LOCATAIRE".
-     *
-     * @param role le rôle de l'utilisateur
-     * @throws InvalidRoleException si le rôle n'est pas "ROLE_LOCATAIRE"
-     */
-    void verifyIfUserIsTenant(Role role) throws InvalidRoleException;
-
-    /**
-     * Vérifie que le rôle fourni correspond au rôle "PROPRIETAIRE".
-     *
-     * @param role le rôle de l'utilisateur
-     * @throws InvalidRoleException si le rôle n'est pas "ROLE_PROPRIETAIRE"
-     */
-    void verifyIfUserIsOwner(Role role) throws InvalidRoleException;
 
     /**
      * Vérifie si le mot de passe fourni lors de la connexion correspond

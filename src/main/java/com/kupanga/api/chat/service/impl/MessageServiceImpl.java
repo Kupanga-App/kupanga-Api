@@ -15,6 +15,7 @@ import com.kupanga.api.exception.business.KupangaBusinessException;
 import com.kupanga.api.immobilier.entity.Bien;
 import com.kupanga.api.immobilier.repository.BienRepository;
 import com.kupanga.api.immobilier.service.BienService;
+import com.kupanga.api.immobilier.service.LocationService;
 import com.kupanga.api.user.entity.User;
 import com.kupanga.api.user.service.UserService;
 import com.kupanga.api.user.utils.EmailUtils;
@@ -44,6 +45,7 @@ public class MessageServiceImpl implements MessageService {
     private final SimpMessagingTemplate messagingTemplate;  // pour le push WebSocket
     private final BienService bienService;
     private final LimiteurTentatives limiteurTentatives;
+    private final LocationService locationService;
 
     // ─────────────────────────────────────────────────────────────────────────
     // Envoi d'un message
@@ -91,6 +93,12 @@ public class MessageServiceImpl implements MessageService {
                 destinataire = locataire;
             } else {
                 if (locataire != null && !locataire.getId().equals(expediteur.getId())) {
+                    throw new KupangaBusinessException("Ce bien n'est plus disponible", HttpStatus.FORBIDDEN);
+                }
+                // Décision du 2026-11-05 : un bien réservé n'accepte plus de nouveaux contacts (le candidat qui
+                // l'a réservé a déjà sa conversation)
+                if (locataire == null && locationService.reservationValable(bien.getId())
+                        .filter(r -> !r.getLocataire().getId().equals(expediteur.getId())).isPresent()) {
                     throw new KupangaBusinessException("Ce bien n'est plus disponible", HttpStatus.FORBIDDEN);
                 }
                 destinataire = proprietaire;

@@ -43,6 +43,14 @@ public interface BienRepository extends JpaRepository<Bien, Long>, JpaSpecificat
 
     boolean existsByIdAndProprietaireId(Long id, Long proprietaireId);
 
+    /** Back-office (lot 3, plus de rôle) : comptes qui possèdent au moins un bien. */
+    @Query("select count(distinct b.proprietaire.id) from Bien b where b.proprietaire.anonymise = false")
+    long countProprietaires();
+
+    /** Back-office (lot 3) : comptes qui louent actuellement au moins un logement. */
+    @Query("select count(distinct b.locataire.id) from Bien b where b.locataire is not null and b.locataire.anonymise = false")
+    long countLocataires();
+
     @Query("SELECT COUNT(DISTINCT b.ville) FROM Bien b WHERE b.ville IS NOT NULL")
     long countDistinctVilles();
 
@@ -63,6 +71,11 @@ public interface BienRepository extends JpaRepository<Bien, Long>, JpaSpecificat
     @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Query("UPDATE Bien b SET b.archive = true, b.dateArchivage = :date WHERE b.proprietaire.id = :userId AND b.archive = false")
     int archiverParProprietaire(@Param("userId") Long userId, @Param("date") LocalDateTime date);
+
+    /** Fin de bail / B12 : libère les biens d'un propriétaire anonymisé (leurs locations sont terminées). */
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query("UPDATE Bien b SET b.locataire = null WHERE b.proprietaire.id = :userId")
+    int libererBiensDuProprietaire(@Param("userId") Long userId);
 
     /** B12 : libère les biens loués par un compte anonymisé. */
     @Modifying(flushAutomatically = true, clearAutomatically = true)

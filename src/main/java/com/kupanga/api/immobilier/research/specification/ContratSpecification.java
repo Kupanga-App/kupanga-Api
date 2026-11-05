@@ -4,7 +4,6 @@ import java.math.BigDecimal;
 import com.kupanga.api.immobilier.entity.Contrat;
 import com.kupanga.api.immobilier.entity.StatutContrat;
 import com.kupanga.api.immobilier.research.dto.ContratSearchDTO;
-import com.kupanga.api.user.entity.Role;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
@@ -13,9 +12,9 @@ import java.time.LocalDate;
 @Component
 public class ContratSpecification {
 
-    public Specification<Contrat> build(ContratSearchDTO dto, Long userId, Role role) {
+    public Specification<Contrat> build(ContratSearchDTO dto, Long userId) {
         return Specification
-                .where(parUtilisateur(userId, role))
+                .where(parUtilisateur(userId))
                 .and(parBien(dto.bienId()))
                 .and(dureeBailMin(dto.dureeBailMoisMin()))
                 .and(dureeBailMax(dto.dureeBailMoisMax()))
@@ -26,16 +25,11 @@ public class ContratSpecification {
                 .and(parStatut(dto.statut()));
     }
 
-    private Specification<Contrat> parUtilisateur(Long userId, Role role) {
-        return (root, query, cb) -> {
-            if (role == Role.ROLE_PROPRIETAIRE) {
-                return cb.or(
-                        cb.equal(root.get("proprietaire").get("id"), userId),
-                        cb.equal(root.get("locataire").get("id"), userId)
-                );
-            }
-            return cb.equal(root.get("locataire").get("id"), userId);
-        };
+    /** Lot 3 : documents dont le compte est le propriétaire ou le locataire, quel que soit son profil. */
+    private Specification<Contrat> parUtilisateur(Long userId) {
+        return (root, query, cb) -> cb.or(
+                cb.equal(root.get("proprietaire").get("id"), userId),
+                cb.equal(root.get("locataire").get("id"), userId));
     }
 
     private Specification<Contrat> parBien(Long bienId) {

@@ -48,7 +48,7 @@ public class ContratSearchService {
         );
 
         Page<ContratDTO> page = contratRepository
-                .findAll(contratSpecification.build(dto, user.getId(), user.getRole()), pageable)
+                .findAll(contratSpecification.build(dto, user.getId()), pageable)
                 .map(contratMapper::toDTO);
 
         return ContratPageDTO.from(page);

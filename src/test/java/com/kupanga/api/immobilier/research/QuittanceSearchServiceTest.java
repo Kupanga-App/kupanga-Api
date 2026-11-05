@@ -73,7 +73,7 @@ class QuittanceSearchServiceTest {
                 0, 10, "annee", Sort.Direction.DESC);
 
         when(userService.getUserByEmail(proprietaire.getMail())).thenReturn(proprietaire);
-        when(quittanceSpecification.build(eq(dto), eq(1L), eq(Role.ROLE_PROPRIETAIRE)))
+        when(quittanceSpecification.build(eq(dto), eq(1L)))
                 .thenReturn(mock(Specification.class));
         when(quittanceRepository.findAll(any(Specification.class), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of(quittance)));
@@ -92,7 +92,7 @@ class QuittanceSearchServiceTest {
                 0, 10, "annee", Sort.Direction.DESC);
 
         when(userService.getUserByEmail(proprietaire.getMail())).thenReturn(proprietaire);
-        when(quittanceSpecification.build(any(), anyLong(), any())).thenReturn(mock(Specification.class));
+        when(quittanceSpecification.build(any(), anyLong())).thenReturn(mock(Specification.class));
 
         ArgumentCaptor<Pageable> captor = ArgumentCaptor.forClass(Pageable.class);
         when(quittanceRepository.findAll(any(Specification.class), captor.capture()))
@@ -114,7 +114,7 @@ class QuittanceSearchServiceTest {
                 0, 10, "montantTotal", Sort.Direction.ASC);
 
         when(userService.getUserByEmail(proprietaire.getMail())).thenReturn(proprietaire);
-        when(quittanceSpecification.build(any(), anyLong(), any())).thenReturn(mock(Specification.class));
+        when(quittanceSpecification.build(any(), anyLong())).thenReturn(mock(Specification.class));
 
         ArgumentCaptor<Pageable> captor = ArgumentCaptor.forClass(Pageable.class);
         when(quittanceRepository.findAll(any(Specification.class), captor.capture()))
@@ -134,7 +134,7 @@ class QuittanceSearchServiceTest {
                 0, 10, null, null);
 
         when(userService.getUserByEmail(proprietaire.getMail())).thenReturn(proprietaire);
-        when(quittanceSpecification.build(any(), anyLong(), any())).thenReturn(mock(Specification.class));
+        when(quittanceSpecification.build(any(), anyLong())).thenReturn(mock(Specification.class));
         when(quittanceRepository.findAll(any(Specification.class), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(Collections.emptyList()));
 

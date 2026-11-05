@@ -10,6 +10,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Component
@@ -24,6 +25,7 @@ public class BienSpecification {
     public Specification<Bien> build(BienSearchDTO dto) {
         return Specification
                 .where(sansLocataire())
+                .and(nonReserve())
                 .and(nonArchive())
                 .and(parVilles(dto.villes()))
                 .and(parPays(dto.pays()))
@@ -166,6 +168,22 @@ public class BienSpecification {
 
         return (root, query, cb) -> cb.isNull(root.get("locataire"));
 
+    }
+
+    /**
+     * Décision du 2026-11-05 : un bien réservé (demande acceptée, bail pas encore signé) est retiré de la
+     * recherche. Une réservation dont l'échéance est passée ne le cache plus, même avant la tâche d'expiration.
+     */
+    private Specification<Bien> nonReserve() {
+        return (root, query, cb) -> {
+            var sousRequete = query.subquery(Long.class);
+            var location = sousRequete.from(Location.class);
+            sousRequete.select(location.get("id")).where(
+                    cb.equal(location.get("bien"), root),
+                    cb.equal(location.get("statut"), StatutLocation.RESERVEE),
+                    cb.greaterThan(location.<LocalDateTime>get("dateExpiration"), LocalDateTime.now()));
+            return cb.not(cb.exists(sousRequete));
+        };
     }
 
     /** B12 : un bien archivé n'apparaît plus dans la recherche publique. */

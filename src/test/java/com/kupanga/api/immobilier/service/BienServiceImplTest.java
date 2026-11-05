@@ -1,5 +1,6 @@
 package com.kupanga.api.immobilier.service;
 
+import com.kupanga.api.immobilier.repository.LocationRepository;
 import com.kupanga.api.juridiction.Devise;
 import com.kupanga.api.juridiction.JuridictionRegistry;
 import com.kupanga.api.juridiction.JuridictionsDeTest;
@@ -70,6 +71,14 @@ class BienServiceImplTest {
     @Mock private com.kupanga.api.immobilier.mapper.PhotoBienUrlMapper photoBienUrlMapper;
     @Mock private com.kupanga.api.user.mapper.PhotoProfilUrlMapper photoProfilUrlMapper;
 
+    @Mock
+
+    private LocationRepository locationRepository;
+
+
+    @Mock
+    private com.kupanga.api.authentification.ratelimit.LimiteurTentatives limiteurTentatives;
+
     @InjectMocks
     private BienServiceImpl bienService;
 
@@ -127,7 +136,6 @@ class BienServiceImplTest {
         MultipartFile file = new MockMultipartFile("files", "p.jpg", "image/jpeg", PHOTO_JPEG);
 
         when(userService.getUserByEmail(proprietaire.getMail())).thenReturn(proprietaire);
-        doNothing().when(userService).verifyIfUserIsOwner(proprietaire.getRole());
         when(geocodingService.geocode(anyString(), anyString(), anyString(), any(Pays.class)))
                 .thenReturn(point);
         when(bienRepository.save(any(Bien.class))).thenReturn(bien);
@@ -139,6 +147,9 @@ class BienServiceImplTest {
         verify(bienRepository).save(any(Bien.class));
         verify(bienPoiService).calculerEtSauvegarderPoi(any()); // id du bien (B9), sans transaction : appel direct
         verify(bienImageService).uploadImagesImo(anyList(), anyString(), any(Bien.class));
+        // Lot 3 : publication plafonnée par compte
+        verify(limiteurTentatives).verifierEmail(
+                com.kupanga.api.authentification.ratelimit.LimiteTentatives.PUBLICATION_BIEN_PAR_JOUR, proprietaire.getMail());
     }
 
     @Test
@@ -403,7 +414,6 @@ class BienServiceImplTest {
         BienFormDTO dto = buildValidFormDTO();
 
         when(userService.getUserByEmail(proprietaire.getMail())).thenReturn(proprietaire);
-        doNothing().when(userService).verifyIfUserIsOwner(proprietaire.getRole());
 
         KupangaBusinessException ex = assertThrows(KupangaBusinessException.class,
                 () -> bienService.createBien(auth, dto, Collections.emptyList()));
@@ -418,7 +428,6 @@ class BienServiceImplTest {
         BienFormDTO dto = buildValidFormDTO();
 
         when(userService.getUserByEmail(proprietaire.getMail())).thenReturn(proprietaire);
-        doNothing().when(userService).verifyIfUserIsOwner(proprietaire.getRole());
 
         KupangaBusinessException ex = assertThrows(KupangaBusinessException.class,
                 () -> bienService.createBien(auth, dto, null));
@@ -434,7 +443,6 @@ class BienServiceImplTest {
         MultipartFile file = new MockMultipartFile("files", "p.jpg", "image/jpeg", PHOTO_JPEG);
 
         when(userService.getUserByEmail(proprietaire.getMail())).thenReturn(proprietaire);
-        doNothing().when(userService).verifyIfUserIsOwner(proprietaire.getRole());
         when(geocodingService.geocode(anyString(), anyString(), anyString(), any(Pays.class))).thenReturn(null);
         when(geocodingService.geocodeZone(any(), any())).thenReturn(null);
 

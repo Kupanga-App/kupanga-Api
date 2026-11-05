@@ -6,8 +6,8 @@ import java.time.Duration;
 import java.util.List;
 
 /**
- * Affectation d'un locataire avec son accord : le propriétaire envoie une demande à un candidat, le bien n'est
- * assigné qu'à l'acceptation.
+ * Affectation d'un locataire avec son accord : le propriétaire envoie une demande à un candidat ; l'acceptation
+ * réserve le bien et la signature du bail en fait le locataire ({@link LocationService}).
  */
 public interface DemandeLocationService {
 
@@ -17,7 +17,7 @@ public interface DemandeLocationService {
     /**
      * Le propriétaire propose son bien à un candidat (personne qui lui a écrit au sujet de ce bien).
      * 404 bien ou candidat introuvable (même réponse pour un compte inconnu), 403 bien d'autrui,
-     * 409 bien archivé, déjà loué ou demande déjà en attente, 400 compte non locataire.
+     * 409 bien archivé, déjà loué ou réservé, ou demande déjà en attente.
      */
     DemandeLocationDTO envoyer(String emailProprietaire, Long bienId, Long locataireId);
 
@@ -30,7 +30,10 @@ public interface DemandeLocationService {
     /** Demandes en attente reçues par le locataire connecté. */
     List<DemandeLocationDTO> recues(String emailLocataire);
 
-    /** Le locataire accepte : le bien lui est assigné. 410 si la demande a expiré, 409 si le bien n'est plus libre. */
+    /**
+     * Le locataire accepte : le bien lui est réservé 14 jours ; il en devient locataire à la signature du bail
+     * (décision du 2026-11-05). 410 si la demande a expiré, 409 si le bien n'est plus libre.
+     */
     DemandeLocationDTO accepter(String emailLocataire, Long demandeId);
 
     /** Le locataire refuse la demande. */

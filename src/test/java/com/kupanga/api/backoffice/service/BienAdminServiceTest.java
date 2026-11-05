@@ -1,5 +1,6 @@
 package com.kupanga.api.backoffice.service;
 
+import com.kupanga.api.immobilier.repository.LocationRepository;
 import com.kupanga.api.juridiction.Pays;
 import com.kupanga.api.backoffice.dto.BienAdminPageDTO;
 import com.kupanga.api.backoffice.dto.BienAdminSearchDTO;
@@ -43,6 +44,11 @@ class BienAdminServiceTest {
 
     @Mock private com.kupanga.api.immobilier.mapper.PhotoBienUrlMapper photoBienUrlMapper;
     @Mock private com.kupanga.api.user.mapper.PhotoProfilUrlMapper photoProfilUrlMapper;
+
+    @Mock
+
+    private LocationRepository locationRepository;
+
 
     @InjectMocks
     private BienAdminService bienAdminService;

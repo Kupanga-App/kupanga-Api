@@ -48,7 +48,7 @@ public class EtatDesLieuxSearchService {
         );
 
         Page<EtatDesLieuxDTO> page = edlRepository
-                .findAll(edlSpecification.build(dto, user.getId(), user.getRole()), pageable)
+                .findAll(edlSpecification.build(dto, user.getId()), pageable)
                 .map(edlMapper::toDTO);
 
         return EtatDesLieuxPageDTO.from(page);

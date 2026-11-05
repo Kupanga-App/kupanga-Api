@@ -1,6 +1,5 @@
 package com.kupanga.api.immobilier.controller;
 
-import org.springframework.security.access.prepost.PreAuthorize;
 import com.kupanga.api.immobilier.dto.formDTO.BienFormDTO;
 import com.kupanga.api.immobilier.dto.formDTO.BienUpdateDTO;
 import com.kupanga.api.immobilier.dto.readDTO.BienDTO;
@@ -151,7 +150,6 @@ public class BienController {
                     )
             )
     )
-    @PreAuthorize("hasAuthority('ROLE_PROPRIETAIRE')")
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Void> createBien(
             @Parameter(
@@ -604,7 +602,6 @@ public class BienController {
                     }
             )
     )
-    @PreAuthorize("hasAuthority('ROLE_PROPRIETAIRE')")
     @PatchMapping("/{bienId}")
     public ResponseEntity<BienDTO> updateBien(
             @Parameter(description = "Identifiant unique du bien à modifier", required = true)

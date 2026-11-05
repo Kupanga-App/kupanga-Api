@@ -1,5 +1,6 @@
 package com.kupanga.api.immobilier.service;
 
+import com.kupanga.api.immobilier.service.LocationService;
 import com.kupanga.api.juridiction.Devise;
 import com.kupanga.api.juridiction.JuridictionRegistry;
 import com.kupanga.api.juridiction.JuridictionsDeTest;
@@ -49,6 +50,11 @@ class ContratServiceImplTest {
     @Mock private NotificationService notificationService;
     /** J3 : vrai registre (profils et plafonds de application.yml). */
     @Spy  private JuridictionRegistry juridictionRegistry = JuridictionsDeTest.registre();
+
+    @Mock
+
+    private LocationService locationService;
+
 
     @InjectMocks
     private ContratServiceImpl contratService;
@@ -103,7 +109,7 @@ class ContratServiceImplTest {
 
         when(userService.getUserByEmail(proprietaire.getMail())).thenReturn(proprietaire);
         when(bienService.verifierProprietaire(1L, proprietaire.getMail())).thenReturn(bien);
-        when(bienService.verifierLocataireDuBien(bien, locataire.getMail())).thenReturn(locataire);
+        when(locationService.locataireDuBail(bien, locataire.getMail())).thenReturn(locataire);
         when(contratPdfService.genererEtUploaderPdf(any(Contrat.class))).thenReturn("http://minio/contrat.pdf");
         when(contratRepository.save(any(Contrat.class))).thenReturn(contrat);
 
@@ -126,7 +132,7 @@ class ContratServiceImplTest {
 
         when(userService.getUserByEmail(proprietaire.getMail())).thenReturn(proprietaire);
         when(bienService.verifierProprietaire(1L, proprietaire.getMail())).thenReturn(bien);
-        when(bienService.verifierLocataireDuBien(bien, locataire.getMail())).thenReturn(locataire);
+        when(locationService.locataireDuBail(bien, locataire.getMail())).thenReturn(locataire);
         when(contratPdfService.genererEtUploaderPdf(any(Contrat.class))).thenReturn("contrat.pdf");
 
         contratService.creerContrat(dto, proprietaire.getMail());
@@ -151,7 +157,7 @@ class ContratServiceImplTest {
 
         when(userService.getUserByEmail(proprietaire.getMail())).thenReturn(proprietaire);
         when(bienService.verifierProprietaire(1L, proprietaire.getMail())).thenReturn(bien);
-        when(bienService.verifierLocataireDuBien(bien, locataire.getMail())).thenReturn(locataire);
+        when(locationService.locataireDuBail(bien, locataire.getMail())).thenReturn(locataire);
 
         KupangaBusinessException ex = assertThrows(KupangaBusinessException.class,
                 () -> contratService.creerContrat(dto, proprietaire.getMail()));
@@ -203,7 +209,7 @@ class ContratServiceImplTest {
 
         when(userService.getUserByEmail(proprietaire.getMail())).thenReturn(proprietaire);
         when(bienService.verifierProprietaire(1L, proprietaire.getMail())).thenReturn(bien);
-        when(bienService.verifierLocataireDuBien(bien, locataire.getMail()))
+        when(locationService.locataireDuBail(bien, locataire.getMail()))
                 .thenThrow(new KupangaBusinessException("Mauvais locataire", HttpStatus.BAD_REQUEST));
 
         KupangaBusinessException ex = assertThrows(KupangaBusinessException.class,
@@ -416,6 +422,29 @@ class ContratServiceImplTest {
         verify(notificationService, times(2)).saveAndSend(
                 any(User.class), eq(NotificationType.CONTRAT_SIGNE),
                 anyString(), anyString(), isNull(), eq(contrat.getId()));
+        // Décision du 2026-11-05 : réservation contrôlée avant, location activée après l'écriture du bail
+        var ordre = inOrder(locationService, contratRepository);
+        ordre.verify(locationService).verifierBailSignable(contrat);
+        ordre.verify(contratRepository).saveAndFlush(contrat);
+        ordre.verify(locationService).activerApresSignature(contrat);
+    }
+
+    @Test
+    @DisplayName("signerLocataire() — réservation terminée (désistement, retrait, 14 jours) → 409, rien n'est signé")
+    void signerLocataire_reservationTerminee_409() {
+        contrat.setStatut(StatutContrat.EN_ATTENTE_SIGNATURE_LOCATAIRE);
+        when(contratRepository.findByTokenSignature("token-valide")).thenReturn(Optional.of(contrat));
+        doThrow(new KupangaBusinessException("La réservation de ce logement a pris fin", HttpStatus.CONFLICT))
+                .when(locationService).verifierBailSignable(contrat);
+
+        KupangaBusinessException ex = assertThrows(KupangaBusinessException.class,
+                () -> contratService.signerLocataire("token-valide", "sig-locataire"));
+
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.CONFLICT);
+        assertThat(contrat.getStatut()).isEqualTo(StatutContrat.EN_ATTENTE_SIGNATURE_LOCATAIRE);
+        verify(contratPdfService, never()).genererEtUploaderPdf(any());
+        verify(locationService, never()).activerApresSignature(any());
+        verifyNoInteractions(emailService, notificationService);
     }
 
     @Test
@@ -477,7 +506,7 @@ class ContratServiceImplTest {
                 () -> contratService.creerContrat(dto, proprietaire.getMail()));
 
         assertThat(ex.getStatus()).isEqualTo(HttpStatus.CONFLICT);
-        verify(bienService, never()).verifierLocataireDuBien(any(), any());
+        verify(locationService, never()).locataireDuBail(any(), any());
         verify(contratRepository, never()).save(any());
         verify(contratRepository, never()).saveAndFlush(any());
     }
@@ -521,7 +550,7 @@ class ContratServiceImplTest {
     void creerContrat_garantieManquante_400() {
         when(userService.getUserByEmail(proprietaire.getMail())).thenReturn(proprietaire);
         when(bienService.verifierProprietaire(1L, proprietaire.getMail())).thenReturn(bien);
-        when(bienService.verifierLocataireDuBien(bien, locataire.getMail())).thenReturn(locataire);
+        when(locationService.locataireDuBail(bien, locataire.getMail())).thenReturn(locataire);
         ContratFormDTO sansDepot = buildValidContratFormDTO();
         sansDepot.setDepotGarantie(null);
 

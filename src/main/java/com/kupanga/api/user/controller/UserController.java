@@ -1,7 +1,6 @@
 package com.kupanga.api.user.controller;
 
 import jakarta.validation.Valid;
-import org.springframework.security.access.prepost.PreAuthorize;
 import com.kupanga.api.immobilier.dto.readDTO.BienDTO;
 import com.kupanga.api.immobilier.service.BienService;
 import com.kupanga.api.user.dto.formDTO.TelephoneDTO;
@@ -299,7 +298,6 @@ public class UserController {
                     }
             )
     )
-    @PreAuthorize("hasAuthority('ROLE_PROPRIETAIRE')")
     @PostMapping("/{bienId}/recherche-locataire")
     public ResponseEntity<LocatairePageDTO> rechercherLocataires(
             @Parameter(description = "Identifiant du bien pour lequel on cherche un locataire", required = true)

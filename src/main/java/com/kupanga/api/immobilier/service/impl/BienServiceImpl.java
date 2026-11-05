@@ -13,6 +13,11 @@ import com.kupanga.api.immobilier.mapper.BienMapper;
 import com.kupanga.api.immobilier.mapper.DocumentPdfUrlMapper;
 import com.kupanga.api.immobilier.mapper.PhotoBienUrlMapper;
 import com.kupanga.api.immobilier.repository.BienRepository;
+import com.kupanga.api.immobilier.repository.LocationRepository;
+import com.kupanga.api.authentification.ratelimit.LimiteTentatives;
+import com.kupanga.api.authentification.ratelimit.LimiteurTentatives;
+import com.kupanga.api.immobilier.dto.readDTO.ReservationBienDTO;
+import com.kupanga.api.immobilier.dto.readDTO.LocationEnCoursDTO;
 import com.kupanga.api.immobilier.service.BienImageService;
 import com.kupanga.api.immobilier.service.BienPoiService;
 import com.kupanga.api.immobilier.service.BienService;
@@ -40,6 +45,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -64,11 +70,14 @@ public class BienServiceImpl implements BienService {
     private final JuridictionRegistry juridictionRegistry;
     private final PhotoBienUrlMapper photoBienUrlMapper;
     private final PhotoProfilUrlMapper photoProfilUrlMapper;
+    private final LocationRepository locationRepository;
+    private final LimiteurTentatives limiteurTentatives;
 
     public void createBien(Authentication auth, BienFormDTO dto, List<MultipartFile> files) {
 
+        // Lot 3 (2026-11-05) : tout compte peut publier un bien ; il en devient le propriétaire (10 par jour, 429)
         User user = userService.getUserByEmail(auth.getName());
-        userService.verifyIfUserIsOwner(user.getRole());
+        limiteurTentatives.verifierEmail(LimiteTentatives.PUBLICATION_BIEN_PAR_JOUR, user.getMail());
 
         if (files == null || files.isEmpty()) {
             throw new KupangaBusinessException(
@@ -367,6 +376,51 @@ public class BienServiceImpl implements BienService {
     }
 
     /**
+     * Réservation en cours du bien (décision du 2026-11-05), pour préparer le bail du candidat : ni téléphone
+     * (C6, le candidat n'est pas encore partie au bien) ; e-mail déjà connu du propriétaire par la messagerie.
+     */
+    private LocationEnCoursDTO locationEnCours(Bien bien) {
+        if (bien.getLocataire() == null) {
+            return null;
+        }
+        return locationRepository.findActive(bien.getId())
+                .map(l -> new LocationEnCoursDTO(l.getId(), l.getDateDebut(), l.getDateFinPrevue(),
+                        l.getCongeDonnePar(), depotDuBail(bien)))
+                .orElse(null);
+    }
+
+    /** Dépôt du dernier bail signé du locataire actuel (plafond du montant restitué à la fin du bail). */
+    private java.math.BigDecimal depotDuBail(Bien bien) {
+        if (bien.getContrats() == null) {
+            return null;
+        }
+        Long locataireId = bien.getLocataire().getId();
+        return bien.getContrats().stream()
+                .filter(c -> c.getStatut() == StatutContrat.SIGNE && c.getLocataire() != null
+                        && locataireId.equals(c.getLocataire().getId()))
+                .max(java.util.Comparator.comparing(Contrat::getCreatedAt,
+                        java.util.Comparator.nullsFirst(java.util.Comparator.naturalOrder())))
+                .map(Contrat::getDepotGarantie)
+                .orElse(null);
+    }
+
+    private ReservationBienDTO reservation(Bien bien) {
+        return locationRepository.findReservationValable(bien.getId(), LocalDateTime.now())
+                .map(l -> new ReservationBienDTO(
+                        l.getId(),
+                        UserDTO.builder()
+                                .id(l.getLocataire().getId())
+                                .firstName(l.getLocataire().getFirstName())
+                                .lastName(l.getLocataire().getLastName())
+                                .mail(l.getLocataire().getMail())
+                                .urlProfile(photoProfilUrlMapper.urlPhotoProfil(l.getLocataire()))
+                                .build(),
+                        l.getDateReservation(),
+                        l.getDateExpiration()))
+                .orElse(null);
+    }
+
+    /**
      * Vue privée d'un bien (propriétaire ou locataire connecté) : parties avec e-mail,
      * documents filtrés selon l'utilisateur.
      */
@@ -445,6 +499,9 @@ public class BienServiceImpl implements BienService {
                         .telephone(bien.getLocataire().getTelephone()) // C6 : vue réservée aux parties du bien
                         .build()
                         : null)
+                .reservation(estProprietaire(bien, user) ? reservation(bien) : null)
+                // Fin de bail : location en cours, pour le propriétaire et le locataire actuel (seuls à voir cette vue)
+                .location(locationEnCours(bien))
 
                 // ─── Documents & médias ───────────────────────────────────
                 // Le propriétaire voit tous les documents du bien ; un locataire ne voit que les siens

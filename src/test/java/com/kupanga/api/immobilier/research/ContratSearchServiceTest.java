@@ -67,7 +67,7 @@ class ContratSearchServiceTest {
                 null, null, null, 0, 10, null, Sort.Direction.DESC);
 
         when(userService.getUserByEmail(proprietaire.getMail())).thenReturn(proprietaire);
-        when(contratSpecification.build(eq(dto), eq(1L), eq(Role.ROLE_PROPRIETAIRE)))
+        when(contratSpecification.build(eq(dto), eq(1L)))
                 .thenReturn(mock(Specification.class));
         when(contratRepository.findAll(any(Specification.class), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of(contrat)));
@@ -86,7 +86,7 @@ class ContratSearchServiceTest {
                 null, null, null, 0, 10, null, Sort.Direction.DESC);
 
         when(userService.getUserByEmail(proprietaire.getMail())).thenReturn(proprietaire);
-        when(contratSpecification.build(any(), anyLong(), any())).thenReturn(mock(Specification.class));
+        when(contratSpecification.build(any(), anyLong())).thenReturn(mock(Specification.class));
         when(contratRepository.findAll(any(Specification.class), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(Collections.emptyList()));
 
@@ -102,7 +102,7 @@ class ContratSearchServiceTest {
                 null, null, null, 1, 5, "dateDebut", Sort.Direction.ASC);
 
         when(userService.getUserByEmail(proprietaire.getMail())).thenReturn(proprietaire);
-        when(contratSpecification.build(any(), anyLong(), any())).thenReturn(mock(Specification.class));
+        when(contratSpecification.build(any(), anyLong())).thenReturn(mock(Specification.class));
 
         ArgumentCaptor<Pageable> captor = ArgumentCaptor.forClass(Pageable.class);
         when(contratRepository.findAll(any(Specification.class), captor.capture()))

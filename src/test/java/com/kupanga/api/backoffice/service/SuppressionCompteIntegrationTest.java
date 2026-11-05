@@ -1,5 +1,8 @@
 package com.kupanga.api.backoffice.service;
 
+import java.time.LocalDateTime;
+import com.kupanga.api.immobilier.entity.StatutLocation;
+import com.kupanga.api.immobilier.entity.Location;
 import com.kupanga.api.juridiction.Devise;
 import com.kupanga.api.juridiction.Pays;
 import com.kupanga.api.chat.entity.Conversation;
@@ -54,6 +57,7 @@ class SuppressionCompteIntegrationTest {
     @Autowired private MessageRepository messageRepository;
     @Autowired private NotificationRepository notificationRepository;
     @Autowired private EntityManager entityManager;
+    @Autowired private com.kupanga.api.immobilier.repository.LocationRepository locationRepository;
 
     private User proprio;
     private User locataire;
@@ -142,6 +146,25 @@ class SuppressionCompteIntegrationTest {
 
         assertThat(bienAdminService.desarchiver(bienLibre.getId()))
                 .as("pas de remise en ligne sans propriétaire").isFalse();
+    }
+
+    @Test
+    @DisplayName("Fin de bail : propriétaire anonymisé → sa location en cours se termine et le bien est libéré")
+    void proprietaireAnonymise_locationTerminee() {
+        Location active = locationRepository.save(Location.builder().bien(bienLoue).proprietaire(proprio)
+                .locataire(locataire).statut(StatutLocation.ACTIVE).dateReservation(LocalDateTime.now().minusMonths(2))
+                .dateExpiration(LocalDateTime.now().minusMonths(1)).dateDebut(LocalDateTime.now().minusMonths(2)).build());
+        entityManager.flush();
+        entityManager.clear();
+
+        assertThat(userAdminService.supprimer(proprio.getId())).isEqualTo(ResultatSuppressionCompte.ANONYMISE);
+        entityManager.flush();
+        entityManager.clear();
+
+        assertThat(locationRepository.findById(active.getId()).orElseThrow().getStatut()).isEqualTo(StatutLocation.TERMINEE);
+        assertThat(bienRepository.findById(bienLoue.getId()).orElseThrow().getLocataire()).isNull();
+        // Le locataire garde son bail signé
+        assertThat(contratRepository.findById(contrat.getId()).orElseThrow().getStatut()).isEqualTo(StatutContrat.SIGNE);
     }
 
     @Test

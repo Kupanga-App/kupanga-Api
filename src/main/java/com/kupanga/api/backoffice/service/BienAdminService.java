@@ -11,6 +11,7 @@ import com.kupanga.api.immobilier.entity.StatutEdl;
 import com.kupanga.api.immobilier.repository.BienRepository;
 import com.kupanga.api.immobilier.repository.ContratRepository;
 import com.kupanga.api.immobilier.repository.DemandeLocationRepository;
+import com.kupanga.api.immobilier.repository.LocationRepository;
 import com.kupanga.api.immobilier.repository.EtatDesLieuxRepository;
 import com.kupanga.api.pagination.Pagination;
 import lombok.RequiredArgsConstructor;
@@ -39,6 +40,7 @@ public class BienAdminService {
     private final ContratRepository     contratRepository;
     private final EtatDesLieuxRepository etatDesLieuxRepository;
     private final DemandeLocationRepository demandeLocationRepository;
+    private final LocationRepository locationRepository;
     private final PhotoBienUrlMapper    photoBienUrlMapper;
 
     /**
@@ -82,6 +84,8 @@ public class BienAdminService {
             etatDesLieuxRepository.expirerNonSignesDuBien(id, StatutEdl.SIGNE, StatutEdl.EXPIRE);
             // Une demande de location en attente ne peut plus être acceptée
             demandeLocationRepository.annulerEnAttenteDuBien(id, LocalDateTime.now());
+            // Ni la réservation en cours (bail non signé, déjà expiré ci-dessus)
+            locationRepository.annulerReservationDuBien(id, LocalDateTime.now());
         }
         return true;
     }

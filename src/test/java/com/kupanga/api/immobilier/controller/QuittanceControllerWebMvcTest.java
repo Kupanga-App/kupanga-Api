@@ -98,11 +98,13 @@ class QuittanceControllerWebMvcTest {
     }
 
     @Test
-    @DisplayName("GET /quittances/mes-quittances — propriétaire : 403 (P0-1)")
+    @DisplayName("Lot 3 : GET /quittances/mes-quittances — un propriétaire peut aussi être locataire : 200")
     @WithMockUser(username = "proprio@test.com", roles = "PROPRIETAIRE")
-    void getMesQuittances_asProprietaire_shouldReturn403() throws Exception {
+    void getMesQuittances_asProprietaire_autorise() throws Exception {
+        when(quittanceService.getQuittancesParLocataire("proprio@test.com")).thenReturn(java.util.List.of());
         mockMvc.perform(get("/quittances/mes-quittances"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isOk());
+        verify(quittanceService).getQuittancesParLocataire("proprio@test.com");
     }
 
     @Test
@@ -167,13 +169,14 @@ class QuittanceControllerWebMvcTest {
     }
 
     @Test
-    @DisplayName("C8-bis : POST /quittances/{id}/recu — locataire : 403")
+    @DisplayName("C8-bis / lot 3 : POST /quittances/{id}/recu — pas le propriétaire de la quittance : 403 du service")
     @WithMockUser(username = "loc@test.com", roles = "LOCATAIRE")
-    void ajouterRecu_locataire_403() throws Exception {
+    void ajouterRecu_pasProprietaire_403() throws Exception {
+        when(quittanceService.ajouterRecu(eq(1L), any(), eq("loc@test.com")))
+                .thenThrow(new KupangaBusinessException("Accès non autorisé", HttpStatus.FORBIDDEN));
         mockMvc.perform(multipart("/quittances/1/recu")
                         .file(new org.springframework.mock.web.MockMultipartFile("recu", "r.jpg", "image/jpeg", new byte[]{1})))
                 .andExpect(status().isForbidden());
-        verify(quittanceService, never()).ajouterRecu(any(), any(), any());
     }
 
     @Test

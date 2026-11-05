@@ -14,6 +14,7 @@ import com.kupanga.api.immobilier.mapper.ContratMapper;
 import com.kupanga.api.immobilier.pdf.ContratPdfService;
 import com.kupanga.api.immobilier.repository.ContratRepository;
 import com.kupanga.api.immobilier.service.BienService;
+import com.kupanga.api.immobilier.service.LocationService;
 import com.kupanga.api.immobilier.service.ContratService;
 import com.kupanga.api.notification.enums.NotificationType;
 import com.kupanga.api.notification.service.NotificationService;
@@ -42,6 +43,7 @@ public class ContratServiceImpl implements ContratService {
     private final ContratMapper      contratMapper;
     private final NotificationService notificationService;
     private final JuridictionRegistry juridictionRegistry;
+    private final LocationService     locationService;
 
     @Override
     public void creerContrat(ContratFormDTO dto, String emailProprietaire) {
@@ -52,7 +54,8 @@ public class ContratServiceImpl implements ContratService {
         // et le locataire doit être celui assigné au bien
         Bien bien = bienService.verifierProprietaire(dto.getBienId(), emailProprietaire);
         bienService.verifierBienActif(bien);
-        User locataire = bienService.verifierLocataireDuBien(bien, dto.getEmailLocataire());
+        // Locataire actuel, ou candidat qui a réservé le bien (décision du 2026-11-05)
+        User locataire = locationService.locataireDuBail(bien, dto.getEmailLocataire());
 
         // C12 : garantie en montant (France) ou en mois de loyer + avance (RDC : dépôt masqué dans le profil)
         Integer garantieMois = null;
@@ -120,6 +123,8 @@ public class ContratServiceImpl implements ContratService {
         if (contrat.getStatut() != StatutContrat.EN_ATTENTE_SIGNATURE_LOCATAIRE) {
             throw new KupangaBusinessException("Ce contrat ne peut plus être signé", HttpStatus.CONFLICT);
         }
+        // Bail d'un candidat : seulement tant que sa réservation est valable (409)
+        locationService.verifierBailSignable(contrat);
 
         return contratMapper.toDTO(contrat);
     }
@@ -136,6 +141,7 @@ public class ContratServiceImpl implements ContratService {
         if (contrat.getStatut() == StatutContrat.SIGNE || contrat.getStatut() == StatutContrat.ANNULE) {
             throw new KupangaBusinessException("Ce contrat ne peut plus être signé", HttpStatus.CONFLICT);
         }
+        locationService.verifierBailSignable(contrat);
 
         contrat.setSignatureProprietaire(signatureBase64);
         contrat.setDateSignatureProprietaire(LocalDateTime.now());
@@ -186,6 +192,7 @@ public class ContratServiceImpl implements ContratService {
             throw new KupangaBusinessException("Ce contrat ne peut plus être signé", HttpStatus.CONFLICT);
         }
         bienService.verifierDocumentModifiable(contrat.getBien(), contrat.getProprietaire(), contrat.getLocataire());
+        locationService.verifierBailSignable(contrat);
 
         contrat.setSignatureLocataire(signatureBase64);
         contrat.setDateSignatureLocataire(LocalDateTime.now());
@@ -200,6 +207,8 @@ public class ContratServiceImpl implements ContratService {
         contrat.setTokenExpiration(null);
         // B6 : écriture immédiate : un conflit (409) est détecté avant les e-mails et notifications
         contratRepository.saveAndFlush(contrat);
+        // Décision du 2026-11-05 : le candidat qui avait réservé devient locataire du bien
+        locationService.activerApresSignature(contrat);
 
         // Envoie les emails de confirmation aux deux parties
         emailService.envoyerConfirmationContratSigne(contrat);

@@ -208,6 +208,7 @@
                                             <span style="width:10px;height:10px;border-radius:50%;
                                                          background:#8FA464;display:inline-block;flex-shrink:0;"></span>
                                             Locataires
+                                            <small class="text-muted">(louent un logement)</small>
                                         </span>
                                     </td>
                                     <td class="text-end">
@@ -221,6 +222,7 @@
                                             <span style="width:10px;height:10px;border-radius:50%;
                                                          background:#5A8FAF;display:inline-block;flex-shrink:0;"></span>
                                             Propriétaires
+                                            <small class="text-muted">(possèdent un bien)</small>
                                         </span>
                                     </td>
                                     <td class="text-end">
@@ -375,7 +377,8 @@
     const totalEdl           = /*[[${totalEdl}]]*/ 0;
     const totalQuittances    = /*[[${totalQuittances}]]*/ 0;
 
-    const totalAdmins = Math.max(0, totalUsers - totalLocataires - totalProprietaires);
+    // Lot 3 : un compte peut être propriétaire ET locataire (les parts ne s'additionnent pas)
+    const totalSansBienNiLogement = /*[[${totalSansBienNiLogement}]]*/ 0;
 
     /* ── Palette cohérente avec le design system ── */
     const COLORS = {
@@ -426,11 +429,11 @@
     const usersBg     = [COLORS.olive.bg, COLORS.info.bg];
     const usersBorder = [COLORS.olive.border, COLORS.info.border];
 
-    if (totalAdmins > 0) {
-        usersLabels.push('Admins');
-        usersData.push(totalAdmins);
-        usersBg.push(COLORS.danger.bg);
-        usersBorder.push(COLORS.danger.border);
+    if (totalSansBienNiLogement > 0) {
+        usersLabels.push('Sans bien ni logement');
+        usersData.push(totalSansBienNiLogement);
+        usersBg.push(COLORS.muted.bg);
+        usersBorder.push(COLORS.muted.border);
     }
 
     new Chart(document.getElementById('chartUsers'), {

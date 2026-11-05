@@ -71,6 +71,10 @@ public record BienDTO(
         // ─── Parties ──────────────────────────────────────────────────────────
         UserDTO       proprietaire,
         UserDTO       locataire,
+        /** Réservation en cours (demande acceptée, bail pas encore signé) ; vue du propriétaire seulement. */
+        ReservationBienDTO reservation,
+        /** Location en cours (congé, fin de bail) ; propriétaire et locataire actuel seulement. */
+        LocationEnCoursDTO location,
 
         // ─── Documents & médias ───────────────────────────────────────────────
         List<String>  contrats,

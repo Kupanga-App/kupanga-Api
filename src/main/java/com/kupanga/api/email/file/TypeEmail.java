@@ -26,7 +26,13 @@ public enum TypeEmail {
     EDL_SIGNE(CRITIQUE, null),
     QUITTANCE(CRITIQUE, null),
     /** Même durée que la demande ({@code DemandeLocationService.VALIDITE}, 72 h). */
-    DEMANDE_LOCATION(CRITIQUE, Duration.ofHours(72));
+    DEMANDE_LOCATION(CRITIQUE, Duration.ofHours(72)),
+    /** Désistement, retrait ou expiration d'une réservation (décision du 2026-11-05). */
+    FIN_RESERVATION(NORMALE, null),
+    /** Congé donné ou retiré (fin de bail). */
+    CONGE(NORMALE, null),
+    /** Fin du bail enregistrée, avec le dépôt restitué. */
+    FIN_DE_BAIL(CRITIQUE, null);
 
     private final PrioriteEmail priorite;
     private final Duration validiteLien;

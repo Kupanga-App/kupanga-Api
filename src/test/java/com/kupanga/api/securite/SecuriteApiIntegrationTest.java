@@ -364,7 +364,7 @@ class SecuriteApiIntegrationTest {
     }
 
     @Test
-    @DisplayName("Demande de location : le bien n'est assigné qu'à l'acceptation, par le seul destinataire")
+    @DisplayName("Demande de location : le bien n'est réservé qu'à l'acceptation, par le seul destinataire")
     void demandeLocation_assigneeSeulementALAcceptation() throws Exception {
         conversationRepository.save(Conversation.builder()
                 .bien(bienB).emailExpediteur(autreLocataire.getMail()).emailDestinataire(proprietaireB.getMail())
@@ -385,20 +385,20 @@ class SecuriteApiIntegrationTest {
         assertStatut(404, post("/demandes-location/" + id + "/accepter").with(connecte(locataireA)));
         mockMvc.perform(get("/demandes-location/recues").with(connecte(locataireA)))
                 .andExpect(jsonPath("$[?(@.id == " + id + ")]").isEmpty());
-        // Le propriétaire ne peut pas accepter à la place du locataire (rôle)
-        assertStatut(403, post("/demandes-location/" + id + "/accepter").with(connecte(proprietaireB)));
+        // Le propriétaire ne peut pas accepter à la place du destinataire (même 404 qu'un id inconnu)
+        assertStatut(404, post("/demandes-location/" + id + "/accepter").with(connecte(proprietaireB)));
 
         mockMvc.perform(get("/demandes-location/recues").with(connecte(autreLocataire)))
                 .andExpect(jsonPath("$[0].id").value(id))
                 .andExpect(jsonPath("$[0].nomProprietaire").exists());
         assertStatut(200, post("/demandes-location/" + id + "/accepter").with(connecte(autreLocataire)));
 
-        assertThat(bienRepository.findById(bienB.getId()).orElseThrow().getLocataire().getId())
-                .isEqualTo(autreLocataire.getId());
+        // Décision du 2026-11-05 : réservé, locataire seulement à la signature du bail
+        assertThat(bienRepository.findById(bienB.getId()).orElseThrow().getLocataire()).isNull();
         // Déjà acceptée : ni nouvelle réponse, ni retrait
         assertStatut(409, post("/demandes-location/" + id + "/refuser").with(connecte(autreLocataire)));
         assertStatut(409, delete("/demandes-location/" + id).with(connecte(proprietaireB)));
-        // Bien désormais loué : plus de demande possible
+        // Bien désormais réservé : plus de demande possible
         assertStatut(409, post("/biens/" + bienB.getId() + "/demandes-location/" + autreLocataire.getId())
                 .with(connecte(proprietaireB)));
     }
@@ -452,13 +452,16 @@ class SecuriteApiIntegrationTest {
     }
 
     @Test
-    @DisplayName("Rôles (@PreAuthorize) : propriétaire sur les routes locataire et inversement → 403")
-    void roles_croises_refuses() throws Exception {
+    @DisplayName("Lot 3 : plus de rôle, la relation au bien décide (propriétaire ↔ locataire du MÊME bien → 403)")
+    void relationsCroisees_refusees() throws Exception {
         RequestPostProcessor a = connecte(proprietaireA);
         RequestPostProcessor locataire = connecte(locataireA);
 
+        // A n'est pas locataire de son propre bien
         assertStatut(403, get("/locataire/dashboard/" + bienA.getId()).with(a));
-        assertStatut(403, get("/quittances/mes-quittances").with(a));
+        // Un propriétaire peut aussi être locataire ailleurs : ses quittances de locataire (aucune ici)
+        mockMvc.perform(get("/quittances/mes-quittances").with(a))
+                .andExpect(status().isOk()).andExpect(jsonPath("$").isEmpty());
         // C7-C16 : réservé au propriétaire
         assertStatut(403, get("/quittances/" + quittanceA.getId() + "/lien-whatsapp").with(locataire));
         assertStatut(403, post("/quittances/" + quittanceA.getId() + "/marquer-payee").with(locataire)
@@ -467,6 +470,82 @@ class SecuriteApiIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON).content(SIGNATURE));
         assertStatut(403, patch("/biens/" + bienA.getId()).with(locataire)
                 .contentType(MediaType.APPLICATION_JSON).content("{\"typeBien\": \"STUDIO\", \"titre\": \"Piraté\"}"));
+    }
+
+    @Test
+    @DisplayName("Lot 3 : le locataire de A sur les actions de propriétaire de SON logement → 403, rien n'est créé")
+    void locataire_actionsDeProprietaireSurSonLogement_refusees() throws Exception {
+        RequestPostProcessor locataire = connecte(locataireA);
+        long contrats = contratRepository.count();
+        long edls = etatDesLieuxRepository.count();
+        long quittances = quittanceRepository.count();
+        long demandes = demandeLocationRepository.count();
+
+        assertStatut(403, post("/contrats").with(locataire).contentType(MediaType.APPLICATION_JSON).content(contratJson(bienA)));
+        assertStatut(403, post("/etats-des-lieux").with(locataire).contentType(MediaType.APPLICATION_JSON).content(edlJson(bienA)));
+        assertStatut(403, post("/quittances").with(locataire).contentType(MediaType.APPLICATION_JSON)
+                .content(quittanceJson(bienA, contratA.getId())));
+        assertStatut(403, post("/biens/" + bienA.getId() + "/demandes-location/" + autreLocataire.getId()).with(locataire));
+        assertStatut(403, get("/biens/" + bienA.getId() + "/demandes-location").with(locataire));
+        assertStatut(403, get("/biens/" + bienA.getId() + "/location").with(locataire));
+        assertStatut(403, post("/users/" + bienA.getId() + "/recherche-locataire").with(locataire)
+                .contentType(MediaType.APPLICATION_JSON).content("{}"));
+        assertStatut(403, get("/quittances/bien/" + bienA.getId()).with(locataire));
+        assertStatut(403, multipart("/quittances/" + quittanceA.getId() + "/recu")
+                .file(new org.springframework.mock.web.MockMultipartFile("recu", "r.jpg", "image/jpeg",
+                        com.kupanga.api.stockage.image.ImagesDeTest.jpeg(40, 30)))
+                .with(locataire));
+        assertStatut(403, get("/contrats/" + contratA.getId() + "/lien-whatsapp").with(locataire));
+        assertStatut(403, get("/etats-des-lieux/" + edlA.getId() + "/lien-whatsapp").with(locataire));
+        assertStatut(403, post("/etats-des-lieux/" + edlA.getId() + "/signer-proprietaire").with(locataire)
+                .contentType(MediaType.APPLICATION_JSON).content(SIGNATURE));
+
+        assertThat(contratRepository.count()).isEqualTo(contrats);
+        assertThat(etatDesLieuxRepository.count()).isEqualTo(edls);
+        assertThat(quittanceRepository.count()).isEqualTo(quittances);
+        assertThat(demandeLocationRepository.count()).isEqualTo(demandes);
+    }
+
+    @Test
+    @DisplayName("Lot 3 : un compte propriétaire de A ET locataire de B voit ses documents des deux côtés, rien d'autre")
+    void proprietaireEtLocataire_recherches() throws Exception {
+        // Le propriétaire B loue aussi le bien d'un autre (ici : un bien de A)
+        Bien loueParB = bien("Studio loué par B", proprietaireA, proprietaireB);
+        Contrat bailDeB = contrat(loueParB);
+        // B possède aussi un bien loué à l'autre locataire
+        Bien bienDeB = bien("T3 de B", proprietaireB, autreLocataire);
+        Contrat bailDuBienDeB = contrat(bienDeB);
+
+        String reponse = mockMvc.perform(post("/contrats/search").with(connecte(proprietaireB))
+                        .contentType(MediaType.APPLICATION_JSON).content("{}"))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        List<Integer> ids = com.jayway.jsonpath.JsonPath.parse(reponse).read("$.contenu[*].id");
+        assertThat(ids).extracting(Integer::longValue)
+                .containsExactlyInAnyOrder(bailDeB.getId(), bailDuBienDeB.getId());
+        // Tableau de bord du logement qu'il loue, mais pas de celui qu'il possède
+        assertStatut(200, get("/locataire/dashboard/" + loueParB.getId()).with(connecte(proprietaireB)));
+        assertStatut(403, get("/locataire/dashboard/" + bienDeB.getId()).with(connecte(proprietaireB)));
+        // Bien inconnu : même 403 (pas d'énumération)
+        assertStatut(403, get("/locataire/dashboard/999999").with(connecte(proprietaireB)));
+    }
+
+    @Autowired private com.kupanga.api.backoffice.service.UserAdminService userAdminService;
+
+    @Test
+    @DisplayName("Lot 3 : statistiques du back-office d'après les biens (un compte peut être propriétaire ET locataire)")
+    void statistiques_parRelation() {
+        long proprietaires = userAdminService.countProprietaires();
+        long locataires = userAdminService.countLocataires();
+        long sansRien = userAdminService.countSansBienNiLogement();
+
+        User nouveau = utilisateur("nouveau@secu.test", Role.ROLE_LOCATAIRE);
+        assertThat(userAdminService.countSansBienNiLogement()).isEqualTo(sansRien + 1);
+
+        // Inscrit « locataire », il publie un bien loué par le locataire de A (déjà compté comme locataire)
+        bien("Bien du nouveau", nouveau, locataireA);
+        assertThat(userAdminService.countProprietaires()).isEqualTo(proprietaires + 1);
+        assertThat(userAdminService.countLocataires()).isEqualTo(locataires);
+        assertThat(userAdminService.countSansBienNiLogement()).isEqualTo(sansRien);
     }
 
     @Test

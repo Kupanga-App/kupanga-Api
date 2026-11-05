@@ -4,16 +4,15 @@ import com.kupanga.api.immobilier.entity.EtatDesLieux;
 import com.kupanga.api.immobilier.entity.StatutEdl;
 import com.kupanga.api.immobilier.entity.TypeEtat;
 import com.kupanga.api.immobilier.research.dto.EtatDesLieuxSearchDTO;
-import com.kupanga.api.user.entity.Role;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
 @Component
 public class EtatDesLieuxSpecification {
 
-    public Specification<EtatDesLieux> build(EtatDesLieuxSearchDTO dto, Long userId, Role role) {
+    public Specification<EtatDesLieux> build(EtatDesLieuxSearchDTO dto, Long userId) {
         return Specification
-                .where(parUtilisateur(userId, role))
+                .where(parUtilisateur(userId))
                 .and(parType(dto.type()))
                 .and(parStatut(dto.statut()))
                 .and(parAnnee(dto.annee()))
@@ -21,16 +20,11 @@ public class EtatDesLieuxSpecification {
                 .and(parBien(dto.bienId()));
     }
 
-    private Specification<EtatDesLieux> parUtilisateur(Long userId, Role role) {
-        return (root, query, cb) -> {
-            if (role == Role.ROLE_PROPRIETAIRE) {
-                return cb.or(
-                        cb.equal(root.get("proprietaire").get("id"), userId),
-                        cb.equal(root.get("locataire").get("id"), userId)
-                );
-            }
-            return cb.equal(root.get("locataire").get("id"), userId);
-        };
+    /** Lot 3 : documents dont le compte est le propriétaire ou le locataire, quel que soit son profil. */
+    private Specification<EtatDesLieux> parUtilisateur(Long userId) {
+        return (root, query, cb) -> cb.or(
+                cb.equal(root.get("proprietaire").get("id"), userId),
+                cb.equal(root.get("locataire").get("id"), userId));
     }
 
     private Specification<EtatDesLieux> parType(TypeEtat type) {

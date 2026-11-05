@@ -77,7 +77,7 @@ class ContratSpecificationTest {
     @Test
     @DisplayName("parUtilisateur PROPRIETAIRE — retourne les contrats dont il est proprio")
     void build_roleProprietaire_retourneSeulementSesContrats() {
-        List<Contrat> result = contratRepository.findAll(spec.build(emptyDto(), proprio1.getId(), Role.ROLE_PROPRIETAIRE));
+        List<Contrat> result = contratRepository.findAll(spec.build(emptyDto(), proprio1.getId()));
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getId()).isEqualTo(c1.getId());
@@ -86,7 +86,7 @@ class ContratSpecificationTest {
     @Test
     @DisplayName("parUtilisateur LOCATAIRE — retourne tous les contrats du locataire")
     void build_roleLocataire_retourneContratsLocataire() {
-        List<Contrat> result = contratRepository.findAll(spec.build(emptyDto(), locataire.getId(), Role.ROLE_LOCATAIRE));
+        List<Contrat> result = contratRepository.findAll(spec.build(emptyDto(), locataire.getId()));
 
         assertThat(result).extracting(Contrat::getId)
                 .containsExactlyInAnyOrder(c1.getId(), c2.getId());
@@ -98,7 +98,7 @@ class ContratSpecificationTest {
         ContratSearchDTO dto = new ContratSearchDTO(null, null, null, null, null, null, null, StatutContrat.SIGNE,
                 0, 10, null, Sort.Direction.ASC);
 
-        List<Contrat> result = contratRepository.findAll(spec.build(dto, locataire.getId(), Role.ROLE_LOCATAIRE));
+        List<Contrat> result = contratRepository.findAll(spec.build(dto, locataire.getId()));
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getStatut()).isEqualTo(StatutContrat.SIGNE);
@@ -110,7 +110,7 @@ class ContratSpecificationTest {
         ContratSearchDTO dto = new ContratSearchDTO(null, null, null, new BigDecimal("1000.0"), null, null, null, null,
                 0, 10, null, Sort.Direction.ASC);
 
-        List<Contrat> result = contratRepository.findAll(spec.build(dto, locataire.getId(), Role.ROLE_LOCATAIRE));
+        List<Contrat> result = contratRepository.findAll(spec.build(dto, locataire.getId()));
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getLoyerMensuel()).isGreaterThanOrEqualTo(new BigDecimal("1000.0"));
@@ -123,7 +123,7 @@ class ContratSpecificationTest {
                 LocalDate.of(2025, 1, 1), null, null,
                 0, 10, null, Sort.Direction.ASC);
 
-        List<Contrat> result = contratRepository.findAll(spec.build(dto, locataire.getId(), Role.ROLE_LOCATAIRE));
+        List<Contrat> result = contratRepository.findAll(spec.build(dto, locataire.getId()));
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getDateDebut()).isAfterOrEqualTo(LocalDate.of(2025, 1, 1));

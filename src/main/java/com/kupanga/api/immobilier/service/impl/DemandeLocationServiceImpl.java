@@ -7,13 +7,13 @@ import com.kupanga.api.immobilier.dto.readDTO.DemandeLocationDTO;
 import com.kupanga.api.immobilier.entity.Bien;
 import com.kupanga.api.immobilier.entity.DemandeLocation;
 import com.kupanga.api.immobilier.entity.StatutDemandeLocation;
-import com.kupanga.api.immobilier.repository.BienRepository;
 import com.kupanga.api.immobilier.repository.DemandeLocationRepository;
 import com.kupanga.api.immobilier.service.BienService;
 import com.kupanga.api.immobilier.service.DemandeLocationService;
+import com.kupanga.api.immobilier.service.LocationService;
+import com.kupanga.api.immobilier.entity.Location;
 import com.kupanga.api.notification.enums.NotificationType;
 import com.kupanga.api.notification.service.NotificationService;
-import com.kupanga.api.user.entity.Role;
 import com.kupanga.api.user.entity.User;
 import com.kupanga.api.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +32,7 @@ import java.util.List;
 public class DemandeLocationServiceImpl implements DemandeLocationService {
 
     private final DemandeLocationRepository demandeRepository;
-    private final BienRepository bienRepository;
+    private final LocationService locationService;
     private final ConversationRepository conversationRepository;
     private final BienService bienService;
     private final UserService userService;
@@ -41,21 +41,21 @@ public class DemandeLocationServiceImpl implements DemandeLocationService {
     private final Clock clock;
 
     @Autowired
-    public DemandeLocationServiceImpl(DemandeLocationRepository demandeRepository, BienRepository bienRepository,
+    public DemandeLocationServiceImpl(DemandeLocationRepository demandeRepository, LocationService locationService,
                                       ConversationRepository conversationRepository, BienService bienService,
                                       UserService userService, NotificationService notificationService,
                                       EmailService emailService) {
-        this(demandeRepository, bienRepository, conversationRepository, bienService, userService,
+        this(demandeRepository, locationService, conversationRepository, bienService, userService,
                 notificationService, emailService, Clock.systemDefaultZone());
     }
 
     /** Horloge fixée par les tests (expiration des demandes). */
-    DemandeLocationServiceImpl(DemandeLocationRepository demandeRepository, BienRepository bienRepository,
+    DemandeLocationServiceImpl(DemandeLocationRepository demandeRepository, LocationService locationService,
                                ConversationRepository conversationRepository, BienService bienService,
                                UserService userService, NotificationService notificationService,
                                EmailService emailService, Clock clock) {
         this.demandeRepository = demandeRepository;
-        this.bienRepository = bienRepository;
+        this.locationService = locationService;
         this.conversationRepository = conversationRepository;
         this.bienService = bienService;
         this.userService = userService;
@@ -68,17 +68,13 @@ public class DemandeLocationServiceImpl implements DemandeLocationService {
     @Transactional
     public DemandeLocationDTO envoyer(String emailProprietaire, Long bienId, Long locataireId) {
         User proprietaire = userService.getUserByEmail(emailProprietaire);
-        userService.verifyIfUserIsOwner(proprietaire.getRole());
         Bien bien = bienService.verifierProprietaire(bienId, proprietaire.getMail());
         bienService.verifierBienActif(bien);
-        if (bien.getLocataire() != null) {
-            throw new KupangaBusinessException(
-                    "Ce bien a déjà un locataire : libérez-le avant de le proposer à quelqu'un d'autre",
-                    HttpStatus.CONFLICT);
-        }
+        LocalDateTime maintenant = LocalDateTime.now(clock);
+        // Ni locataire ni réservation en cours (décision du 2026-11-05)
+        locationService.verifierBienLibre(bien, maintenant);
         User locataire = candidat(bien, proprietaire, locataireId);
 
-        LocalDateTime maintenant = LocalDateTime.now(clock);
         demandeRepository.expirerEchuesDuBien(bienId, maintenant);
         if (demandeRepository.existsByBien_IdAndStatut(bienId, StatutDemandeLocation.EN_ATTENTE)) {
             throw demandeDejaEnAttente();
@@ -114,7 +110,6 @@ public class DemandeLocationServiceImpl implements DemandeLocationService {
     @Transactional(readOnly = true)
     public List<DemandeLocationDTO> duBien(String emailProprietaire, Long bienId) {
         User proprietaire = userService.getUserByEmail(emailProprietaire);
-        userService.verifyIfUserIsOwner(proprietaire.getRole());
         bienService.verifierProprietaire(bienId, proprietaire.getMail());
         LocalDateTime maintenant = LocalDateTime.now(clock);
         return demandeRepository.findDuBien(bienId).stream().map(d -> versDTO(d, maintenant)).toList();
@@ -163,25 +158,29 @@ public class DemandeLocationServiceImpl implements DemandeLocationService {
         DemandeLocation demande = demandeDuLocataire(emailLocataire, demandeId, maintenant);
         Bien bien = demande.getBien();
         bienService.verifierBienActif(bien);
-        if (bien.getLocataire() != null) {
+        try {
+            locationService.verifierBienLibre(bien, maintenant);
+        } catch (KupangaBusinessException e) {
             throw new KupangaBusinessException("Ce logement n'est plus disponible", HttpStatus.CONFLICT);
         }
 
         demande.setStatut(StatutDemandeLocation.ACCEPTEE);
         demande.setDateReponse(maintenant);
-        demandeRepository.saveAndFlush(demande);
-        bien.setLocataire(demande.getLocataire());
-        bienRepository.save(bien);
+        demande = demandeRepository.saveAndFlush(demande);
+        // Décision du 2026-11-05 : le bien est réservé ; le candidat n'en devient locataire qu'à la signature du bail
+        Location reservation = locationService.reserver(demande, maintenant);
 
         notificationService.saveAndSend(
                 demande.getProprietaire(),
                 NotificationType.DEMANDE_LOCATION_ACCEPTEE,
                 "Demande de location acceptée",
-                nom(demande.getLocataire()) + " a accepté votre demande. Le logement situé au "
-                        + bien.adresseComplete() + " lui est maintenant attribué : vous pouvez préparer le bail.",
+                nom(demande.getLocataire()) + " a accepté votre demande : le logement situé au "
+                        + bien.adresseComplete() + " lui est réservé pendant 14 jours. Préparez et signez le bail ; "
+                        + "il deviendra votre locataire quand il l'aura signé.",
                 null,
                 bien.getId());
-        log.info("Demande de location {} acceptée, bien {} assigné", demandeId, bien.getId());
+        log.info("Demande de location {} acceptée, bien {} réservé (location {})", demandeId, bien.getId(),
+                reservation.getId());
         return versDTO(demande, maintenant);
     }
 
@@ -210,7 +209,8 @@ public class DemandeLocationServiceImpl implements DemandeLocationService {
     // ─────────────────────────────────────────────────────────────────────────
 
     /**
-     * Seuls les candidats du bien (conversation avec le propriétaire sur ce bien) peuvent recevoir une demande :
+     * Seuls les candidats du bien (conversation avec le propriétaire sur ce bien) peuvent recevoir une demande,
+     * quel que soit leur profil (lot 3 : un propriétaire peut aussi louer un logement) :
      * sinon un propriétaire pourrait viser n'importe quel compte. Id inconnu, compte anonymisé et non-candidat
      * donnent la même réponse : rien n'indique si le compte existe.
      */
@@ -224,10 +224,6 @@ public class DemandeLocationServiceImpl implements DemandeLocationService {
         if (locataire.isAnonymise() || conversationRepository.findConversationWithBienIdAndEmailExpediteur(
                 bien.getId(), proprietaire.getMail(), locataire.getMail()).isEmpty()) {
             throw candidatIntrouvable();
-        }
-        if (locataire.getRole() != Role.ROLE_LOCATAIRE) {
-            throw new KupangaBusinessException(
-                    "La demande ne peut être envoyée qu'à un compte locataire", HttpStatus.BAD_REQUEST);
         }
         return locataire;
     }

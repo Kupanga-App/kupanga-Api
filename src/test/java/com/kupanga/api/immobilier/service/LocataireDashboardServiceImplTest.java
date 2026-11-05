@@ -295,7 +295,7 @@ class LocataireDashboardServiceImplTest {
     // ══════════════════════════════════════════════════════════════
 
     @Test
-    @DisplayName("getDashboard() — bien introuvable → KupangaBusinessException 404")
+    @DisplayName("getDashboard() — bien introuvable → 403, comme le bien d’autrui (lot 3, pas d’énumération)")
     void getDashboard_bienNotFound_throwsNotFound() {
 
         when(userService.getUserByEmail(locataire.getMail())).thenReturn(locataire);
@@ -304,7 +304,7 @@ class LocataireDashboardServiceImplTest {
         KupangaBusinessException ex = assertThrows(KupangaBusinessException.class,
                 () -> dashboardService.getDashboard(auth, 99L));
 
-        assertThat(ex.getStatus()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(ex.getStatus()).isEqualTo(HttpStatus.FORBIDDEN);
         verifyNoInteractions(contratRepository, quittanceRepository, etatDesLieuxRepository);
     }
 

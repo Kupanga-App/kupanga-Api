@@ -1,6 +1,5 @@
 package com.kupanga.api.immobilier.controller;
 
-import org.springframework.security.access.prepost.PreAuthorize;
 import com.kupanga.api.immobilier.dto.formDTO.EtatDesLieuxFormDTO;
 import com.kupanga.api.immobilier.dto.formDTO.SignatureDTO;
 import com.kupanga.api.immobilier.dto.readDTO.EtatDesLieuxDTO;
@@ -241,7 +240,6 @@ public class EtatDesLieuxController {
                     }
             )
     )
-    @PreAuthorize("hasAuthority('ROLE_PROPRIETAIRE')")
     @PostMapping
     public ResponseEntity<Void> creerEtatDesLieux(
             @Valid @RequestBody EtatDesLieuxFormDTO dto
@@ -313,7 +311,6 @@ public class EtatDesLieuxController {
                             """)
             )
     )
-    @PreAuthorize("hasAuthority('ROLE_PROPRIETAIRE')")
     @PostMapping("/{id}/signer-proprietaire")
     public ResponseEntity<Void> signerProprietaire(
             @Parameter(description = "Identifiant de l'état des lieux", required = true)

@@ -17,6 +17,10 @@ public interface ContratRepository extends JpaRepository<Contrat, Long>, JpaSpec
 
     Optional<Contrat> findByTokenSignature(String token);
 
+    /** Fin de bail : dernier bail signé du locataire sur le bien (dépôt de garantie à restituer). */
+    Optional<Contrat> findFirstByBien_IdAndLocataire_IdAndStatutOrderByCreatedAtDesc(
+            Long bienId, Long locataireId, StatutContrat statut);
+
     /**
      * B7 : passe le contrat en {@code EXPIRE} dans sa propre transaction : le refus (410) qui suit annule
      * la transaction de l'appelant, et avec elle toute modification faite sur l'entité.
@@ -66,4 +70,20 @@ public interface ContratRepository extends JpaRepository<Contrat, Long>, JpaSpec
             """)
     int expirerNonSignesDuBien(@Param("bienId") Long bienId,
                                @Param("signe") StatutContrat signe, @Param("expire") StatutContrat expire);
+
+    /**
+     * Réservation désistée, retirée ou expirée (décision du 2026-11-05) : les baux non signés du candidat sur ce
+     * bien passent en {@code ANNULE} et leur lien de signature est effacé. Version incrémentée : une signature en
+     * cours sur l'entité échoue au verrou optimiste (409). Contexte vidé ensuite : un bail déjà chargé dans la
+     * transaction n'est jamais relu avec son ancien statut.
+     */
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query("""
+            UPDATE Contrat c SET c.statut = com.kupanga.api.immobilier.entity.StatutContrat.ANNULE,
+                                 c.tokenSignature = null, c.tokenExpiration = null, c.version = c.version + 1
+            WHERE c.bien.id = :bienId AND c.locataire.id = :locataireId
+              AND c.statut <> com.kupanga.api.immobilier.entity.StatutContrat.SIGNE
+              AND c.statut <> com.kupanga.api.immobilier.entity.StatutContrat.ANNULE
+            """)
+    int annulerNonSignesDuCandidat(@Param("bienId") Long bienId, @Param("locataireId") Long locataireId);
 }

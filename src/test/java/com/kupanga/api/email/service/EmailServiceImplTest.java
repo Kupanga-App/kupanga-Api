@@ -155,4 +155,54 @@ class EmailServiceImplTest {
                         "http://localhost:4200/demandes-location")
                 .doesNotContain("<b>T2</b>");
     }
+
+    @Test
+    @DisplayName("envoyerFinDeBail — au locataire, dépôt restitué et motif échappés, type FIN_DE_BAIL")
+    void envoyerFinDeBail() {
+        com.kupanga.api.user.entity.User proprio = com.kupanga.api.user.entity.User.builder()
+                .id(1L).firstName("Paul").lastName("Proprio").mail("p@test.fr").build();
+        com.kupanga.api.user.entity.User loc = com.kupanga.api.user.entity.User.builder()
+                .id(2L).firstName("Lea").lastName("Loc").mail("l@test.fr").build();
+        com.kupanga.api.immobilier.entity.Bien bien = com.kupanga.api.immobilier.entity.Bien.builder()
+                .id(10L).titre("<script>x</script>").adresse("12 rue A").codePostal("44000").ville("Nantes")
+                .pays(com.kupanga.api.juridiction.Pays.FR).devise(com.kupanga.api.juridiction.Devise.EUR).build();
+        com.kupanga.api.immobilier.entity.Location location = com.kupanga.api.immobilier.entity.Location.builder()
+                .id(80L).bien(bien).proprietaire(proprio).locataire(loc)
+                .depotRestitue(new java.math.BigDecimal("500.00")).motifRetenue("<b>Peinture</b>").build();
+
+        emailService.envoyerFinDeBail(location);
+
+        EmailSortant email = emailMisEnFile(TypeEmail.FIN_DE_BAIL);
+        assertThat(email.destinataire()).isEqualTo("l@test.fr");
+        assertThat(email.html())
+                .contains("&lt;b&gt;Peinture&lt;/b&gt;", "&lt;script&gt;", "500", "http://localhost:4200/documents")
+                .doesNotContain("<b>Peinture</b>", "<script>x");
+    }
+
+    @Test
+    @DisplayName("envoyerFinReservation — désistement au propriétaire, retrait et expiration au candidat, valeurs échappées")
+    void envoyerFinReservation() {
+        com.kupanga.api.user.entity.User proprio = com.kupanga.api.user.entity.User.builder()
+                .id(1L).firstName("Paul").lastName("Proprio").mail("p@test.fr").build();
+        com.kupanga.api.user.entity.User candidat = com.kupanga.api.user.entity.User.builder()
+                .id(2L).firstName("<i>Lea</i>").lastName("Loc").mail("l@test.fr").build();
+        com.kupanga.api.immobilier.entity.Bien bien = com.kupanga.api.immobilier.entity.Bien.builder()
+                .id(10L).titre("<b>T2</b>").adresse("12 rue A").codePostal("44000").ville("Nantes").build();
+        com.kupanga.api.immobilier.entity.Location location = com.kupanga.api.immobilier.entity.Location.builder()
+                .id(80L).bien(bien).proprietaire(proprio).locataire(candidat).build();
+
+        emailService.envoyerFinReservation(location, com.kupanga.api.immobilier.entity.StatutLocation.DESISTEE, proprio);
+        EmailSortant auProprietaire = emailMisEnFile(TypeEmail.FIN_RESERVATION);
+        assertThat(auProprietaire.destinataire()).isEqualTo("p@test.fr");
+        assertThat(auProprietaire.html())
+                .contains("Désistement", "&lt;i&gt;Lea&lt;/i&gt; Loc", "&lt;b&gt;T2&lt;/b&gt;",
+                        "http://localhost:4200/biens/10/locataire", "Proposer la location")
+                .doesNotContain("<b>T2</b>", "<i>Lea</i>", "$s");
+
+        org.mockito.Mockito.clearInvocations(fileEmails);
+        emailService.envoyerFinReservation(location, com.kupanga.api.immobilier.entity.StatutLocation.EXPIREE, candidat);
+        EmailSortant auCandidat = emailMisEnFile(TypeEmail.FIN_RESERVATION);
+        assertThat(auCandidat.destinataire()).isEqualTo("l@test.fr");
+        assertThat(auCandidat.html()).contains("14 jours", "http://localhost:4200/explorer", "Voir les annonces");
+    }
 }

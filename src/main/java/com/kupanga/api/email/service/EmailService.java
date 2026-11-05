@@ -92,4 +92,21 @@ public interface EmailService {
      * valable autant que la demande).
      */
     void envoyerDemandeLocation(DemandeLocation demande);
+
+    /**
+     * Fin d'une réservation avant la signature du bail (décision du 2026-11-05) : prévient le destinataire
+     * (propriétaire ou candidat) du désistement, du retrait ou de l'expiration.
+     *
+     * @param motif {@code DESISTEE}, {@code ANNULEE} ou {@code EXPIREE}
+     */
+    /** Fin de bail : prévient l'autre partie d'un congé donné ou retiré. */
+    void envoyerConge(com.kupanga.api.immobilier.entity.Location location, com.kupanga.api.user.entity.User destinataire,
+                      boolean retire);
+
+    /** Fin de bail enregistrée : prévient le locataire, avec le dépôt restitué et le motif d'une retenue. */
+    void envoyerFinDeBail(com.kupanga.api.immobilier.entity.Location location);
+
+    void envoyerFinReservation(com.kupanga.api.immobilier.entity.Location location,
+                               com.kupanga.api.immobilier.entity.StatutLocation motif,
+                               com.kupanga.api.user.entity.User destinataire);
 }

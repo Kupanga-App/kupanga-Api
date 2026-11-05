@@ -75,7 +75,7 @@ class QuittanceSpecificationTest {
     @DisplayName("parUtilisateur PROPRIETAIRE — retourne ses propres quittances")
     void build_roleProprietaire_retourneQuittancesDuProprio() {
         List<Quittance> result = quittanceRepository.findAll(
-                spec.build(emptyDto(), proprio.getId(), Role.ROLE_PROPRIETAIRE));
+                spec.build(emptyDto(), proprio.getId()));
 
         assertThat(result).extracting(Quittance::getId)
                 .containsExactlyInAnyOrder(q1.getId(), q2.getId(), q3.getId());
@@ -85,7 +85,7 @@ class QuittanceSpecificationTest {
     @DisplayName("parUtilisateur LOCATAIRE — retourne uniquement les quittances du locataire")
     void build_roleLocataire_retourneQuittancesLocataire() {
         List<Quittance> result = quittanceRepository.findAll(
-                spec.build(emptyDto(), locataire.getId(), Role.ROLE_LOCATAIRE));
+                spec.build(emptyDto(), locataire.getId()));
 
         assertThat(result).hasSize(3);
     }
@@ -96,7 +96,7 @@ class QuittanceSpecificationTest {
         QuittanceSearchDTO dto = new QuittanceSearchDTO(2025, null, null, null, 0, 10, null, Sort.Direction.ASC);
 
         List<Quittance> result = quittanceRepository.findAll(
-                spec.build(dto, proprio.getId(), Role.ROLE_PROPRIETAIRE));
+                spec.build(dto, proprio.getId()));
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getAnnee()).isEqualTo(2025);
@@ -108,7 +108,7 @@ class QuittanceSpecificationTest {
         QuittanceSearchDTO dto = new QuittanceSearchDTO(null, "janvier", null, null, 0, 10, null, Sort.Direction.ASC);
 
         List<Quittance> result = quittanceRepository.findAll(
-                spec.build(dto, proprio.getId(), Role.ROLE_PROPRIETAIRE));
+                spec.build(dto, proprio.getId()));
 
         assertThat(result).hasSize(2);
         assertThat(result).extracting(Quittance::getMois).containsOnly("janvier");
@@ -121,7 +121,7 @@ class QuittanceSpecificationTest {
                 0, 10, null, Sort.Direction.ASC);
 
         List<Quittance> result = quittanceRepository.findAll(
-                spec.build(dto, proprio.getId(), Role.ROLE_PROPRIETAIRE));
+                spec.build(dto, proprio.getId()));
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getStatut()).isEqualTo(StatutQuittance.PAYEE);

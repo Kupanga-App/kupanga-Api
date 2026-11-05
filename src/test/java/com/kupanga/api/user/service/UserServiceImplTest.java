@@ -129,40 +129,6 @@ class UserServiceImplTest {
                 .doesNotThrowAnyException();
     }
 
-
-    @Test
-    @DisplayName("Doit lancer InvalidRoleException si le rôle n'est pas locataire")
-    void testVerifieSiUtilisateurEstLocataire_invalid() {
-        String role = "ROLE_PROPRIETAIRE";
-        assertThatThrownBy(() -> utilisateurService.verifyIfUserIsTenant(Role.valueOf(role)))
-                .isInstanceOf(InvalidRoleException.class)
-                .hasMessageContaining("locataire");
-    }
-
-    @Test
-    @DisplayName("Ne doit rien faire si le rôle est locataire")
-    void testVerifieSiUtilisateurEstLocataire_valid() {
-        assertThatCode(() -> utilisateurService.verifyIfUserIsTenant(Role.ROLE_LOCATAIRE))
-                .doesNotThrowAnyException();
-    }
-
-
-    @Test
-    @DisplayName("Doit lancer InvalidRoleException si le rôle n'est pas propriétaire")
-    void testVerifieSiUtilisateurEstProprietaire_invalid() {
-        String role = "ROLE_LOCATAIRE";
-        assertThatThrownBy(() -> utilisateurService.verifyIfUserIsOwner(Role.valueOf(role)))
-                .isInstanceOf(InvalidRoleException.class)
-                .hasMessageContaining("propriétaire");
-    }
-
-    @Test
-    @DisplayName("Ne doit rien faire si le rôle est propriétaire")
-    void testVerifieSiUtilisateurEstProprietaire_valid() {
-        assertThatCode(() -> utilisateurService.verifyIfUserIsOwner(Role.ROLE_PROPRIETAIRE))
-                .doesNotThrowAnyException();
-    }
-
     @Test
     @DisplayName("C6 : modifierTelephone enregistre le numéro au format E.164 et le renvoie")
     void modifierTelephone_normalise() {

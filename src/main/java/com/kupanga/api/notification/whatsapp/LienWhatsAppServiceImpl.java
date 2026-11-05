@@ -128,9 +128,10 @@ public class LienWhatsAppServiceImpl implements LienWhatsAppService {
     @Override
     @Transactional(readOnly = true)
     public LienWhatsAppDTO demandeLocation(Long demandeId, String emailProprietaire) {
+        // Demande d'un autre propriétaire : même 404 qu'un id inconnu (les ids se suivent)
         DemandeLocation demande = demandeLocationRepository.findAvecParties(demandeId)
+                .filter(d -> d.getProprietaire().getMail().equals(emailProprietaire))
                 .orElseThrow(() -> new KupangaBusinessException("Demande de location introuvable", HttpStatus.NOT_FOUND));
-        verifierProprietaire(demande.getProprietaire(), emailProprietaire);
         verifierCanal(demande.getBien().getPays());
         if (demande.statutA(LocalDateTime.now()) != StatutDemandeLocation.EN_ATTENTE) {
             throw new KupangaBusinessException(
