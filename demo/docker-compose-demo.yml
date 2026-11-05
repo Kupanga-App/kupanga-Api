@@ -1,0 +1,91 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Kupanga — environnement de DÉMO (vidéo, captures d'écran)
+#
+# Pile complète, séparée de celle de dev : autres conteneurs, autres volumes, autres ports.
+#   docker compose -p kupanga-demo -f demo/docker-compose-demo.yml up -d --build
+#   API http://localhost:8189 · Mailpit http://localhost:8125 · front (ng serve -c demo) http://localhost:4300
+# Remise à zéro : docker compose -p kupanga-demo -f demo/docker-compose-demo.yml down -v
+# Identifiants de démonstration seulement (aucun secret réel).
+# ─────────────────────────────────────────────────────────────────────────────
+services:
+
+  api:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: kupanga-demo-api
+    ports:
+      - "127.0.0.1:8189:8189"
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      PORT: "8189"
+      JAVA_OPTS: "-Xms256m -Xmx768m -XX:+ExitOnOutOfMemoryError"
+      DB_URL: jdbc:postgresql://db:5432/kupanga_demo
+      POSTGRES_USER: kupanga
+      POSTGRES_PASSWORD: demo
+      JWT_SECRET_KEY: ZGVtby1rdXBhbmdhLWNsZS1qd3QtZGUtZGVtb25zdHJhdGlvbi1zZXVsZW1lbnQtNDgtb2N0ZXRz
+      ADMIN_EMAIL: admin@kupanga.demo
+      ADMIN_PASSWORD: Admin-Demo-2026
+      GOOGLE_CLIENT_ID: ""
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      STOCKAGE_ENDPOINT: http://stockage:9000
+      STOCKAGE_URL_PUBLIQUE: http://localhost:9200
+      SMTP_HOST: mailpit
+      SMTP_PORT: 1025
+      SMTP_AUTH: "false"
+      SMTP_STARTTLS: "false"
+      EMAIL_EXPEDITEUR: bonjour@kupanga.demo
+      CORS_ALLOWED_ORIGINS: http://localhost:4300
+      APP_URL: http://localhost:4300/
+      APP_RESETLINK: http://localhost:4300/auth/reset-password?token=
+      APP_URLLOGIN: http://localhost:4300/auth/login
+      SPRING_JPA_SHOW_SQL: "false"
+    depends_on:
+      - db
+      - stockage
+      - redis
+      - mailpit
+
+  db:
+    image: postgis/postgis:15-3.4-alpine
+    container_name: kupanga-demo-db
+    environment:
+      POSTGRES_DB: kupanga_demo
+      POSTGRES_USER: kupanga
+      POSTGRES_PASSWORD: demo
+    ports:
+      - "127.0.0.1:5435:5432"
+    volumes:
+      - db-demo:/var/lib/postgresql/data
+
+  stockage:
+    image: rustfs/rustfs:1.0.3@sha256:9ca9559533b537d10482fe923288b676ad08f92a7069d9a17327fbae3cab688b
+    user: "0:0"
+    container_name: kupanga-demo-stockage
+    environment:
+      RUSTFS_ACCESS_KEY: kupanga-dev
+      RUSTFS_SECRET_KEY: kupanga-dev-secret
+      RUSTFS_ADDRESS: ":9000"
+      RUSTFS_CONSOLE_ENABLE: "false"
+    ports:
+      - "127.0.0.1:9200:9000"
+    command: /data
+    volumes:
+      - stockage-demo:/data
+
+  mailpit:
+    image: axllent/mailpit:v1.31.5@sha256:94f6b70c1436defae6799d9ac7ff0eeff9540465b842026d5cdb018f1c0234ea
+    container_name: kupanga-demo-mailpit
+    ports:
+      - "127.0.0.1:8125:8025"
+
+  redis:
+    image: redis:7.4.6-alpine
+    container_name: kupanga-demo-redis
+    ports:
+      - "127.0.0.1:6380:6379"
+
+volumes:
+  db-demo:
+  stockage-demo:

@@ -1,0 +1,60 @@
+▶ finDeBail
+  ✓ 05-donner-conge
+  ✓ 05-accueil-fin
+  ✓ 05-conge-recu
+  ✓ 05-fin-de-bail
+  ✓ 05-bien-libere
+  ✓ 05-email-fin-de-bail
+▶ rdc
+  ✓ 06-accueil
+  ✓ 06-mes-biens
+  ✓ 06-nouveau-pays
+  ✓ 06-nouveau-type
+  ✓ 06-nouveau-adresse
+  ✓ 06-nouveau-gps
+  ✓ 06-nouveau-equipements
+  ✓ 06-nouveau-loyer
+  ✓ 06-nouveau-recap
+  ✓ 06-annonce-publiee
+  ✓ 06-villa-louee
+  ✓ 06-villa-louee-complet
+  ✓ 06-bail-rdc
+  ✓ 06-edl-rdc
+  ✓ 06-quittances-rdc
+  ✓ 06-whatsapp-rappel
+  ✓ 06-whatsapp-demande
+  ✓ 06-m-mon-logement
+  ✓ 06-m-quittances
+▶ compte
+  ✓ 07-compte
+  ✓ 07-documents-locataire
+  ✓ 07-notifications-locataire
+  ✓ 07-sombre-accueil
+  ✓ 07-sombre-explorer
+  ✓ 07-m-sombre-logement
+▶ backoffice
+  ✓ 08-bo-login
+  ✓ 08-bo-tableau-de-bord
+  ✓ 08-bo-statistiques
+  ✓ 08-bo-statistiques-complet
+  ✓ 08-bo-biens
+  ✓ 08-bo-biens-filtres
+  ✓ 08-bo-biens-page
+  ✓ 08-bo-archiver
+  ✓ 08-bo-documents
+  ✓ 08-bo-comptes
+  ✓ 08-bo-supprimer
+  ✓ 08-bo-emails
+▶ mailpit
+  ✓ 09-mailpit
+  ✓ 09-email-conge
+  ✓ 09-email-quittance-rdc
+C:\Users\Leclerc\AppData\Local\Programs\Python\Python311\Lib\site-packages\fitz\__init__.py:17: FutureWarning: The `fitz` API is deprecated and will be removed in future. Use `import pymupdf` instead.
+  warnings.warn(
+10-pdf-bail-fr 2 page(s)
+10-pdf-bail-rdc 3 page(s)
+10-pdf-edl-fr 3 page(s)
+10-pdf-edl-rdc 2 page(s)
+10-pdf-quittance-fr 1 page(s)
+10-pdf-quittance-rdc 2 page(s)
+FIN 0

@@ -1,0 +1,1178 @@
+{
+ "_doc": "Scénario de la vidéo : une phrase de voix off par scène et les plans qui l'illustrent (captures de demo/captures/out/shots, copiées dans public/shots). Types de plan : intro, outro, chapitre, ecran (ordinateur), mobile (téléphone), duo (ordinateur + téléphone), defile (page longue qui défile), email, pdf (pages), whatsapp.",
+ "scenes": [
+  {
+   "id": "s01",
+   "chapitre": "",
+   "texte": "Louer un logement, c'est une annonce, des messages, un bail à signer, un état des lieux, une quittance chaque mois… et souvent, autant d'outils différents.",
+   "plans": [
+    {
+     "type": "intro"
+    }
+   ]
+  },
+  {
+   "id": "s02",
+   "chapitre": "",
+   "texte": "Voici Kupanga : la gestion locative de bout en bout, de l'annonce à la fin du bail. Une seule application, pensée pour la France et pour la République démocratique du Congo.",
+   "plans": [
+    {
+     "type": "promesse",
+     "ecran": "01-explorer",
+     "mobile": "01-m-annonce"
+    }
+   ]
+  },
+  {
+   "id": "s03",
+   "chapitre": "1 · Trouver un logement",
+   "texte": "Tout commence par Explorer. Sans même créer de compte, on parcourt toutes les annonces : plus de six cents logements, de Paris à Kinshasa, chacun dans sa devise.",
+   "plans": [
+    {
+     "type": "chapitre",
+     "titre": "Trouver un logement",
+     "numero": 1
+    },
+    {
+     "type": "ecran",
+     "src": "01-explorer",
+     "zoom": [
+      0.25,
+      0.15,
+      0.62,
+      0.6
+     ]
+    }
+   ]
+  },
+  {
+   "id": "s04",
+   "chapitre": "1 · Trouver un logement",
+   "texte": "On trie par loyer ou par surface, et les filtres affinent la recherche : pays, ville, type de bien, budget, surface, meublé, et même les écoles ou les pharmacies à proximité.",
+   "plans": [
+    {
+     "type": "ecran",
+     "src": "01-explorer-tri"
+    },
+    {
+     "type": "ecran",
+     "src": "01-filtres"
+    },
+    {
+     "type": "ecran",
+     "src": "01-explorer-rdc"
+    }
+   ]
+  },
+  {
+   "id": "s05",
+   "chapitre": "1 · Trouver un logement",
+   "texte": "La carte montre les annonces autour de soi. Pour protéger les occupants, la position publique est arrondie à une centaine de mètres.",
+   "plans": [
+    {
+     "type": "ecran",
+     "src": "01-carte",
+     "zoom": [
+      0.3,
+      0.25,
+      0.45,
+      0.55
+     ]
+    }
+   ]
+  },
+  {
+   "id": "s06",
+   "chapitre": "1 · Trouver un logement",
+   "texte": "La liste se charge à la demande, page après page, même sur un réseau lent.",
+   "plans": [
+    {
+     "type": "ecran",
+     "src": "01-pagination"
+    }
+   ]
+  },
+  {
+   "id": "s06b",
+   "chapitre": "1 · Trouver un logement",
+   "texte": "Sur téléphone, Kupanga se comporte comme une application : onglets en bas de l'écran, gestes naturels, et des photos légères pour les réseaux mobiles.",
+   "plans": [
+    {
+     "type": "mobile",
+     "src": "01-m-explorer",
+     "fond": "01-explorer"
+    },
+    {
+     "type": "mobile",
+     "src": "01-m-annonce",
+     "fond": "01-annonce-rdc"
+    }
+   ]
+  },
+  {
+   "id": "s07",
+   "chapitre": "1 · Trouver un logement",
+   "texte": "Une annonce en France : photos, loyer et charges, diagnostic énergétique, caractéristiques, conditions et localisation.",
+   "plans": [
+    {
+     "type": "ecran",
+     "src": "01-annonce-fr"
+    },
+    {
+     "type": "defile",
+     "src": "01-annonce-fr-complete"
+    }
+   ]
+  },
+  {
+   "id": "s08",
+   "chapitre": "1 · Trouver un logement",
+   "texte": "À Kinshasa, l'annonce parle la langue du terrain : commune, quartier, numéro de parcelle, point de repère, forage, groupe électrogène, heures de courant par jour, garantie et loyers d'avance comptés en mois.",
+   "plans": [
+    {
+     "type": "defile",
+     "src": "01-annonce-rdc-complete"
+    },
+    {
+     "type": "mobile",
+     "src": "01-m-annonce",
+     "fond": "01-annonce-rdc"
+    }
+   ]
+  },
+  {
+   "id": "s09",
+   "chapitre": "1 · Trouver un logement",
+   "texte": "Pour écrire au propriétaire, il suffit d'un compte.",
+   "plans": [
+    {
+     "type": "ecran",
+     "src": "01-contacter-connexion"
+    }
+   ]
+  },
+  {
+   "id": "s10",
+   "chapitre": "2 · Créer son compte",
+   "texte": "L'inscription tient en trois écrans : ce que l'on vient faire, son identité avec un téléphone de contact, puis l'e-mail et le mot de passe.",
+   "plans": [
+    {
+     "type": "chapitre",
+     "titre": "Créer son compte",
+     "numero": 2
+    },
+    {
+     "type": "ecran",
+     "src": "02-inscription-1",
+     "zoom": [
+      0.3,
+      0.1,
+      0.4,
+      0.8
+     ]
+    },
+    {
+     "type": "ecran",
+     "src": "02-inscription-2",
+     "zoom": [
+      0.3,
+      0.1,
+      0.4,
+      0.8
+     ]
+    },
+    {
+     "type": "ecran",
+     "src": "02-inscription-3",
+     "zoom": [
+      0.3,
+      0.1,
+      0.4,
+      0.8
+     ]
+    }
+   ]
+  },
+  {
+   "id": "s11",
+   "chapitre": "2 · Créer son compte",
+   "texte": "Un lien de confirmation part aussitôt. Dans cette démo, tous les e-mails arrivent dans Mailpit, une boîte aux lettres de test.",
+   "plans": [
+    {
+     "type": "ecran",
+     "src": "02-verifiez-email",
+     "zoom": [
+      0.3,
+      0.15,
+      0.4,
+      0.7
+     ]
+    },
+    {
+     "type": "ecran",
+     "src": "02-mailpit-boite"
+    },
+    {
+     "type": "email",
+     "src": "02-email-confirmation"
+    }
+   ]
+  },
+  {
+   "id": "s12",
+   "chapitre": "2 · Créer son compte",
+   "texte": "Un clic, et l'adresse est confirmée. Mot de passe oublié ? Même principe : un lien valable dix minutes, et la même réponse, que le compte existe ou non.",
+   "plans": [
+    {
+     "type": "ecran",
+     "src": "02-email-confirme",
+     "zoom": [
+      0.3,
+      0.15,
+      0.4,
+      0.7
+     ]
+    },
+    {
+     "type": "ecran",
+     "src": "02-mdp-oublie-envoye",
+     "zoom": [
+      0.3,
+      0.15,
+      0.4,
+      0.7
+     ]
+    },
+    {
+     "type": "email",
+     "src": "02-email-reinitialisation"
+    },
+    {
+     "type": "ecran",
+     "src": "02-nouveau-mdp",
+     "zoom": [
+      0.3,
+      0.15,
+      0.4,
+      0.7
+     ]
+    }
+   ]
+  },
+  {
+   "id": "s13",
+   "chapitre": "2 · Créer son compte",
+   "texte": "À la première connexion, Kupanga propose les premiers pas. Un même compte peut chercher un logement et mettre ses propres biens en location.",
+   "plans": [
+    {
+     "type": "ecran",
+     "src": "02-connexion",
+     "zoom": [
+      0.3,
+      0.1,
+      0.4,
+      0.8
+     ]
+    },
+    {
+     "type": "ecran",
+     "src": "02-premier-accueil"
+    }
+   ]
+  },
+  {
+   "id": "s14",
+   "chapitre": "3 · Propriétaire en France",
+   "texte": "Voici Claire, propriétaire à Lyon. Son accueil lui dit quoi faire : un bail à créer, un état des lieux à faire, une fin de bail à préparer.",
+   "plans": [
+    {
+     "type": "chapitre",
+     "titre": "Propriétaire en France",
+     "numero": 3
+    },
+    {
+     "type": "ecran",
+     "src": "03-accueil",
+     "zoom": [
+      0.12,
+      0.05,
+      0.65,
+      0.5
+     ]
+    },
+    {
+     "type": "duo",
+     "src": "03-accueil",
+     "mobile": "03-m-accueil"
+    }
+   ]
+  },
+  {
+   "id": "s15",
+   "chapitre": "3 · Propriétaire en France",
+   "texte": "Mes biens réunit ses vingt-six logements, loués ou vacants.",
+   "plans": [
+    {
+     "type": "ecran",
+     "src": "03-mes-biens"
+    },
+    {
+     "type": "duo",
+     "src": "03-mes-biens-loues",
+     "mobile": "03-m-biens"
+    }
+   ]
+  },
+  {
+   "id": "s16",
+   "chapitre": "3 · Propriétaire en France",
+   "texte": "Publier un bien se fait pas à pas. D'abord le pays : il décide du reste, la devise, les champs obligatoires, le modèle de bail. Puis le type, le titre et la description.",
+   "plans": [
+    {
+     "type": "ecran",
+     "src": "03-nouveau-pays",
+     "zoom": [
+      0.28,
+      0,
+      0.44,
+      0.75
+     ]
+    },
+    {
+     "type": "ecran",
+     "src": "03-nouveau-description",
+     "zoom": [
+      0.28,
+      0,
+      0.44,
+      0.75
+     ]
+    }
+   ]
+  },
+  {
+   "id": "s16b",
+   "chapitre": "3 · Propriétaire en France",
+   "texte": "Car Kupanga est une seule application pour plusieurs pays : chaque pays apporte sa devise, ses champs, ses types de biens et ses modèles de documents. Ajouter un pays, c'est surtout de la configuration.",
+   "plans": [
+    {
+     "type": "ecran",
+     "src": "03-nouveau-pays",
+     "zoom": [
+      0.28,
+      0,
+      0.44,
+      0.75
+     ]
+    },
+    {
+     "type": "ecran",
+     "src": "06-nouveau-pays",
+     "zoom": [
+      0.28,
+      0,
+      0.44,
+      0.75
+     ]
+    }
+   ]
+  },
+  {
+   "id": "s17",
+   "chapitre": "3 · Propriétaire en France",
+   "texte": "L'adresse, un repère sur la carte, les caractéristiques et le diagnostic énergétique, puis le loyer, les charges et le dépôt de garantie.",
+   "plans": [
+    {
+     "type": "ecran",
+     "src": "03-nouveau-adresse",
+     "zoom": [
+      0.28,
+      0,
+      0.44,
+      0.75
+     ]
+    },
+    {
+     "type": "ecran",
+     "src": "03-nouveau-carte",
+     "zoom": [
+      0.28,
+      0,
+      0.44,
+      0.9
+     ]
+    },
+    {
+     "type": "ecran",
+     "src": "03-nouveau-caracteristiques",
+     "zoom": [
+      0.28,
+      0,
+      0.44,
+      0.9
+     ]
+    },
+    {
+     "type": "ecran",
+     "src": "03-nouveau-loyer",
+     "zoom": [
+      0.28,
+      0,
+      0.44,
+      0.75
+     ]
+    }
+   ]
+  },
+  {
+   "id": "s18",
+   "chapitre": "3 · Propriétaire en France",
+   "texte": "Les photos sont réduites dans le navigateur avant l'envoi, et leurs données de localisation sont retirées. Un dernier coup d'œil au récapitulatif… et l'annonce est en ligne.",
+   "plans": [
+    {
+     "type": "ecran",
+     "src": "03-nouveau-photos",
+     "zoom": [
+      0.28,
+      0,
+      0.44,
+      0.6
+     ]
+    },
+    {
+     "type": "ecran",
+     "src": "03-nouveau-recap"
+    },
+    {
+     "type": "defile",
+     "src": "03-bien-publie-complet"
+    }
+   ]
+  },
+  {
+   "id": "s19",
+   "chapitre": "3 · Propriétaire en France",
+   "texte": "Sur un bien loué, Claire retrouve son locataire : elle l'appelle, lui écrit ou le prévient par WhatsApp, et suit le bail, l'état des lieux et les quittances. Tous ses documents sont rangés au même endroit.",
+   "plans": [
+    {
+     "type": "ecran",
+     "src": "03-bien-loue"
+    },
+    {
+     "type": "defile",
+     "src": "03-bien-loue-complet"
+    },
+    {
+     "type": "ecran",
+     "src": "03-documents"
+    }
+   ]
+  },
+  {
+   "id": "s20",
+   "chapitre": "4 · Louer, de la visite au bail",
+   "texte": "Nadia cherche un logement. Le loft de Claire lui plaît : elle écrit directement depuis l'annonce, sans connaître l'adresse e-mail de la propriétaire.",
+   "plans": [
+    {
+     "type": "chapitre",
+     "titre": "Louer, de la visite au bail",
+     "numero": 4
+    },
+    {
+     "type": "ecran",
+     "src": "04-annonce-loft"
+    },
+    {
+     "type": "ecran",
+     "src": "04-premier-message"
+    }
+   ]
+  },
+  {
+   "id": "s21",
+   "chapitre": "4 · Louer, de la visite au bail",
+   "texte": "Le message arrive en temps réel chez Claire, qui répond aussitôt. Chaque conversation reste rattachée au bien.",
+   "plans": [
+    {
+     "type": "ecran",
+     "src": "04-message-recu",
+     "zoom": [
+      0.1,
+      0.05,
+      0.3,
+      0.3
+     ]
+    },
+    {
+     "type": "ecran",
+     "src": "04-conversation"
+    }
+   ]
+  },
+  {
+   "id": "s22",
+   "chapitre": "4 · Louer, de la visite au bail",
+   "texte": "Après la visite, Claire propose la location à Nadia. Une seule proposition à la fois : Nadia a soixante-douze heures pour répondre, et elle est prévenue par une notification et un e-mail.",
+   "plans": [
+    {
+     "type": "ecran",
+     "src": "04-proposer"
+    },
+    {
+     "type": "ecran",
+     "src": "04-proposer-confirmer"
+    },
+    {
+     "type": "ecran",
+     "src": "04-demande-envoyee"
+    },
+    {
+     "type": "email",
+     "src": "04-email-demande"
+    }
+   ]
+  },
+  {
+   "id": "s23",
+   "chapitre": "4 · Louer, de la visite au bail",
+   "texte": "Nadia accepte : le logement lui est réservé pendant quatorze jours, le temps de signer le bail, et l'annonce disparaît de la recherche.",
+   "plans": [
+    {
+     "type": "ecran",
+     "src": "04-demande-recue"
+    },
+    {
+     "type": "ecran",
+     "src": "04-reservation"
+    },
+    {
+     "type": "ecran",
+     "src": "04-bien-reserve"
+    }
+   ]
+  },
+  {
+   "id": "s24",
+   "chapitre": "4 · Louer, de la visite au bail",
+   "texte": "Claire crée le bail en trois étapes : la date et la durée, le loyer et le dépôt, puis le récapitulatif.",
+   "plans": [
+    {
+     "type": "ecran",
+     "src": "04-bail-1",
+     "zoom": [
+      0.28,
+      0,
+      0.44,
+      0.7
+     ]
+    },
+    {
+     "type": "ecran",
+     "src": "04-bail-2",
+     "zoom": [
+      0.28,
+      0,
+      0.44,
+      0.7
+     ]
+    },
+    {
+     "type": "ecran",
+     "src": "04-bail-3",
+     "zoom": [
+      0.28,
+      0,
+      0.44,
+      0.7
+     ]
+    },
+    {
+     "type": "ecran",
+     "src": "04-bail-cree"
+    }
+   ]
+  },
+  {
+   "id": "s25",
+   "chapitre": "4 · Louer, de la visite au bail",
+   "texte": "Elle signe à l'écran, à la souris ou au doigt. Nadia reçoit aussitôt le bail par e-mail…",
+   "plans": [
+    {
+     "type": "ecran",
+     "src": "04-bail-signature-proprio",
+     "zoom": [
+      0.3,
+      0.1,
+      0.4,
+      0.8
+     ]
+    },
+    {
+     "type": "ecran",
+     "src": "04-bail-attente-locataire"
+    },
+    {
+     "type": "email",
+     "src": "04-email-bail"
+    }
+   ]
+  },
+  {
+   "id": "s26",
+   "chapitre": "4 · Louer, de la visite au bail",
+   "texte": "…le relit sur son téléphone et signe à son tour. À cet instant, elle devient locataire.",
+   "plans": [
+    {
+     "type": "mobile",
+     "src": "04-m-bail-a-signer",
+     "fond": "04-bail-attente-locataire"
+    },
+    {
+     "type": "mobile",
+     "src": "04-m-bail-signature",
+     "fond": "04-bail-attente-locataire"
+    },
+    {
+     "type": "duo",
+     "src": "04-bien-loue",
+     "mobile": "04-m-bail-signe"
+    }
+   ]
+  },
+  {
+   "id": "s27",
+   "chapitre": "4 · Louer, de la visite au bail",
+   "texte": "Le bail est un vrai document, généré en PDF avec les deux signatures, et envoyé aux deux parties.",
+   "plans": [
+    {
+     "type": "pdf",
+     "src": [
+      "10-pdf-bail-fr-p1",
+      "10-pdf-bail-fr-p2"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "s28",
+   "chapitre": "4 · Louer, de la visite au bail",
+   "texte": "Vient l'état des lieux d'entrée : les compteurs, les clés remises, puis pièce par pièce, l'état des murs, des sols et des équipements.",
+   "plans": [
+    {
+     "type": "ecran",
+     "src": "04-edl-1",
+     "zoom": [
+      0.28,
+      0,
+      0.44,
+      0.7
+     ]
+    },
+    {
+     "type": "ecran",
+     "src": "04-edl-2",
+     "zoom": [
+      0.28,
+      0,
+      0.44,
+      0.8
+     ]
+    },
+    {
+     "type": "ecran",
+     "src": "04-edl-3",
+     "zoom": [
+      0.28,
+      0,
+      0.44,
+      0.7
+     ]
+    },
+    {
+     "type": "ecran",
+     "src": "04-edl-4",
+     "zoom": [
+      0.28,
+      0,
+      0.44,
+      0.9
+     ]
+    }
+   ]
+  },
+  {
+   "id": "s29",
+   "chapitre": "4 · Louer, de la visite au bail",
+   "texte": "Les deux parties le signent, comme le bail, et le PDF est conservé.",
+   "plans": [
+    {
+     "type": "duo",
+     "src": "04-edl-cree",
+     "mobile": "04-m-edl-a-signer"
+    },
+    {
+     "type": "pdf",
+     "src": [
+      "10-pdf-edl-fr-p1",
+      "10-pdf-edl-fr-p2"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "s30",
+   "chapitre": "4 · Louer, de la visite au bail",
+   "texte": "Chaque mois, une quittance. Kupanga ne fait transiter aucun argent : Claire déclare simplement le loyer reçu, son mode de paiement, sa référence, et elle signe.",
+   "plans": [
+    {
+     "type": "ecran",
+     "src": "04-quittance-1",
+     "zoom": [
+      0.28,
+      0,
+      0.44,
+      0.7
+     ]
+    },
+    {
+     "type": "ecran",
+     "src": "04-quittances"
+    },
+    {
+     "type": "ecran",
+     "src": "04-loyer-recu",
+     "zoom": [
+      0.3,
+      0.1,
+      0.4,
+      0.8
+     ]
+    }
+   ]
+  },
+  {
+   "id": "s31",
+   "chapitre": "4 · Louer, de la visite au bail",
+   "texte": "La quittance part en PDF au locataire, par e-mail.",
+   "plans": [
+    {
+     "type": "ecran",
+     "src": "04-quittance-payee"
+    },
+    {
+     "type": "email",
+     "src": "04-email-quittance"
+    },
+    {
+     "type": "pdf",
+     "src": [
+      "10-pdf-quittance-fr-p1"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "s32",
+   "chapitre": "4 · Louer, de la visite au bail",
+   "texte": "Côté locataire, tout est réuni : son logement, son bail, ses quittances, sur ordinateur comme sur téléphone.",
+   "plans": [
+    {
+     "type": "duo",
+     "src": "04-mon-logement",
+     "mobile": "04-m-mon-logement"
+    },
+    {
+     "type": "mobile",
+     "src": "04-m-quittances",
+     "fond": "04-mon-logement"
+    }
+   ]
+  },
+  {
+   "id": "s32b",
+   "chapitre": "4 · Louer, de la visite au bail",
+   "texte": "Le locataire retrouve aussi tous ses documents signés, et ses notifications : bail à signer, quittance disponible, réponse du propriétaire.",
+   "plans": [
+    {
+     "type": "ecran",
+     "src": "07-documents-locataire"
+    },
+    {
+     "type": "ecran",
+     "src": "07-notifications-locataire"
+    }
+   ]
+  },
+  {
+   "id": "s33",
+   "chapitre": "5 · Fin de bail",
+   "texte": "Quand vient le départ, le locataire ou le propriétaire donne congé, avec une date de fin.",
+   "plans": [
+    {
+     "type": "chapitre",
+     "titre": "Fin de bail",
+     "numero": 5
+    },
+    {
+     "type": "ecran",
+     "src": "05-donner-conge"
+    },
+    {
+     "type": "ecran",
+     "src": "05-conge-recu"
+    }
+   ]
+  },
+  {
+   "id": "s34",
+   "chapitre": "5 · Fin de bail",
+   "texte": "Le jour venu, Claire enregistre la fin du bail : le dépôt restitué, et le motif s'il y a une retenue. Le bien est libéré et repart dans les annonces.",
+   "plans": [
+    {
+     "type": "ecran",
+     "src": "05-fin-de-bail",
+     "zoom": [
+      0.3,
+      0.1,
+      0.4,
+      0.8
+     ]
+    },
+    {
+     "type": "ecran",
+     "src": "05-bien-libere"
+    },
+    {
+     "type": "email",
+     "src": "05-email-fin-de-bail"
+    }
+   ]
+  },
+  {
+   "id": "s35",
+   "chapitre": "6 · Kinshasa",
+   "texte": "Changeons de continent. Patrick est propriétaire à Kinshasa : les mêmes écrans, mais d'autres règles.",
+   "plans": [
+    {
+     "type": "chapitre",
+     "titre": "Propriétaire à Kinshasa",
+     "numero": 6
+    },
+    {
+     "type": "ecran",
+     "src": "06-accueil"
+    },
+    {
+     "type": "ecran",
+     "src": "06-mes-biens"
+    }
+   ]
+  },
+  {
+   "id": "s36",
+   "chapitre": "6 · Kinshasa",
+   "texte": "En RDC, les types de biens changent : villa, annexe, chambre, parcelle, local commercial. L'adresse se décrit par la commune, le quartier, la parcelle et un point de repère.",
+   "plans": [
+    {
+     "type": "ecran",
+     "src": "06-nouveau-pays",
+     "zoom": [
+      0.28,
+      0,
+      0.44,
+      0.75
+     ]
+    },
+    {
+     "type": "ecran",
+     "src": "06-nouveau-type",
+     "zoom": [
+      0.28,
+      0,
+      0.44,
+      0.75
+     ]
+    },
+    {
+     "type": "ecran",
+     "src": "06-nouveau-adresse",
+     "zoom": [
+      0.28,
+      0,
+      0.44,
+      0.9
+     ]
+    }
+   ]
+  },
+  {
+   "id": "s37",
+   "chapitre": "6 · Kinshasa",
+   "texte": "Pas besoin d'une adresse que les cartes connaissent : le GPS du téléphone place le repère en un geste.",
+   "plans": [
+    {
+     "type": "ecran",
+     "src": "06-nouveau-gps",
+     "zoom": [
+      0.28,
+      0,
+      0.44,
+      0.9
+     ]
+    }
+   ]
+  },
+  {
+   "id": "s38",
+   "chapitre": "6 · Kinshasa",
+   "texte": "On indique ce qui compte vraiment : forage, groupe électrogène, gardiennage, et les heures de courant par jour. Le loyer est en dollars ou en francs congolais, avec une garantie et des loyers d'avance comptés en mois.",
+   "plans": [
+    {
+     "type": "ecran",
+     "src": "06-nouveau-equipements",
+     "zoom": [
+      0.28,
+      0,
+      0.44,
+      0.9
+     ]
+    },
+    {
+     "type": "ecran",
+     "src": "06-nouveau-loyer",
+     "zoom": [
+      0.28,
+      0,
+      0.44,
+      0.8
+     ]
+    },
+    {
+     "type": "ecran",
+     "src": "06-annonce-publiee"
+    }
+   ]
+  },
+  {
+   "id": "s39",
+   "chapitre": "6 · Kinshasa",
+   "texte": "La villa de Ma Campagne est louée à Grâce. Le bail reprend la garantie et l'avance ; l'état des lieux relève le compteur Cash Power, la REGIDESO et le groupe électrogène.",
+   "plans": [
+    {
+     "type": "ecran",
+     "src": "06-villa-louee"
+    },
+    {
+     "type": "ecran",
+     "src": "06-bail-rdc"
+    },
+    {
+     "type": "pdf",
+     "src": [
+      "10-pdf-bail-rdc-p1",
+      "10-pdf-bail-rdc-p2"
+     ]
+    },
+    {
+     "type": "pdf",
+     "src": [
+      "10-pdf-edl-rdc-p1",
+      "10-pdf-edl-rdc-p2"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "s40",
+   "chapitre": "6 · Kinshasa",
+   "texte": "Le loyer a été payé par Mobile Money : Patrick l'enregistre avec la référence de la transaction et la photo du reçu.",
+   "plans": [
+    {
+     "type": "ecran",
+     "src": "06-quittances-rdc"
+    },
+    {
+     "type": "pdf",
+     "src": [
+      "10-pdf-quittance-rdc-p1"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "s41",
+   "chapitre": "6 · Kinshasa",
+   "texte": "À Kinshasa, tout passe par WhatsApp. Kupanga prépare le message, rappel de loyer, invitation à signer ou proposition de location, et Patrick l'envoie depuis son propre téléphone, sans frais. Le lien de signature, lui, ne quitte jamais l'application.",
+   "plans": [
+    {
+     "type": "ecran",
+     "src": "06-whatsapp-rappel"
+    },
+    {
+     "type": "whatsapp",
+     "lien": "06-whatsapp-rappel"
+    },
+    {
+     "type": "whatsapp",
+     "lien": "06-whatsapp-demande"
+    }
+   ]
+  },
+  {
+   "id": "s42",
+   "chapitre": "6 · Kinshasa",
+   "texte": "Grâce retrouve son logement et ses quittances en dollars sur son téléphone.",
+   "plans": [
+    {
+     "type": "mobile",
+     "src": "06-m-mon-logement",
+     "fond": "06-villa-louee"
+    },
+    {
+     "type": "mobile",
+     "src": "06-m-quittances",
+     "fond": "06-quittances-rdc"
+    }
+   ]
+  },
+  {
+   "id": "s43",
+   "chapitre": "7 · Partout, pour chacun",
+   "texte": "Kupanga s'installe comme une application, garde l'essentiel hors connexion, et passe en thème sombre.",
+   "plans": [
+    {
+     "type": "chapitre",
+     "titre": "Partout, pour chacun",
+     "numero": 7
+    },
+    {
+     "type": "mobile",
+     "src": "03-m-accueil",
+     "fond": "03-accueil"
+    },
+    {
+     "type": "duo",
+     "src": "07-sombre-accueil",
+     "mobile": "07-m-sombre-logement"
+    }
+   ]
+  },
+  {
+   "id": "s44",
+   "chapitre": "7 · Partout, pour chacun",
+   "texte": "Notifications et e-mails tiennent chacun au courant : signatures, paiements, congés, réservations.",
+   "plans": [
+    {
+     "type": "ecran",
+     "src": "03-notifications"
+    },
+    {
+     "type": "ecran",
+     "src": "09-mailpit"
+    }
+   ]
+  },
+  {
+   "id": "s44b",
+   "chapitre": "7 · Partout, pour chacun",
+   "texte": "Chacun garde la main sur son compte : son téléphone de contact, visible seulement de son propriétaire ou de son locataire, le thème, la déconnexion.",
+   "plans": [
+    {
+     "type": "ecran",
+     "src": "07-compte"
+    }
+   ]
+  },
+  {
+   "id": "s45",
+   "chapitre": "8 · Back-office",
+   "texte": "Enfin, l'équipe Kupanga a son propre back-office, séparé de l'application.",
+   "plans": [
+    {
+     "type": "chapitre",
+     "titre": "Back-office",
+     "numero": 8
+    },
+    {
+     "type": "ecran",
+     "src": "08-bo-login"
+    },
+    {
+     "type": "ecran",
+     "src": "08-bo-tableau-de-bord"
+    }
+   ]
+  },
+  {
+   "id": "s46",
+   "chapitre": "8 · Back-office",
+   "texte": "Des statistiques, tous les biens filtrés par pays et par type, la pagination, et les documents de chaque bien.",
+   "plans": [
+    {
+     "type": "defile",
+     "src": "08-bo-statistiques-complet"
+    },
+    {
+     "type": "ecran",
+     "src": "08-bo-biens-filtres"
+    },
+    {
+     "type": "ecran",
+     "src": "08-bo-biens-page"
+    },
+    {
+     "type": "ecran",
+     "src": "08-bo-documents"
+    }
+   ]
+  },
+  {
+   "id": "s47",
+   "chapitre": "8 · Back-office",
+   "texte": "Un bien n'est jamais supprimé : il est archivé, pour conserver les baux. Un compte est supprimé, ou anonymisé s'il a des documents. Et la file des e-mails permet de renvoyer un message en échec.",
+   "plans": [
+    {
+     "type": "ecran",
+     "src": "08-bo-archiver"
+    },
+    {
+     "type": "ecran",
+     "src": "08-bo-comptes"
+    },
+    {
+     "type": "ecran",
+     "src": "08-bo-supprimer"
+    },
+    {
+     "type": "ecran",
+     "src": "08-bo-emails"
+    }
+   ]
+  },
+  {
+   "id": "s47b",
+   "chapitre": "8 · Back-office",
+   "texte": "Et sous le capot : documents privés ouverts par des liens temporaires, tentatives de connexion limitées, aucune donnée d'un compte visible par un autre, et des e-mails jamais perdus grâce à une file d'envoi qui réessaie toute seule.",
+   "plans": [
+    {
+     "type": "ecran",
+     "src": "04-bail-signe"
+    },
+    {
+     "type": "ecran",
+     "src": "08-bo-emails"
+    }
+   ]
+  },
+  {
+   "id": "s48",
+   "chapitre": "",
+   "texte": "Kupanga. De l'annonce à la fin du bail, de Lyon à Kinshasa : simple, sûr, et pensé pour chacun.",
+   "plans": [
+    {
+     "type": "outro"
+    }
+   ]
+  }
+ ]
+}

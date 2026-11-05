@@ -1,0 +1,7 @@
+<!-- Piste C « Deux toits » : France et Congo, deux toits qui se rejoignent -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="30" fill="#EFFBDB"/>
+  <path d="M18 74 L46 48 L74 74" fill="none" stroke="#10212B" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M54 74 L82 48 L110 74" fill="none" stroke="#8FA464" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M30 86 H98" stroke="#10212B" stroke-width="10" stroke-linecap="round"/>
+</svg>

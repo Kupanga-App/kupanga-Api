@@ -1,0 +1,376 @@
+{
+  "fps": 30,
+  "scenes": [
+    {
+      "id": "s01",
+      "frames": 323,
+      "voiceFrom": 18,
+      "chapterFrames": 0,
+      "voiceSeconds": 9.26
+    },
+    {
+      "id": "s02",
+      "frames": 368,
+      "voiceFrom": 18,
+      "chapterFrames": 0,
+      "voiceSeconds": 10.75
+    },
+    {
+      "id": "s03",
+      "frames": 423,
+      "voiceFrom": 90,
+      "chapterFrames": 72,
+      "voiceSeconds": 10.2
+    },
+    {
+      "id": "s04",
+      "frames": 385,
+      "voiceFrom": 18,
+      "chapterFrames": 0,
+      "voiceSeconds": 11.3
+    },
+    {
+      "id": "s05",
+      "frames": 293,
+      "voiceFrom": 18,
+      "chapterFrames": 0,
+      "voiceSeconds": 8.26
+    },
+    {
+      "id": "s06",
+      "frames": 197,
+      "voiceFrom": 18,
+      "chapterFrames": 0,
+      "voiceSeconds": 5.06
+    },
+    {
+      "id": "s06b",
+      "frames": 308,
+      "voiceFrom": 18,
+      "chapterFrames": 0,
+      "voiceSeconds": 8.74
+    },
+    {
+      "id": "s07",
+      "frames": 292,
+      "voiceFrom": 18,
+      "chapterFrames": 0,
+      "voiceSeconds": 8.21
+    },
+    {
+      "id": "s08",
+      "frames": 425,
+      "voiceFrom": 18,
+      "chapterFrames": 0,
+      "voiceSeconds": 12.65
+    },
+    {
+      "id": "s09",
+      "frames": 159,
+      "voiceFrom": 18,
+      "chapterFrames": 0,
+      "voiceSeconds": 3.79
+    },
+    {
+      "id": "s10",
+      "frames": 397,
+      "voiceFrom": 90,
+      "chapterFrames": 72,
+      "voiceSeconds": 7.82
+    },
+    {
+      "id": "s11",
+      "frames": 324,
+      "voiceFrom": 18,
+      "chapterFrames": 0,
+      "voiceSeconds": 7.78
+    },
+    {
+      "id": "s12",
+      "frames": 432,
+      "voiceFrom": 18,
+      "chapterFrames": 0,
+      "voiceSeconds": 10.56
+    },
+    {
+      "id": "s13",
+      "frames": 291,
+      "voiceFrom": 18,
+      "chapterFrames": 0,
+      "voiceSeconds": 8.18
+    },
+    {
+      "id": "s14",
+      "frames": 395,
+      "voiceFrom": 90,
+      "chapterFrames": 72,
+      "voiceSeconds": 9.24
+    },
+    {
+      "id": "s15",
+      "frames": 216,
+      "voiceFrom": 18,
+      "chapterFrames": 0,
+      "voiceSeconds": 3.67
+    },
+    {
+      "id": "s16",
+      "frames": 406,
+      "voiceFrom": 18,
+      "chapterFrames": 0,
+      "voiceSeconds": 12.02
+    },
+    {
+      "id": "s16b",
+      "frames": 406,
+      "voiceFrom": 18,
+      "chapterFrames": 0,
+      "voiceSeconds": 12.02
+    },
+    {
+      "id": "s17",
+      "frames": 432,
+      "voiceFrom": 18,
+      "chapterFrames": 0,
+      "voiceSeconds": 8.47
+    },
+    {
+      "id": "s18",
+      "frames": 339,
+      "voiceFrom": 18,
+      "chapterFrames": 0,
+      "voiceSeconds": 9.79
+    },
+    {
+      "id": "s19",
+      "frames": 395,
+      "voiceFrom": 18,
+      "chapterFrames": 0,
+      "voiceSeconds": 11.66
+    },
+    {
+      "id": "s20",
+      "frames": 386,
+      "voiceFrom": 90,
+      "chapterFrames": 72,
+      "voiceSeconds": 8.95
+    },
+    {
+      "id": "s21",
+      "frames": 258,
+      "voiceFrom": 18,
+      "chapterFrames": 0,
+      "voiceSeconds": 7.08
+    },
+    {
+      "id": "s22",
+      "frames": 432,
+      "voiceFrom": 18,
+      "chapterFrames": 0,
+      "voiceSeconds": 10.99
+    },
+    {
+      "id": "s23",
+      "frames": 324,
+      "voiceFrom": 18,
+      "chapterFrames": 0,
+      "voiceSeconds": 7.49
+    },
+    {
+      "id": "s24",
+      "frames": 432,
+      "voiceFrom": 18,
+      "chapterFrames": 0,
+      "voiceSeconds": 6.48
+    },
+    {
+      "id": "s25",
+      "frames": 324,
+      "voiceFrom": 18,
+      "chapterFrames": 0,
+      "voiceSeconds": 6.07
+    },
+    {
+      "id": "s26",
+      "frames": 324,
+      "voiceFrom": 18,
+      "chapterFrames": 0,
+      "voiceSeconds": 6.48
+    },
+    {
+      "id": "s27",
+      "frames": 225,
+      "voiceFrom": 18,
+      "chapterFrames": 0,
+      "voiceSeconds": 6.0
+    },
+    {
+      "id": "s28",
+      "frames": 432,
+      "voiceFrom": 18,
+      "chapterFrames": 0,
+      "voiceSeconds": 7.94
+    },
+    {
+      "id": "s29",
+      "frames": 216,
+      "voiceFrom": 18,
+      "chapterFrames": 0,
+      "voiceSeconds": 4.63
+    },
+    {
+      "id": "s30",
+      "frames": 365,
+      "voiceFrom": 18,
+      "chapterFrames": 0,
+      "voiceSeconds": 10.66
+    },
+    {
+      "id": "s31",
+      "frames": 324,
+      "voiceFrom": 18,
+      "chapterFrames": 0,
+      "voiceSeconds": 3.91
+    },
+    {
+      "id": "s32",
+      "frames": 269,
+      "voiceFrom": 18,
+      "chapterFrames": 0,
+      "voiceSeconds": 7.46
+    },
+    {
+      "id": "s32b",
+      "frames": 302,
+      "voiceFrom": 18,
+      "chapterFrames": 0,
+      "voiceSeconds": 8.54
+    },
+    {
+      "id": "s33",
+      "frames": 288,
+      "voiceFrom": 90,
+      "chapterFrames": 72,
+      "voiceSeconds": 5.54
+    },
+    {
+      "id": "s34",
+      "frames": 332,
+      "voiceFrom": 18,
+      "chapterFrames": 0,
+      "voiceSeconds": 9.55
+    },
+    {
+      "id": "s35",
+      "frames": 326,
+      "voiceFrom": 90,
+      "chapterFrames": 72,
+      "voiceSeconds": 6.96
+    },
+    {
+      "id": "s36",
+      "frames": 420,
+      "voiceFrom": 18,
+      "chapterFrames": 0,
+      "voiceSeconds": 12.48
+    },
+    {
+      "id": "s37",
+      "frames": 216,
+      "voiceFrom": 18,
+      "chapterFrames": 0,
+      "voiceSeconds": 5.69
+    },
+    {
+      "id": "s38",
+      "frames": 420,
+      "voiceFrom": 18,
+      "chapterFrames": 0,
+      "voiceSeconds": 12.48
+    },
+    {
+      "id": "s39",
+      "frames": 432,
+      "voiceFrom": 18,
+      "chapterFrames": 0,
+      "voiceSeconds": 10.22
+    },
+    {
+      "id": "s40",
+      "frames": 244,
+      "voiceFrom": 18,
+      "chapterFrames": 0,
+      "voiceSeconds": 6.62
+    },
+    {
+      "id": "s41",
+      "frames": 543,
+      "voiceFrom": 18,
+      "chapterFrames": 0,
+      "voiceSeconds": 16.58
+    },
+    {
+      "id": "s42",
+      "frames": 216,
+      "voiceFrom": 18,
+      "chapterFrames": 0,
+      "voiceSeconds": 4.34
+    },
+    {
+      "id": "s43",
+      "frames": 300,
+      "voiceFrom": 90,
+      "chapterFrames": 72,
+      "voiceSeconds": 6.1
+    },
+    {
+      "id": "s44",
+      "frames": 236,
+      "voiceFrom": 18,
+      "chapterFrames": 0,
+      "voiceSeconds": 6.34
+    },
+    {
+      "id": "s44b",
+      "frames": 312,
+      "voiceFrom": 18,
+      "chapterFrames": 0,
+      "voiceSeconds": 8.88
+    },
+    {
+      "id": "s45",
+      "frames": 288,
+      "voiceFrom": 90,
+      "chapterFrames": 72,
+      "voiceSeconds": 5.4
+    },
+    {
+      "id": "s46",
+      "frames": 432,
+      "voiceFrom": 18,
+      "chapterFrames": 0,
+      "voiceSeconds": 6.74
+    },
+    {
+      "id": "s47",
+      "frames": 432,
+      "voiceFrom": 18,
+      "chapterFrames": 0,
+      "voiceSeconds": 12.22
+    },
+    {
+      "id": "s47b",
+      "frames": 398,
+      "voiceFrom": 18,
+      "chapterFrames": 0,
+      "voiceSeconds": 11.74
+    },
+    {
+      "id": "s48",
+      "frames": 270,
+      "voiceFrom": 18,
+      "chapterFrames": 0,
+      "voiceSeconds": 7.49
+    }
+  ]
+}

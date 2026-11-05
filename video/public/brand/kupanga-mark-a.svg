@@ -1,0 +1,7 @@
+<!-- Piste A « Toit-K » : le K forme un toit et une porte -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="30" fill="#10212B"/>
+  <path d="M26 60 L64 28 L102 60" fill="none" stroke="#8FA464" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M46 56 V100" stroke="#EFFBDB" stroke-width="10" stroke-linecap="round"/>
+  <path d="M82 62 L52 80 L84 100" fill="none" stroke="#EFFBDB" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

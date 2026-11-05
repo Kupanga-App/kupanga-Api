@@ -1,0 +1,12 @@
+{
+  "name": "kupanga-captures",
+  "private": true,
+  "description": "Captures d'écran de l'app Kupanga (environnement de démo) pour la vidéo et le portfolio",
+  "type": "module",
+  "scripts": {
+    "captures": "node captures.mjs"
+  },
+  "dependencies": {
+    "playwright": "1.56.1"
+  }
+}

@@ -1,0 +1,7 @@
+<!-- Piste B « Clé-maison » : une maison dont la porte est une serrure -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="30" fill="#8FA464"/>
+  <path d="M30 58 L64 30 L98 58 V98 a6 6 0 0 1 -6 6 H36 a6 6 0 0 1 -6 -6 Z" fill="#10212B"/>
+  <circle cx="64" cy="70" r="11" fill="#EFFBDB"/>
+  <path d="M59 78 H69 L66 94 H62 Z" fill="#EFFBDB"/>
+</svg>

@@ -2,3 +2,12 @@
 /target/
 .idea/
 /docs/
+
+# Démo (vidéo, captures)
+/demo/seed/photos/
+/demo/captures/out/
+/demo/captures/node_modules/
+/video/node_modules/
+/video/out/
+/video/public/shots/
+/demo/captures/rejouer-4k.log

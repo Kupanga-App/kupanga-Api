@@ -1,0 +1,590 @@
+1
+00:00:00,700 --> 00:00:05,519
+Louer un logement, c'est une annonce, des
+messages, un bail à signer, un état des
+
+2
+00:00:05,519 --> 00:00:09,862
+lieux, une quittance chaque mois… et
+souvent, autant d'outils différents.
+
+3
+00:00:11,467 --> 00:00:16,929
+Voici Kupanga : la gestion locative de bout
+en bout, de l'annonce à la fin du bail.
+
+4
+00:00:16,879 --> 00:00:21,536
+Une seule application, pensée pour la
+France et pour la République démocratique
+
+5
+00:00:21,536 --> 00:00:22,067
+du Congo.
+
+6
+00:00:26,133 --> 00:00:28,433
+Tout commence par Explorer.
+
+7
+00:00:28,383 --> 00:00:32,992
+Sans même créer de compte, on parcourt
+toutes les annonces : plus de six cents
+
+8
+00:00:32,992 --> 00:00:36,183
+logements, de Paris à Kinshasa,
+chacun dans sa devise.
+
+9
+00:00:37,833 --> 00:00:42,912
+On trie par loyer ou par surface, et les
+filtres affinent la recherche : pays,
+
+10
+00:00:42,912 --> 00:00:47,536
+ville, type de bien, budget, surface,
+meublé, et même les écoles ou les
+
+11
+00:00:47,536 --> 00:00:49,033
+pharmacies à proximité.
+
+12
+00:00:50,667 --> 00:00:53,642
+La carte montre les annonces autour de soi.
+
+13
+00:00:53,592 --> 00:00:58,350
+Pour protéger les occupants, la position
+publique est arrondie à une centaine de
+
+14
+00:00:58,350 --> 00:00:58,767
+mètres.
+
+15
+00:01:00,433 --> 00:01:05,396
+La liste se charge à la demande, page
+après page, même sur un réseau lent.
+
+16
+00:01:07,000 --> 00:01:11,399
+Sur téléphone, Kupanga se comporte comme
+une application : onglets en bas de
+
+17
+00:01:11,399 --> 00:01:15,625
+l'écran, gestes naturels, et des photos
+légères pour les réseaux mobiles.
+
+18
+00:01:17,267 --> 00:01:22,270
+Une annonce en France : photos, loyer
+et charges, diagnostic énergétique,
+
+19
+00:01:22,270 --> 00:01:25,354
+caractéristiques,
+conditions et localisation.
+
+20
+00:01:27,000 --> 00:01:31,832
+À Kinshasa, l'annonce parle la langue du
+terrain : commune, quartier, numéro de
+
+21
+00:01:31,832 --> 00:01:36,480
+parcelle, point de repère, forage,
+groupe électrogène, heures de courant par
+
+22
+00:01:36,480 --> 00:01:39,538
+jour, garantie et loyers
+d'avance comptés en mois.
+
+23
+00:01:41,167 --> 00:01:44,854
+Pour écrire au propriétaire,
+il suffit d'un compte.
+
+24
+00:01:48,867 --> 00:01:53,338
+L'inscription tient en trois écrans : ce
+que l'on vient faire, son identité avec
+
+25
+00:01:53,338 --> 00:01:56,579
+un téléphone de contact, puis
+l'e-mail et le mot de passe.
+
+26
+00:01:59,700 --> 00:02:02,400
+Un lien de confirmation part aussitôt.
+
+27
+00:02:02,350 --> 00:02:07,024
+Dans cette démo, tous les e-mails arrivent
+dans Mailpit, une boîte aux lettres de
+
+28
+00:02:07,024 --> 00:02:07,312
+test.
+
+29
+00:02:10,500 --> 00:02:13,300
+Un clic, et l'adresse est confirmée.
+
+30
+00:02:13,250 --> 00:02:15,188
+Mot de passe oublié ?
+
+31
+00:02:15,188 --> 00:02:20,031
+Même principe : un lien valable dix
+minutes, et la même réponse, que le compte
+
+32
+00:02:20,031 --> 00:02:20,900
+existe ou non.
+
+33
+00:02:24,900 --> 00:02:28,788
+À la première connexion, Kupanga
+propose les premiers pas.
+
+34
+00:02:28,738 --> 00:02:32,925
+Un même compte peut chercher un logement
+et mettre ses propres biens en location.
+
+35
+00:02:37,000 --> 00:02:39,975
+Voici Claire, propriétaire à Lyon.
+
+36
+00:02:39,925 --> 00:02:44,711
+Son accueil lui dit quoi faire : un bail
+à créer, un état des lieux à faire, une
+
+37
+00:02:44,711 --> 00:02:46,088
+fin de bail à préparer.
+
+38
+00:02:47,767 --> 00:02:51,329
+Mes biens réunit ses vingt-six
+logements, loués ou vacants.
+
+39
+00:02:54,967 --> 00:02:57,417
+Publier un bien se fait pas à pas.
+
+40
+00:02:57,367 --> 00:03:02,785
+D'abord le pays : il décide du reste,
+la devise, les champs obligatoires, le
+
+41
+00:03:02,785 --> 00:03:03,854
+modèle de bail.
+
+42
+00:03:03,854 --> 00:03:06,842
+Puis le type, le titre et la description.
+
+43
+00:03:08,500 --> 00:03:12,907
+Car Kupanga est une seule application
+pour plusieurs pays : chaque pays apporte
+
+44
+00:03:12,907 --> 00:03:16,812
+sa devise, ses champs, ses types de
+biens et ses modèles de documents.
+
+45
+00:03:16,762 --> 00:03:20,362
+Ajouter un pays, c'est
+surtout de la configuration.
+
+46
+00:03:22,033 --> 00:03:26,461
+L'adresse, un repère sur la carte,
+les caractéristiques et le diagnostic
+
+47
+00:03:26,461 --> 00:03:30,396
+énergétique, puis le loyer, les
+charges et le dépôt de garantie.
+
+48
+00:03:36,433 --> 00:03:40,575
+Les photos sont réduites dans le navigateur
+avant l'envoi, et leurs données de
+
+49
+00:03:40,575 --> 00:03:42,008
+localisation sont retirées.
+
+50
+00:03:41,958 --> 00:03:46,071
+Un dernier coup d'œil au récapitulatif…
+et l'annonce est en ligne.
+
+51
+00:03:47,733 --> 00:03:52,251
+Sur un bien loué, Claire retrouve son
+locataire : elle l'appelle, lui écrit ou le
+
+52
+00:03:52,251 --> 00:03:56,433
+prévient par WhatsApp, et suit le bail,
+l'état des lieux et les quittances.
+
+53
+00:03:56,383 --> 00:03:59,233
+Tous ses documents sont
+rangés au même endroit.
+
+54
+00:04:03,300 --> 00:04:05,412
+Nadia cherche un logement.
+
+55
+00:04:05,362 --> 00:04:09,531
+Le loft de Claire lui plaît : elle
+écrit directement depuis l'annonce, sans
+
+56
+00:04:09,531 --> 00:04:12,087
+connaître l'adresse
+e-mail de la propriétaire.
+
+57
+00:04:13,767 --> 00:04:17,779
+Le message arrive en temps réel
+chez Claire, qui répond aussitôt.
+
+58
+00:04:17,729 --> 00:04:20,692
+Chaque conversation reste rattachée au bien.
+
+59
+00:04:22,367 --> 00:04:26,117
+Après la visite, Claire
+propose la location à Nadia.
+
+60
+00:04:26,067 --> 00:04:30,406
+Une seule proposition à la fois : Nadia
+a soixante-douze heures pour répondre, et
+
+61
+00:04:30,406 --> 00:04:33,192
+elle est prévenue par une
+notification et un e-mail.
+
+62
+00:04:36,767 --> 00:04:41,115
+Nadia accepte : le logement lui est
+réservé pendant quatorze jours, le temps de
+
+63
+00:04:41,115 --> 00:04:44,142
+signer le bail, et l'annonce
+disparaît de la recherche.
+
+64
+00:04:47,567 --> 00:04:52,576
+Claire crée le bail en trois étapes : la
+date et la durée, le loyer et le dépôt,
+
+65
+00:04:52,576 --> 00:04:53,954
+puis le récapitulatif.
+
+66
+00:05:01,967 --> 00:05:04,942
+Elle signe à l'écran, à
+la souris ou au doigt.
+
+67
+00:05:04,892 --> 00:05:07,879
+Nadia reçoit aussitôt le bail par e-mail…
+
+68
+00:05:12,767 --> 00:05:16,042
+le relit sur son téléphone
+et signe à son tour.
+
+69
+00:05:15,992 --> 00:05:19,079
+À cet instant, elle devient locataire.
+
+70
+00:05:23,567 --> 00:05:28,412
+Le bail est un vrai document, généré en
+PDF avec les deux signatures, et envoyé
+
+71
+00:05:28,412 --> 00:05:29,454
+aux deux parties.
+
+72
+00:05:31,067 --> 00:05:35,840
+Vient l'état des lieux d'entrée : les
+compteurs, les clés remises, puis pièce par
+
+73
+00:05:35,840 --> 00:05:38,904
+pièce, l'état des murs, des
+sols et des équipements.
+
+74
+00:05:45,467 --> 00:05:49,992
+Les deux parties le signent, comme
+le bail, et le PDF est conservé.
+
+75
+00:05:52,667 --> 00:05:55,279
+Chaque mois, une quittance.
+
+76
+00:05:55,229 --> 00:06:00,145
+Kupanga ne fait transiter aucun argent :
+Claire déclare simplement le loyer reçu,
+
+77
+00:06:00,145 --> 00:06:03,179
+son mode de paiement, sa
+référence, et elle signe.
+
+78
+00:06:04,833 --> 00:06:08,633
+La quittance part en PDF
+au locataire, par e-mail.
+
+79
+00:06:15,633 --> 00:06:20,863
+Côté locataire, tout est réuni : son
+logement, son bail, ses quittances, sur
+
+80
+00:06:20,863 --> 00:06:22,996
+ordinateur comme sur téléphone.
+
+81
+00:06:24,600 --> 00:06:29,308
+Le locataire retrouve aussi tous ses
+documents signés, et ses notifications :
+
+82
+00:06:29,308 --> 00:06:33,038
+bail à signer, quittance
+disponible, réponse du propriétaire.
+
+83
+00:06:37,067 --> 00:06:42,072
+Quand vient le départ, le locataire ou le
+propriétaire donne congé, avec une date
+
+84
+00:06:42,072 --> 00:06:42,504
+de fin.
+
+85
+00:06:44,267 --> 00:06:49,263
+Le jour venu, Claire enregistre la fin
+du bail : le dépôt restitué, et le motif
+
+86
+00:06:49,263 --> 00:06:50,592
+s'il y a une retenue.
+
+87
+00:06:50,542 --> 00:06:53,654
+Le bien est libéré et
+repart dans les annonces.
+
+88
+00:06:57,733 --> 00:06:59,708
+Changeons de continent.
+
+89
+00:06:59,658 --> 00:07:04,546
+Patrick est propriétaire à Kinshasa :
+les mêmes écrans, mais d'autres règles.
+
+90
+00:07:06,200 --> 00:07:12,281
+En RDC, les types de biens changent :
+villa, annexe, chambre, parcelle, local
+
+91
+00:07:12,281 --> 00:07:13,150
+commercial.
+
+92
+00:07:13,100 --> 00:07:18,525
+L'adresse se décrit par la commune, le
+quartier, la parcelle et un point de repère.
+
+93
+00:07:20,200 --> 00:07:24,570
+Pas besoin d'une adresse que les cartes
+connaissent : le GPS du téléphone place
+
+94
+00:07:24,570 --> 00:07:25,788
+le repère en un geste.
+
+95
+00:07:27,400 --> 00:07:32,275
+On indique ce qui compte vraiment :
+forage, groupe électrogène, gardiennage, et
+
+96
+00:07:32,275 --> 00:07:34,188
+les heures de courant par jour.
+
+97
+00:07:34,138 --> 00:07:38,382
+Le loyer est en dollars ou en francs
+congolais, avec une garantie et des loyers
+
+98
+00:07:38,382 --> 00:07:39,725
+d'avance comptés en mois.
+
+99
+00:07:41,400 --> 00:07:44,325
+La villa de Ma Campagne est louée à Grâce.
+
+100
+00:07:44,275 --> 00:07:48,675
+Le bail reprend la garantie et l'avance
+; l'état des lieux relève le compteur
+
+101
+00:07:48,675 --> 00:07:51,475
+Cash Power, la REGIDESO
+et le groupe électrogène.
+
+102
+00:07:55,800 --> 00:08:00,330
+Le loyer a été payé par Mobile Money :
+Patrick l'enregistre avec la référence de
+
+103
+00:08:00,330 --> 00:08:02,312
+la transaction et la photo du reçu.
+
+104
+00:08:03,933 --> 00:08:06,908
+À Kinshasa, tout passe par WhatsApp.
+
+105
+00:08:06,858 --> 00:08:11,744
+Kupanga prépare le message, rappel de
+loyer, invitation à signer ou proposition
+
+106
+00:08:11,744 --> 00:08:16,258
+de location, et Patrick l'envoie depuis
+son propre téléphone, sans frais.
+
+107
+00:08:16,258 --> 00:08:20,371
+Le lien de signature, lui, ne
+quitte jamais l'application.
+
+108
+00:08:22,033 --> 00:08:26,271
+Grâce retrouve son logement et ses
+quittances en dollars sur son téléphone.
+
+109
+00:08:31,633 --> 00:08:36,304
+Kupanga s'installe comme une application,
+garde l'essentiel hors connexion, et
+
+110
+00:08:36,304 --> 00:08:37,621
+passe en thème sombre.
+
+111
+00:08:39,233 --> 00:08:44,111
+Notifications et e-mails tiennent chacun
+au courant : signatures, paiements,
+
+112
+00:08:44,111 --> 00:08:45,458
+congés, réservations.
+
+113
+00:08:47,100 --> 00:08:51,928
+Chacun garde la main sur son compte : son
+téléphone de contact, visible seulement
+
+114
+00:08:51,928 --> 00:08:55,862
+de son propriétaire ou de son
+locataire, le thème, la déconnexion.
+
+115
+00:08:59,900 --> 00:09:05,188
+Enfin, l'équipe Kupanga a son propre
+back-office, séparé de l'application.
+
+116
+00:09:07,100 --> 00:09:11,972
+Des statistiques, tous les biens filtrés
+par pays et par type, la pagination, et
+
+117
+00:09:11,972 --> 00:09:13,738
+les documents de chaque bien.
+
+118
+00:09:21,500 --> 00:09:25,900
+Un bien n'est jamais supprimé : il
+est archivé, pour conserver les baux.
+
+119
+00:09:25,850 --> 00:09:29,700
+Un compte est supprimé, ou
+anonymisé s'il a des documents.
+
+120
+00:09:29,700 --> 00:09:33,562
+Et la file des e-mails permet
+de renvoyer un message en échec.
+
+121
+00:09:35,900 --> 00:09:39,998
+Et sous le capot : documents privés ouverts
+par des liens temporaires, tentatives
+
+122
+00:09:39,998 --> 00:09:43,894
+de connexion limitées, aucune donnée
+d'un compte visible par un autre, et des
+
+123
+00:09:43,894 --> 00:09:47,537
+e-mails jamais perdus grâce à une
+file d'envoi qui réessaie toute seule.
+
+124
+00:09:49,167 --> 00:09:50,654
+Kupanga.
+
+125
+00:09:50,604 --> 00:09:56,018
+De l'annonce à la fin du bail, de Lyon
+à Kinshasa : simple, sûr, et pensé pour
+
+126
+00:09:56,018 --> 00:09:56,504
+chacun.
