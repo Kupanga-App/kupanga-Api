@@ -17,6 +17,9 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: dev   # l'image démarre en prod par défaut (Dockerfile)
       PORT: "8089"                  # l'image écoute sur 10000 par défaut (Dockerfile) : aligné sur le port publié
+      # Dans le conteneur, localhost = l'application elle-même : la base est jointe par son nom de service
+      # (port interne 5432 ; .env.dev garde localhost:5433 pour lancer l'API depuis l'IDE)
+      DB_URL: jdbc:postgresql://db:5432/kupanga_dev
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
       # Dans le conteneur, localhost = l'application elle-même : le stockage est joint par son nom de service

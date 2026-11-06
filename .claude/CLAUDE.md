@@ -482,6 +482,8 @@ Légende : `[ ]` à faire · `[~]` en cours · `[x]` fait (préciser date + comm
 
 - 2026-11-06 — `.env.dev` nettoyé (ne garde que `DB_URL`, `POSTGRES_*`, `JWT_SECRET_KEY`, `GOOGLE_CLIENT_ID`, `ADMIN_*` ; `MINIO_*`, `BREVO_*`, `SENTRY_*` retirés) ; `.env.dev.exemple` : variables obsolètes listées, `GOOGLE_CLIENT_ID` du projet prérempli (public, identique au front) — non commité
 
+- 2026-11-06 — API de dev sous Docker sans base (`Connection to localhost:5433 refused`, front en `ERR_EMPTY_RESPONSE`) : `DB_URL` de `.env.dev` (localhost:5433, pour l'IDE) visait le conteneur lui-même → `DB_URL: jdbc:postgresql://db:5432/kupanga_dev` dans `environment` du service `kupanga` (`docker-compose-dev.yml`) ; API redémarrée, santé 200 — non commité
+
 - 2026-11-06 — Passage en production de la connexion Google (écran de consentement) : pages `legal/README.md` (page d'accueil), `legal/confidentialite.md` (données réellement traitées, données Google en « Limited Use », prestataires, durées, droits) et `legal/conditions.md`, servies depuis le dépôt public GitHub en attendant un domaine ; champs `[À COMPLÉTER]` (éditeur, adresse, e-mail de contact, hébergeur, droit applicable) laissés à l'utilisateur ; textes à faire relire (RGPD D12/D13) — non commité
 - 2026-11-06 — Front `kupanga-front` : liens vers les pages légales (`core/legal/liens-legaux.ts`, adresses GitHub en un seul endroit) en bas de tous les écrans de connexion et d'inscription (`auth-layout`), mention « en créant un compte, y compris avec Google, vous acceptez… » à l'inscription, pied de la landing page, section « Informations légales » de Compte ; `ng build` OK, `ng test` 115/115 — non commité
 
