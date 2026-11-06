@@ -478,6 +478,8 @@ Légende : `[ ]` à faire · `[~]` en cours · `[x]` fait (préciser date + comm
 
 > Format : `AAAA-MM-JJ — quoi (fichiers / commit)`. Le plus récent en haut.
 
+- 2026-11-06 — Front `kupanga-front` : lieux proches (POI) affichés sous les photos sur l'annonce publique, la fiche du propriétaire et « Mon logement » (composant `shared/ui/lieux-proches.component.ts` + spec, 2 tests ; ancien bloc « À proximité » de la section Adresse de l'annonce retiré) ; filtre « À proximité » d'Explorer déjà en place (`poisRequis`, géré par `BienSpecification.parPois`) ; `ng build` OK, `ng test` 115/115 — non commité
+
 - 2026-11-05 — Vidéo en ligne sur YouTube : https://youtu.be/lGlYv87DOc0 ; identifiant renseigné dans la landing page (`VIDEO_YOUTUBE_ID`, durée 9:57) ; `ng test` 113/113, `ng build` OK — non commité
 
 - 2026-11-05 — Vidéo rendue : `video/out/kupanga-demo-4k.mp4` (3840 × 2160, 30 i/s, 9 min 57 s, H.264 + AAC stéréo, 644 Mo, non versionnée) ; musique présente et en boucle mais basse (~−48 dBFS, voix ~−25 dBFS, `musicVolume` 0,1) ; environnement de démo supprimé (conteneurs, volumes, image), captures et photos gardées hors git — non commité
