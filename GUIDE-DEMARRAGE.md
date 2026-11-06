@@ -74,7 +74,8 @@ docker compose -f docker-compose-dev.yml up -d --build
 
 La première fois, Docker télécharge les images et compile l'API (5 à 10 minutes). Au démarrage, l'API :
 
-- crée le schéma de la base (Flyway joue les migrations `V1` à `V52` sur la base vide) ;
+- crée le schéma de la base (Flyway joue toutes les migrations `V1`, `V2`… sur la base vide) ;
+- **remplit la base de données de développement** (comptes de test, ~250 biens, cf. ci-dessous) si elle est vide ;
 - crée les buckets du stockage et règle leurs droits (photos des biens publiques, documents et photos de profil
   privés) ;
 - vérifie la connexion au serveur SMTP (Mailpit).
@@ -107,6 +108,40 @@ curl http://localhost:8089/actuator/health
 | RedisInsight | http://localhost:5540 | ajouter la base `redis://redis-dev:6379` |
 
 RustFS et Mailpit n'écoutent que sur votre machine (`127.0.0.1`).
+
+### Données de démarrage et comptes de test
+
+Une base neuve est remplie automatiquement, une seule fois : au premier démarrage de l'API, Flyway joue
+`src/main/resources/db/seed-dev/R__donnees_de_dev.sql` après les migrations, et le service `seed-photos`
+copie les photos de `seed-dev/photos/` dans le stockage. **Si la base contient déjà des comptes, rien n'est
+inséré** : vos données restent intactes. Pour recevoir les données sur une base existante, repartez de zéro (§7).
+
+Contenu (identique sur chaque poste) :
+
+- **250 biens** avec photos, équipements et lieux proches : 140 en France (Paris, Lyon, Marseille, Bordeaux,
+  Lille, Toulouse, Nantes, Nice, Strasbourg, Montpellier, Rennes) et 110 en RDC (Kinshasa 70, Bukavu 20,
+  Goma 20), en EUR, USD et CDF ;
+- **66 comptes**, 30 locations en cours, 4 biens archivés, 32 conversations.
+
+**Mot de passe de tous les comptes : `Kupanga-Dev-2026`**
+
+| Compte | Rôle d'accueil | Ce qu'il permet de tester |
+|---|---|---|
+| `claire.martin@kupanga.dev` | Propriétaire (France) | 6 biens (Lyon, Paris), dont 1 loué à Lucas ; messages d'Inès |
+| `patrick.mbuyi@kupanga.dev` | Propriétaire (RDC) | 6 biens (Kinshasa, Bukavu, Goma), dont 1 loué à Grâce ; messages d'Inès |
+| `lucas.bernard@kupanga.dev` | Locataire (France) | « Mon logement » chez Claire, à Lyon |
+| `grace.mukendi@kupanga.dev` | Locataire (RDC) | « Mon logement » chez Patrick, à Kinshasa |
+| `ines.moreau@kupanga.dev` | Candidate, sans logement | Conversations avec Claire et Patrick ; recevoir une demande de location |
+| `non.confirme@kupanga.dev` | Locataire, adresse non confirmée | Connexion refusée (403) et renvoi du lien |
+| `proprio.fr01` … `proprio.fr20@kupanga.dev` | Propriétaires (France) | Volume des annonces |
+| `proprio.cd01` … `proprio.cd15@kupanga.dev` | Propriétaires (RDC) | Volume des annonces |
+| `locataire.fr01` … `locataire.fr15@kupanga.dev`, `locataire.cd01` … `locataire.cd10@kupanga.dev` | Locataires | Logements loués, conversations |
+
+Back-office : `ADMIN_EMAIL` / `ADMIN_PASSWORD` de `.env.dev` (aucun compte admin en base).
+
+> Les baux, états des lieux et quittances ne sont pas préremplis : ils se créent depuis l'application (PDF et
+> signatures réels). Données sans le remplissage : `SPRING_FLYWAY_LOCATIONS=classpath:db/migration`.
+> Photos : CC0 (domaine public), sources dans `seed-dev/photos/credits.json`.
 
 ---
 
@@ -185,14 +220,23 @@ docker compose -f docker-compose-dev.yml --profile test up -d db-test
 
 ## 7. Repartir de zéro
 
-Tout effacer (base, fichiers, cache) et recommencer à l'étape 4 :
+Tout effacer (base, fichiers, cache, réglages de RedisInsight) et recommencer avec une base neuve, remplie des
+données de démarrage (§4) :
 
 ```bash
-docker compose -f docker-compose-dev.yml down -v
+docker compose -f docker-compose-dev.yml down -v --remove-orphans
 docker compose -f docker-compose-dev.yml up -d --build
 ```
 
-`down -v` supprime les volumes : **toutes les données locales sont perdues** (c'est le but).
+`down -v` arrête les conteneurs et **supprime tous les volumes du projet** (`db-data-dev`, `stockage-data-dev`,
+`redis-data-dev`, `redisinsight-data-dev`) : **toutes les données locales sont perdues** (c'est le but).
+Au redémarrage, la base est recréée et remplie, et les photos sont recopiées.
+
+Vérifier qu'il ne reste rien :
+
+```bash
+docker volume ls --filter name=kupanga-api
+```
 
 > Si vous aviez lancé une ancienne version du projet (avec MinIO), un ancien volume `…_minio-data-dev` peut
 > rester : `docker volume ls` puis `docker volume rm <nom>`.

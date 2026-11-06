@@ -285,6 +285,7 @@ Légende : `[ ]` à faire · `[~]` en cours · `[x]` fait (préciser date + comm
 | 2026-11-05 | **Environnement de démo séparé du dev** (`demo/docker-compose-demo.yml`, projet `kupanga-demo`, ports 8189 / 8125 / 9200 / 5435 / 6380, front `ng serve -c demo` sur 4300) : volume en SQL (comptes, ~740 biens, photos, POI, locations, conversations), parcours réels par l'API (baux et EDL signés via les liens Mailpit, quittances, congé) ; photos CC0 (StockSnap via Openverse) non versionnées ; mot de passe de démo `Kupanga-Demo-2026` | Ne pas toucher à la base de dev ; la limite de 10 publications par jour impose le SQL pour le volume |
 | 2026-11-05 | **Logo proposé** : piste A « K sous un toit » (`video/public/brand/kupanga-mark-a.svg`, pistes B et C à côté), utilisée par défaut dans la vidéo en attendant le choix de l'utilisateur | L'app n'avait qu'un « K » provisoire |
 | 2026-11-05 | **Landing page en thème clair par défaut**, même sur un appareil réglé en sombre ; le bouton passe en sombre (choix mémorisé) ; en quittant la page, l'app suit de nouveau l'appareil si rien n'a été choisi | Demande de l'utilisateur |
+| 2026-11-06 | **Données de dev par Flyway** (migration répétable `R__` dans `db/seed-dev`, profil dev seulement, jouée seulement sur une base sans compte) plutôt qu'un script d'initialisation de PostgreSQL ; photos partagées entre biens (clés `seed-*.jpg`, aucune route ne supprime une photo de bien) ; documents (baux, EDL, quittances) non préremplis | Le schéma n'existe qu'après Flyway : un script `docker-entrypoint-initdb.d` passerait avant. Fonctionne aussi depuis l'IDE. Les PDF et signatures doivent venir de l'application |
 | 2026-10-07 | `CLAUDE.md` = mémoire partagée du projet, mise à jour automatiquement par Claude | Garder le contexte entre les conversations |
 
 ## 7. Points ouverts / questions
@@ -479,6 +480,10 @@ Légende : `[ ]` à faire · `[~]` en cours · `[x]` fait (préciser date + comm
 ## 8. Journal des modifications
 
 > Format : `AAAA-MM-JJ — quoi (fichiers / commit)`. Le plus récent en haut.
+
+- 2026-11-06 — Front `kupanga-front` : création d'un bien bloquée à l'étape Photos tant qu'aucune photo n'est ajoutée (`bien-create.component.ts` `etapeValide` + garde dans `publier`, texte d'aide « au moins une photo »), comme l'API (400 sans photo) ; `ng build` OK, `ng test` 115/115 — non commité
+
+- 2026-11-06 — Données de démarrage en dev : `src/main/resources/db/seed-dev/R__donnees_de_dev.sql` (PL/pgSQL, `setseed` : mêmes données partout ; rien si `utilisateurs` n'est pas vide) : 66 comptes (mot de passe `Kupanga-Dev-2026`, comptes de test `claire.martin`, `patrick.mbuyi`, `lucas.bernard`, `grace.mukendi`, `ines.moreau`, `non.confirme` `@kupanga.dev`), 250 biens (140 France dans 11 villes, 110 RDC : Kinshasa 70, Bukavu 20, Goma 20) avec photos, équipements, POI, 30 locations actives, 4 archivés, 32 conversations ; `application-dev.yml` (`locations: classpath:db/migration,classpath:db/seed-dev`, désactivable par `SPRING_FLYWAY_LOCATIONS`) ; `demo/docker-compose-demo.yml` sans ce remplissage ; service `seed-photos` (rclone 1.68.2) dans `docker-compose-dev.yml` + `seed-dev/photos/` (36 photos CC0 1280 px + vignettes, 4,1 Mo, `credits.json`) ; `GUIDE-DEMARRAGE.md` §4 (comptes de test) et §7 (remise à zéro). Vérifié : base vide → 56 migrations (V1-V55 + R) puis Hibernate `validate`, login 200 / non confirmé 403, recherche et photo 200, relance sans effet — non commité
 
 - 2026-11-06 — `.env.dev` nettoyé (ne garde que `DB_URL`, `POSTGRES_*`, `JWT_SECRET_KEY`, `GOOGLE_CLIENT_ID`, `ADMIN_*` ; `MINIO_*`, `BREVO_*`, `SENTRY_*` retirés) ; `.env.dev.exemple` : variables obsolètes listées, `GOOGLE_CLIENT_ID` du projet prérempli (public, identique au front) — non commité
 

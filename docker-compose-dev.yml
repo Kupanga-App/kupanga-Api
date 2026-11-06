@@ -120,6 +120,35 @@ services:
           memory: 256M
 
   # ------------------------
+  # 3b. Photos des données de dev (seed-dev/photos, CC0) copiées dans le stockage
+  # ------------------------
+  # Les biens insérés par db/seed-dev/R__donnees_de_dev.sql pointent vers ces fichiers (seed-*.jpg).
+  # Copie sans effet si les photos sont déjà dans le volume ; le conteneur s'arrête ensuite.
+  seed-photos:
+    image: rclone/rclone:1.68.2
+    container_name: seed-photos-dev
+    depends_on:
+      - stockage
+    environment:
+      RCLONE_CONFIG_S3_TYPE: s3
+      RCLONE_CONFIG_S3_PROVIDER: Other
+      RCLONE_CONFIG_S3_ENDPOINT: http://stockage:9000
+      RCLONE_CONFIG_S3_ACCESS_KEY_ID: kupanga-dev
+      RCLONE_CONFIG_S3_SECRET_ACCESS_KEY: kupanga-dev-secret
+      RCLONE_CONFIG_S3_FORCE_PATH_STYLE: "true"
+    volumes:
+      - ./seed-dev/photos:/photos:ro
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        for essai in $$(seq 1 30); do
+          rclone copy /photos s3:bucket-photo-immobilier --include 'seed-*.jpg' && echo 'Photos de dev en place.' && exit 0
+          sleep 2
+        done
+        echo 'Stockage injoignable : photos de dev non copiées.' && exit 1
+    restart: "no"
+
+  # ------------------------
   # 3c. Mailpit : faux serveur SMTP de développement (M1)
   # ------------------------
   mailpit:

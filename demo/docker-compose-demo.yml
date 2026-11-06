@@ -18,6 +18,7 @@ services:
       - "127.0.0.1:8189:8189"
     environment:
       SPRING_PROFILES_ACTIVE: dev
+      SPRING_FLYWAY_LOCATIONS: classpath:db/migration   # la démo a son propre remplissage (demo/seed)
       PORT: "8189"
       JAVA_OPTS: "-Xms256m -Xmx768m -XX:+ExitOnOutOfMemoryError"
       DB_URL: jdbc:postgresql://db:5432/kupanga_demo

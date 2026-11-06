@@ -12,7 +12,9 @@ spring:
     show-sql: true
   flyway:
     enabled: true
-    locations: classpath:db/migration
+    # db/seed-dev : données de développement (R__donnees_de_dev.sql), jouées seulement sur une base vide.
+    # Sans elles : SPRING_FLYWAY_LOCATIONS=classpath:db/migration
+    locations: classpath:db/migration,classpath:db/seed-dev
     baseline-on-migrate: true   # indispensable si la BD existe déjà
     validate-on-migrate: false  # évite les conflits de checksum avec PostGIS
     default-schema: public
