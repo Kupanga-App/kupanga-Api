@@ -39,6 +39,29 @@ class TexteBrutTest {
     }
 
     @Test
+    @DisplayName("Lien sur une image seule (logo) : son texte de remplacement, pas l'adresse")
+    void lienSurImage() {
+        String html = """
+                <a href="https://kupanga.test/"><img src="https://kupanga.test/email/logo.png" alt="kupanga">
+                <!--[if !mso]><!--><img src="https://kupanga.test/email/logo-sombre.png" alt="kupanga"><!--<![endif]--></a>
+                <p>Bonjour</p>
+                <a href="https://kupanga.test/x"><img src="https://kupanga.test/i.png" alt=""></a>""";
+
+        String texte = TexteBrut.depuisHtml(html);
+
+        assertThat(texte).startsWith("kupanga\n").doesNotContain("kupanga.test/\n").endsWith("https://kupanga.test/x");
+    }
+
+    @Test
+    @DisplayName("Vrai modèle d'e-mail : le texte brut commence par le nom, pas par l'adresse du logo")
+    void vraiModeleLogo() {
+        String html = String.format(CONTENU_MAIL_VERIFICATION_EMAIL, "Grâce", "https://kupanga.test/auth/verifier-email?token=T0K3N")
+                .replace("{{URL_APP}}", "https://kupanga.test/");
+
+        assertThat(TexteBrut.depuisHtml(html)).startsWith("kupanga");
+    }
+
+    @Test
     @DisplayName("null → texte vide")
     void nul() {
         assertThat(TexteBrut.depuisHtml(null)).isEmpty();

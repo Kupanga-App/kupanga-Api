@@ -16,7 +16,8 @@ public final class TexteBrut {
     /** Texte d'aperçu caché (preheader) : déjà repris par le corps du message. */
     private static final Pattern CACHE = Pattern.compile("(?is)<div[^>]*display\\s*:\\s*none[^>]*>.*?</div>");
     private static final Pattern LIEN = Pattern.compile("(?is)<a\\b[^>]*\\bhref\\s*=\\s*\"([^\"]*)\"[^>]*>(.*?)</a>");
-    private static final Pattern BLOC = Pattern.compile("(?i)<\\s*(br|/p|/div|/tr|/h[1-6]|/li|/table)\\b[^>]*>");
+    private static final Pattern ALT_IMAGE = Pattern.compile("(?is)<img\\b[^>]*\\balt\\s*=\\s*\"([^\"]*)\"");
+    private static final Pattern BLOC =Pattern.compile("(?i)<\\s*(br|/p|/div|/tr|/h[1-6]|/li|/table)\\b[^>]*>");
     private static final Pattern BALISE = Pattern.compile("(?s)<[^>]+>");
     private static final Pattern ESPACES = Pattern.compile("[ \\t\\x0B\\f\\u00A0]+");
     private static final Pattern LIGNES_VIDES = Pattern.compile("\\n\\s*\\n\\s*\\n+");
@@ -46,7 +47,14 @@ public final class TexteBrut {
         while (m.find()) {
             String libelle = BALISE.matcher(m.group(2)).replaceAll("").strip();
             String url = m.group(1).strip();
-            String remplacement = libelle.isEmpty() || libelle.equals(url) ? url : libelle + " : " + url;
+            String remplacement;
+            if (libelle.isEmpty()) {
+                // Lien sur une image seule (le logo en tête d'e-mail) : son texte de remplacement, sans l'adresse.
+                Matcher alt = ALT_IMAGE.matcher(m.group(2));
+                remplacement = alt.find() && !alt.group(1).isBlank() ? alt.group(1).strip() : url;
+            } else {
+                remplacement = libelle.equals(url) ? url : libelle + " : " + url;
+            }
             m.appendReplacement(sortie, Matcher.quoteReplacement(remplacement));
         }
         m.appendTail(sortie);
