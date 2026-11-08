@@ -1,1433 +1,1362 @@
 package com.kupanga.api.email.constantes;
 
+/**
+ * Modèles des e-mails transactionnels (refonte du 8 novembre 2026, alignée sur l'interface : Figtree, olive #4f6a2e).
+ * Remplis par String.format : tout % littéral s'écrit %%.
+ * {{URL_APP}} et {{DOMAINE_APP}} sont remplacés par EmailServiceImpl#finaliser (domaine paramétrable).
+ */
 public class Constante {
 
-    // ─── 01 · Bienvenue (profil complété) ─────────────────────────────────────────
+    // ─── 01 · bienvenue ─────────────────────────────
     public static final String SUJET_MAIL_BIENVENUE_PROFIL_COMPLETE =
-            "Bienvenue sur KUPANGA, %s !";
+            "Bienvenue sur Kupanga, %s";
 
     // %1$s = prénom (preheader) · %2$s = prénom (h1)
     public static final String CONTENU_MAIL_BIENVENUE_PROFIL_COMPLETE =
             """
-            <!DOCTYPE html>
-            <html lang="fr">
-            <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-            </head>
-            <body style="margin:0; padding:0; background:#FAFAF4; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;">
-            <div style="display:none; max-height:0; overflow:hidden;">Bienvenue sur KUPANGA, %s ! Votre profil est complet.</div>
-
-            <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" style="background:#FAFAF4; padding:32px 16px;">
-              <tr><td align="center">
-                <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px; width:100%%; background:#FFFFFF; border:1px solid rgba(143,164,100,0.18);">
-
-              <tr><td style="background:#10212B; padding:18px 32px;">
-                <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0"><tr>
-                  <td style="vertical-align:middle;">
-                    <span style="display:inline-block; width:10px; height:10px; background:#8FA464; vertical-align:middle; margin-right:10px;"></span>
-                    <span style="font-family:'DM Serif Display', Georgia, 'Times New Roman', serif; font-size:22px; color:#EFFBDB; vertical-align:middle; letter-spacing:-0.01em; line-height:1;">kupanga</span>
-                  </td>
-                  <td style="text-align:right; vertical-align:middle; font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:9.5px; letter-spacing:0.22em; text-transform:uppercase; color:#B5CA8D;">
-                    Gestion locative
-                  </td>
-                </tr></table>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:32px 32px 0;">
-                <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-                  <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:9.5px; letter-spacing:0.28em; text-transform:uppercase; color:#6B7C4B; padding-bottom:10px; border-bottom:1px solid #8FA464;">
-                    Bienvenue · Profil complété
-                  </td>
-                </tr></table>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:20px 32px 4px;">
-                <h1 style="font-family:'DM Serif Display', Georgia, 'Times New Roman', serif; font-size:30px; line-height:1.15; margin:0; color:#10212B; font-weight:400; letter-spacing:-0.01em;">
-                  Bienvenue sur KUPANGA,<br/>%s !
-                </h1>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:10px 32px;">
-                <p style="margin:0; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:14px; line-height:1.65; color:#3A4F5C; font-weight:300;">
-                  Nous sommes ravis de vous compter parmi nous.
-                </p>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:10px 32px;">
-                <p style="margin:0; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:14px; line-height:1.65; color:#3A4F5C; font-weight:300;">
-                  Votre profil a été complété avec succès. Vous pouvez désormais profiter pleinement de KUPANGA, votre application de gestion immobilière.
-                </p>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:10px 32px;">
-                <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" style="background:rgba(143,164,100,0.15); border-left:3px solid #8FA464;">
-                  <tr><td style="padding:12px 16px; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:13px; color:#4F5F37; line-height:1.55;">
-                    Votre espace personnel est prêt.
-                  </td></tr>
-                </table>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:28px 32px 32px;">
-                <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-                  <td style="border-top:1px solid rgba(143,164,100,0.20); padding-top:16px; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:13px; color:#3A4F5C; line-height:1.7; font-weight:300;">
-                    À très bientôt sur KUPANGA,<br/>L'équipe KUPANGA
-                  </td>
-                </tr></table>
-              </td></tr>
-
-              <tr><td style="background:#10212B; padding:16px 32px;">
-                <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0"><tr>
-                  <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:9px; letter-spacing:0.20em; text-transform:uppercase; color:#B5CA8D;">
-                    <span style="display:inline-block; width:5px; height:5px; background:#8FA464; margin-right:8px; vertical-align:middle;"></span>
-                    <span style="color:#EFFBDB; vertical-align:middle;">Kupanga</span><span style="vertical-align:middle;"> · Gestion locative</span>
-                  </td>
-                  <td style="text-align:right; font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:9px; letter-spacing:0.20em; text-transform:uppercase; color:#6B7C4B;">
-                    kupanga.fr
-                  </td>
-                </tr></table>
-              </td></tr>
-                </table>
-              </td></tr>
-            </table>
-            </body>
-            </html>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Kupanga</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  body { margin:0; padding:0; }
+  .kp-tab { font-variant-numeric:tabular-nums; }
+  @media (max-width:480px) {
+    .kp-out { padding:16px 8px !important; }
+    .kp-pad { padding-left:20px !important; padding-right:20px !important; }
+    .kp-h1 { font-size:22px !important; line-height:28px !important; }
+    .kp-btnwrap { width:100%% !important; }
+    .kp-btn a { display:block !important; text-align:center !important; }
+  }
+  @media (prefers-color-scheme:dark) {
+    .kp-bg { background:#0b181f !important; }
+    .kp-card { background:#10212b !important; border-color:#1f3644 !important; }
+    .kp-t1 { color:#effbdb !important; }
+    .kp-t2 { color:#c3cdbf !important; }
+    .kp-t3 { color:#93a19a !important; }
+    .kp-acc { color:#a1b577 !important; }
+    .kp-box { background:#0b181f !important; }
+    .kp-line { border-color:#1f3644 !important; }
+    .kp-btn { background:#a1b577 !important; }
+    .kp-btn a { color:#10212b !important; }
+    .kp-info { background:#1b2d1c !important; color:#d6e3bd !important; }
+    .kp-warn { background:#33270f !important; color:#f1d9a8 !important; }
+    .kp-ico { background:#1b2d1c !important; color:#a1b577 !important; }
+    .kp-logo-clair { display:none !important; }
+    .kp-logo-sombre { display:block !important; max-height:none !important; height:32px !important; }
+  }
+</style>
+</head>
+<body style="margin:0; padding:0; background:#f4f5f1;">
+<div style="display:none; max-height:0; overflow:hidden; mso-hide:all; font-size:1px; line-height:1px; color:#f4f5f1;">Votre profil est complet, votre espace Kupanga est prêt.</div>
+<table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" class="kp-bg" style="background:#f4f5f1;">
+  <tr><td align="center" class="kp-out" style="padding:32px 16px;">
+    <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" class="kp-card" style="width:100%%; max-width:600px; background:#ffffff; border:1px solid #e2e4e6; border-radius:20px;">
+      <tr><td class="kp-pad" style="padding:28px 40px 0;">
+        <a href="{{URL_APP}}" style="text-decoration:none;">
+          <img class="kp-logo-clair" src="{{URL_APP}}email/kupanga-logo-clair.png" width="138" height="32" alt="kupanga" style="display:block; width:138px; height:32px; border:0; outline:none; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:22px; line-height:32px; font-weight:600; color:#10212b;">
+          <!--[if !mso]><!--><img class="kp-logo-sombre" src="{{URL_APP}}email/kupanga-logo-sombre.png" width="138" height="32" alt="kupanga" style="display:none; max-height:0; overflow:hidden; mso-hide:all; width:138px; border:0; outline:none;"><!--<![endif]-->
+        </a>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:32px 40px 0;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+          <td style="background:#e5f1e8; border-radius:999px; padding:2px 10px 2px 8px; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:13px; line-height:20px; font-weight:500; color:#22663a;"><span style="color:#2f8a4e;">&#9679;</span>&nbsp;Profil complété</td>
+        </tr></table>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:12px 40px 0;">
+        <h1 class="kp-t1 kp-h1" style="margin:0; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:26px; line-height:32px; font-weight:500; letter-spacing:-0.01em; color:#10212b;">Bienvenue, %2$s</h1>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:16px 40px 0;">
+        <p class="kp-t2" style="margin:0; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:24px; color:#46545c;">Votre profil est complet. Avec le même compte, vous pouvez chercher un logement, publier un bien et suivre vos documents de location.</p>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:28px 40px 0;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" class="kp-btnwrap"><tr>
+          <td class="kp-btn" bgcolor="#4f6a2e" style="background:#4f6a2e; border-radius:999px;">
+            <a href="{{URL_APP}}" style="display:inline-block; padding:13px 28px; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:20px; font-weight:500; color:#ffffff; text-decoration:none; border-radius:999px;">Ouvrir Kupanga</a>
+          </td>
+        </tr></table>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:28px 40px 36px;">
+        <p class="kp-t2" style="margin:0; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:24px; color:#46545c;">L'équipe Kupanga</p>
+      </td></tr>
+    </table>
+    <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%%; max-width:600px;">
+      <tr><td class="kp-t3" align="center" style="padding:20px 24px 0; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:12px; line-height:18px; color:#636f76;">
+        Kupanga · location entre particuliers, en France et en RDC<br>
+        <a href="{{URL_APP}}" class="kp-t3" style="color:#636f76; text-decoration:underline;">{{DOMAINE_APP}}</a>
+      </td></tr>
+    </table>
+  </td></tr>
+</table>
+</body>
+</html>
             """;
 
-    // ─── 02 · Réinitialisation mot de passe ─────────────────────────────────────────
-    public static final String SUJET_MAIL_REINITIALISATION_MOT_DE_PASSE =
-            "Réinitialisation de votre mot de passe – KUPANGA";
-
-    // %s = lien de réinitialisation
-    public static final String CONTENU_MAIL_REINITIALISATION_MOT_DE_PASSE =
-            """
-            <!DOCTYPE html>
-            <html lang="fr">
-            <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-            </head>
-            <body style="margin:0; padding:0; background:#FAFAF4; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;">
-            <div style="display:none; max-height:0; overflow:hidden;">Lien de réinitialisation de votre mot de passe — valable 10 minutes.</div>
-
-            <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" style="background:#FAFAF4; padding:32px 16px;">
-              <tr><td align="center">
-                <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px; width:100%%; background:#FFFFFF; border:1px solid rgba(143,164,100,0.18);">
-
-              <tr><td style="background:#10212B; padding:18px 32px;">
-                <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0"><tr>
-                  <td style="vertical-align:middle;">
-                    <span style="display:inline-block; width:10px; height:10px; background:#8FA464; vertical-align:middle; margin-right:10px;"></span>
-                    <span style="font-family:'DM Serif Display', Georgia, 'Times New Roman', serif; font-size:22px; color:#EFFBDB; vertical-align:middle; letter-spacing:-0.01em; line-height:1;">kupanga</span>
-                  </td>
-                  <td style="text-align:right; vertical-align:middle; font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:9.5px; letter-spacing:0.22em; text-transform:uppercase; color:#B5CA8D;">
-                    Gestion locative
-                  </td>
-                </tr></table>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:32px 32px 0;">
-                <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-                  <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:9.5px; letter-spacing:0.28em; text-transform:uppercase; color:#6B7C4B; padding-bottom:10px; border-bottom:1px solid #8FA464;">
-                    Sécurité du compte
-                  </td>
-                </tr></table>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:20px 32px 4px;">
-                <h1 style="font-family:'DM Serif Display', Georgia, 'Times New Roman', serif; font-size:30px; line-height:1.15; margin:0; color:#10212B; font-weight:400; letter-spacing:-0.01em;">
-                  Réinitialisation de mot de passe – KUPANGA
-                </h1>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:10px 32px;">
-                <p style="margin:0; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:14px; line-height:1.65; color:#3A4F5C; font-weight:300;">
-                  Vous avez demandé la réinitialisation de votre mot de passe.
-                </p>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:10px 32px;">
-                <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" style="background:rgba(212,168,83,0.14); border-left:3px solid #D4A853;">
-                  <tr><td style="padding:12px 16px; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:13px; color:#7A5E22; line-height:1.55;">
-                    Pour des raisons de sécurité, ce lien est valable <strong>10 minutes</strong>.
-                  </td></tr>
-                </table>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:10px 32px;">
-                <p style="margin:0; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:14px; line-height:1.65; color:#3A4F5C; font-weight:300;">
-                  Cliquez sur le bouton ci-dessous pour définir un nouveau mot de passe :
-                </p>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:18px 32px 14px;">
-                <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-                  <td style="background:#8FA464; border-radius:8px;">
-                    <a href="%s" style="display:inline-block; padding:14px 28px; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:14px; font-weight:600; color:#10212B; text-decoration:none; letter-spacing:0.01em;">
-                      Réinitialiser mon mot de passe
-                    </a>
-                  </td>
-                </tr></table>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:10px 32px;">
-                <p style="margin:0; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:12px; line-height:1.65; color:#6B7984; font-weight:300;">
-                  Si vous n'êtes pas à l'origine de cette demande, ignorez simplement cet email.
-                </p>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:28px 32px 32px;">
-                <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-                  <td style="border-top:1px solid rgba(143,164,100,0.20); padding-top:16px; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:13px; color:#3A4F5C; line-height:1.7; font-weight:300;">
-                    L'équipe KUPANGA
-                  </td>
-                </tr></table>
-              </td></tr>
-
-              <tr><td style="background:#10212B; padding:16px 32px;">
-                <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0"><tr>
-                  <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:9px; letter-spacing:0.20em; text-transform:uppercase; color:#B5CA8D;">
-                    <span style="display:inline-block; width:5px; height:5px; background:#8FA464; margin-right:8px; vertical-align:middle;"></span>
-                    <span style="color:#EFFBDB; vertical-align:middle;">Kupanga</span><span style="vertical-align:middle;"> · Gestion locative</span>
-                  </td>
-                  <td style="text-align:right; font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:9px; letter-spacing:0.20em; text-transform:uppercase; color:#6B7C4B;">
-                    kupanga.fr
-                  </td>
-                </tr></table>
-              </td></tr>
-                </table>
-              </td></tr>
-            </table>
-            </body>
-            </html>
-            """;
-
-    // ─── 02bis · Confirmation de l'adresse e-mail (A14) ─────────────────────────────────────────
+    // ─── 02 · verification-email ─────────────────────────────
     public static final String SUJET_MAIL_VERIFICATION_EMAIL =
-            "Confirmez votre adresse e-mail – KUPANGA";
+            "Confirmez votre adresse e-mail · Kupanga";
 
-    // %s = prénom (échappé), %s = lien de confirmation
+    // %1$s = prénom (échappé) · %2$s = lien de confirmation
     public static final String CONTENU_MAIL_VERIFICATION_EMAIL =
             """
-            <!DOCTYPE html>
-            <html lang="fr">
-            <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-            </head>
-            <body style="margin:0; padding:0; background:#FAFAF4; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;">
-            <div style="display:none; max-height:0; overflow:hidden;">Confirmez votre adresse e-mail pour activer votre compte — lien valable 24 heures.</div>
-
-            <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" style="background:#FAFAF4; padding:32px 16px;">
-              <tr><td align="center">
-                <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px; width:100%%; background:#FFFFFF; border:1px solid rgba(143,164,100,0.18);">
-
-              <tr><td style="background:#10212B; padding:18px 32px;">
-                <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0"><tr>
-                  <td style="vertical-align:middle;">
-                    <span style="display:inline-block; width:10px; height:10px; background:#8FA464; vertical-align:middle; margin-right:10px;"></span>
-                    <span style="font-family:'DM Serif Display', Georgia, 'Times New Roman', serif; font-size:22px; color:#EFFBDB; vertical-align:middle; letter-spacing:-0.01em; line-height:1;">kupanga</span>
-                  </td>
-                  <td style="text-align:right; vertical-align:middle; font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:9.5px; letter-spacing:0.22em; text-transform:uppercase; color:#B5CA8D;">
-                    Gestion locative
-                  </td>
-                </tr></table>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:32px 32px 0;">
-                <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-                  <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:9.5px; letter-spacing:0.28em; text-transform:uppercase; color:#6B7C4B; padding-bottom:10px; border-bottom:1px solid #8FA464;">
-                    Activation du compte
-                  </td>
-                </tr></table>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:20px 32px 4px;">
-                <h1 style="font-family:'DM Serif Display', Georgia, 'Times New Roman', serif; font-size:30px; line-height:1.15; margin:0; color:#10212B; font-weight:400; letter-spacing:-0.01em;">
-                  Bienvenue %s, confirmez votre adresse e-mail
-                </h1>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:10px 32px;">
-                <p style="margin:0; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:14px; line-height:1.65; color:#3A4F5C; font-weight:300;">
-                  Votre compte KUPANGA est presque prêt. Confirmez que cette adresse vous appartient pour pouvoir vous connecter.
-                </p>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:10px 32px;">
-                <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" style="background:rgba(212,168,83,0.14); border-left:3px solid #D4A853;">
-                  <tr><td style="padding:12px 16px; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:13px; color:#7A5E22; line-height:1.55;">
-                    Pour des raisons de sécurité, ce lien est valable <strong>24 heures</strong>.
-                  </td></tr>
-                </table>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:10px 32px;">
-                <p style="margin:0; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:14px; line-height:1.65; color:#3A4F5C; font-weight:300;">
-                  Cliquez sur le bouton ci-dessous pour activer votre compte :
-                </p>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:18px 32px 14px;">
-                <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-                  <td style="background:#8FA464; border-radius:8px;">
-                    <a href="%s" style="display:inline-block; padding:14px 28px; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:14px; font-weight:600; color:#10212B; text-decoration:none; letter-spacing:0.01em;">
-                      Confirmer mon adresse e-mail
-                    </a>
-                  </td>
-                </tr></table>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:10px 32px;">
-                <p style="margin:0; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:12px; line-height:1.65; color:#6B7984; font-weight:300;">
-                  Si vous n'avez pas créé de compte KUPANGA, ignorez cet e-mail : aucun compte ne sera activé.
-                </p>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:28px 32px 32px;">
-                <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-                  <td style="border-top:1px solid rgba(143,164,100,0.20); padding-top:16px; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:13px; color:#3A4F5C; line-height:1.7; font-weight:300;">
-                    L'équipe KUPANGA
-                  </td>
-                </tr></table>
-              </td></tr>
-
-              <tr><td style="background:#10212B; padding:16px 32px;">
-                <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0"><tr>
-                  <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:9px; letter-spacing:0.20em; text-transform:uppercase; color:#B5CA8D;">
-                    <span style="display:inline-block; width:5px; height:5px; background:#8FA464; margin-right:8px; vertical-align:middle;"></span>
-                    <span style="color:#EFFBDB; vertical-align:middle;">Kupanga</span><span style="vertical-align:middle;"> · Gestion locative</span>
-                  </td>
-                  <td style="text-align:right; font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:9px; letter-spacing:0.20em; text-transform:uppercase; color:#6B7C4B;">
-                    kupanga.fr
-                  </td>
-                </tr></table>
-              </td></tr>
-                </table>
-              </td></tr>
-            </table>
-            </body>
-            </html>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Kupanga</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  body { margin:0; padding:0; }
+  .kp-tab { font-variant-numeric:tabular-nums; }
+  @media (max-width:480px) {
+    .kp-out { padding:16px 8px !important; }
+    .kp-pad { padding-left:20px !important; padding-right:20px !important; }
+    .kp-h1 { font-size:22px !important; line-height:28px !important; }
+    .kp-btnwrap { width:100%% !important; }
+    .kp-btn a { display:block !important; text-align:center !important; }
+  }
+  @media (prefers-color-scheme:dark) {
+    .kp-bg { background:#0b181f !important; }
+    .kp-card { background:#10212b !important; border-color:#1f3644 !important; }
+    .kp-t1 { color:#effbdb !important; }
+    .kp-t2 { color:#c3cdbf !important; }
+    .kp-t3 { color:#93a19a !important; }
+    .kp-acc { color:#a1b577 !important; }
+    .kp-box { background:#0b181f !important; }
+    .kp-line { border-color:#1f3644 !important; }
+    .kp-btn { background:#a1b577 !important; }
+    .kp-btn a { color:#10212b !important; }
+    .kp-info { background:#1b2d1c !important; color:#d6e3bd !important; }
+    .kp-warn { background:#33270f !important; color:#f1d9a8 !important; }
+    .kp-ico { background:#1b2d1c !important; color:#a1b577 !important; }
+    .kp-logo-clair { display:none !important; }
+    .kp-logo-sombre { display:block !important; max-height:none !important; height:32px !important; }
+  }
+</style>
+</head>
+<body style="margin:0; padding:0; background:#f4f5f1;">
+<div style="display:none; max-height:0; overflow:hidden; mso-hide:all; font-size:1px; line-height:1px; color:#f4f5f1;">Confirmez votre adresse pour activer votre compte. Lien valable 24 heures.</div>
+<table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" class="kp-bg" style="background:#f4f5f1;">
+  <tr><td align="center" class="kp-out" style="padding:32px 16px;">
+    <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" class="kp-card" style="width:100%%; max-width:600px; background:#ffffff; border:1px solid #e2e4e6; border-radius:20px;">
+      <tr><td class="kp-pad" style="padding:28px 40px 0;">
+        <a href="{{URL_APP}}" style="text-decoration:none;">
+          <img class="kp-logo-clair" src="{{URL_APP}}email/kupanga-logo-clair.png" width="138" height="32" alt="kupanga" style="display:block; width:138px; height:32px; border:0; outline:none; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:22px; line-height:32px; font-weight:600; color:#10212b;">
+          <!--[if !mso]><!--><img class="kp-logo-sombre" src="{{URL_APP}}email/kupanga-logo-sombre.png" width="138" height="32" alt="kupanga" style="display:none; max-height:0; overflow:hidden; mso-hide:all; width:138px; border:0; outline:none;"><!--<![endif]-->
+        </a>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:32px 40px 0;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+          <td style="background:#edefe8; border-radius:999px; padding:2px 10px 2px 8px; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:13px; line-height:20px; font-weight:500; color:#46545c;"><span style="color:#66737a;">&#9679;</span>&nbsp;Activation du compte</td>
+        </tr></table>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:12px 40px 0;">
+        <h1 class="kp-t1 kp-h1" style="margin:0; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:26px; line-height:32px; font-weight:500; letter-spacing:-0.01em; color:#10212b;">Confirmez votre adresse e-mail</h1>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:16px 40px 0;">
+        <p class="kp-t2" style="margin:0; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:24px; color:#46545c;">Bonjour %1$s,</p>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:12px 40px 0;">
+        <p class="kp-t2" style="margin:0; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:24px; color:#46545c;">Votre compte Kupanga est presque prêt. Confirmez que cette adresse vous appartient pour pouvoir vous connecter.</p>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:28px 40px 0;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" class="kp-btnwrap"><tr>
+          <td class="kp-btn" bgcolor="#4f6a2e" style="background:#4f6a2e; border-radius:999px;">
+            <a href="%2$s" style="display:inline-block; padding:13px 28px; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:20px; font-weight:500; color:#ffffff; text-decoration:none; border-radius:999px;">Confirmer mon adresse</a>
+          </td>
+        </tr></table>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:16px 40px 0;">
+        <p class="kp-t3" style="margin:0; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:13px; line-height:20px; color:#636f76;">Ce lien est valable 24 heures.</p>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:16px 40px 0;">
+        <p class="kp-t3" style="margin:0; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:13px; line-height:20px; color:#636f76;">Le bouton ne fonctionne pas ? Copiez ce lien dans votre navigateur :<br><a href="%2$s" class="kp-acc" style="color:#4f6a2e; word-break:break-all;">%2$s</a></p>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:20px 40px 0;">
+        <p class="kp-t3" style="margin:0; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:13px; line-height:20px; color:#636f76;">Vous n'avez pas créé de compte Kupanga ? Ignorez cet e-mail : aucun compte ne sera activé.</p>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:28px 40px 36px;">
+        <p class="kp-t2" style="margin:0; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:24px; color:#46545c;">L'équipe Kupanga</p>
+      </td></tr>
+    </table>
+    <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%%; max-width:600px;">
+      <tr><td class="kp-t3" align="center" style="padding:20px 24px 0; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:12px; line-height:18px; color:#636f76;">
+        Kupanga · location entre particuliers, en France et en RDC<br>
+        <a href="{{URL_APP}}" class="kp-t3" style="color:#636f76; text-decoration:underline;">{{DOMAINE_APP}}</a>
+      </td></tr>
+    </table>
+  </td></tr>
+</table>
+</body>
+</html>
             """;
 
-    // ─── 03 · Confirmation mot de passe mis à jour ─────────────────────────────────────────
-    public static final String SUJET_MAIL_CONFIRMATION_MOT_DE_PASSE =
-            "Confirmation de mise à jour du mot de passe – KUPANGA";
-
-    // %s = lien de connexion
-    public static final String CONTENU_MAIL_CONFIRMATION_MOT_DE_PASSE =
-            """
-            <!DOCTYPE html>
-            <html lang="fr">
-            <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-            </head>
-            <body style="margin:0; padding:0; background:#FAFAF4; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;">
-            <div style="display:none; max-height:0; overflow:hidden;">Le mot de passe de votre compte KUPANGA a été mis à jour avec succès.</div>
-
-            <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" style="background:#FAFAF4; padding:32px 16px;">
-              <tr><td align="center">
-                <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px; width:100%%; background:#FFFFFF; border:1px solid rgba(143,164,100,0.18);">
-
-              <tr><td style="background:#10212B; padding:18px 32px;">
-                <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0"><tr>
-                  <td style="vertical-align:middle;">
-                    <span style="display:inline-block; width:10px; height:10px; background:#8FA464; vertical-align:middle; margin-right:10px;"></span>
-                    <span style="font-family:'DM Serif Display', Georgia, 'Times New Roman', serif; font-size:22px; color:#EFFBDB; vertical-align:middle; letter-spacing:-0.01em; line-height:1;">kupanga</span>
-                  </td>
-                  <td style="text-align:right; vertical-align:middle; font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:9.5px; letter-spacing:0.22em; text-transform:uppercase; color:#B5CA8D;">
-                    Gestion locative
-                  </td>
-                </tr></table>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:32px 32px 0;">
-                <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-                  <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:9.5px; letter-spacing:0.28em; text-transform:uppercase; color:#6B7C4B; padding-bottom:10px; border-bottom:1px solid #8FA464;">
-                    Confirmation · Sécurité
-                  </td>
-                </tr></table>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:20px 32px 4px;">
-                <h1 style="font-family:'DM Serif Display', Georgia, 'Times New Roman', serif; font-size:30px; line-height:1.15; margin:0; color:#10212B; font-weight:400; letter-spacing:-0.01em;">
-                  Mot de passe mis à jour avec succès
-                </h1>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:10px 32px;">
-                <p style="margin:0; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:14px; line-height:1.65; color:#3A4F5C; font-weight:300;">
-                  Bonjour,
-                </p>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:10px 32px;">
-                <p style="margin:0; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:14px; line-height:1.65; color:#3A4F5C; font-weight:300;">
-                  Nous vous confirmons que le mot de passe de votre compte <strong>KUPANGA</strong> a été mis à jour avec succès.
-                </p>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:10px 32px;">
-                <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" style="background:rgba(143,164,100,0.15); border-left:3px solid #8FA464;">
-                  <tr><td style="padding:12px 16px; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:13px; color:#4F5F37; line-height:1.55;">
-                    Votre compte est désormais sécurisé avec votre nouveau mot de passe.
-                  </td></tr>
-                </table>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:10px 32px;">
-                <p style="margin:0; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:14px; line-height:1.65; color:#3A4F5C; font-weight:300;">
-                  Si vous êtes à l'origine de cette modification, aucune action supplémentaire n'est requise.
-                </p>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:10px 32px;">
-                <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" style="background:rgba(192,97,74,0.13); border-left:3px solid #C0614A;">
-                  <tr><td style="padding:12px 16px; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:13px; color:#8A3F2A; line-height:1.55;">
-                    Si vous n'êtes pas à l'origine de ce changement, veuillez contacter immédiatement notre support.
-                  </td></tr>
-                </table>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:18px 32px 14px;">
-                <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-                  <td style="background:#8FA464; border-radius:8px;">
-                    <a href="%s" style="display:inline-block; padding:14px 28px; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:14px; font-weight:600; color:#10212B; text-decoration:none; letter-spacing:0.01em;">
-                      Se connecter
-                    </a>
-                  </td>
-                </tr></table>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:28px 32px 32px;">
-                <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-                  <td style="border-top:1px solid rgba(143,164,100,0.20); padding-top:16px; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:13px; color:#3A4F5C; line-height:1.7; font-weight:300;">
-                    L'équipe KUPANGA
-                  </td>
-                </tr></table>
-              </td></tr>
-
-              <tr><td style="background:#10212B; padding:16px 32px;">
-                <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0"><tr>
-                  <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:9px; letter-spacing:0.20em; text-transform:uppercase; color:#B5CA8D;">
-                    <span style="display:inline-block; width:5px; height:5px; background:#8FA464; margin-right:8px; vertical-align:middle;"></span>
-                    <span style="color:#EFFBDB; vertical-align:middle;">Kupanga</span><span style="vertical-align:middle;"> · Gestion locative</span>
-                  </td>
-                  <td style="text-align:right; font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:9px; letter-spacing:0.20em; text-transform:uppercase; color:#6B7C4B;">
-                    kupanga.fr
-                  </td>
-                </tr></table>
-              </td></tr>
-                </table>
-              </td></tr>
-            </table>
-            </body>
-            </html>
-            """;
-
-    // ─── 03bis · Inscription avec une adresse déjà inscrite (A14) ─────────────────────────────────────────
+    // ─── 03 · tentative-inscription ─────────────────────────────
     public static final String SUJET_MAIL_TENTATIVE_INSCRIPTION =
-            "Tentative d'inscription avec votre adresse – KUPANGA";
+            "Une inscription a été tentée avec votre adresse · Kupanga";
 
-    // %s = lien « mot de passe oublié »
+    // %1$s = lien « mot de passe oublié »
     public static final String CONTENU_MAIL_TENTATIVE_INSCRIPTION =
             """
-            <!DOCTYPE html>
-            <html lang="fr">
-            <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-            </head>
-            <body style="margin:0; padding:0; background:#FAFAF4; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;">
-            <div style="display:none; max-height:0; overflow:hidden;">Quelqu'un a tenté de créer un compte KUPANGA avec votre adresse e-mail.</div>
-
-            <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" style="background:#FAFAF4; padding:32px 16px;">
-              <tr><td align="center">
-                <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px; width:100%%; background:#FFFFFF; border:1px solid rgba(143,164,100,0.18);">
-
-              <tr><td style="background:#10212B; padding:18px 32px;">
-                <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0"><tr>
-                  <td style="vertical-align:middle;">
-                    <span style="display:inline-block; width:10px; height:10px; background:#8FA464; vertical-align:middle; margin-right:10px;"></span>
-                    <span style="font-family:'DM Serif Display', Georgia, 'Times New Roman', serif; font-size:22px; color:#EFFBDB; vertical-align:middle; letter-spacing:-0.01em; line-height:1;">kupanga</span>
-                  </td>
-                  <td style="text-align:right; vertical-align:middle; font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:9.5px; letter-spacing:0.22em; text-transform:uppercase; color:#B5CA8D;">
-                    Gestion locative
-                  </td>
-                </tr></table>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:32px 32px 0;">
-                <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-                  <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:9.5px; letter-spacing:0.28em; text-transform:uppercase; color:#6B7C4B; padding-bottom:10px; border-bottom:1px solid #8FA464;">
-                    Information · Sécurité
-                  </td>
-                </tr></table>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:20px 32px 4px;">
-                <h1 style="font-family:'DM Serif Display', Georgia, 'Times New Roman', serif; font-size:30px; line-height:1.15; margin:0; color:#10212B; font-weight:400; letter-spacing:-0.01em;">
-                  Vous avez déjà un compte KUPANGA
-                </h1>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:10px 32px;">
-                <p style="margin:0; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:14px; line-height:1.65; color:#3A4F5C; font-weight:300;">
-                  Bonjour,
-                </p>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:10px 32px;">
-                <p style="margin:0; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:14px; line-height:1.65; color:#3A4F5C; font-weight:300;">
-                  Quelqu'un vient de demander la création d'un compte <strong>KUPANGA</strong> avec cette adresse e-mail. Un compte existe déjà à cette adresse : aucun nouveau compte n'a été créé.
-                </p>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:10px 32px;">
-                <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" style="background:rgba(143,164,100,0.15); border-left:3px solid #8FA464;">
-                  <tr><td style="padding:12px 16px; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:13px; color:#4F5F37; line-height:1.55;">
-                    Si c'est vous, choisissez un nouveau mot de passe avec le bouton ci-dessous pour accéder à votre compte.
-                  </td></tr>
-                </table>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:10px 32px;">
-                <p style="margin:0; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:14px; line-height:1.65; color:#3A4F5C; font-weight:300;">
-                  Votre compte et votre mot de passe n'ont pas été modifiés.
-                </p>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:10px 32px;">
-                <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" style="background:rgba(192,97,74,0.13); border-left:3px solid #C0614A;">
-                  <tr><td style="padding:12px 16px; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:13px; color:#8A3F2A; line-height:1.55;">
-                    Si vous n'êtes pas à l'origine de cette demande, ignorez simplement cet e-mail.
-                  </td></tr>
-                </table>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:18px 32px 14px;">
-                <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-                  <td style="background:#8FA464; border-radius:8px;">
-                    <a href="%s" style="display:inline-block; padding:14px 28px; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:14px; font-weight:600; color:#10212B; text-decoration:none; letter-spacing:0.01em;">
-                      Choisir un nouveau mot de passe
-                    </a>
-                  </td>
-                </tr></table>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:28px 32px 32px;">
-                <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-                  <td style="border-top:1px solid rgba(143,164,100,0.20); padding-top:16px; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:13px; color:#3A4F5C; line-height:1.7; font-weight:300;">
-                    L'équipe KUPANGA
-                  </td>
-                </tr></table>
-              </td></tr>
-
-              <tr><td style="background:#10212B; padding:16px 32px;">
-                <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0"><tr>
-                  <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:9px; letter-spacing:0.20em; text-transform:uppercase; color:#B5CA8D;">
-                    <span style="display:inline-block; width:5px; height:5px; background:#8FA464; margin-right:8px; vertical-align:middle;"></span>
-                    <span style="color:#EFFBDB; vertical-align:middle;">Kupanga</span><span style="vertical-align:middle;"> · Gestion locative</span>
-                  </td>
-                  <td style="text-align:right; font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:9px; letter-spacing:0.20em; text-transform:uppercase; color:#6B7C4B;">
-                    kupanga.fr
-                  </td>
-                </tr></table>
-              </td></tr>
-                </table>
-              </td></tr>
-            </table>
-            </body>
-            </html>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Kupanga</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  body { margin:0; padding:0; }
+  .kp-tab { font-variant-numeric:tabular-nums; }
+  @media (max-width:480px) {
+    .kp-out { padding:16px 8px !important; }
+    .kp-pad { padding-left:20px !important; padding-right:20px !important; }
+    .kp-h1 { font-size:22px !important; line-height:28px !important; }
+    .kp-btnwrap { width:100%% !important; }
+    .kp-btn a { display:block !important; text-align:center !important; }
+  }
+  @media (prefers-color-scheme:dark) {
+    .kp-bg { background:#0b181f !important; }
+    .kp-card { background:#10212b !important; border-color:#1f3644 !important; }
+    .kp-t1 { color:#effbdb !important; }
+    .kp-t2 { color:#c3cdbf !important; }
+    .kp-t3 { color:#93a19a !important; }
+    .kp-acc { color:#a1b577 !important; }
+    .kp-box { background:#0b181f !important; }
+    .kp-line { border-color:#1f3644 !important; }
+    .kp-btn { background:#a1b577 !important; }
+    .kp-btn a { color:#10212b !important; }
+    .kp-info { background:#1b2d1c !important; color:#d6e3bd !important; }
+    .kp-warn { background:#33270f !important; color:#f1d9a8 !important; }
+    .kp-ico { background:#1b2d1c !important; color:#a1b577 !important; }
+    .kp-logo-clair { display:none !important; }
+    .kp-logo-sombre { display:block !important; max-height:none !important; height:32px !important; }
+  }
+</style>
+</head>
+<body style="margin:0; padding:0; background:#f4f5f1;">
+<div style="display:none; max-height:0; overflow:hidden; mso-hide:all; font-size:1px; line-height:1px; color:#f4f5f1;">Quelqu'un a voulu créer un compte avec votre adresse. Aucun compte n'a été créé.</div>
+<table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" class="kp-bg" style="background:#f4f5f1;">
+  <tr><td align="center" class="kp-out" style="padding:32px 16px;">
+    <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" class="kp-card" style="width:100%%; max-width:600px; background:#ffffff; border:1px solid #e2e4e6; border-radius:20px;">
+      <tr><td class="kp-pad" style="padding:28px 40px 0;">
+        <a href="{{URL_APP}}" style="text-decoration:none;">
+          <img class="kp-logo-clair" src="{{URL_APP}}email/kupanga-logo-clair.png" width="138" height="32" alt="kupanga" style="display:block; width:138px; height:32px; border:0; outline:none; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:22px; line-height:32px; font-weight:600; color:#10212b;">
+          <!--[if !mso]><!--><img class="kp-logo-sombre" src="{{URL_APP}}email/kupanga-logo-sombre.png" width="138" height="32" alt="kupanga" style="display:none; max-height:0; overflow:hidden; mso-hide:all; width:138px; border:0; outline:none;"><!--<![endif]-->
+        </a>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:32px 40px 0;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+          <td style="background:#edefe8; border-radius:999px; padding:2px 10px 2px 8px; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:13px; line-height:20px; font-weight:500; color:#46545c;"><span style="color:#66737a;">&#9679;</span>&nbsp;Sécurité</td>
+        </tr></table>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:12px 40px 0;">
+        <h1 class="kp-t1 kp-h1" style="margin:0; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:26px; line-height:32px; font-weight:500; letter-spacing:-0.01em; color:#10212b;">Vous avez déjà un compte Kupanga</h1>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:16px 40px 0;">
+        <p class="kp-t2" style="margin:0; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:24px; color:#46545c;">Quelqu'un vient de demander la création d'un compte avec cette adresse. Un compte existe déjà : aucun nouveau compte n'a été créé, et votre mot de passe n'a pas changé.</p>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:12px 40px 0;">
+        <p class="kp-t2" style="margin:0; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:24px; color:#46545c;">Si c'est vous, choisissez un nouveau mot de passe pour retrouver l'accès à votre compte.</p>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:28px 40px 0;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" class="kp-btnwrap"><tr>
+          <td class="kp-btn" bgcolor="#4f6a2e" style="background:#4f6a2e; border-radius:999px;">
+            <a href="%1$s" style="display:inline-block; padding:13px 28px; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:20px; font-weight:500; color:#ffffff; text-decoration:none; border-radius:999px;">Choisir un nouveau mot de passe</a>
+          </td>
+        </tr></table>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:20px 40px 0;">
+        <p class="kp-t3" style="margin:0; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:13px; line-height:20px; color:#636f76;">Ce n'est pas vous ? Ignorez cet e-mail, il n'y a rien à faire.</p>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:28px 40px 36px;">
+        <p class="kp-t2" style="margin:0; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:24px; color:#46545c;">L'équipe Kupanga</p>
+      </td></tr>
+    </table>
+    <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%%; max-width:600px;">
+      <tr><td class="kp-t3" align="center" style="padding:20px 24px 0; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:12px; line-height:18px; color:#636f76;">
+        Kupanga · location entre particuliers, en France et en RDC<br>
+        <a href="{{URL_APP}}" class="kp-t3" style="color:#636f76; text-decoration:underline;">{{DOMAINE_APP}}</a>
+      </td></tr>
+    </table>
+  </td></tr>
+</table>
+</body>
+</html>
             """;
 
-    // ─── 04 · Invitation à signer un contrat ─────────────────────────────────────────
+    // ─── 04 · reinitialisation-mot-de-passe ─────────────────────────────
+    public static final String SUJET_MAIL_REINITIALISATION_MOT_DE_PASSE =
+            "Réinitialisation de votre mot de passe · Kupanga";
+
+    // %1$s = lien de réinitialisation
+    public static final String CONTENU_MAIL_REINITIALISATION_MOT_DE_PASSE =
+            """
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Kupanga</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  body { margin:0; padding:0; }
+  .kp-tab { font-variant-numeric:tabular-nums; }
+  @media (max-width:480px) {
+    .kp-out { padding:16px 8px !important; }
+    .kp-pad { padding-left:20px !important; padding-right:20px !important; }
+    .kp-h1 { font-size:22px !important; line-height:28px !important; }
+    .kp-btnwrap { width:100%% !important; }
+    .kp-btn a { display:block !important; text-align:center !important; }
+  }
+  @media (prefers-color-scheme:dark) {
+    .kp-bg { background:#0b181f !important; }
+    .kp-card { background:#10212b !important; border-color:#1f3644 !important; }
+    .kp-t1 { color:#effbdb !important; }
+    .kp-t2 { color:#c3cdbf !important; }
+    .kp-t3 { color:#93a19a !important; }
+    .kp-acc { color:#a1b577 !important; }
+    .kp-box { background:#0b181f !important; }
+    .kp-line { border-color:#1f3644 !important; }
+    .kp-btn { background:#a1b577 !important; }
+    .kp-btn a { color:#10212b !important; }
+    .kp-info { background:#1b2d1c !important; color:#d6e3bd !important; }
+    .kp-warn { background:#33270f !important; color:#f1d9a8 !important; }
+    .kp-ico { background:#1b2d1c !important; color:#a1b577 !important; }
+    .kp-logo-clair { display:none !important; }
+    .kp-logo-sombre { display:block !important; max-height:none !important; height:32px !important; }
+  }
+</style>
+</head>
+<body style="margin:0; padding:0; background:#f4f5f1;">
+<div style="display:none; max-height:0; overflow:hidden; mso-hide:all; font-size:1px; line-height:1px; color:#f4f5f1;">Lien pour choisir un nouveau mot de passe, valable 10 minutes.</div>
+<table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" class="kp-bg" style="background:#f4f5f1;">
+  <tr><td align="center" class="kp-out" style="padding:32px 16px;">
+    <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" class="kp-card" style="width:100%%; max-width:600px; background:#ffffff; border:1px solid #e2e4e6; border-radius:20px;">
+      <tr><td class="kp-pad" style="padding:28px 40px 0;">
+        <a href="{{URL_APP}}" style="text-decoration:none;">
+          <img class="kp-logo-clair" src="{{URL_APP}}email/kupanga-logo-clair.png" width="138" height="32" alt="kupanga" style="display:block; width:138px; height:32px; border:0; outline:none; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:22px; line-height:32px; font-weight:600; color:#10212b;">
+          <!--[if !mso]><!--><img class="kp-logo-sombre" src="{{URL_APP}}email/kupanga-logo-sombre.png" width="138" height="32" alt="kupanga" style="display:none; max-height:0; overflow:hidden; mso-hide:all; width:138px; border:0; outline:none;"><!--<![endif]-->
+        </a>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:32px 40px 0;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+          <td style="background:#edefe8; border-radius:999px; padding:2px 10px 2px 8px; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:13px; line-height:20px; font-weight:500; color:#46545c;"><span style="color:#66737a;">&#9679;</span>&nbsp;Sécurité</td>
+        </tr></table>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:12px 40px 0;">
+        <h1 class="kp-t1 kp-h1" style="margin:0; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:26px; line-height:32px; font-weight:500; letter-spacing:-0.01em; color:#10212b;">Choisissez un nouveau mot de passe</h1>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:16px 40px 0;">
+        <p class="kp-t2" style="margin:0; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:24px; color:#46545c;">Vous avez demandé à réinitialiser le mot de passe de votre compte Kupanga.</p>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:28px 40px 0;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" class="kp-btnwrap"><tr>
+          <td class="kp-btn" bgcolor="#4f6a2e" style="background:#4f6a2e; border-radius:999px;">
+            <a href="%1$s" style="display:inline-block; padding:13px 28px; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:20px; font-weight:500; color:#ffffff; text-decoration:none; border-radius:999px;">Choisir un nouveau mot de passe</a>
+          </td>
+        </tr></table>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:24px 40px 0;">
+        <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0"><tr>
+          <td class="kp-warn" style="background:#fbefdd; border-radius:12px; padding:14px 16px; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:14px; line-height:20px; color:#8a5a12;">Ce lien est valable 10 minutes. Passé ce délai, faites une nouvelle demande depuis la page de connexion.</td>
+        </tr></table>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:16px 40px 0;">
+        <p class="kp-t3" style="margin:0; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:13px; line-height:20px; color:#636f76;">Le bouton ne fonctionne pas ? Copiez ce lien dans votre navigateur :<br><a href="%1$s" class="kp-acc" style="color:#4f6a2e; word-break:break-all;">%1$s</a></p>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:20px 40px 0;">
+        <p class="kp-t3" style="margin:0; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:13px; line-height:20px; color:#636f76;">Vous n'avez rien demandé ? Ignorez cet e-mail : votre mot de passe reste inchangé.</p>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:28px 40px 36px;">
+        <p class="kp-t2" style="margin:0; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:24px; color:#46545c;">L'équipe Kupanga</p>
+      </td></tr>
+    </table>
+    <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%%; max-width:600px;">
+      <tr><td class="kp-t3" align="center" style="padding:20px 24px 0; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:12px; line-height:18px; color:#636f76;">
+        Kupanga · location entre particuliers, en France et en RDC<br>
+        <a href="{{URL_APP}}" class="kp-t3" style="color:#636f76; text-decoration:underline;">{{DOMAINE_APP}}</a>
+      </td></tr>
+    </table>
+  </td></tr>
+</table>
+</body>
+</html>
+            """;
+
+    // ─── 05 · mot-de-passe-modifie ─────────────────────────────
+    public static final String SUJET_MAIL_CONFIRMATION_MOT_DE_PASSE =
+            "Votre mot de passe a été modifié · Kupanga";
+
+    // %1$s = lien de connexion
+    public static final String CONTENU_MAIL_CONFIRMATION_MOT_DE_PASSE =
+            """
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Kupanga</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  body { margin:0; padding:0; }
+  .kp-tab { font-variant-numeric:tabular-nums; }
+  @media (max-width:480px) {
+    .kp-out { padding:16px 8px !important; }
+    .kp-pad { padding-left:20px !important; padding-right:20px !important; }
+    .kp-h1 { font-size:22px !important; line-height:28px !important; }
+    .kp-btnwrap { width:100%% !important; }
+    .kp-btn a { display:block !important; text-align:center !important; }
+  }
+  @media (prefers-color-scheme:dark) {
+    .kp-bg { background:#0b181f !important; }
+    .kp-card { background:#10212b !important; border-color:#1f3644 !important; }
+    .kp-t1 { color:#effbdb !important; }
+    .kp-t2 { color:#c3cdbf !important; }
+    .kp-t3 { color:#93a19a !important; }
+    .kp-acc { color:#a1b577 !important; }
+    .kp-box { background:#0b181f !important; }
+    .kp-line { border-color:#1f3644 !important; }
+    .kp-btn { background:#a1b577 !important; }
+    .kp-btn a { color:#10212b !important; }
+    .kp-info { background:#1b2d1c !important; color:#d6e3bd !important; }
+    .kp-warn { background:#33270f !important; color:#f1d9a8 !important; }
+    .kp-ico { background:#1b2d1c !important; color:#a1b577 !important; }
+    .kp-logo-clair { display:none !important; }
+    .kp-logo-sombre { display:block !important; max-height:none !important; height:32px !important; }
+  }
+</style>
+</head>
+<body style="margin:0; padding:0; background:#f4f5f1;">
+<div style="display:none; max-height:0; overflow:hidden; mso-hide:all; font-size:1px; line-height:1px; color:#f4f5f1;">Le mot de passe de votre compte Kupanga vient d'être changé.</div>
+<table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" class="kp-bg" style="background:#f4f5f1;">
+  <tr><td align="center" class="kp-out" style="padding:32px 16px;">
+    <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" class="kp-card" style="width:100%%; max-width:600px; background:#ffffff; border:1px solid #e2e4e6; border-radius:20px;">
+      <tr><td class="kp-pad" style="padding:28px 40px 0;">
+        <a href="{{URL_APP}}" style="text-decoration:none;">
+          <img class="kp-logo-clair" src="{{URL_APP}}email/kupanga-logo-clair.png" width="138" height="32" alt="kupanga" style="display:block; width:138px; height:32px; border:0; outline:none; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:22px; line-height:32px; font-weight:600; color:#10212b;">
+          <!--[if !mso]><!--><img class="kp-logo-sombre" src="{{URL_APP}}email/kupanga-logo-sombre.png" width="138" height="32" alt="kupanga" style="display:none; max-height:0; overflow:hidden; mso-hide:all; width:138px; border:0; outline:none;"><!--<![endif]-->
+        </a>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:32px 40px 0;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+          <td style="background:#e5f1e8; border-radius:999px; padding:2px 10px 2px 8px; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:13px; line-height:20px; font-weight:500; color:#22663a;"><span style="color:#2f8a4e;">&#9679;</span>&nbsp;Mot de passe modifié</td>
+        </tr></table>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:12px 40px 0;">
+        <h1 class="kp-t1 kp-h1" style="margin:0; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:26px; line-height:32px; font-weight:500; letter-spacing:-0.01em; color:#10212b;">Votre mot de passe a été modifié</h1>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:16px 40px 0;">
+        <p class="kp-t2" style="margin:0; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:24px; color:#46545c;">Le mot de passe de votre compte Kupanga vient d'être changé. Si c'est vous, il n'y a rien d'autre à faire.</p>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:24px 40px 0;">
+        <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0"><tr>
+          <td class="kp-warn" style="background:#fbefdd; border-radius:12px; padding:14px 16px; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:14px; line-height:20px; color:#8a5a12;">Ce n'est pas vous ? Choisissez tout de suite un nouveau mot de passe avec « Mot de passe oublié » sur la page de connexion, puis contactez notre support.</td>
+        </tr></table>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:28px 40px 0;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" class="kp-btnwrap"><tr>
+          <td class="kp-btn" bgcolor="#4f6a2e" style="background:#4f6a2e; border-radius:999px;">
+            <a href="%1$s" style="display:inline-block; padding:13px 28px; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:20px; font-weight:500; color:#ffffff; text-decoration:none; border-radius:999px;">Se connecter</a>
+          </td>
+        </tr></table>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:28px 40px 36px;">
+        <p class="kp-t2" style="margin:0; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:24px; color:#46545c;">L'équipe Kupanga</p>
+      </td></tr>
+    </table>
+    <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%%; max-width:600px;">
+      <tr><td class="kp-t3" align="center" style="padding:20px 24px 0; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:12px; line-height:18px; color:#636f76;">
+        Kupanga · location entre particuliers, en France et en RDC<br>
+        <a href="{{URL_APP}}" class="kp-t3" style="color:#636f76; text-decoration:underline;">{{DOMAINE_APP}}</a>
+      </td></tr>
+    </table>
+  </td></tr>
+</table>
+</body>
+</html>
+            """;
+
+    // ─── 06 · invitation-signature-bail ─────────────────────────────
     public static final String SUJET_MAIL_INVITATION_SIGNATURE =
-            "KUPANGA — Vous avez un contrat à signer";
+            "Votre bail est prêt à signer · Kupanga";
 
     // %1$s = nom propriétaire (preheader) · %2$s = prénom locataire · %3$s = nom propriétaire
-    // %4$s = adresse · %5$s = loyer · %6$s = charges · %7$s = dépôt · %8$s = date début
+    // %4$s = adresse · %5$s = loyer · %6$s = charges · %7$s = dépôt · %8$s = date début (formatée)
     // %9$s = durée · %10$s = lien signature
     public static final String CONTENU_MAIL_INVITATION_SIGNATURE =
             """
-            <!DOCTYPE html>
-            <html lang="fr">
-            <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-            </head>
-            <body style="margin:0; padding:0; background:#FAFAF4; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;">
-            <div style="display:none; max-height:0; overflow:hidden;">%1$s vous invite à signer votre contrat de location.</div>
-
-            <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" style="background:#FAFAF4; padding:32px 16px;">
-              <tr><td align="center">
-                <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px; width:100%%; background:#FFFFFF; border:1px solid rgba(143,164,100,0.18);">
-
-              <tr><td style="background:#10212B; padding:18px 32px;">
-                <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0"><tr>
-                  <td style="vertical-align:middle;">
-                    <span style="display:inline-block; width:10px; height:10px; background:#8FA464; vertical-align:middle; margin-right:10px;"></span>
-                    <span style="font-family:'DM Serif Display', Georgia, 'Times New Roman', serif; font-size:22px; color:#EFFBDB; vertical-align:middle; letter-spacing:-0.01em; line-height:1;">kupanga</span>
-                  </td>
-                  <td style="text-align:right; vertical-align:middle; font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:9.5px; letter-spacing:0.22em; text-transform:uppercase; color:#B5CA8D;">
-                    Gestion locative
-                  </td>
-                </tr></table>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:32px 32px 0;">
-                <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-                  <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:9.5px; letter-spacing:0.28em; text-transform:uppercase; color:#6B7C4B; padding-bottom:10px; border-bottom:1px solid #8FA464;">
-                    Invitation à signer
-                  </td>
-                </tr></table>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:20px 32px 4px;">
-                <h1 style="font-family:'DM Serif Display', Georgia, 'Times New Roman', serif; font-size:30px; line-height:1.15; margin:0; color:#10212B; font-weight:400; letter-spacing:-0.01em;">
-                  Bonjour %2$s,
-                </h1>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:10px 32px;">
-                <p style="margin:0; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:14px; line-height:1.65; color:#3A4F5C; font-weight:300;">
-                  <strong>%3$s</strong>, propriétaire du bien situé au <strong>%4$s</strong>, vous invite à signer votre contrat de location.
-                </p>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:8px 32px;">
-                <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" style="background:#FAFAF4; border:1px solid rgba(143,164,100,0.20); border-radius:10px;">
-                  <tr><td style="padding:6px 18px 10px;">
-                    <div style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:9.5px; letter-spacing:0.25em; text-transform:uppercase; color:#6B7C4B; padding:8px 0 4px;">
-                      Récapitulatif du contrat
-                    </div>
-                    <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0">
-                  <tr>
-                    <td style="font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:13px; color:#3A4F5C; padding:8px 0; border-bottom:1px dotted rgba(143,164,100,0.35); font-weight:400;">Loyer mensuel</td>
-                    <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:13px; color:#10212B; font-weight:500; text-align:right; padding:8px 0; border-bottom:1px dotted rgba(143,164,100,0.35);"><strong>%5$s</strong></td>
-                  </tr>
-                  <tr>
-                    <td style="font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:13px; color:#3A4F5C; padding:8px 0; border-bottom:1px dotted rgba(143,164,100,0.35); font-weight:400;">Charges mensuelles</td>
-                    <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:13px; color:#10212B; font-weight:500; text-align:right; padding:8px 0; border-bottom:1px dotted rgba(143,164,100,0.35);"><strong>%6$s</strong></td>
-                  </tr>
-                  <tr>
-                    <td style="font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:13px; color:#3A4F5C; padding:8px 0; border-bottom:1px dotted rgba(143,164,100,0.35); font-weight:400;">Dépôt de garantie</td>
-                    <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:13px; color:#10212B; font-weight:500; text-align:right; padding:8px 0; border-bottom:1px dotted rgba(143,164,100,0.35);"><strong>%7$s</strong></td>
-                  </tr>
-                  <tr>
-                    <td style="font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:13px; color:#3A4F5C; padding:8px 0; border-bottom:1px dotted rgba(143,164,100,0.35); font-weight:400;">Date de début</td>
-                    <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:13px; color:#10212B; font-weight:500; text-align:right; padding:8px 0; border-bottom:1px dotted rgba(143,164,100,0.35);"><strong>%8$s</strong></td>
-                  </tr>
-                  <tr>
-                    <td style="font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:13px; color:#3A4F5C; padding:8px 0; font-weight:400;">Durée du bail</td>
-                    <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:13px; color:#10212B; font-weight:500; text-align:right; padding:8px 0;"><strong>%9$s mois</strong></td>
-                  </tr></table>
-                  </td></tr>
-                </table>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:10px 32px;">
-                <p style="margin:0; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:14px; line-height:1.65; color:#3A4F5C; font-weight:300;">
-                  Pour signer votre contrat, cliquez sur le bouton ci-dessous :
-                </p>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:18px 32px 14px;">
-                <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-                  <td style="background:#8FA464; border-radius:8px;">
-                    <a href="%10$s" style="display:inline-block; padding:14px 28px; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:14px; font-weight:600; color:#10212B; text-decoration:none; letter-spacing:0.01em;">
-                      Signer le contrat
-                    </a>
-                  </td>
-                </tr></table>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:10px 32px;">
-                <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" style="background:rgba(212,168,83,0.14); border-left:3px solid #D4A853;">
-                  <tr><td style="padding:12px 16px; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:13px; color:#7A5E22; line-height:1.55;">
-                    Ce lien est valable <strong>72 heures</strong>. Passé ce délai, vous devrez contacter le propriétaire pour obtenir un nouveau lien.
-                  </td></tr>
-                </table>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:28px 32px 32px;">
-                <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-                  <td style="border-top:1px solid rgba(143,164,100,0.20); padding-top:16px; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:13px; color:#3A4F5C; line-height:1.7; font-weight:300;">
-                    À très bientôt sur KUPANGA,<br/>L'équipe KUPANGA
-                  </td>
-                </tr></table>
-              </td></tr>
-
-              <tr><td style="background:#10212B; padding:16px 32px;">
-                <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0"><tr>
-                  <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:9px; letter-spacing:0.20em; text-transform:uppercase; color:#B5CA8D;">
-                    <span style="display:inline-block; width:5px; height:5px; background:#8FA464; margin-right:8px; vertical-align:middle;"></span>
-                    <span style="color:#EFFBDB; vertical-align:middle;">Kupanga</span><span style="vertical-align:middle;"> · Gestion locative</span>
-                  </td>
-                  <td style="text-align:right; font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:9px; letter-spacing:0.20em; text-transform:uppercase; color:#6B7C4B;">
-                    kupanga.fr
-                  </td>
-                </tr></table>
-              </td></tr>
-                </table>
-              </td></tr>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Kupanga</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  body { margin:0; padding:0; }
+  .kp-tab { font-variant-numeric:tabular-nums; }
+  @media (max-width:480px) {
+    .kp-out { padding:16px 8px !important; }
+    .kp-pad { padding-left:20px !important; padding-right:20px !important; }
+    .kp-h1 { font-size:22px !important; line-height:28px !important; }
+    .kp-btnwrap { width:100%% !important; }
+    .kp-btn a { display:block !important; text-align:center !important; }
+  }
+  @media (prefers-color-scheme:dark) {
+    .kp-bg { background:#0b181f !important; }
+    .kp-card { background:#10212b !important; border-color:#1f3644 !important; }
+    .kp-t1 { color:#effbdb !important; }
+    .kp-t2 { color:#c3cdbf !important; }
+    .kp-t3 { color:#93a19a !important; }
+    .kp-acc { color:#a1b577 !important; }
+    .kp-box { background:#0b181f !important; }
+    .kp-line { border-color:#1f3644 !important; }
+    .kp-btn { background:#a1b577 !important; }
+    .kp-btn a { color:#10212b !important; }
+    .kp-info { background:#1b2d1c !important; color:#d6e3bd !important; }
+    .kp-warn { background:#33270f !important; color:#f1d9a8 !important; }
+    .kp-ico { background:#1b2d1c !important; color:#a1b577 !important; }
+    .kp-logo-clair { display:none !important; }
+    .kp-logo-sombre { display:block !important; max-height:none !important; height:32px !important; }
+  }
+</style>
+</head>
+<body style="margin:0; padding:0; background:#f4f5f1;">
+<div style="display:none; max-height:0; overflow:hidden; mso-hide:all; font-size:1px; line-height:1px; color:#f4f5f1;">%1$s vous invite à signer votre bail.</div>
+<table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" class="kp-bg" style="background:#f4f5f1;">
+  <tr><td align="center" class="kp-out" style="padding:32px 16px;">
+    <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" class="kp-card" style="width:100%%; max-width:600px; background:#ffffff; border:1px solid #e2e4e6; border-radius:20px;">
+      <tr><td class="kp-pad" style="padding:28px 40px 0;">
+        <a href="{{URL_APP}}" style="text-decoration:none;">
+          <img class="kp-logo-clair" src="{{URL_APP}}email/kupanga-logo-clair.png" width="138" height="32" alt="kupanga" style="display:block; width:138px; height:32px; border:0; outline:none; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:22px; line-height:32px; font-weight:600; color:#10212b;">
+          <!--[if !mso]><!--><img class="kp-logo-sombre" src="{{URL_APP}}email/kupanga-logo-sombre.png" width="138" height="32" alt="kupanga" style="display:none; max-height:0; overflow:hidden; mso-hide:all; width:138px; border:0; outline:none;"><!--<![endif]-->
+        </a>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:32px 40px 0;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+          <td style="background:#fbefdd; border-radius:999px; padding:2px 10px 2px 8px; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:13px; line-height:20px; font-weight:500; color:#8a5a12;"><span style="color:#b7791f;">&#9679;</span>&nbsp;À signer</td>
+        </tr></table>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:12px 40px 0;">
+        <h1 class="kp-t1 kp-h1" style="margin:0; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:26px; line-height:32px; font-weight:500; letter-spacing:-0.01em; color:#10212b;">Votre bail est prêt à signer</h1>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:16px 40px 0;">
+        <p class="kp-t2" style="margin:0; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:24px; color:#46545c;">Bonjour %2$s,</p>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:12px 40px 0;">
+        <p class="kp-t2" style="margin:0; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:24px; color:#46545c;"><strong>%3$s</strong> vous invite à signer le bail de votre logement. Vous signez à l'écran, au doigt ou à la souris, sans créer de compte.</p>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:24px 40px 0;">
+        <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" class="kp-box" style="background:#edefe8; border-radius:12px;">
+          <tr><td style="padding:8px 20px;">
+            <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0">
+            <tr><td style="padding:10px 0;">
+              <div class="kp-t3" style="font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:13px; line-height:18px; color:#636f76;">Logement</div>
+              <div class="kp-t1 kp-tab" style="font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:22px; font-weight:500; color:#10212b;">%4$s</div>
+            </td></tr><tr><td style="padding:10px 0;">
+              <div class="kp-t3" style="font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:13px; line-height:18px; color:#636f76;">Loyer mensuel</div>
+              <div class="kp-t1 kp-tab" style="font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:22px; font-weight:500; color:#10212b;">%5$s</div>
+            </td></tr><tr><td style="padding:10px 0;">
+              <div class="kp-t3" style="font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:13px; line-height:18px; color:#636f76;">Charges mensuelles</div>
+              <div class="kp-t1 kp-tab" style="font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:22px; font-weight:500; color:#10212b;">%6$s</div>
+            </td></tr><tr><td style="padding:10px 0;">
+              <div class="kp-t3" style="font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:13px; line-height:18px; color:#636f76;">Dépôt de garantie</div>
+              <div class="kp-t1 kp-tab" style="font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:22px; font-weight:500; color:#10212b;">%7$s</div>
+            </td></tr><tr><td style="padding:10px 0;">
+              <div class="kp-t3" style="font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:13px; line-height:18px; color:#636f76;">Début du bail</div>
+              <div class="kp-t1 kp-tab" style="font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:22px; font-weight:500; color:#10212b;">%8$s</div>
+            </td></tr><tr><td style="padding:10px 0;">
+              <div class="kp-t3" style="font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:13px; line-height:18px; color:#636f76;">Durée</div>
+              <div class="kp-t1 kp-tab" style="font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:22px; font-weight:500; color:#10212b;">%9$s mois</div>
+            </td></tr>
             </table>
-            </body>
-            </html>
+          </td></tr>
+        </table>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:28px 40px 0;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" class="kp-btnwrap"><tr>
+          <td class="kp-btn" bgcolor="#4f6a2e" style="background:#4f6a2e; border-radius:999px;">
+            <a href="%10$s" style="display:inline-block; padding:13px 28px; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:20px; font-weight:500; color:#ffffff; text-decoration:none; border-radius:999px;">Lire et signer le bail</a>
+          </td>
+        </tr></table>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:24px 40px 0;">
+        <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0"><tr>
+          <td class="kp-warn" style="background:#fbefdd; border-radius:12px; padding:14px 16px; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:14px; line-height:20px; color:#8a5a12;">Ce lien est personnel et valable 72 heures. Passé ce délai, demandez-en un nouveau à %3$s.</td>
+        </tr></table>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:16px 40px 0;">
+        <p class="kp-t3" style="margin:0; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:13px; line-height:20px; color:#636f76;">Le bouton ne fonctionne pas ? Copiez ce lien dans votre navigateur :<br><a href="%10$s" class="kp-acc" style="color:#4f6a2e; word-break:break-all;">%10$s</a></p>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:28px 40px 36px;">
+        <p class="kp-t2" style="margin:0; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:24px; color:#46545c;">L'équipe Kupanga</p>
+      </td></tr>
+    </table>
+    <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%%; max-width:600px;">
+      <tr><td class="kp-t3" align="center" style="padding:20px 24px 0; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:12px; line-height:18px; color:#636f76;">
+        Kupanga · location entre particuliers, en France et en RDC<br>
+        <a href="{{URL_APP}}" class="kp-t3" style="color:#636f76; text-decoration:underline;">{{DOMAINE_APP}}</a>
+      </td></tr>
+    </table>
+  </td></tr>
+</table>
+</body>
+</html>
             """;
 
-    // ─── 05 · Contrat signé par les deux parties ─────────────────────────────────────────
+    // ─── 07 · bail-signe ─────────────────────────────
     public static final String SUJET_MAIL_CONTRAT_SIGNE =
-            "KUPANGA — Votre contrat a été signé par les deux parties";
+            "Votre bail est signé · Kupanga";
 
     // %1$s = prénom/nom destinataire · %2$s = adresse · %3$s = loyer · %4$s = charges
-    // %5$s = dépôt · %6$s = date début · %7$s = durée
+    // %5$s = dépôt · %6$s = date début (formatée) · %7$s = durée
+    // %8$s = NOUVEAU : bloc « Document joint » (BLOC_PIECE_JOINTE rempli, ou chaîne vide sans PDF)
     public static final String CONTENU_MAIL_CONTRAT_SIGNE =
             """
-            <!DOCTYPE html>
-            <html lang="fr">
-            <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-            </head>
-            <body style="margin:0; padding:0; background:#FAFAF4; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;">
-            <div style="display:none; max-height:0; overflow:hidden;">Votre contrat de location a été signé par les deux parties.</div>
-
-            <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" style="background:#FAFAF4; padding:32px 16px;">
-              <tr><td align="center">
-                <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px; width:100%%; background:#FFFFFF; border:1px solid rgba(143,164,100,0.18);">
-
-              <tr><td style="background:#10212B; padding:18px 32px;">
-                <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0"><tr>
-                  <td style="vertical-align:middle;">
-                    <span style="display:inline-block; width:10px; height:10px; background:#8FA464; vertical-align:middle; margin-right:10px;"></span>
-                    <span style="font-family:'DM Serif Display', Georgia, 'Times New Roman', serif; font-size:22px; color:#EFFBDB; vertical-align:middle; letter-spacing:-0.01em; line-height:1;">kupanga</span>
-                  </td>
-                  <td style="text-align:right; vertical-align:middle; font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:9.5px; letter-spacing:0.22em; text-transform:uppercase; color:#B5CA8D;">
-                    Gestion locative
-                  </td>
-                </tr></table>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:32px 32px 0;">
-                <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-                  <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:9.5px; letter-spacing:0.28em; text-transform:uppercase; color:#6B7C4B; padding-bottom:10px; border-bottom:1px solid #8FA464;">
-                    Contrat finalisé
-                  </td>
-                </tr></table>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:20px 32px 4px;">
-                <h1 style="font-family:'DM Serif Display', Georgia, 'Times New Roman', serif; font-size:30px; line-height:1.15; margin:0; color:#10212B; font-weight:400; letter-spacing:-0.01em;">
-                  Contrat signé avec succès
-                </h1>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:10px 32px;">
-                <p style="margin:0; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:14px; line-height:1.65; color:#3A4F5C; font-weight:300;">
-                  Bonjour <strong>%1$s</strong>,
-                </p>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:10px 32px;">
-                <p style="margin:0; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:14px; line-height:1.65; color:#3A4F5C; font-weight:300;">
-                  Votre contrat de location concernant le bien situé au <strong>%2$s</strong> a été signé par les deux parties.
-                </p>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:8px 32px;">
-                <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" style="background:#FAFAF4; border:1px solid rgba(143,164,100,0.20); border-radius:10px;">
-                  <tr><td style="padding:6px 18px 10px;">
-                    <div style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:9.5px; letter-spacing:0.25em; text-transform:uppercase; color:#6B7C4B; padding:8px 0 4px;">
-                      Récapitulatif du contrat
-                    </div>
-                    <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0">
-                  <tr>
-                    <td style="font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:13px; color:#3A4F5C; padding:8px 0; border-bottom:1px dotted rgba(143,164,100,0.35); font-weight:400;">Loyer mensuel</td>
-                    <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:13px; color:#10212B; font-weight:500; text-align:right; padding:8px 0; border-bottom:1px dotted rgba(143,164,100,0.35);"><strong>%3$s</strong></td>
-                  </tr>
-                  <tr>
-                    <td style="font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:13px; color:#3A4F5C; padding:8px 0; border-bottom:1px dotted rgba(143,164,100,0.35); font-weight:400;">Charges mensuelles</td>
-                    <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:13px; color:#10212B; font-weight:500; text-align:right; padding:8px 0; border-bottom:1px dotted rgba(143,164,100,0.35);"><strong>%4$s</strong></td>
-                  </tr>
-                  <tr>
-                    <td style="font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:13px; color:#3A4F5C; padding:8px 0; border-bottom:1px dotted rgba(143,164,100,0.35); font-weight:400;">Dépôt de garantie</td>
-                    <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:13px; color:#10212B; font-weight:500; text-align:right; padding:8px 0; border-bottom:1px dotted rgba(143,164,100,0.35);"><strong>%5$s</strong></td>
-                  </tr>
-                  <tr>
-                    <td style="font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:13px; color:#3A4F5C; padding:8px 0; border-bottom:1px dotted rgba(143,164,100,0.35); font-weight:400;">Date de début</td>
-                    <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:13px; color:#10212B; font-weight:500; text-align:right; padding:8px 0; border-bottom:1px dotted rgba(143,164,100,0.35);"><strong>%6$s</strong></td>
-                  </tr>
-                  <tr>
-                    <td style="font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:13px; color:#3A4F5C; padding:8px 0; font-weight:400;">Durée du bail</td>
-                    <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:13px; color:#10212B; font-weight:500; text-align:right; padding:8px 0;"><strong>%7$s mois</strong></td>
-                  </tr></table>
-                  </td></tr>
-                </table>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:10px 32px;">
-                <p style="margin:0; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:14px; line-height:1.65; color:#3A4F5C; font-weight:300;">
-                  Le contrat signé est disponible en pièce jointe de cet email. Conservez-le précieusement.
-                </p>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:10px 32px;">
-                <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" style="background:rgba(143,164,100,0.15); border-left:3px solid #8FA464;">
-                  <tr><td style="padding:12px 16px; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:13px; color:#4F5F37; line-height:1.55;">
-                    Ce contrat a valeur de document officiel entre les deux parties.
-                  </td></tr>
-                </table>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:28px 32px 32px;">
-                <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-                  <td style="border-top:1px solid rgba(143,164,100,0.20); padding-top:16px; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:13px; color:#3A4F5C; line-height:1.7; font-weight:300;">
-                    À très bientôt sur KUPANGA,<br/>L'équipe KUPANGA
-                  </td>
-                </tr></table>
-              </td></tr>
-
-              <tr><td style="background:#10212B; padding:16px 32px;">
-                <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0"><tr>
-                  <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:9px; letter-spacing:0.20em; text-transform:uppercase; color:#B5CA8D;">
-                    <span style="display:inline-block; width:5px; height:5px; background:#8FA464; margin-right:8px; vertical-align:middle;"></span>
-                    <span style="color:#EFFBDB; vertical-align:middle;">Kupanga</span><span style="vertical-align:middle;"> · Gestion locative</span>
-                  </td>
-                  <td style="text-align:right; font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:9px; letter-spacing:0.20em; text-transform:uppercase; color:#6B7C4B;">
-                    kupanga.fr
-                  </td>
-                </tr></table>
-              </td></tr>
-                </table>
-              </td></tr>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Kupanga</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  body { margin:0; padding:0; }
+  .kp-tab { font-variant-numeric:tabular-nums; }
+  @media (max-width:480px) {
+    .kp-out { padding:16px 8px !important; }
+    .kp-pad { padding-left:20px !important; padding-right:20px !important; }
+    .kp-h1 { font-size:22px !important; line-height:28px !important; }
+    .kp-btnwrap { width:100%% !important; }
+    .kp-btn a { display:block !important; text-align:center !important; }
+  }
+  @media (prefers-color-scheme:dark) {
+    .kp-bg { background:#0b181f !important; }
+    .kp-card { background:#10212b !important; border-color:#1f3644 !important; }
+    .kp-t1 { color:#effbdb !important; }
+    .kp-t2 { color:#c3cdbf !important; }
+    .kp-t3 { color:#93a19a !important; }
+    .kp-acc { color:#a1b577 !important; }
+    .kp-box { background:#0b181f !important; }
+    .kp-line { border-color:#1f3644 !important; }
+    .kp-btn { background:#a1b577 !important; }
+    .kp-btn a { color:#10212b !important; }
+    .kp-info { background:#1b2d1c !important; color:#d6e3bd !important; }
+    .kp-warn { background:#33270f !important; color:#f1d9a8 !important; }
+    .kp-ico { background:#1b2d1c !important; color:#a1b577 !important; }
+    .kp-logo-clair { display:none !important; }
+    .kp-logo-sombre { display:block !important; max-height:none !important; height:32px !important; }
+  }
+</style>
+</head>
+<body style="margin:0; padding:0; background:#f4f5f1;">
+<div style="display:none; max-height:0; overflow:hidden; mso-hide:all; font-size:1px; line-height:1px; color:#f4f5f1;">Votre bail est signé par les deux parties.</div>
+<table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" class="kp-bg" style="background:#f4f5f1;">
+  <tr><td align="center" class="kp-out" style="padding:32px 16px;">
+    <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" class="kp-card" style="width:100%%; max-width:600px; background:#ffffff; border:1px solid #e2e4e6; border-radius:20px;">
+      <tr><td class="kp-pad" style="padding:28px 40px 0;">
+        <a href="{{URL_APP}}" style="text-decoration:none;">
+          <img class="kp-logo-clair" src="{{URL_APP}}email/kupanga-logo-clair.png" width="138" height="32" alt="kupanga" style="display:block; width:138px; height:32px; border:0; outline:none; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:22px; line-height:32px; font-weight:600; color:#10212b;">
+          <!--[if !mso]><!--><img class="kp-logo-sombre" src="{{URL_APP}}email/kupanga-logo-sombre.png" width="138" height="32" alt="kupanga" style="display:none; max-height:0; overflow:hidden; mso-hide:all; width:138px; border:0; outline:none;"><!--<![endif]-->
+        </a>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:32px 40px 0;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+          <td style="background:#e5f1e8; border-radius:999px; padding:2px 10px 2px 8px; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:13px; line-height:20px; font-weight:500; color:#22663a;"><span style="color:#2f8a4e;">&#9679;</span>&nbsp;Signé</td>
+        </tr></table>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:12px 40px 0;">
+        <h1 class="kp-t1 kp-h1" style="margin:0; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:26px; line-height:32px; font-weight:500; letter-spacing:-0.01em; color:#10212b;">Votre bail est signé</h1>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:16px 40px 0;">
+        <p class="kp-t2" style="margin:0; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:24px; color:#46545c;">Bonjour %1$s,</p>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:12px 40px 0;">
+        <p class="kp-t2" style="margin:0; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:24px; color:#46545c;">Le bail est signé par les deux parties. Il fait désormais foi entre le propriétaire et le locataire.</p>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:24px 40px 0;">
+        <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" class="kp-box" style="background:#edefe8; border-radius:12px;">
+          <tr><td style="padding:8px 20px;">
+            <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0">
+            <tr><td style="padding:10px 0;">
+              <div class="kp-t3" style="font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:13px; line-height:18px; color:#636f76;">Logement</div>
+              <div class="kp-t1 kp-tab" style="font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:22px; font-weight:500; color:#10212b;">%2$s</div>
+            </td></tr><tr><td style="padding:10px 0;">
+              <div class="kp-t3" style="font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:13px; line-height:18px; color:#636f76;">Loyer mensuel</div>
+              <div class="kp-t1 kp-tab" style="font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:22px; font-weight:500; color:#10212b;">%3$s</div>
+            </td></tr><tr><td style="padding:10px 0;">
+              <div class="kp-t3" style="font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:13px; line-height:18px; color:#636f76;">Charges mensuelles</div>
+              <div class="kp-t1 kp-tab" style="font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:22px; font-weight:500; color:#10212b;">%4$s</div>
+            </td></tr><tr><td style="padding:10px 0;">
+              <div class="kp-t3" style="font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:13px; line-height:18px; color:#636f76;">Dépôt de garantie</div>
+              <div class="kp-t1 kp-tab" style="font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:22px; font-weight:500; color:#10212b;">%5$s</div>
+            </td></tr><tr><td style="padding:10px 0;">
+              <div class="kp-t3" style="font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:13px; line-height:18px; color:#636f76;">Début du bail</div>
+              <div class="kp-t1 kp-tab" style="font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:22px; font-weight:500; color:#10212b;">%6$s</div>
+            </td></tr><tr><td style="padding:10px 0;">
+              <div class="kp-t3" style="font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:13px; line-height:18px; color:#636f76;">Durée</div>
+              <div class="kp-t1 kp-tab" style="font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:22px; font-weight:500; color:#10212b;">%7$s mois</div>
+            </td></tr>
             </table>
-            </body>
-            </html>
+          </td></tr>
+        </table>
+      </td></tr>%8$s
+      <tr><td class="kp-pad" style="padding:28px 40px 0;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" class="kp-btnwrap"><tr>
+          <td class="kp-btn" bgcolor="#4f6a2e" style="background:#4f6a2e; border-radius:999px;">
+            <a href="{{URL_APP}}documents" style="display:inline-block; padding:13px 28px; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:20px; font-weight:500; color:#ffffff; text-decoration:none; border-radius:999px;">Voir mes documents</a>
+          </td>
+        </tr></table>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:28px 40px 36px;">
+        <p class="kp-t2" style="margin:0; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:24px; color:#46545c;">L'équipe Kupanga</p>
+      </td></tr>
+    </table>
+    <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%%; max-width:600px;">
+      <tr><td class="kp-t3" align="center" style="padding:20px 24px 0; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:12px; line-height:18px; color:#636f76;">
+        Kupanga · location entre particuliers, en France et en RDC<br>
+        <a href="{{URL_APP}}" class="kp-t3" style="color:#636f76; text-decoration:underline;">{{DOMAINE_APP}}</a>
+      </td></tr>
+    </table>
+  </td></tr>
+</table>
+</body>
+</html>
             """;
 
-    // ─── 06 · Invitation à signer un état des lieux ─────────────────────────────────────────
+    // ─── 08 · invitation-signature-edl ─────────────────────────────
     public static final String SUJET_MAIL_INVITATION_SIGNATURE_EDL =
-            "KUPANGA — Vous avez un état des lieux à signer";
+            "Votre état des lieux est prêt à signer · Kupanga";
 
     // %1$s = prénom/nom locataire · %2$s = prénom/nom propriétaire · %3$s = adresse
-    // %4$s = type EDL · %5$s = date réalisation · %6$s = lien signature
+    // %4$s = type EDL · %5$s = date réalisation (formatée) · %6$s = lien signature
     public static final String CONTENU_MAIL_INVITATION_SIGNATURE_EDL =
             """
-            <!DOCTYPE html>
-            <html lang="fr">
-            <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-            </head>
-            <body style="margin:0; padding:0; background:#FAFAF4; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;">
-            <div style="display:none; max-height:0; overflow:hidden;">%2$s vous invite à signer l'état des lieux.</div>
-
-            <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" style="background:#FAFAF4; padding:32px 16px;">
-              <tr><td align="center">
-                <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px; width:100%%; background:#FFFFFF; border:1px solid rgba(143,164,100,0.18);">
-
-              <tr><td style="background:#10212B; padding:18px 32px;">
-                <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0"><tr>
-                  <td style="vertical-align:middle;">
-                    <span style="display:inline-block; width:10px; height:10px; background:#8FA464; vertical-align:middle; margin-right:10px;"></span>
-                    <span style="font-family:'DM Serif Display', Georgia, 'Times New Roman', serif; font-size:22px; color:#EFFBDB; vertical-align:middle; letter-spacing:-0.01em; line-height:1;">kupanga</span>
-                  </td>
-                  <td style="text-align:right; vertical-align:middle; font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:9.5px; letter-spacing:0.22em; text-transform:uppercase; color:#B5CA8D;">
-                    Gestion locative
-                  </td>
-                </tr></table>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:32px 32px 0;">
-                <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-                  <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:9.5px; letter-spacing:0.28em; text-transform:uppercase; color:#6B7C4B; padding-bottom:10px; border-bottom:1px solid #8FA464;">
-                    Invitation à signer · État des lieux
-                  </td>
-                </tr></table>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:20px 32px 4px;">
-                <h1 style="font-family:'DM Serif Display', Georgia, 'Times New Roman', serif; font-size:30px; line-height:1.15; margin:0; color:#10212B; font-weight:400; letter-spacing:-0.01em;">
-                  Bonjour %1$s,
-                </h1>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:10px 32px;">
-                <p style="margin:0; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:14px; line-height:1.65; color:#3A4F5C; font-weight:300;">
-                  <strong>%2$s</strong>, propriétaire du bien situé au <strong>%3$s</strong>, vous invite à signer l'état des lieux établi contradictoirement entre vous.
-                </p>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:8px 32px;">
-                <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" style="background:#FAFAF4; border:1px solid rgba(143,164,100,0.20); border-radius:10px;">
-                  <tr><td style="padding:6px 18px 10px;">
-                    <div style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:9.5px; letter-spacing:0.25em; text-transform:uppercase; color:#6B7C4B; padding:8px 0 4px;">
-                      Récapitulatif
-                    </div>
-                    <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0">
-                  <tr>
-                    <td style="font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:13px; color:#3A4F5C; padding:8px 0; border-bottom:1px dotted rgba(143,164,100,0.35); font-weight:400;">Type d'état des lieux</td>
-                    <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:13px; color:#10212B; font-weight:500; text-align:right; padding:8px 0; border-bottom:1px dotted rgba(143,164,100,0.35);"><strong>%4$s</strong></td>
-                  </tr>
-                  <tr>
-                    <td style="font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:13px; color:#3A4F5C; padding:8px 0; border-bottom:1px dotted rgba(143,164,100,0.35); font-weight:400;">Date de réalisation</td>
-                    <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:13px; color:#10212B; font-weight:500; text-align:right; padding:8px 0; border-bottom:1px dotted rgba(143,164,100,0.35);"><strong>%5$s</strong></td>
-                  </tr>
-                  <tr>
-                    <td style="font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:13px; color:#3A4F5C; padding:8px 0; font-weight:400;">Adresse du bien</td>
-                    <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:13px; color:#10212B; font-weight:500; text-align:right; padding:8px 0;"><strong>%3$s</strong></td>
-                  </tr></table>
-                  </td></tr>
-                </table>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:10px 32px;">
-                <p style="margin:0; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:14px; line-height:1.65; color:#3A4F5C; font-weight:300;">
-                  Pour signer l'état des lieux, cliquez sur le bouton ci-dessous :
-                </p>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:18px 32px 14px;">
-                <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-                  <td style="background:#8FA464; border-radius:8px;">
-                    <a href="%6$s" style="display:inline-block; padding:14px 28px; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:14px; font-weight:600; color:#10212B; text-decoration:none; letter-spacing:0.01em;">
-                      Signer l'état des lieux
-                    </a>
-                  </td>
-                </tr></table>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:10px 32px;">
-                <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" style="background:rgba(212,168,83,0.14); border-left:3px solid #D4A853;">
-                  <tr><td style="padding:12px 16px; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:13px; color:#7A5E22; line-height:1.55;">
-                    Ce lien est valable <strong>72 heures</strong>. Passé ce délai, vous devrez contacter le propriétaire pour obtenir un nouveau lien.
-                  </td></tr>
-                </table>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:28px 32px 32px;">
-                <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-                  <td style="border-top:1px solid rgba(143,164,100,0.20); padding-top:16px; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:13px; color:#3A4F5C; line-height:1.7; font-weight:300;">
-                    À très bientôt sur KUPANGA,<br/>L'équipe KUPANGA
-                  </td>
-                </tr></table>
-              </td></tr>
-
-              <tr><td style="background:#10212B; padding:16px 32px;">
-                <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0"><tr>
-                  <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:9px; letter-spacing:0.20em; text-transform:uppercase; color:#B5CA8D;">
-                    <span style="display:inline-block; width:5px; height:5px; background:#8FA464; margin-right:8px; vertical-align:middle;"></span>
-                    <span style="color:#EFFBDB; vertical-align:middle;">Kupanga</span><span style="vertical-align:middle;"> · Gestion locative</span>
-                  </td>
-                  <td style="text-align:right; font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:9px; letter-spacing:0.20em; text-transform:uppercase; color:#6B7C4B;">
-                    kupanga.fr
-                  </td>
-                </tr></table>
-              </td></tr>
-                </table>
-              </td></tr>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Kupanga</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  body { margin:0; padding:0; }
+  .kp-tab { font-variant-numeric:tabular-nums; }
+  @media (max-width:480px) {
+    .kp-out { padding:16px 8px !important; }
+    .kp-pad { padding-left:20px !important; padding-right:20px !important; }
+    .kp-h1 { font-size:22px !important; line-height:28px !important; }
+    .kp-btnwrap { width:100%% !important; }
+    .kp-btn a { display:block !important; text-align:center !important; }
+  }
+  @media (prefers-color-scheme:dark) {
+    .kp-bg { background:#0b181f !important; }
+    .kp-card { background:#10212b !important; border-color:#1f3644 !important; }
+    .kp-t1 { color:#effbdb !important; }
+    .kp-t2 { color:#c3cdbf !important; }
+    .kp-t3 { color:#93a19a !important; }
+    .kp-acc { color:#a1b577 !important; }
+    .kp-box { background:#0b181f !important; }
+    .kp-line { border-color:#1f3644 !important; }
+    .kp-btn { background:#a1b577 !important; }
+    .kp-btn a { color:#10212b !important; }
+    .kp-info { background:#1b2d1c !important; color:#d6e3bd !important; }
+    .kp-warn { background:#33270f !important; color:#f1d9a8 !important; }
+    .kp-ico { background:#1b2d1c !important; color:#a1b577 !important; }
+    .kp-logo-clair { display:none !important; }
+    .kp-logo-sombre { display:block !important; max-height:none !important; height:32px !important; }
+  }
+</style>
+</head>
+<body style="margin:0; padding:0; background:#f4f5f1;">
+<div style="display:none; max-height:0; overflow:hidden; mso-hide:all; font-size:1px; line-height:1px; color:#f4f5f1;">%2$s vous invite à signer l'état des lieux.</div>
+<table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" class="kp-bg" style="background:#f4f5f1;">
+  <tr><td align="center" class="kp-out" style="padding:32px 16px;">
+    <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" class="kp-card" style="width:100%%; max-width:600px; background:#ffffff; border:1px solid #e2e4e6; border-radius:20px;">
+      <tr><td class="kp-pad" style="padding:28px 40px 0;">
+        <a href="{{URL_APP}}" style="text-decoration:none;">
+          <img class="kp-logo-clair" src="{{URL_APP}}email/kupanga-logo-clair.png" width="138" height="32" alt="kupanga" style="display:block; width:138px; height:32px; border:0; outline:none; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:22px; line-height:32px; font-weight:600; color:#10212b;">
+          <!--[if !mso]><!--><img class="kp-logo-sombre" src="{{URL_APP}}email/kupanga-logo-sombre.png" width="138" height="32" alt="kupanga" style="display:none; max-height:0; overflow:hidden; mso-hide:all; width:138px; border:0; outline:none;"><!--<![endif]-->
+        </a>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:32px 40px 0;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+          <td style="background:#fbefdd; border-radius:999px; padding:2px 10px 2px 8px; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:13px; line-height:20px; font-weight:500; color:#8a5a12;"><span style="color:#b7791f;">&#9679;</span>&nbsp;À signer</td>
+        </tr></table>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:12px 40px 0;">
+        <h1 class="kp-t1 kp-h1" style="margin:0; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:26px; line-height:32px; font-weight:500; letter-spacing:-0.01em; color:#10212b;">Votre état des lieux est prêt à signer</h1>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:16px 40px 0;">
+        <p class="kp-t2" style="margin:0; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:24px; color:#46545c;">Bonjour %1$s,</p>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:12px 40px 0;">
+        <p class="kp-t2" style="margin:0; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:24px; color:#46545c;"><strong>%2$s</strong> vous invite à signer l'état des lieux que vous avez réalisé ensemble. Relisez-le pièce par pièce avant de signer.</p>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:24px 40px 0;">
+        <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" class="kp-box" style="background:#edefe8; border-radius:12px;">
+          <tr><td style="padding:8px 20px;">
+            <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0">
+            <tr><td style="padding:10px 0;">
+              <div class="kp-t3" style="font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:13px; line-height:18px; color:#636f76;">Logement</div>
+              <div class="kp-t1 kp-tab" style="font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:22px; font-weight:500; color:#10212b;">%3$s</div>
+            </td></tr><tr><td style="padding:10px 0;">
+              <div class="kp-t3" style="font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:13px; line-height:18px; color:#636f76;">Type</div>
+              <div class="kp-t1 kp-tab" style="font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:22px; font-weight:500; color:#10212b;">%4$s</div>
+            </td></tr><tr><td style="padding:10px 0;">
+              <div class="kp-t3" style="font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:13px; line-height:18px; color:#636f76;">Réalisé le</div>
+              <div class="kp-t1 kp-tab" style="font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:22px; font-weight:500; color:#10212b;">%5$s</div>
+            </td></tr>
             </table>
-            </body>
-            </html>
+          </td></tr>
+        </table>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:28px 40px 0;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" class="kp-btnwrap"><tr>
+          <td class="kp-btn" bgcolor="#4f6a2e" style="background:#4f6a2e; border-radius:999px;">
+            <a href="%6$s" style="display:inline-block; padding:13px 28px; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:20px; font-weight:500; color:#ffffff; text-decoration:none; border-radius:999px;">Lire et signer l'état des lieux</a>
+          </td>
+        </tr></table>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:24px 40px 0;">
+        <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0"><tr>
+          <td class="kp-warn" style="background:#fbefdd; border-radius:12px; padding:14px 16px; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:14px; line-height:20px; color:#8a5a12;">Ce lien est personnel et valable 72 heures. Passé ce délai, demandez-en un nouveau à %2$s.</td>
+        </tr></table>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:16px 40px 0;">
+        <p class="kp-t3" style="margin:0; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:13px; line-height:20px; color:#636f76;">Le bouton ne fonctionne pas ? Copiez ce lien dans votre navigateur :<br><a href="%6$s" class="kp-acc" style="color:#4f6a2e; word-break:break-all;">%6$s</a></p>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:28px 40px 36px;">
+        <p class="kp-t2" style="margin:0; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:24px; color:#46545c;">L'équipe Kupanga</p>
+      </td></tr>
+    </table>
+    <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%%; max-width:600px;">
+      <tr><td class="kp-t3" align="center" style="padding:20px 24px 0; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:12px; line-height:18px; color:#636f76;">
+        Kupanga · location entre particuliers, en France et en RDC<br>
+        <a href="{{URL_APP}}" class="kp-t3" style="color:#636f76; text-decoration:underline;">{{DOMAINE_APP}}</a>
+      </td></tr>
+    </table>
+  </td></tr>
+</table>
+</body>
+</html>
             """;
 
-    // ─── Demande de location ──────────────────────────────────────────────
-    public static final String SUJET_MAIL_DEMANDE_LOCATION =
-            "Kupanga : un propriétaire vous propose son logement";
-
-    // %1$s = prénom/nom locataire · %2$s = prénom/nom propriétaire · %3$s = adresse
-    // %4$s = intitulé du logement · %5$s = date et heure d'expiration · %6$s = lien vers les demandes reçues
-    public static final String CONTENU_MAIL_DEMANDE_LOCATION =
-            """
-            <!DOCTYPE html>
-            <html lang="fr">
-            <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-            </head>
-            <body style="margin:0; padding:0; background:#FAFAF4; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;">
-            <div style="display:none; max-height:0; overflow:hidden;">%2$s vous propose son logement.</div>
-
-            <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" style="background:#FAFAF4; padding:32px 16px;">
-              <tr><td align="center">
-                <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px; width:100%%; background:#FFFFFF; border:1px solid rgba(143,164,100,0.18);">
-
-              <tr><td style="background:#10212B; padding:18px 32px;">
-                <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0"><tr>
-                  <td style="vertical-align:middle;">
-                    <span style="display:inline-block; width:10px; height:10px; background:#8FA464; vertical-align:middle; margin-right:10px;"></span>
-                    <span style="font-family:'DM Serif Display', Georgia, 'Times New Roman', serif; font-size:22px; color:#EFFBDB; vertical-align:middle; letter-spacing:-0.01em; line-height:1;">kupanga</span>
-                  </td>
-                  <td style="text-align:right; vertical-align:middle; font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:9.5px; letter-spacing:0.22em; text-transform:uppercase; color:#B5CA8D;">
-                    Gestion locative
-                  </td>
-                </tr></table>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:32px 32px 0;">
-                <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-                  <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:9.5px; letter-spacing:0.28em; text-transform:uppercase; color:#6B7C4B; padding-bottom:10px; border-bottom:1px solid #8FA464;">
-                    Demande de location
-                  </td>
-                </tr></table>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:20px 32px 4px;">
-                <h1 style="font-family:'DM Serif Display', Georgia, 'Times New Roman', serif; font-size:30px; line-height:1.15; margin:0; color:#10212B; font-weight:400; letter-spacing:-0.01em;">
-                  Bonjour %1$s,
-                </h1>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:10px 32px;">
-                <p style="margin:0; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:14px; line-height:1.65; color:#3A4F5C; font-weight:300;">
-                  <strong>%2$s</strong> vous propose de devenir locataire de son logement situé au <strong>%3$s</strong>. Le logement ne vous sera attribué que si vous acceptez.
-                </p>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:8px 32px;">
-                <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" style="background:#FAFAF4; border:1px solid rgba(143,164,100,0.20); border-radius:10px;">
-                  <tr><td style="padding:6px 18px 10px;">
-                    <div style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:9.5px; letter-spacing:0.25em; text-transform:uppercase; color:#6B7C4B; padding:8px 0 4px;">
-                      Récapitulatif
-                    </div>
-                    <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0">
-                  <tr>
-                    <td style="font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:13px; color:#3A4F5C; padding:8px 0; border-bottom:1px dotted rgba(143,164,100,0.35); font-weight:400;">Logement</td>
-                    <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:13px; color:#10212B; font-weight:500; text-align:right; padding:8px 0; border-bottom:1px dotted rgba(143,164,100,0.35);"><strong>%4$s</strong></td>
-                  </tr>
-                  <tr>
-                    <td style="font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:13px; color:#3A4F5C; padding:8px 0; border-bottom:1px dotted rgba(143,164,100,0.35); font-weight:400;">Réponse attendue avant le</td>
-                    <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:13px; color:#10212B; font-weight:500; text-align:right; padding:8px 0; border-bottom:1px dotted rgba(143,164,100,0.35);"><strong>%5$s</strong></td>
-                  </tr>
-                  <tr>
-                    <td style="font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:13px; color:#3A4F5C; padding:8px 0; font-weight:400;">Adresse du bien</td>
-                    <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:13px; color:#10212B; font-weight:500; text-align:right; padding:8px 0;"><strong>%3$s</strong></td>
-                  </tr></table>
-                  </td></tr>
-                </table>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:10px 32px;">
-                <p style="margin:0; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:14px; line-height:1.65; color:#3A4F5C; font-weight:300;">
-                  Pour accepter ou refuser, connectez-vous à Kupanga :
-                </p>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:18px 32px 14px;">
-                <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-                  <td style="background:#8FA464; border-radius:8px;">
-                    <a href="%6$s" style="display:inline-block; padding:14px 28px; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:14px; font-weight:600; color:#10212B; text-decoration:none; letter-spacing:0.01em;">
-                      Voir la demande
-                    </a>
-                  </td>
-                </tr></table>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:10px 32px;">
-                <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" style="background:rgba(212,168,83,0.14); border-left:3px solid #D4A853;">
-                  <tr><td style="padding:12px 16px; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:13px; color:#7A5E22; line-height:1.55;">
-                    Sans réponse de votre part avant le <strong>%5$s</strong>, la demande expire. Si vous ne connaissez pas ce propriétaire, ignorez cet e-mail.
-                  </td></tr>
-                </table>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:28px 32px 32px;">
-                <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-                  <td style="border-top:1px solid rgba(143,164,100,0.20); padding-top:16px; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:13px; color:#3A4F5C; line-height:1.7; font-weight:300;">
-                    À très bientôt sur KUPANGA,<br/>L'équipe KUPANGA
-                  </td>
-                </tr></table>
-              </td></tr>
-
-              <tr><td style="background:#10212B; padding:16px 32px;">
-                <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0"><tr>
-                  <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:9px; letter-spacing:0.20em; text-transform:uppercase; color:#B5CA8D;">
-                    <span style="display:inline-block; width:5px; height:5px; background:#8FA464; margin-right:8px; vertical-align:middle;"></span>
-                    <span style="color:#EFFBDB; vertical-align:middle;">Kupanga</span><span style="vertical-align:middle;"> · Gestion locative</span>
-                  </td>
-                  <td style="text-align:right; font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:9px; letter-spacing:0.20em; text-transform:uppercase; color:#6B7C4B;">
-                    kupanga.fr
-                  </td>
-                </tr></table>
-              </td></tr>
-                </table>
-              </td></tr>
-            </table>
-            </body>
-            </html>
-            """;
-
-    // ─── Fin d'une réservation (désistement, retrait, expiration) ─────────────
-    // Sujet construit par EmailServiceImpl selon le motif.
-    // %1$s = prénom/nom destinataire · %2$s = surtitre · %3$s = message (HTML, valeurs déjà échappées)
-    // %4$s = libellé du bouton · %5$s = lien · %6$s = adresse · %7$s = intitulé du logement
-    public static final String CONTENU_MAIL_FIN_RESERVATION =
-            """
-            <!DOCTYPE html>
-            <html lang="fr">
-            <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-            </head>
-            <body style="margin:0; padding:0; background:#FAFAF4; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;">
-            <div style="display:none; max-height:0; overflow:hidden;">%2$s</div>
-
-            <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" style="background:#FAFAF4; padding:32px 16px;">
-              <tr><td align="center">
-                <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px; width:100%%; background:#FFFFFF; border:1px solid rgba(143,164,100,0.18);">
-
-              <tr><td style="background:#10212B; padding:18px 32px;">
-                <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0"><tr>
-                  <td style="vertical-align:middle;">
-                    <span style="display:inline-block; width:10px; height:10px; background:#8FA464; vertical-align:middle; margin-right:10px;"></span>
-                    <span style="font-family:'DM Serif Display', Georgia, 'Times New Roman', serif; font-size:22px; color:#EFFBDB; vertical-align:middle; letter-spacing:-0.01em; line-height:1;">kupanga</span>
-                  </td>
-                  <td style="text-align:right; vertical-align:middle; font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:9.5px; letter-spacing:0.22em; text-transform:uppercase; color:#B5CA8D;">
-                    Gestion locative
-                  </td>
-                </tr></table>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:32px 32px 0;">
-                <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-                  <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:9.5px; letter-spacing:0.28em; text-transform:uppercase; color:#6B7C4B; padding-bottom:10px; border-bottom:1px solid #8FA464;">
-                    %2$s
-                  </td>
-                </tr></table>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:20px 32px 4px;">
-                <h1 style="font-family:'DM Serif Display', Georgia, 'Times New Roman', serif; font-size:30px; line-height:1.15; margin:0; color:#10212B; font-weight:400; letter-spacing:-0.01em;">
-                  Bonjour %1$s,
-                </h1>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:10px 32px;">
-                <p style="margin:0; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:14px; line-height:1.65; color:#3A4F5C; font-weight:300;">
-                  %3$s
-                </p>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:8px 32px;">
-                <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" style="background:#FAFAF4; border:1px solid rgba(143,164,100,0.20); border-radius:10px;">
-                  <tr><td style="padding:6px 18px 10px;">
-                    <div style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:9.5px; letter-spacing:0.25em; text-transform:uppercase; color:#6B7C4B; padding:8px 0 4px;">
-                      Récapitulatif
-                    </div>
-                    <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0">
-                  <tr>
-                    <td style="font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:13px; color:#3A4F5C; padding:8px 0; border-bottom:1px dotted rgba(143,164,100,0.35); font-weight:400;">Logement</td>
-                    <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:13px; color:#10212B; font-weight:500; text-align:right; padding:8px 0; border-bottom:1px dotted rgba(143,164,100,0.35);"><strong>%7$s</strong></td>
-                  </tr>
-                  <tr>
-                    <td style="font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:13px; color:#3A4F5C; padding:8px 0; font-weight:400;">Adresse du bien</td>
-                    <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:13px; color:#10212B; font-weight:500; text-align:right; padding:8px 0;"><strong>%6$s</strong></td>
-                  </tr></table>
-                  </td></tr>
-                </table>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:10px 32px;">
-                <p style="margin:0; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:14px; line-height:1.65; color:#3A4F5C; font-weight:300;">
-                  Retrouvez le détail dans Kupanga :
-                </p>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:18px 32px 14px;">
-                <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-                  <td style="background:#8FA464; border-radius:8px;">
-                    <a href="%5$s" style="display:inline-block; padding:14px 28px; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:14px; font-weight:600; color:#10212B; text-decoration:none; letter-spacing:0.01em;">
-                      %4$s
-                    </a>
-                  </td>
-                </tr></table>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:28px 32px 32px;">
-                <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-                  <td style="border-top:1px solid rgba(143,164,100,0.20); padding-top:16px; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:13px; color:#3A4F5C; line-height:1.7; font-weight:300;">
-                    À très bientôt sur KUPANGA,<br/>L'équipe KUPANGA
-                  </td>
-                </tr></table>
-              </td></tr>
-
-              <tr><td style="background:#10212B; padding:16px 32px;">
-                <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0"><tr>
-                  <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:9px; letter-spacing:0.20em; text-transform:uppercase; color:#B5CA8D;">
-                    <span style="display:inline-block; width:5px; height:5px; background:#8FA464; margin-right:8px; vertical-align:middle;"></span>
-                    <span style="color:#EFFBDB; vertical-align:middle;">Kupanga</span><span style="vertical-align:middle;"> · Gestion locative</span>
-                  </td>
-                  <td style="text-align:right; font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:9px; letter-spacing:0.20em; text-transform:uppercase; color:#6B7C4B;">
-                    kupanga.fr
-                  </td>
-                </tr></table>
-              </td></tr>
-                </table>
-              </td></tr>
-            </table>
-            </body>
-            </html>
-            """;
-
-    // ─── 07 · État des lieux signé ─────────────────────────────────────────
+    // ─── 09 · edl-signe ─────────────────────────────
     public static final String SUJET_MAIL_EDL_SIGNE =
-            "KUPANGA — Votre état des lieux a été signé par les deux parties";
+            "Votre état des lieux est signé · Kupanga";
 
-    // %1$s = prénom/nom destinataire · %2$s = adresse · %3$s = type EDL · %4$s = date réalisation
+    // %1$s = prénom/nom destinataire · %2$s = adresse · %3$s = type EDL · %4$s = date réalisation (formatée)
+    // %5$s = NOUVEAU : bloc « Document joint » (BLOC_PIECE_JOINTE rempli, ou chaîne vide sans PDF)
     public static final String CONTENU_MAIL_EDL_SIGNE =
             """
-            <!DOCTYPE html>
-            <html lang="fr">
-            <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-            </head>
-            <body style="margin:0; padding:0; background:#FAFAF4; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;">
-            <div style="display:none; max-height:0; overflow:hidden;">Votre état des lieux a été signé par les deux parties.</div>
-
-            <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" style="background:#FAFAF4; padding:32px 16px;">
-              <tr><td align="center">
-                <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px; width:100%%; background:#FFFFFF; border:1px solid rgba(143,164,100,0.18);">
-
-              <tr><td style="background:#10212B; padding:18px 32px;">
-                <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0"><tr>
-                  <td style="vertical-align:middle;">
-                    <span style="display:inline-block; width:10px; height:10px; background:#8FA464; vertical-align:middle; margin-right:10px;"></span>
-                    <span style="font-family:'DM Serif Display', Georgia, 'Times New Roman', serif; font-size:22px; color:#EFFBDB; vertical-align:middle; letter-spacing:-0.01em; line-height:1;">kupanga</span>
-                  </td>
-                  <td style="text-align:right; vertical-align:middle; font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:9.5px; letter-spacing:0.22em; text-transform:uppercase; color:#B5CA8D;">
-                    Gestion locative
-                  </td>
-                </tr></table>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:32px 32px 0;">
-                <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-                  <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:9.5px; letter-spacing:0.28em; text-transform:uppercase; color:#6B7C4B; padding-bottom:10px; border-bottom:1px solid #8FA464;">
-                    État des lieux finalisé
-                  </td>
-                </tr></table>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:20px 32px 4px;">
-                <h1 style="font-family:'DM Serif Display', Georgia, 'Times New Roman', serif; font-size:30px; line-height:1.15; margin:0; color:#10212B; font-weight:400; letter-spacing:-0.01em;">
-                  État des lieux signé avec succès
-                </h1>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:10px 32px;">
-                <p style="margin:0; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:14px; line-height:1.65; color:#3A4F5C; font-weight:300;">
-                  Bonjour <strong>%1$s</strong>,
-                </p>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:10px 32px;">
-                <p style="margin:0; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:14px; line-height:1.65; color:#3A4F5C; font-weight:300;">
-                  L'état des lieux concernant le bien situé au <strong>%2$s</strong> a été signé par les deux parties.
-                </p>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:8px 32px;">
-                <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" style="background:#FAFAF4; border:1px solid rgba(143,164,100,0.20); border-radius:10px;">
-                  <tr><td style="padding:6px 18px 10px;">
-                    <div style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:9.5px; letter-spacing:0.25em; text-transform:uppercase; color:#6B7C4B; padding:8px 0 4px;">
-                      Récapitulatif
-                    </div>
-                    <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0">
-                  <tr>
-                    <td style="font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:13px; color:#3A4F5C; padding:8px 0; border-bottom:1px dotted rgba(143,164,100,0.35); font-weight:400;">Type d'état des lieux</td>
-                    <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:13px; color:#10212B; font-weight:500; text-align:right; padding:8px 0; border-bottom:1px dotted rgba(143,164,100,0.35);"><strong>%3$s</strong></td>
-                  </tr>
-                  <tr>
-                    <td style="font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:13px; color:#3A4F5C; padding:8px 0; border-bottom:1px dotted rgba(143,164,100,0.35); font-weight:400;">Date de réalisation</td>
-                    <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:13px; color:#10212B; font-weight:500; text-align:right; padding:8px 0; border-bottom:1px dotted rgba(143,164,100,0.35);"><strong>%4$s</strong></td>
-                  </tr>
-                  <tr>
-                    <td style="font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:13px; color:#3A4F5C; padding:8px 0; font-weight:400;">Adresse du bien</td>
-                    <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:13px; color:#10212B; font-weight:500; text-align:right; padding:8px 0;"><strong>%2$s</strong></td>
-                  </tr></table>
-                  </td></tr>
-                </table>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:10px 32px;">
-                <p style="margin:0; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:14px; line-height:1.65; color:#3A4F5C; font-weight:300;">
-                  L'état des lieux signé est disponible en pièce jointe de cet email. Conservez-le précieusement — il constitue la référence en cas de litige à la fin de la location.
-                </p>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:10px 32px;">
-                <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" style="background:rgba(143,164,100,0.15); border-left:3px solid #8FA464;">
-                  <tr><td style="padding:12px 16px; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:13px; color:#4F5F37; line-height:1.55;">
-                    Ce document a valeur de preuve contradictoire entre les deux parties.
-                  </td></tr>
-                </table>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:28px 32px 32px;">
-                <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-                  <td style="border-top:1px solid rgba(143,164,100,0.20); padding-top:16px; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:13px; color:#3A4F5C; line-height:1.7; font-weight:300;">
-                    À très bientôt sur KUPANGA,<br/>L'équipe KUPANGA
-                  </td>
-                </tr></table>
-              </td></tr>
-
-              <tr><td style="background:#10212B; padding:16px 32px;">
-                <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0"><tr>
-                  <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:9px; letter-spacing:0.20em; text-transform:uppercase; color:#B5CA8D;">
-                    <span style="display:inline-block; width:5px; height:5px; background:#8FA464; margin-right:8px; vertical-align:middle;"></span>
-                    <span style="color:#EFFBDB; vertical-align:middle;">Kupanga</span><span style="vertical-align:middle;"> · Gestion locative</span>
-                  </td>
-                  <td style="text-align:right; font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:9px; letter-spacing:0.20em; text-transform:uppercase; color:#6B7C4B;">
-                    kupanga.fr
-                  </td>
-                </tr></table>
-              </td></tr>
-                </table>
-              </td></tr>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Kupanga</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  body { margin:0; padding:0; }
+  .kp-tab { font-variant-numeric:tabular-nums; }
+  @media (max-width:480px) {
+    .kp-out { padding:16px 8px !important; }
+    .kp-pad { padding-left:20px !important; padding-right:20px !important; }
+    .kp-h1 { font-size:22px !important; line-height:28px !important; }
+    .kp-btnwrap { width:100%% !important; }
+    .kp-btn a { display:block !important; text-align:center !important; }
+  }
+  @media (prefers-color-scheme:dark) {
+    .kp-bg { background:#0b181f !important; }
+    .kp-card { background:#10212b !important; border-color:#1f3644 !important; }
+    .kp-t1 { color:#effbdb !important; }
+    .kp-t2 { color:#c3cdbf !important; }
+    .kp-t3 { color:#93a19a !important; }
+    .kp-acc { color:#a1b577 !important; }
+    .kp-box { background:#0b181f !important; }
+    .kp-line { border-color:#1f3644 !important; }
+    .kp-btn { background:#a1b577 !important; }
+    .kp-btn a { color:#10212b !important; }
+    .kp-info { background:#1b2d1c !important; color:#d6e3bd !important; }
+    .kp-warn { background:#33270f !important; color:#f1d9a8 !important; }
+    .kp-ico { background:#1b2d1c !important; color:#a1b577 !important; }
+    .kp-logo-clair { display:none !important; }
+    .kp-logo-sombre { display:block !important; max-height:none !important; height:32px !important; }
+  }
+</style>
+</head>
+<body style="margin:0; padding:0; background:#f4f5f1;">
+<div style="display:none; max-height:0; overflow:hidden; mso-hide:all; font-size:1px; line-height:1px; color:#f4f5f1;">Votre état des lieux est signé par les deux parties.</div>
+<table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" class="kp-bg" style="background:#f4f5f1;">
+  <tr><td align="center" class="kp-out" style="padding:32px 16px;">
+    <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" class="kp-card" style="width:100%%; max-width:600px; background:#ffffff; border:1px solid #e2e4e6; border-radius:20px;">
+      <tr><td class="kp-pad" style="padding:28px 40px 0;">
+        <a href="{{URL_APP}}" style="text-decoration:none;">
+          <img class="kp-logo-clair" src="{{URL_APP}}email/kupanga-logo-clair.png" width="138" height="32" alt="kupanga" style="display:block; width:138px; height:32px; border:0; outline:none; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:22px; line-height:32px; font-weight:600; color:#10212b;">
+          <!--[if !mso]><!--><img class="kp-logo-sombre" src="{{URL_APP}}email/kupanga-logo-sombre.png" width="138" height="32" alt="kupanga" style="display:none; max-height:0; overflow:hidden; mso-hide:all; width:138px; border:0; outline:none;"><!--<![endif]-->
+        </a>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:32px 40px 0;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+          <td style="background:#e5f1e8; border-radius:999px; padding:2px 10px 2px 8px; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:13px; line-height:20px; font-weight:500; color:#22663a;"><span style="color:#2f8a4e;">&#9679;</span>&nbsp;Signé</td>
+        </tr></table>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:12px 40px 0;">
+        <h1 class="kp-t1 kp-h1" style="margin:0; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:26px; line-height:32px; font-weight:500; letter-spacing:-0.01em; color:#10212b;">Votre état des lieux est signé</h1>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:16px 40px 0;">
+        <p class="kp-t2" style="margin:0; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:24px; color:#46545c;">Bonjour %1$s,</p>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:12px 40px 0;">
+        <p class="kp-t2" style="margin:0; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:24px; color:#46545c;">L'état des lieux est signé par les deux parties.</p>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:24px 40px 0;">
+        <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" class="kp-box" style="background:#edefe8; border-radius:12px;">
+          <tr><td style="padding:8px 20px;">
+            <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0">
+            <tr><td style="padding:10px 0;">
+              <div class="kp-t3" style="font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:13px; line-height:18px; color:#636f76;">Logement</div>
+              <div class="kp-t1 kp-tab" style="font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:22px; font-weight:500; color:#10212b;">%2$s</div>
+            </td></tr><tr><td style="padding:10px 0;">
+              <div class="kp-t3" style="font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:13px; line-height:18px; color:#636f76;">Type</div>
+              <div class="kp-t1 kp-tab" style="font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:22px; font-weight:500; color:#10212b;">%3$s</div>
+            </td></tr><tr><td style="padding:10px 0;">
+              <div class="kp-t3" style="font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:13px; line-height:18px; color:#636f76;">Réalisé le</div>
+              <div class="kp-t1 kp-tab" style="font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:22px; font-weight:500; color:#10212b;">%4$s</div>
+            </td></tr>
             </table>
-            </body>
-            </html>
+          </td></tr>
+        </table>
+      </td></tr>%5$s
+      <tr><td class="kp-pad" style="padding:24px 40px 0;">
+        <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0"><tr>
+          <td class="kp-info" style="background:#edf3e0; border-radius:12px; padding:14px 16px; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:14px; line-height:20px; color:#3a5122;">Gardez-le jusqu'à la fin de la location : c'est la référence pour comparer l'état du logement à la sortie.</td>
+        </tr></table>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:28px 40px 0;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" class="kp-btnwrap"><tr>
+          <td class="kp-btn" bgcolor="#4f6a2e" style="background:#4f6a2e; border-radius:999px;">
+            <a href="{{URL_APP}}documents" style="display:inline-block; padding:13px 28px; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:20px; font-weight:500; color:#ffffff; text-decoration:none; border-radius:999px;">Voir mes documents</a>
+          </td>
+        </tr></table>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:28px 40px 36px;">
+        <p class="kp-t2" style="margin:0; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:24px; color:#46545c;">L'équipe Kupanga</p>
+      </td></tr>
+    </table>
+    <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%%; max-width:600px;">
+      <tr><td class="kp-t3" align="center" style="padding:20px 24px 0; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:12px; line-height:18px; color:#636f76;">
+        Kupanga · location entre particuliers, en France et en RDC<br>
+        <a href="{{URL_APP}}" class="kp-t3" style="color:#636f76; text-decoration:underline;">{{DOMAINE_APP}}</a>
+      </td></tr>
+    </table>
+  </td></tr>
+</table>
+</body>
+</html>
             """;
 
-    // ─── 08 · Quittance de loyer disponible ─────────────────────────────────────────
+    // ─── 10 · quittance ─────────────────────────────
     public static final String SUJET_MAIL_QUITTANCE =
-            "KUPANGA — Votre quittance de loyer est disponible";
+            "Votre quittance de loyer est disponible · Kupanga";
 
     // %1$s = prénom/nom locataire · %2$s = mois + année · %3$s = adresse
-    // %4$s = loyer HC · %5$s = charges · %6$s = total · %7$s = date paiement
+    // %4$s = loyer HC · %5$s = charges · %6$s = total · %7$s = date paiement (formatée)
+    // %8$s = NOUVEAU : bloc « Document joint » (BLOC_PIECE_JOINTE rempli, ou chaîne vide sans PDF)
     public static final String CONTENU_MAIL_QUITTANCE =
             """
-            <!DOCTYPE html>
-            <html lang="fr">
-            <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-            </head>
-            <body style="margin:0; padding:0; background:#FAFAF4; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;">
-            <div style="display:none; max-height:0; overflow:hidden;">Quittance de loyer %2$s disponible.</div>
-
-            <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" style="background:#FAFAF4; padding:32px 16px;">
-              <tr><td align="center">
-                <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px; width:100%%; background:#FFFFFF; border:1px solid rgba(143,164,100,0.18);">
-
-              <tr><td style="background:#10212B; padding:18px 32px;">
-                <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0"><tr>
-                  <td style="vertical-align:middle;">
-                    <span style="display:inline-block; width:10px; height:10px; background:#8FA464; vertical-align:middle; margin-right:10px;"></span>
-                    <span style="font-family:'DM Serif Display', Georgia, 'Times New Roman', serif; font-size:22px; color:#EFFBDB; vertical-align:middle; letter-spacing:-0.01em; line-height:1;">kupanga</span>
-                  </td>
-                  <td style="text-align:right; vertical-align:middle; font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:9.5px; letter-spacing:0.22em; text-transform:uppercase; color:#B5CA8D;">
-                    Gestion locative
-                  </td>
-                </tr></table>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:32px 32px 0;">
-                <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-                  <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:9.5px; letter-spacing:0.28em; text-transform:uppercase; color:#6B7C4B; padding-bottom:10px; border-bottom:1px solid #8FA464;">
-                    Quittance disponible
-                  </td>
-                </tr></table>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:20px 32px 4px;">
-                <h1 style="font-family:'DM Serif Display', Georgia, 'Times New Roman', serif; font-size:30px; line-height:1.15; margin:0; color:#10212B; font-weight:400; letter-spacing:-0.01em;">
-                  Votre quittance de loyer
-                </h1>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:10px 32px;">
-                <p style="margin:0; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:14px; line-height:1.65; color:#3A4F5C; font-weight:300;">
-                  Bonjour <strong>%1$s</strong>,
-                </p>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:10px 32px;">
-                <p style="margin:0; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:14px; line-height:1.65; color:#3A4F5C; font-weight:300;">
-                  Votre propriétaire vous adresse la quittance de loyer pour le mois de <strong>%2$s</strong> concernant le logement situé au <strong>%3$s</strong>.
-                </p>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:8px 32px;">
-                <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" style="background:#FAFAF4; border:1px solid rgba(143,164,100,0.20); border-radius:10px;">
-                  <tr><td style="padding:6px 18px 10px;">
-                    <div style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:9.5px; letter-spacing:0.25em; text-transform:uppercase; color:#6B7C4B; padding:8px 0 4px;">
-                      Récapitulatif
-                    </div>
-                    <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0">
-                  <tr>
-                    <td style="font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:13px; color:#3A4F5C; padding:8px 0; border-bottom:1px dotted rgba(143,164,100,0.35); font-weight:400;">Loyer mensuel hors charges</td>
-                    <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:13px; color:#10212B; font-weight:500; text-align:right; padding:8px 0; border-bottom:1px dotted rgba(143,164,100,0.35);"><strong>%4$s</strong></td>
-                  </tr>
-                  <tr>
-                    <td style="font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:13px; color:#3A4F5C; padding:8px 0; border-bottom:1px dotted rgba(143,164,100,0.35); font-weight:400;">Charges mensuelles</td>
-                    <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:13px; color:#10212B; font-weight:500; text-align:right; padding:8px 0; border-bottom:1px dotted rgba(143,164,100,0.35);"><strong>%5$s</strong></td>
-                  </tr>
-                  <tr>
-                    <td style="font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:13px; color:#3A4F5C; padding:8px 0; border-bottom:1px dotted rgba(143,164,100,0.35); font-weight:400;">Total encaissé</td>
-                    <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:13px; color:#10212B; font-weight:500; text-align:right; padding:8px 0; border-bottom:1px dotted rgba(143,164,100,0.35);"><strong>%6$s</strong></td>
-                  </tr>
-                  <tr>
-                    <td style="font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:13px; color:#3A4F5C; padding:8px 0; font-weight:400;">Date de paiement</td>
-                    <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:13px; color:#10212B; font-weight:500; text-align:right; padding:8px 0;"><strong>%7$s</strong></td>
-                  </tr></table>
-                  </td></tr>
-                </table>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:10px 32px;">
-                <p style="margin:0; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:14px; line-height:1.65; color:#3A4F5C; font-weight:300;">
-                  La quittance est disponible en pièce jointe de cet email. Conservez-la précieusement — elle constitue la preuve de votre paiement.
-                </p>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:10px 32px;">
-                <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" style="background:rgba(143,164,100,0.10); border-left:3px solid #8FA464;">
-                  <tr><td style="padding:12px 16px; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:13px; color:#4F5F37; line-height:1.55;">
-                    Cette quittance a valeur de reçu officiel conformément à l'article 21 de la loi du 6 juillet 1989.
-                  </td></tr>
-                </table>
-              </td></tr>
-
-              <tr><td style="background:#FFFFFF; padding:28px 32px 32px;">
-                <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-                  <td style="border-top:1px solid rgba(143,164,100,0.20); padding-top:16px; font-family:'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size:13px; color:#3A4F5C; line-height:1.7; font-weight:300;">
-                    À très bientôt sur KUPANGA,<br/>L'équipe KUPANGA
-                  </td>
-                </tr></table>
-              </td></tr>
-
-              <tr><td style="background:#10212B; padding:16px 32px;">
-                <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0"><tr>
-                  <td style="font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:9px; letter-spacing:0.20em; text-transform:uppercase; color:#B5CA8D;">
-                    <span style="display:inline-block; width:5px; height:5px; background:#8FA464; margin-right:8px; vertical-align:middle;"></span>
-                    <span style="color:#EFFBDB; vertical-align:middle;">Kupanga</span><span style="vertical-align:middle;"> · Gestion locative</span>
-                  </td>
-                  <td style="text-align:right; font-family:'DM Mono', 'Consolas', 'Courier New', monospace; font-size:9px; letter-spacing:0.20em; text-transform:uppercase; color:#6B7C4B;">
-                    kupanga.fr
-                  </td>
-                </tr></table>
-              </td></tr>
-                </table>
-              </td></tr>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Kupanga</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  body { margin:0; padding:0; }
+  .kp-tab { font-variant-numeric:tabular-nums; }
+  @media (max-width:480px) {
+    .kp-out { padding:16px 8px !important; }
+    .kp-pad { padding-left:20px !important; padding-right:20px !important; }
+    .kp-h1 { font-size:22px !important; line-height:28px !important; }
+    .kp-btnwrap { width:100%% !important; }
+    .kp-btn a { display:block !important; text-align:center !important; }
+  }
+  @media (prefers-color-scheme:dark) {
+    .kp-bg { background:#0b181f !important; }
+    .kp-card { background:#10212b !important; border-color:#1f3644 !important; }
+    .kp-t1 { color:#effbdb !important; }
+    .kp-t2 { color:#c3cdbf !important; }
+    .kp-t3 { color:#93a19a !important; }
+    .kp-acc { color:#a1b577 !important; }
+    .kp-box { background:#0b181f !important; }
+    .kp-line { border-color:#1f3644 !important; }
+    .kp-btn { background:#a1b577 !important; }
+    .kp-btn a { color:#10212b !important; }
+    .kp-info { background:#1b2d1c !important; color:#d6e3bd !important; }
+    .kp-warn { background:#33270f !important; color:#f1d9a8 !important; }
+    .kp-ico { background:#1b2d1c !important; color:#a1b577 !important; }
+    .kp-logo-clair { display:none !important; }
+    .kp-logo-sombre { display:block !important; max-height:none !important; height:32px !important; }
+  }
+</style>
+</head>
+<body style="margin:0; padding:0; background:#f4f5f1;">
+<div style="display:none; max-height:0; overflow:hidden; mso-hide:all; font-size:1px; line-height:1px; color:#f4f5f1;">Quittance de loyer, %2$s.</div>
+<table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" class="kp-bg" style="background:#f4f5f1;">
+  <tr><td align="center" class="kp-out" style="padding:32px 16px;">
+    <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" class="kp-card" style="width:100%%; max-width:600px; background:#ffffff; border:1px solid #e2e4e6; border-radius:20px;">
+      <tr><td class="kp-pad" style="padding:28px 40px 0;">
+        <a href="{{URL_APP}}" style="text-decoration:none;">
+          <img class="kp-logo-clair" src="{{URL_APP}}email/kupanga-logo-clair.png" width="138" height="32" alt="kupanga" style="display:block; width:138px; height:32px; border:0; outline:none; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:22px; line-height:32px; font-weight:600; color:#10212b;">
+          <!--[if !mso]><!--><img class="kp-logo-sombre" src="{{URL_APP}}email/kupanga-logo-sombre.png" width="138" height="32" alt="kupanga" style="display:none; max-height:0; overflow:hidden; mso-hide:all; width:138px; border:0; outline:none;"><!--<![endif]-->
+        </a>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:32px 40px 0;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+          <td style="background:#e5f1e8; border-radius:999px; padding:2px 10px 2px 8px; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:13px; line-height:20px; font-weight:500; color:#22663a;"><span style="color:#2f8a4e;">&#9679;</span>&nbsp;Quittance signée</td>
+        </tr></table>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:12px 40px 0;">
+        <h1 class="kp-t1 kp-h1" style="margin:0; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:26px; line-height:32px; font-weight:500; letter-spacing:-0.01em; color:#10212b;">Votre quittance de loyer</h1>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:16px 40px 0;">
+        <p class="kp-t2" style="margin:0; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:24px; color:#46545c;">Bonjour %1$s,</p>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:12px 40px 0;">
+        <p class="kp-t2" style="margin:0; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:24px; color:#46545c;">Votre propriétaire a confirmé avoir reçu votre loyer. Voici la quittance correspondante.</p>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:24px 40px 0;">
+        <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" class="kp-box" style="background:#edefe8; border-radius:12px;">
+          <tr><td style="padding:8px 20px;">
+            <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0">
+            <tr><td style="padding:10px 0;">
+              <div class="kp-t3" style="font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:13px; line-height:18px; color:#636f76;">Période</div>
+              <div class="kp-t1 kp-tab" style="font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:22px; font-weight:500; color:#10212b;">%2$s</div>
+            </td></tr><tr><td style="padding:10px 0;">
+              <div class="kp-t3" style="font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:13px; line-height:18px; color:#636f76;">Logement</div>
+              <div class="kp-t1 kp-tab" style="font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:22px; font-weight:500; color:#10212b;">%3$s</div>
+            </td></tr><tr><td style="padding:10px 0;">
+              <div class="kp-t3" style="font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:13px; line-height:18px; color:#636f76;">Loyer hors charges</div>
+              <div class="kp-t1 kp-tab" style="font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:22px; font-weight:500; color:#10212b;">%4$s</div>
+            </td></tr><tr><td style="padding:10px 0;">
+              <div class="kp-t3" style="font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:13px; line-height:18px; color:#636f76;">Charges</div>
+              <div class="kp-t1 kp-tab" style="font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:22px; font-weight:500; color:#10212b;">%5$s</div>
+            </td></tr><tr><td style="padding:10px 0;">
+              <div class="kp-t3" style="font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:13px; line-height:18px; color:#636f76;">Payé le</div>
+              <div class="kp-t1 kp-tab" style="font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:22px; font-weight:500; color:#10212b;">%7$s</div>
+            </td></tr><tr><td style="padding:10px 0;">
+              <div class="kp-t3" style="font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:13px; line-height:18px; color:#636f76;">Total payé</div>
+              <div class="kp-t1 kp-tab" style="font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:20px; line-height:28px; font-weight:500; color:#10212b;">%6$s</div>
+            </td></tr>
             </table>
-            </body>
-            </html>
+          </td></tr>
+        </table>
+      </td></tr>%8$s
+      <tr><td class="kp-pad" style="padding:20px 40px 0;">
+        <p class="kp-t3" style="margin:0; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:13px; line-height:20px; color:#636f76;">Cette quittance a valeur de reçu, conformément à l'article 21 de la loi du 6 juillet 1989.</p>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:28px 40px 0;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" class="kp-btnwrap"><tr>
+          <td class="kp-btn" bgcolor="#4f6a2e" style="background:#4f6a2e; border-radius:999px;">
+            <a href="{{URL_APP}}documents" style="display:inline-block; padding:13px 28px; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:20px; font-weight:500; color:#ffffff; text-decoration:none; border-radius:999px;">Voir mes quittances</a>
+          </td>
+        </tr></table>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:28px 40px 36px;">
+        <p class="kp-t2" style="margin:0; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:24px; color:#46545c;">L'équipe Kupanga</p>
+      </td></tr>
+    </table>
+    <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%%; max-width:600px;">
+      <tr><td class="kp-t3" align="center" style="padding:20px 24px 0; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:12px; line-height:18px; color:#636f76;">
+        Kupanga · location entre particuliers, en France et en RDC<br>
+        <a href="{{URL_APP}}" class="kp-t3" style="color:#636f76; text-decoration:underline;">{{DOMAINE_APP}}</a>
+      </td></tr>
+    </table>
+  </td></tr>
+</table>
+</body>
+</html>
             """;
 
+    // ─── 11 · demande-location ─────────────────────────────
+    public static final String SUJET_MAIL_DEMANDE_LOCATION =
+            "Un propriétaire vous propose son logement · Kupanga";
+
+    // %1$s = prénom/nom locataire · %2$s = prénom/nom propriétaire · %3$s = adresse
+    // %4$s = intitulé du logement · %5$s = date et heure d'expiration (formatées) · %6$s = lien vers les demandes reçues
+    public static final String CONTENU_MAIL_DEMANDE_LOCATION =
+            """
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Kupanga</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  body { margin:0; padding:0; }
+  .kp-tab { font-variant-numeric:tabular-nums; }
+  @media (max-width:480px) {
+    .kp-out { padding:16px 8px !important; }
+    .kp-pad { padding-left:20px !important; padding-right:20px !important; }
+    .kp-h1 { font-size:22px !important; line-height:28px !important; }
+    .kp-btnwrap { width:100%% !important; }
+    .kp-btn a { display:block !important; text-align:center !important; }
+  }
+  @media (prefers-color-scheme:dark) {
+    .kp-bg { background:#0b181f !important; }
+    .kp-card { background:#10212b !important; border-color:#1f3644 !important; }
+    .kp-t1 { color:#effbdb !important; }
+    .kp-t2 { color:#c3cdbf !important; }
+    .kp-t3 { color:#93a19a !important; }
+    .kp-acc { color:#a1b577 !important; }
+    .kp-box { background:#0b181f !important; }
+    .kp-line { border-color:#1f3644 !important; }
+    .kp-btn { background:#a1b577 !important; }
+    .kp-btn a { color:#10212b !important; }
+    .kp-info { background:#1b2d1c !important; color:#d6e3bd !important; }
+    .kp-warn { background:#33270f !important; color:#f1d9a8 !important; }
+    .kp-ico { background:#1b2d1c !important; color:#a1b577 !important; }
+    .kp-logo-clair { display:none !important; }
+    .kp-logo-sombre { display:block !important; max-height:none !important; height:32px !important; }
+  }
+</style>
+</head>
+<body style="margin:0; padding:0; background:#f4f5f1;">
+<div style="display:none; max-height:0; overflow:hidden; mso-hide:all; font-size:1px; line-height:1px; color:#f4f5f1;">%2$s vous propose son logement. Réponse attendue avant le %5$s.</div>
+<table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" class="kp-bg" style="background:#f4f5f1;">
+  <tr><td align="center" class="kp-out" style="padding:32px 16px;">
+    <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" class="kp-card" style="width:100%%; max-width:600px; background:#ffffff; border:1px solid #e2e4e6; border-radius:20px;">
+      <tr><td class="kp-pad" style="padding:28px 40px 0;">
+        <a href="{{URL_APP}}" style="text-decoration:none;">
+          <img class="kp-logo-clair" src="{{URL_APP}}email/kupanga-logo-clair.png" width="138" height="32" alt="kupanga" style="display:block; width:138px; height:32px; border:0; outline:none; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:22px; line-height:32px; font-weight:600; color:#10212b;">
+          <!--[if !mso]><!--><img class="kp-logo-sombre" src="{{URL_APP}}email/kupanga-logo-sombre.png" width="138" height="32" alt="kupanga" style="display:none; max-height:0; overflow:hidden; mso-hide:all; width:138px; border:0; outline:none;"><!--<![endif]-->
+        </a>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:32px 40px 0;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+          <td style="background:#fbefdd; border-radius:999px; padding:2px 10px 2px 8px; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:13px; line-height:20px; font-weight:500; color:#8a5a12;"><span style="color:#b7791f;">&#9679;</span>&nbsp;Réponse attendue</td>
+        </tr></table>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:12px 40px 0;">
+        <h1 class="kp-t1 kp-h1" style="margin:0; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:26px; line-height:32px; font-weight:500; letter-spacing:-0.01em; color:#10212b;">%2$s vous propose son logement</h1>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:16px 40px 0;">
+        <p class="kp-t2" style="margin:0; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:24px; color:#46545c;">Bonjour %1$s,</p>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:12px 40px 0;">
+        <p class="kp-t2" style="margin:0; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:24px; color:#46545c;"><strong>%2$s</strong> vous propose de devenir locataire de son logement. Il ne vous sera attribué que si vous acceptez.</p>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:24px 40px 0;">
+        <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" class="kp-box" style="background:#edefe8; border-radius:12px;">
+          <tr><td style="padding:8px 20px;">
+            <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0">
+            <tr><td style="padding:10px 0;">
+              <div class="kp-t3" style="font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:13px; line-height:18px; color:#636f76;">Logement</div>
+              <div class="kp-t1 kp-tab" style="font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:22px; font-weight:500; color:#10212b;">%4$s</div>
+            </td></tr><tr><td style="padding:10px 0;">
+              <div class="kp-t3" style="font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:13px; line-height:18px; color:#636f76;">Adresse</div>
+              <div class="kp-t1 kp-tab" style="font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:22px; font-weight:500; color:#10212b;">%3$s</div>
+            </td></tr><tr><td style="padding:10px 0;">
+              <div class="kp-t3" style="font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:13px; line-height:18px; color:#636f76;">Répondre avant le</div>
+              <div class="kp-t1 kp-tab" style="font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:22px; font-weight:500; color:#10212b;">%5$s</div>
+            </td></tr>
+            </table>
+          </td></tr>
+        </table>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:28px 40px 0;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" class="kp-btnwrap"><tr>
+          <td class="kp-btn" bgcolor="#4f6a2e" style="background:#4f6a2e; border-radius:999px;">
+            <a href="%6$s" style="display:inline-block; padding:13px 28px; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:20px; font-weight:500; color:#ffffff; text-decoration:none; border-radius:999px;">Voir la demande</a>
+          </td>
+        </tr></table>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:20px 40px 0;">
+        <p class="kp-t3" style="margin:0; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:13px; line-height:20px; color:#636f76;">Sans réponse avant le %5$s, la demande expire. Vous ne connaissez pas ce propriétaire ? Ignorez cet e-mail.</p>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:28px 40px 36px;">
+        <p class="kp-t2" style="margin:0; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:24px; color:#46545c;">L'équipe Kupanga</p>
+      </td></tr>
+    </table>
+    <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%%; max-width:600px;">
+      <tr><td class="kp-t3" align="center" style="padding:20px 24px 0; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:12px; line-height:18px; color:#636f76;">
+        Kupanga · location entre particuliers, en France et en RDC<br>
+        <a href="{{URL_APP}}" class="kp-t3" style="color:#636f76; text-decoration:underline;">{{DOMAINE_APP}}</a>
+      </td></tr>
+    </table>
+  </td></tr>
+</table>
+</body>
+</html>
+            """;
+
+    // ─── 12 à 18 · Fin de réservation, congé, fin de bail ─────────────
+    // Sujet construit par EmailServiceImpl selon le cas.
+    // CHANGEMENT DE PARAMÈTRES (les 3 appels sont dans EmailServiceImpl) :
+    // %1$s = prénom/nom destinataire · %2$s = badge d'état (BLOC_BADGE rempli) · %3$s = titre
+    // %4$s = message (HTML, valeurs déjà échappées) · %5$s = libellé du bouton · %6$s = lien
+    // %7$s = lignes du récapitulatif (LIGNE_RECAP remplies, concaténées) · %8$s = texte d'aperçu (preheader)
+    public static final String CONTENU_MAIL_FIN_RESERVATION =
+            """
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Kupanga</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  body { margin:0; padding:0; }
+  .kp-tab { font-variant-numeric:tabular-nums; }
+  @media (max-width:480px) {
+    .kp-out { padding:16px 8px !important; }
+    .kp-pad { padding-left:20px !important; padding-right:20px !important; }
+    .kp-h1 { font-size:22px !important; line-height:28px !important; }
+    .kp-btnwrap { width:100%% !important; }
+    .kp-btn a { display:block !important; text-align:center !important; }
+  }
+  @media (prefers-color-scheme:dark) {
+    .kp-bg { background:#0b181f !important; }
+    .kp-card { background:#10212b !important; border-color:#1f3644 !important; }
+    .kp-t1 { color:#effbdb !important; }
+    .kp-t2 { color:#c3cdbf !important; }
+    .kp-t3 { color:#93a19a !important; }
+    .kp-acc { color:#a1b577 !important; }
+    .kp-box { background:#0b181f !important; }
+    .kp-line { border-color:#1f3644 !important; }
+    .kp-btn { background:#a1b577 !important; }
+    .kp-btn a { color:#10212b !important; }
+    .kp-info { background:#1b2d1c !important; color:#d6e3bd !important; }
+    .kp-warn { background:#33270f !important; color:#f1d9a8 !important; }
+    .kp-ico { background:#1b2d1c !important; color:#a1b577 !important; }
+    .kp-logo-clair { display:none !important; }
+    .kp-logo-sombre { display:block !important; max-height:none !important; height:32px !important; }
+  }
+</style>
+</head>
+<body style="margin:0; padding:0; background:#f4f5f1;">
+<div style="display:none; max-height:0; overflow:hidden; mso-hide:all; font-size:1px; line-height:1px; color:#f4f5f1;">%8$s</div>
+<table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" class="kp-bg" style="background:#f4f5f1;">
+  <tr><td align="center" class="kp-out" style="padding:32px 16px;">
+    <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" class="kp-card" style="width:100%%; max-width:600px; background:#ffffff; border:1px solid #e2e4e6; border-radius:20px;">
+      <tr><td class="kp-pad" style="padding:28px 40px 0;">
+        <a href="{{URL_APP}}" style="text-decoration:none;">
+          <img class="kp-logo-clair" src="{{URL_APP}}email/kupanga-logo-clair.png" width="138" height="32" alt="kupanga" style="display:block; width:138px; height:32px; border:0; outline:none; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:22px; line-height:32px; font-weight:600; color:#10212b;">
+          <!--[if !mso]><!--><img class="kp-logo-sombre" src="{{URL_APP}}email/kupanga-logo-sombre.png" width="138" height="32" alt="kupanga" style="display:none; max-height:0; overflow:hidden; mso-hide:all; width:138px; border:0; outline:none;"><!--<![endif]-->
+        </a>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:32px 40px 0;">
+        %2$s
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:12px 40px 0;">
+        <h1 class="kp-t1 kp-h1" style="margin:0; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:26px; line-height:32px; font-weight:500; letter-spacing:-0.01em; color:#10212b;">%3$s</h1>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:16px 40px 0;">
+        <p class="kp-t2" style="margin:0; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:24px; color:#46545c;">Bonjour %1$s,</p>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:12px 40px 0;">
+        <p class="kp-t2" style="margin:0; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:24px; color:#46545c;">%4$s</p>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:24px 40px 0;">
+        <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" class="kp-box" style="background:#edefe8; border-radius:12px;">
+          <tr><td style="padding:8px 20px;">
+            <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0">
+            %7$s
+            </table>
+          </td></tr>
+        </table>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:28px 40px 0;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" class="kp-btnwrap"><tr>
+          <td class="kp-btn" bgcolor="#4f6a2e" style="background:#4f6a2e; border-radius:999px;">
+            <a href="%6$s" style="display:inline-block; padding:13px 28px; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:20px; font-weight:500; color:#ffffff; text-decoration:none; border-radius:999px;">%5$s</a>
+          </td>
+        </tr></table>
+      </td></tr>
+      <tr><td class="kp-pad" style="padding:28px 40px 36px;">
+        <p class="kp-t2" style="margin:0; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:24px; color:#46545c;">L'équipe Kupanga</p>
+      </td></tr>
+    </table>
+    <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%%; max-width:600px;">
+      <tr><td class="kp-t3" align="center" style="padding:20px 24px 0; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:12px; line-height:18px; color:#636f76;">
+        Kupanga · location entre particuliers, en France et en RDC<br>
+        <a href="{{URL_APP}}" class="kp-t3" style="color:#636f76; text-decoration:underline;">{{DOMAINE_APP}}</a>
+      </td></tr>
+    </table>
+  </td></tr>
+</table>
+</body>
+</html>
+            """;
+
+    // ─── Blocs réutilisables (remplis dans EmailServiceImpl) ─────────────
+    // %1$s = nom du fichier (échappé) · %2$s = nature du document (« Bail signé »…)
+    public static final String BLOC_PIECE_JOINTE =
+            """
+
+      <tr><td class="kp-pad" style="padding:24px 40px 0;">
+        <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" class="kp-line" style="border:1px solid #e2e4e6; border-radius:12px;">
+          <tr>
+            <td width="52" valign="top" style="padding:14px 0 14px 16px;">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+                <td class="kp-ico" align="center" valign="middle" width="36" height="44" style="width:36px; height:44px; background:#edf3e0; border-radius:6px; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:11px; line-height:44px; font-weight:600; color:#4f6a2e;">PDF</td>
+              </tr></table>
+            </td>
+            <td valign="middle" style="padding:14px 16px 14px 12px;">
+              <div class="kp-t1" style="font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:22px; font-weight:500; color:#10212b; word-break:break-all;">%1$s</div>
+              <div class="kp-t3" style="font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:13px; line-height:20px; color:#636f76;">%2$s · PDF joint à cet e-mail. Disponible aussi dans Kupanga, rubrique Documents.</div>
+            </td>
+          </tr>
+        </table>
+      </td></tr>
+            """;
+
+    // %1$s = fond · %2$s = couleur du texte · %3$s = couleur du point · %4$s = libellé
+    public static final String BLOC_BADGE =
+            """
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+          <td style="background:%1$s; border-radius:999px; padding:2px 10px 2px 8px; font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:13px; line-height:20px; font-weight:500; color:%2$s;"><span style="color:%3$s;">&#9679;</span>&nbsp;%4$s</td>
+        </tr></table>
+            """;
+
+    // %1$s = libellé · %2$s = valeur (échappée)
+    public static final String LIGNE_RECAP =
+            """
+            <tr><td style="padding:10px 0;">
+              <div class="kp-t3" style="font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:13px; line-height:18px; color:#636f76;">%1$s</div>
+              <div class="kp-t1 kp-tab" style="font-family:Figtree,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; line-height:22px; font-weight:500; color:#10212b;">%2$s</div>
+            </td></tr>
+            """;
 }
