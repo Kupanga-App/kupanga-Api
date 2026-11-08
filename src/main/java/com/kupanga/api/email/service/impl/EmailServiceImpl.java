@@ -20,8 +20,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.HtmlUtils;
 
+import java.net.URI;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Locale;
 
 import static com.kupanga.api.email.constantes.Constante.*;
 import static com.kupanga.api.stockage.constant.StockageConstant.CONTRAT_BUCKET;
@@ -35,6 +39,30 @@ import static com.kupanga.api.stockage.constant.StockageConstant.QUITTANCE_BUCKE
 @Service
 @Slf4j
 public class EmailServiceImpl implements EmailService {
+
+    /** Dates des e-mails : « 1 décembre 2026 » (au lieu du toString() ISO « 2026-12-01 »). */
+    private static final DateTimeFormatter FORMAT_DATE = DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.FRENCH);
+    /** Date et heure : « 11 novembre 2026 à 18 h 30 ». */
+    private static final DateTimeFormatter FORMAT_DATE_HEURE =
+            DateTimeFormatter.ofPattern("d MMMM yyyy 'à' H 'h' mm", Locale.FRENCH);
+
+    /** Tons des badges d'état, identiques aux badges de l'interface (fond, texte, point). */
+    private enum Ton {
+        SUCCES("#e5f1e8", "#22663a", "#2f8a4e"),
+        ATTENTE("#fbefdd", "#8a5a12", "#b7791f"),
+        ALERTE("#fbe9e7", "#8e1b12", "#b42318"),
+        NEUTRE("#edefe8", "#46545c", "#66737a");
+
+        final String fond;
+        final String texte;
+        final String point;
+
+        Ton(String fond, String texte, String point) {
+            this.fond = fond;
+            this.texte = texte;
+            this.point = point;
+        }
+    }
 
     private final FileEmails fileEmails;
     private final String resetLink;
@@ -61,7 +89,7 @@ public class EmailServiceImpl implements EmailService {
         publier(TypeEmail.BIENVENUE, EmailSortant.html(
                 destinataire,
                 String.format(SUJET_MAIL_BIENVENUE_PROFIL_COMPLETE, prenom),
-                String.format(CONTENU_MAIL_BIENVENUE_PROFIL_COMPLETE, echapper(prenom), echapper(prenom))
+                finaliser(String.format(CONTENU_MAIL_BIENVENUE_PROFIL_COMPLETE, echapper(prenom), echapper(prenom)))
         ), null);
     }
 
@@ -70,7 +98,8 @@ public class EmailServiceImpl implements EmailService {
         publier(TypeEmail.VERIFICATION_EMAIL, EmailSortant.html(
                 destinataire,
                 SUJET_MAIL_VERIFICATION_EMAIL,
-                String.format(CONTENU_MAIL_VERIFICATION_EMAIL, echapper(prenom), appUrl + "auth/verifier-email?token=" + token)
+                finaliser(String.format(CONTENU_MAIL_VERIFICATION_EMAIL, echapper(prenom),
+                        appUrl + "auth/verifier-email?token=" + token))
         ), null);
     }
 
@@ -79,7 +108,7 @@ public class EmailServiceImpl implements EmailService {
         publier(TypeEmail.TENTATIVE_INSCRIPTION, EmailSortant.html(
                 destinataire,
                 SUJET_MAIL_TENTATIVE_INSCRIPTION,
-                String.format(CONTENU_MAIL_TENTATIVE_INSCRIPTION, appUrl + "auth/forgot")
+                finaliser(String.format(CONTENU_MAIL_TENTATIVE_INSCRIPTION, appUrl + "auth/forgot"))
         ), null);
     }
 
@@ -88,7 +117,7 @@ public class EmailServiceImpl implements EmailService {
         publier(TypeEmail.RESET_MOT_DE_PASSE, EmailSortant.html(
                 destinataire,
                 SUJET_MAIL_REINITIALISATION_MOT_DE_PASSE,
-                String.format(CONTENU_MAIL_REINITIALISATION_MOT_DE_PASSE, resetLink + resetToken)
+                finaliser(String.format(CONTENU_MAIL_REINITIALISATION_MOT_DE_PASSE, resetLink + resetToken))
         ), null);
     }
 
@@ -97,7 +126,7 @@ public class EmailServiceImpl implements EmailService {
         publier(TypeEmail.MOT_DE_PASSE_MODIFIE, EmailSortant.html(
                 destinataire,
                 SUJET_MAIL_CONFIRMATION_MOT_DE_PASSE,
-                String.format(CONTENU_MAIL_CONFIRMATION_MOT_DE_PASSE, urlLogin)
+                finaliser(String.format(CONTENU_MAIL_CONFIRMATION_MOT_DE_PASSE, urlLogin))
         ), null);
     }
 
@@ -112,7 +141,7 @@ public class EmailServiceImpl implements EmailService {
         publier(TypeEmail.INVITATION_SIGNATURE_CONTRAT, EmailSortant.html(
                 contrat.getLocataire().getMail(),
                 SUJET_MAIL_INVITATION_SIGNATURE,
-                String.format(CONTENU_MAIL_INVITATION_SIGNATURE,
+                finaliser(String.format(CONTENU_MAIL_INVITATION_SIGNATURE,
                         prenomProprietaire,
                         prenomLocataire,
                         prenomProprietaire,
@@ -120,9 +149,9 @@ public class EmailServiceImpl implements EmailService {
                         montants(contrat).f(contrat.getLoyerMensuel()),
                         montants(contrat).f(contrat.getChargesMensuelles()),
                         montants(contrat).f(contrat.getDepotGarantie()),
-                        contrat.getDateDebut(),
+                        date(contrat.getDateDebut()),
                         contrat.getDureeBailMois(),
-                        lienSignature)
+                        lienSignature))
         ), null);
     }
 
@@ -147,13 +176,13 @@ public class EmailServiceImpl implements EmailService {
         publier(TypeEmail.INVITATION_SIGNATURE_EDL, EmailSortant.html(
                 edl.getLocataire().getMail(),
                 SUJET_MAIL_INVITATION_SIGNATURE_EDL,
-                String.format(CONTENU_MAIL_INVITATION_SIGNATURE_EDL,
+                finaliser(String.format(CONTENU_MAIL_INVITATION_SIGNATURE_EDL,
                         prenomNomLocataire,
                         prenomNomProprietaire,
                         adresse,
                         typeEdl,
-                        edl.getDateRealisation().toString(),
-                        lienSignature)
+                        date(edl.getDateRealisation()),
+                        lienSignature))
         ), null);
         log.debug("E-mail d'invitation à signer l'EDL {} préparé", edl.getId());
     }
@@ -171,13 +200,13 @@ public class EmailServiceImpl implements EmailService {
         publier(TypeEmail.DEMANDE_LOCATION, EmailSortant.html(
                 demande.getLocataire().getMail(),
                 SUJET_MAIL_DEMANDE_LOCATION,
-                String.format(CONTENU_MAIL_DEMANDE_LOCATION,
+                finaliser(String.format(CONTENU_MAIL_DEMANDE_LOCATION,
                         fullName(demande.getLocataire().getFirstName(), demande.getLocataire().getLastName()),
                         fullName(demande.getProprietaire().getFirstName(), demande.getProprietaire().getLastName()),
                         buildAdresse(demande.getBien()),
                         echapper(demande.getBien().getTitre()),
-                        demande.getDateExpiration().format(DateTimeFormatter.ofPattern("dd/MM/yyyy 'à' HH'h'mm")),
-                        appUrl + "demandes-location")
+                        dateHeure(demande.getDateExpiration()),
+                        appUrl + "demandes-location"))
         ), null);
         log.debug("E-mail de demande de location {} préparé", demande.getId());
     }
@@ -188,22 +217,35 @@ public class EmailServiceImpl implements EmailService {
         boolean auProprietaire = destinataire.getId().equals(location.getProprietaire().getId());
         User auteur = auProprietaire ? location.getLocataire() : location.getProprietaire();
         String adresse = buildAdresse(bien);
-        String date = location.getDateFinPrevue() != null
-                ? location.getDateFinPrevue().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) : null;
-        String message = retire
-                ? "<strong>" + fullName(auteur.getFirstName(), auteur.getLastName()) + "</strong> a retiré son congé "
-                  + "pour le logement situé au <strong>" + adresse + "</strong> : le bail continue."
-                : "<strong>" + fullName(auteur.getFirstName(), auteur.getLastName()) + "</strong> a donné congé pour "
-                  + "le logement situé au <strong>" + adresse + "</strong>. Le bail prendra fin le <strong>" + date
-                  + "</strong>. Pensez à prévoir l'état des lieux de sortie.";
+        String nomAuteur = fullName(auteur.getFirstName(), auteur.getLastName());
+        String date = date(location.getDateFinPrevue());
+        String lignesLogement = ligne("Logement", echapper(bien.getTitre())) + ligne("Adresse", adresse);
+        String titre;
+        String message;
+        String recap;
+        String apercu;
+        String badge;
+        if (retire) {
+            titre = "Le congé a été retiré";
+            message = "<strong>" + nomAuteur + "</strong> a retiré son congé : le bail continue normalement.";
+            recap = lignesLogement + ligne("Congé retiré par", nomAuteur);
+            apercu = nomAuteur + " a retiré son congé : le bail continue.";
+            badge = badge("Le bail continue", Ton.SUCCES);
+        } else {
+            titre = "Un congé a été donné";
+            message = "<strong>" + nomAuteur + "</strong> a donné congé. Le bail prendra fin le <strong>" + date
+                    + "</strong>. Pensez à prévoir l'état des lieux de sortie.";
+            recap = lignesLogement + ligne("Congé donné par", nomAuteur) + ligne("Fin du bail", date);
+            apercu = nomAuteur + " a donné congé. Fin du bail le " + date + ".";
+            badge = badge("Congé donné", Ton.ATTENTE);
+        }
         String lien = auProprietaire ? appUrl + "biens/" + bien.getId() : appUrl + "mon-logement?bien=" + bien.getId();
         publier(TypeEmail.CONGE, EmailSortant.html(
                 destinataire.getMail(),
-                retire ? "Kupanga : congé retiré" : "Kupanga : congé pour votre location",
-                String.format(CONTENU_MAIL_FIN_RESERVATION,
+                retire ? "Congé retiré · Kupanga" : "Congé donné pour votre location · Kupanga",
+                finaliser(String.format(CONTENU_MAIL_FIN_RESERVATION,
                         fullName(destinataire.getFirstName(), destinataire.getLastName()),
-                        retire ? "Congé retiré" : "Congé", message, "Voir le logement", lien, adresse,
-                        echapper(bien.getTitre()))
+                        badge, titre, message, "Voir le logement", lien, recap, apercu))
         ), null);
         log.debug("E-mail de congé (location {}) préparé", location.getId());
     }
@@ -215,18 +257,21 @@ public class EmailServiceImpl implements EmailService {
         String adresse = buildAdresse(bien);
         FormatMontant montants = juridictionRegistry.formatMontant(bien.getPays(), bien.getDevise());
         String depot = location.getDepotRestitue() != null ? montants.f(location.getDepotRestitue()) : "—";
-        String message = "Le bail du logement situé au <strong>" + adresse + "</strong> est terminé. "
-                + "Dépôt de garantie restitué : <strong>" + depot + "</strong>."
+        String message = "Le bail de ce logement est terminé. "
+                + "Votre bail, vos états des lieux et vos quittances restent disponibles dans Kupanga.";
+        String recap = ligne("Logement", echapper(bien.getTitre())) + ligne("Adresse", adresse)
+                + ligne("Dépôt de garantie restitué", depot)
+                // Montant de la retenue : voir changements-textes.md (variable à ajouter si le dépôt initial est connu).
                 + (location.getMotifRetenue() != null
-                   ? " Motif de la retenue : " + echapper(location.getMotifRetenue()) + "." : "")
-                + " Votre bail, vos états des lieux et vos quittances restent disponibles dans Kupanga.";
+                   ? ligne("Motif de la retenue", echapper(location.getMotifRetenue())) : "");
         publier(TypeEmail.FIN_DE_BAIL, EmailSortant.html(
                 locataire.getMail(),
-                "Kupanga : fin de votre bail",
-                String.format(CONTENU_MAIL_FIN_RESERVATION,
+                "Votre bail est terminé · Kupanga",
+                finaliser(String.format(CONTENU_MAIL_FIN_RESERVATION,
                         fullName(locataire.getFirstName(), locataire.getLastName()),
-                        "Fin du bail", message, "Mes documents", appUrl + "documents", adresse,
-                        echapper(bien.getTitre()))
+                        badge("Bail terminé", Ton.NEUTRE), "Votre bail est terminé", message,
+                        "Mes documents", appUrl + "documents", recap,
+                        "Votre bail est terminé. Dépôt de garantie restitué : " + depot + "."))
         ), null);
         log.debug("E-mail de fin de bail (location {}) préparé", location.getId());
     }
@@ -239,32 +284,47 @@ public class EmailServiceImpl implements EmailService {
         String candidat = fullName(location.getLocataire().getFirstName(), location.getLocataire().getLastName());
         String proprietaire = fullName(location.getProprietaire().getFirstName(),
                 location.getProprietaire().getLastName());
+        // L'autre partie : le candidat pour le propriétaire, le propriétaire pour le candidat.
+        String lignesLogement = ligne("Logement", echapper(bien.getTitre())) + ligne("Adresse", adresse)
+                + (auProprietaire ? ligne("Candidat", candidat) : ligne("Propriétaire", proprietaire));
         String sujet;
-        String surtitre;
+        String badge;
+        String titre;
         String message;
+        String recap = lignesLogement;
+        String apercu;
         switch (motif) {
             case DESISTEE -> {
-                sujet = "Kupanga : désistement pour votre logement";
-                surtitre = "Désistement";
-                message = "<strong>" + candidat + "</strong> s'est désisté pour votre logement situé au <strong>"
-                        + adresse + "</strong>, avant de signer le bail. Le bail non signé est annulé et l'annonce "
-                        + "est de nouveau en ligne : vous pouvez proposer le logement à une autre personne.";
+                sujet = "Désistement pour votre logement · Kupanga";
+                badge = badge("Désistement", Ton.ATTENTE);
+                titre = "Désistement pour votre logement";
+                // Formulation sans accord : l'API ne connaît pas le genre de la personne.
+                message = "<strong>" + candidat + "</strong> a renoncé à la location avant de signer le bail. "
+                        + "Le bail non signé est annulé et votre annonce est de nouveau en ligne : "
+                        + "vous pouvez proposer le logement à une autre personne.";
+                apercu = candidat + " a renoncé à la location. Votre annonce est de nouveau en ligne.";
             }
             case ANNULEE -> {
-                sujet = "Kupanga : votre réservation a été retirée";
-                surtitre = "Réservation retirée";
-                message = "<strong>" + proprietaire + "</strong> a retiré votre réservation du logement situé au "
-                        + "<strong>" + adresse + "</strong>. Le bail non signé est annulé.";
+                sujet = "Votre réservation a été retirée · Kupanga";
+                badge = badge("Réservation retirée", Ton.NEUTRE);
+                titre = "Votre réservation a été retirée";
+                message = "<strong>" + proprietaire + "</strong> a retiré votre réservation. Le bail, qui n'était "
+                        + "pas encore signé, est annulé. Vous pouvez chercher un autre logement dans les annonces.";
+                apercu = proprietaire + " a retiré votre réservation. Le bail non signé est annulé.";
             }
             case EXPIREE -> {
-                sujet = "Kupanga : la réservation a expiré";
-                surtitre = "Réservation expirée";
+                sujet = auProprietaire ? "La réservation a expiré · Kupanga" : "Votre réservation a expiré · Kupanga";
+                badge = badge("Réservation expirée", Ton.NEUTRE);
+                titre = auProprietaire ? "La réservation a expiré" : "Votre réservation a expiré";
                 message = auProprietaire
-                        ? "Le bail de votre logement situé au <strong>" + adresse + "</strong> n'a pas été signé "
-                          + "dans les 14 jours : la réservation de <strong>" + candidat + "</strong> a pris fin "
-                          + "et l'annonce est de nouveau en ligne."
-                        : "Votre réservation du logement situé au <strong>" + adresse + "</strong> a pris fin : "
-                          + "le bail n'a pas été signé dans les 14 jours.";
+                        ? "Le bail n'a pas été signé dans les 14 jours : la réservation de <strong>" + candidat
+                          + "</strong> a pris fin et votre annonce est de nouveau en ligne."
+                        : "Le bail n'a pas été signé dans les 14 jours : votre réservation a pris fin. "
+                          + "Vous pouvez chercher un autre logement dans les annonces.";
+                recap = lignesLogement + ligne("Délai", "14 jours sans signature du bail");
+                apercu = auProprietaire
+                        ? "Le bail n'a pas été signé dans les 14 jours. Votre annonce est de nouveau en ligne."
+                        : "Le bail n'a pas été signé dans les 14 jours : votre réservation a pris fin.";
             }
             default -> throw new IllegalArgumentException("Motif de fin de réservation inattendu : " + motif);
         }
@@ -274,9 +334,9 @@ public class EmailServiceImpl implements EmailService {
         publier(TypeEmail.FIN_RESERVATION, EmailSortant.html(
                 destinataire.getMail(),
                 sujet,
-                String.format(CONTENU_MAIL_FIN_RESERVATION,
+                finaliser(String.format(CONTENU_MAIL_FIN_RESERVATION,
                         fullName(destinataire.getFirstName(), destinataire.getLastName()),
-                        surtitre, message, bouton, lien, adresse, echapper(bien.getTitre()))
+                        badge, titre, message, bouton, lien, recap, apercu))
         ), null);
         log.debug("E-mail de fin de réservation {} ({}) préparé", location.getId(), motif);
     }
@@ -286,13 +346,14 @@ public class EmailServiceImpl implements EmailService {
         String moisLabel = echapper(quittance.getMois() + " " + quittance.getAnnee());
         String adresse = buildAdresse(quittance.getBien());
 
-        PdfAJoindre pdf = pdfAJoindre(QUITTANCE_BUCKET, quittance.getClePdf(),
-                String.format("Quittance_%d_%d_%s.pdf", quittance.getId(), quittance.getAnnee(), quittance.getMois()));
+        String nomPdf = String.format("Quittance_%d_%d_%s.pdf",
+                quittance.getId(), quittance.getAnnee(), quittance.getMois());
+        PdfAJoindre pdf = pdfAJoindre(QUITTANCE_BUCKET, quittance.getClePdf(), nomPdf);
 
         publier(TypeEmail.QUITTANCE, EmailSortant.html(
                 quittance.getLocataire().getMail(),
                 SUJET_MAIL_QUITTANCE,
-                String.format(CONTENU_MAIL_QUITTANCE,
+                finaliser(String.format(CONTENU_MAIL_QUITTANCE,
                         fullName(quittance.getLocataire().getFirstName(),
                                 quittance.getLocataire().getLastName()),
                         moisLabel,
@@ -300,8 +361,8 @@ public class EmailServiceImpl implements EmailService {
                         montants(quittance).f(quittance.getLoyerMensuel()),
                         montants(quittance).f(quittance.getChargesMensuelles()),
                         montants(quittance).f(quittance.getMontantTotal()),
-                        quittance.getDatePaiement() != null
-                                ? quittance.getDatePaiement().toString() : "—")
+                        date(quittance.getDatePaiement()),
+                        blocPieceJointe(pdf, nomPdf, "Quittance de loyer")))
         ), pdf);
         log.debug("E-mail de la quittance {} préparé", quittance.getId());
     }
@@ -320,20 +381,21 @@ public class EmailServiceImpl implements EmailService {
     }
 
     private void envoyerConfirmationContrat(Contrat contrat, String destinataire, String prenomNom) {
-        PdfAJoindre pdf = pdfAJoindre(CONTRAT_BUCKET, contrat.getClePdf(),
-                "Contrat_" + contrat.getId() + ".pdf");
+        String nomPdf = "Contrat_" + contrat.getId() + ".pdf";
+        PdfAJoindre pdf = pdfAJoindre(CONTRAT_BUCKET, contrat.getClePdf(), nomPdf);
 
         publier(TypeEmail.CONTRAT_SIGNE, EmailSortant.html(
                 destinataire,
                 SUJET_MAIL_CONTRAT_SIGNE,
-                String.format(CONTENU_MAIL_CONTRAT_SIGNE,
+                finaliser(String.format(CONTENU_MAIL_CONTRAT_SIGNE,
                         prenomNom,
                         echapper(contrat.getAdresseBien()),
                         montants(contrat).f(contrat.getLoyerMensuel()),
                         montants(contrat).f(contrat.getChargesMensuelles()),
                         montants(contrat).f(contrat.getDepotGarantie()),
-                        contrat.getDateDebut(),
-                        contrat.getDureeBailMois())
+                        date(contrat.getDateDebut()),
+                        contrat.getDureeBailMois(),
+                        blocPieceJointe(pdf, nomPdf, "Bail signé")))
         ), pdf);
     }
 
@@ -341,17 +403,18 @@ public class EmailServiceImpl implements EmailService {
         String adresse = buildAdresse(edl.getBien());
         String typeEdl = resolveTypeEdl(edl);
 
-        PdfAJoindre pdf = pdfAJoindre(EDL_BUCKET, edl.getClePdf(),
-                String.format("EDL_%s_%d.pdf", edl.getType().name(), edl.getId()));
+        String nomPdf = String.format("EDL_%s_%d.pdf", edl.getType().name(), edl.getId());
+        PdfAJoindre pdf = pdfAJoindre(EDL_BUCKET, edl.getClePdf(), nomPdf);
 
         publier(TypeEmail.EDL_SIGNE, EmailSortant.html(
                 destinataire,
                 SUJET_MAIL_EDL_SIGNE,
-                String.format(CONTENU_MAIL_EDL_SIGNE,
+                finaliser(String.format(CONTENU_MAIL_EDL_SIGNE,
                         prenomNom,
                         adresse,
                         typeEdl,
-                        edl.getDateRealisation().toString())
+                        date(edl.getDateRealisation()),
+                        blocPieceJointe(pdf, nomPdf, typeEdl + " signé")))
         ), pdf);
         log.debug("E-mail de confirmation de l'EDL signé {} préparé", edl.getId());
     }
@@ -370,6 +433,40 @@ public class EmailServiceImpl implements EmailService {
 
     private String echapper(String valeur) {
         return valeur == null ? null : HtmlUtils.htmlEscape(valeur);
+    }
+
+    /** « 1 décembre 2026 », ou « — » si la date est absente. */
+    private String date(LocalDate date) {
+        return date == null ? "—" : date.format(FORMAT_DATE);
+    }
+
+    /** « 11 novembre 2026 à 18 h 30 », ou « — » si la date est absente. */
+    private String dateHeure(LocalDateTime dateHeure) {
+        return dateHeure == null ? "—" : dateHeure.format(FORMAT_DATE_HEURE);
+    }
+
+    /** Une ligne du récapitulatif (libellé au-dessus de la valeur) ; la valeur doit déjà être échappée. */
+    private String ligne(String libelle, String valeur) {
+        return String.format(LIGNE_RECAP, libelle, valeur == null ? "—" : valeur);
+    }
+
+    private String badge(String libelle, Ton ton) {
+        return String.format(BLOC_BADGE, ton.fond, ton.texte, ton.point, libelle);
+    }
+
+    /** Bloc « Document joint », seulement si un PDF part réellement avec l'e-mail. */
+    private String blocPieceJointe(PdfAJoindre pdf, String nomFichier, String nature) {
+        return pdf == null ? "" : String.format(BLOC_PIECE_JOINTE, echapper(nomFichier), nature);
+    }
+
+    /** Remplace les jetons communs à tous les modèles (lien et domaine du pied de page, paramétrables via app.url). */
+    private String finaliser(String html) {
+        return html.replace("{{URL_APP}}", appUrl).replace("{{DOMAINE_APP}}", domaine());
+    }
+
+    private String domaine() {
+        String hote = URI.create(appUrl).getHost();
+        return hote != null ? hote : appUrl;
     }
 
     private String resolveTypeEdl(EtatDesLieux edl) {

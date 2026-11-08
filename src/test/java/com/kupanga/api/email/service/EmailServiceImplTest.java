@@ -151,7 +151,7 @@ class EmailServiceImplTest {
         EmailSortant email = emailMisEnFile(TypeEmail.DEMANDE_LOCATION);
         assertThat(email.destinataire()).isEqualTo("l@test.fr");
         assertThat(email.html())
-                .contains("Paul Proprio", "Lea Loc", "&lt;b&gt;T2&lt;/b&gt;", "06/11/2026 à 09h05",
+                .contains("Paul Proprio", "Lea Loc", "&lt;b&gt;T2&lt;/b&gt;", "6 novembre 2026 à 9 h 05",
                         "http://localhost:4200/demandes-location")
                 .doesNotContain("<b>T2</b>");
     }
