@@ -4,618 +4,146 @@
 <!-- ═══════════════════════════════════════════════════
      Fragment : <head> commun
      Usage    : th:replace="~{backoffice/fragments/layout :: head('Titre')}"
+     Même système visuel que le front (jetons --kp-*, Figtree) : /backoffice/assets/backoffice.css
+     Aucune ressource tierce : police, icônes et scripts servis par l'API (GET /backoffice/assets/**)
      ═══════════════════════════════════════════════════ -->
 <head th:fragment="head(title)">
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <title th:text="${title} + ' — Kupanga Admin'">Kupanga Admin</title>
-    <!-- Anti-flash : applique le thème avant le premier rendu -->
-    <script>document.documentElement.dataset.theme = localStorage.getItem('kupanga-admin-theme') || 'dark';</script>
-    <!-- Bootstrap CSS (grid + composants interactifs) -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
-    <!-- Google Fonts : DM Serif Display · DM Sans · DM Mono -->
-    <link rel="preconnect" href="https://fonts.googleapis.com"/>
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""/>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&amp;family=DM+Sans:wght@300;400;500;600&amp;family=DM+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
-    <style>
-        /* ── Variables ──────────────────────────────── */
-        :root {
-            --night:       #10212B;
-            --night-mid:   #1E3545;
-            --night-light: #2C4A5F;
-            --olive:       #8FA464;
-            --olive-light: #B5CA8D;
-            --olive-dark:  #6B7C4B;
-            --mint:        #EFFBDB;
-            --mint-80:     rgba(239,251,219,0.80);
-            --mint-55:     rgba(239,251,219,0.55);
-            --olive-10:    rgba(143,164,100,0.10);
-            --olive-15:    rgba(143,164,100,0.15);
-            --olive-25:    rgba(143,164,100,0.25);
-            --olive-40:    rgba(143,164,100,0.40);
-            --danger:      #C0614A;
-            --warning:     #D4A853;
-            --info:        #5A8FAF;
-            --shadow-card: 0 4px 24px rgba(0,0,0,0.2);
-            --sidebar-w:   240px;
-            --topbar-h:    56px;
-            --radius:      12px;
-            --radius-sm:   8px;
-        }
-
-        /* ── Mode clair — remappage sémantique des variables ── */
-        [data-theme="light"] {
-            --night:       #EFFBDB;
-            --night-mid:   #FFFFFF;
-            --night-light: #E2EDD3;
-            --mint:        #10212B;
-            --mint-80:     rgba(16,33,43,0.80);
-            --mint-55:     rgba(16,33,43,0.55);
-            --olive-10:    rgba(143,164,100,0.12);
-            --olive-15:    rgba(107,124,75,0.18);
-            --olive-25:    rgba(107,124,75,0.28);
-            --olive-40:    rgba(107,124,75,0.42);
-            --shadow-card: 0 4px 24px rgba(16,33,43,0.07);
-        }
-
-        /* Sidebar toujours Night (design system : Sidebar = Night) */
-        [data-theme="light"] .sidebar {
-            background: #10212B;
-            border-right-color: rgba(143,164,100,0.15);
-        }
-        [data-theme="light"] .sidebar-brand {
-            color: #EFFBDB;
-            border-bottom-color: rgba(143,164,100,0.15);
-        }
-        [data-theme="light"] .sidebar-brand small          { color: rgba(239,251,219,0.55); }
-        [data-theme="light"] .sidebar-section-label        { color: rgba(239,251,219,0.55); }
-        [data-theme="light"] .sidebar-nav .nav-link        { color: rgba(239,251,219,0.55); }
-        [data-theme="light"] .sidebar-nav .nav-link:hover  { background: rgba(143,164,100,0.10); color: #EFFBDB; }
-        [data-theme="light"] .sidebar-nav .nav-link.active { background: rgba(143,164,100,0.15); color: #B5CA8D; }
-        [data-theme="light"] .sidebar-footer               { border-top-color: rgba(143,164,100,0.15); }
-        [data-theme="light"] .sidebar .btn-outline-light {
-            border-color: rgba(143,164,100,0.25);
-            color: rgba(239,251,219,0.55);
-            background: transparent;
-        }
-        [data-theme="light"] .sidebar .btn-outline-light:hover {
-            background: rgba(143,164,100,0.10);
-            border-color: #8FA464;
-            color: #EFFBDB;
-        }
-
-        /* Table thead — meilleur contraste sur fond clair */
-        [data-theme="light"] .table thead th { color: var(--olive-dark); }
-
-        /* Badges neutres — fond sombre sur fond clair */
-        [data-theme="light"] .badge-count-alt {
-            background: rgba(16,33,43,0.08);
-            color: rgba(16,33,43,0.55);
-        }
-        [data-theme="light"] .badge-default {
-            background: rgba(16,33,43,0.08);
-            color: rgba(16,33,43,0.55);
-        }
-
-        /* Ombres atténuées en mode clair */
-        [data-theme="light"] .stat-card:hover { box-shadow: 0 20px 40px rgba(16,33,43,0.12); }
-        [data-theme="light"] .bien-card:hover  { box-shadow: 0 20px 40px rgba(16,33,43,0.12); }
-
-        /* Bouton toggle thème */
-        .btn-theme-toggle {
-            background: var(--olive-10);
-            border: 1px solid var(--olive-25);
-            border-radius: var(--radius-sm);
-            color: var(--olive);
-            width: 34px; height: 34px;
-            display: flex; align-items: center; justify-content: center;
-            cursor: pointer; margin-right: 0.75rem;
-            transition: background 0.2s, border-color 0.2s;
-            flex-shrink: 0;
-        }
-        .btn-theme-toggle:hover { background: var(--olive-25); border-color: var(--olive); }
-
-        *, *::before, *::after { box-sizing: border-box; }
-
-        body {
-            background: var(--night);
-            font-family: 'DM Sans', system-ui, sans-serif;
-            color: var(--mint-80);
-            font-size: 0.95rem;
-            font-weight: 400;
-            line-height: 1.6;
-        }
-
-        /* ── Icônes Lucide ──────────────────────────── */
-        .lucide {
-            stroke-width: 1.5;
-            width: 20px; height: 20px;
-            flex-shrink: 0;
-            vertical-align: middle;
-        }
-
-        /* ── Typographie ────────────────────────────── */
-        h5, h6 {
-            color: var(--mint);
-            font-family: 'DM Sans', system-ui, sans-serif;
-            font-weight: 600;
-        }
-
-        /* ── Sidebar ────────────────────────────────── */
-        .sidebar {
-            position: fixed; top: 0; left: 0;
-            width: var(--sidebar-w); height: 100vh;
-            background: var(--night);
-            border-right: 1px solid var(--olive-15);
-            display: flex; flex-direction: column;
-            z-index: 1000; overflow-y: auto;
-        }
-        .sidebar-brand {
-            padding: 1.4rem 1.2rem 1.2rem;
-            color: var(--mint);
-            border-bottom: 1px solid var(--olive-15);
-        }
-        .sidebar-brand-row {
-            font-family: 'DM Serif Display', Georgia, serif;
-            font-size: 1.4rem; font-weight: 400;
-            display: flex; align-items: center; gap: 0.5rem;
-        }
-        .sidebar-brand-row .lucide { color: var(--olive); width: 22px; height: 22px; }
-        .sidebar-brand small {
-            display: block;
-            font-family: 'DM Mono', monospace;
-            font-size: 0.6rem; font-weight: 400;
-            color: var(--mint-55); letter-spacing: 0.2em;
-            text-transform: uppercase; margin-top: 4px;
-        }
-        .sidebar-nav { padding: 0.75rem 0.6rem; flex: 1; }
-        .sidebar-section-label {
-            font-family: 'DM Mono', monospace;
-            font-size: 0.58rem; font-weight: 400;
-            letter-spacing: 0.22em; text-transform: uppercase;
-            color: var(--mint-55);
-            padding: 0.75rem 1rem 0.3rem;
-        }
-        .sidebar-nav .nav-link {
-            color: var(--mint-55);
-            padding: 0.6rem 1rem; border-radius: var(--radius-sm);
-            margin-bottom: 2px; font-size: 0.875rem; font-weight: 500;
-            display: flex; align-items: center; gap: 0.6rem;
-            transition: background 0.15s, color 0.15s;
-        }
-        .sidebar-nav .nav-link:hover  { background: var(--olive-10); color: var(--mint); }
-        .sidebar-nav .nav-link.active { background: var(--olive-15); color: var(--olive-light); }
-        .sidebar-nav .nav-link .lucide { width: 18px; height: 18px; color: inherit; }
-        .sidebar-nav .nav-link.active .lucide { color: var(--olive); }
-        .sidebar-footer {
-            padding: 0.9rem 1rem;
-            border-top: 1px solid var(--olive-15);
-        }
-
-        /* ── Zone principale ────────────────────────── */
-        .main-wrapper { margin-left: var(--sidebar-w); min-height: 100vh; display: flex; flex-direction: column; }
-
-        /* ── Topbar ─────────────────────────────────── */
-        .topbar {
-            height: var(--topbar-h);
-            background: var(--night-mid);
-            border-bottom: 1px solid var(--olive-15);
-            display: flex; align-items: center; justify-content: flex-end;
-            padding: 0 1.5rem;
-            position: sticky; top: 0; z-index: 100;
-        }
-        .topbar-admin {
-            display: flex; align-items: center; gap: 0.75rem;
-            font-size: 0.82rem; color: var(--mint-80);
-        }
-        .topbar-admin-avatar {
-            width: 32px; height: 32px; border-radius: 50%;
-            background: var(--olive-10);
-            border: 1px solid var(--olive-25);
-            display: flex; align-items: center; justify-content: center;
-        }
-        .topbar-admin-avatar .lucide { width: 16px; height: 16px; color: var(--olive); }
-
-        /* ── Stat cards ─────────────────────────────── */
-        .stat-card {
-            background: var(--night-mid);
-            border: 1px solid var(--olive-15);
-            border-radius: var(--radius);
-            box-shadow: var(--shadow-card);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        .stat-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-        }
-        .stat-card .card-body { padding: 1.25rem; }
-        .stat-icon {
-            width: 48px; height: 48px; border-radius: 10px;
-            background: var(--olive-10);
-            border: 1px solid var(--olive-15);
-            display: flex; align-items: center; justify-content: center;
-            flex-shrink: 0;
-        }
-        .stat-icon .lucide { color: var(--olive); width: 22px; height: 22px; }
-        .stat-value {
-            font-family: 'DM Mono', monospace;
-            font-size: 1.7rem; font-weight: 500;
-            color: var(--mint); line-height: 1;
-        }
-        .stat-label { font-size: 0.8rem; color: var(--mint-55); margin-bottom: 0.25rem; }
-
-        /* ── Content cards / tables ─────────────────── */
-        .content-card {
-            background: var(--night-mid);
-            border: 1px solid var(--olive-15);
-            border-radius: var(--radius);
-            box-shadow: var(--shadow-card);
-        }
-        .content-card .card-header {
-            background: var(--night-mid);
-            border-bottom: 1px solid var(--olive-15);
-            border-radius: var(--radius) var(--radius) 0 0 !important;
-            padding: 1rem 1.25rem;
-            font-weight: 600; color: var(--mint);
-            display: flex; align-items: center; gap: 0.5rem;
-        }
-        .content-card .card-header .lucide { color: var(--olive); width: 18px; height: 18px; }
-        .content-card .card-footer {
-            background: var(--night-mid);
-            border-top: 1px solid var(--olive-15);
-        }
-
-        /* ── Tables ─────────────────────────────────── */
-        .table {
-            color: var(--mint-80);
-            margin-bottom: 0;
-            font-size: 0.875rem;
-            --bs-table-bg: transparent;
-            --bs-table-hover-bg: var(--night-light);
-            --bs-table-border-color: var(--olive-15);
-        }
-        .table thead th {
-            background: var(--night-light);
-            border-bottom: 1px solid var(--olive-25);
-            color: var(--olive-light);
-            font-family: 'DM Mono', monospace;
-            font-size: 0.62rem; font-weight: 400;
-            text-transform: uppercase; letter-spacing: 0.2em;
-            padding: 0.75rem 1rem;
-        }
-        .table tbody td {
-            border-color: var(--olive-15);
-            padding: 0.75rem 1rem;
-            vertical-align: middle;
-        }
-        .table-hover > tbody > tr:hover > * { background: var(--night-light); }
-
-        /* ── Panneau de recherche ────────────────────── */
-        .search-card {
-            background: var(--night-mid);
-            border: 1px solid var(--olive-15);
-            border-radius: var(--radius);
-            padding: 1.25rem;
-            margin-bottom: 1.25rem;
-            box-shadow: var(--shadow-card);
-        }
-        .form-label {
-            font-size: 0.82rem; font-weight: 500;
-            color: var(--mint); margin-bottom: 0.35rem;
-        }
-        .form-control, .form-select {
-            background: var(--night) !important;
-            border: 1px solid rgba(143,164,100,0.20);
-            color: var(--mint) !important;
-            font-size: 0.875rem;
-            border-radius: var(--radius-sm);
-            padding: 0.65rem 1rem;
-            transition: border-color 0.2s, box-shadow 0.2s;
-        }
-        .form-control::placeholder { color: var(--mint-55); }
-        .form-control:focus, .form-select:focus {
-            border-color: var(--olive);
-            box-shadow: 0 0 0 3px var(--olive-25);
-            background: var(--night) !important;
-            color: var(--mint) !important;
-            outline: none;
-        }
-        .form-select option { background: var(--night-mid); color: var(--mint); }
-
-        /* ── Boutons ────────────────────────────────── */
-        .btn-search {
-            background: var(--olive); color: var(--night);
-            border: none; border-radius: var(--radius-sm);
-            padding: 0.6rem 1rem; font-weight: 600;
-            transition: background 0.2s;
-        }
-        .btn-search:hover { background: var(--olive-light); color: var(--night); }
-
-        .btn-reset {
-            border-radius: var(--radius-sm);
-            border-color: var(--olive-25) !important;
-            color: var(--mint-80) !important;
-            background: transparent !important;
-            transition: border-color 0.2s, background 0.2s;
-        }
-        .btn-reset:hover {
-            border-color: var(--olive) !important;
-            color: var(--mint) !important;
-            background: var(--olive-10) !important;
-        }
-
-        .btn-danger {
-            background: var(--danger) !important;
-            border-color: var(--danger) !important;
-            color: var(--mint) !important;
-            border-radius: var(--radius-sm);
-        }
-        .btn-danger:hover {
-            background: #a8503b !important;
-            border-color: #a8503b !important;
-        }
-
-        .btn-outline-secondary {
-            border-color: var(--olive-25) !important;
-            color: var(--mint-80) !important;
-            background: transparent !important;
-            border-radius: var(--radius-sm);
-        }
-        .btn-outline-secondary:hover {
-            border-color: var(--olive) !important;
-            color: var(--mint) !important;
-            background: var(--olive-10) !important;
-        }
-
-        .btn-outline-light {
-            border-color: var(--olive-25);
-            color: var(--mint-55);
-            background: transparent;
-            font-size: 0.82rem; font-weight: 500;
-            border-radius: var(--radius-sm);
-            transition: background 0.15s, border-color 0.15s, color 0.15s;
-        }
-        .btn-outline-light:hover {
-            background: var(--olive-10);
-            border-color: var(--olive);
-            color: var(--mint);
-        }
-
-        /* ── Badges rôles ───────────────────────────── */
-        .badge-locataire {
-            background: var(--olive-10); color: var(--olive-light);
-            font-family: 'DM Mono', monospace; font-size: 0.62rem;
-            padding: 0.25rem 0.75rem; border-radius: 100px;
-            letter-spacing: 0.08em; display: inline-block;
-        }
-        .badge-proprietaire {
-            background: rgba(90,143,175,0.15); color: var(--info);
-            font-family: 'DM Mono', monospace; font-size: 0.62rem;
-            padding: 0.25rem 0.75rem; border-radius: 100px;
-            letter-spacing: 0.08em; display: inline-block;
-        }
-        .badge-admin {
-            background: rgba(192,97,74,0.15); color: var(--danger);
-            font-family: 'DM Mono', monospace; font-size: 0.62rem;
-            padding: 0.25rem 0.75rem; border-radius: 100px;
-            letter-spacing: 0.08em; display: inline-block;
-        }
-        .badge-default {
-            background: rgba(239,251,219,0.08); color: var(--mint-55);
-            font-family: 'DM Mono', monospace; font-size: 0.62rem;
-            padding: 0.25rem 0.75rem; border-radius: 100px;
-            letter-spacing: 0.08em; display: inline-block;
-        }
-
-        /* ── Badges type de bien ────────────────────── */
-        .badge-type {
-            font-family: 'DM Mono', monospace; font-size: 0.62rem;
-            padding: 0.25rem 0.75rem; border-radius: 100px;
-            display: inline-flex; align-items: center; gap: 0.35rem;
-            letter-spacing: 0.06em;
-        }
-        .badge-type .lucide { width: 12px; height: 12px; stroke-width: 1.5; }
-        .badge-appartement { background: rgba(90,143,175,0.15); color: var(--info); }
-        .badge-maison      { background: var(--olive-10);       color: var(--olive-light); }
-        .badge-studio      { background: rgba(212,168,83,0.15); color: var(--warning); }
-
-        /* ── Badges comptage (tables dashboard) ─────── */
-        .badge-count {
-            background: var(--olive-10); color: var(--olive-light);
-            font-family: 'DM Mono', monospace; font-size: 0.65rem;
-            padding: 0.2rem 0.65rem; border-radius: 100px;
-            display: inline-block;
-        }
-        .badge-count-alt {
-            background: rgba(239,251,219,0.08); color: var(--mint-55);
-            font-family: 'DM Mono', monospace; font-size: 0.65rem;
-            padding: 0.2rem 0.65rem; border-radius: 100px;
-            display: inline-block;
-        }
-
-        /* ── Pagination ─────────────────────────────── */
-        .pagination .page-link {
-            background: transparent; color: var(--mint-80);
-            border: none; border-radius: var(--radius-sm) !important;
-            margin: 0 2px; font-size: 0.82rem;
-            padding: 0.4rem 0.75rem;
-            transition: background 0.15s;
-        }
-        .pagination .page-link:hover { background: var(--night-light); color: var(--mint); }
-        .pagination .page-item.active .page-link {
-            background: var(--olive); color: var(--night); font-weight: 600;
-        }
-        .pagination .page-item.disabled .page-link { color: var(--mint-55); }
-
-        /* ── Modals dark ────────────────────────────── */
-        .modal-content {
-            background: var(--night-mid);
-            border: 1px solid var(--olive-15);
-            border-radius: var(--radius);
-            color: var(--mint-80);
-        }
-        .modal-header, .modal-footer { border-color: var(--olive-15); }
-
-        /* ── Carte bien ─────────────────────────────── */
-        .bien-card {
-            background: var(--night-mid);
-            border: 1px solid var(--olive-15);
-            border-radius: var(--radius);
-            box-shadow: var(--shadow-card);
-            overflow: hidden;
-            margin-bottom: 1rem;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        .bien-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-        }
-        .bien-card hr { border-color: var(--olive-15); opacity: 1; }
-        .bien-card .border-top { border-color: var(--olive-15) !important; }
-
-        /* ── Avatar placeholder ─────────────────────── */
-        .avatar-placeholder {
-            width: 40px; height: 40px; border-radius: 50%;
-            background: var(--night-light);
-            border: 1px solid var(--olive-25);
-            display: flex; align-items: center; justify-content: center;
-            flex-shrink: 0;
-            overflow: hidden;
-        }
-
-        /* ── Icône état profil ───────────────────────── */
-        .icon-complete .lucide { color: var(--olive); }
-        .icon-pending  .lucide { color: var(--warning); }
-
-        /* ── Utilitaires ────────────────────────────── */
-        .text-muted { color: var(--mint-55) !important; }
-        .fw-medium  { font-weight: 500; }
-
-        /* ── Scrollbar ──────────────────────────────── */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: var(--night); }
-        ::-webkit-scrollbar-thumb { background: var(--night-light); border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--olive-dark); }
-    </style>
+    <meta name="robots" content="noindex, nofollow"/>
+    <title th:text="${title} + ' · Kupanga Admin'">Kupanga Admin</title>
+    <!-- Thème choisi (sinon celui de l'appareil), appliqué avant le premier rendu -->
+    <script>
+        try {
+            var t = localStorage.getItem('kupanga-admin-theme');
+            if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+        } catch (e) { /* stockage indisponible : thème de l'appareil */ }
+    </script>
+    <link rel="icon" type="image/svg+xml" th:href="@{/backoffice/assets/icone.svg}"/>
+    <link rel="preload" th:href="@{/backoffice/assets/polices/figtree-latin-400.woff2}" as="font" type="font/woff2" crossorigin=""/>
+    <link rel="stylesheet" th:href="@{/backoffice/assets/backoffice.css}"/>
 </head>
 
 <!-- ═══════════════════════════════════════════════════
-     Fragment : sidebar
+     Fragment : barre latérale (ordinateur) / menu (téléphone)
      Usage    : th:replace="~{backoffice/fragments/layout :: sidebar('dashboard')}"
      ═══════════════════════════════════════════════════ -->
-<div th:fragment="sidebar(active)">
-    <div class="sidebar">
-        <div class="sidebar-brand">
-            <div class="sidebar-brand-row">
-                <i data-lucide="home" aria-hidden="true"></i>
-                Kupanga
-            </div>
-            <small>Administration</small>
-        </div>
+<aside th:fragment="sidebar(active)" class="kp-sidebar" id="kp-menu" aria-label="Menu du back-office">
+    <a class="kp-sidebar__logo" th:href="@{/backoffice/dashboard}" aria-label="Kupanga, tableau de bord">
+        <img class="kp-logo--clair" th:src="@{/backoffice/assets/logo-clair.svg}" alt=""/>
+        <img class="kp-logo--sombre" th:src="@{/backoffice/assets/logo-sombre.svg}" alt=""/>
+    </a>
+    <div class="kp-sidebar__role">Administration</div>
 
-        <nav class="sidebar-nav">
-            <div class="sidebar-section-label">Navigation</div>
-            <ul class="nav flex-column">
-                <li class="nav-item">
-                    <a class="nav-link" th:classappend="${active == 'dashboard'} ? ' active'"
-                       th:href="@{/backoffice/dashboard}">
-                        <i data-lucide="layout-dashboard" aria-hidden="true"></i>Tableau de bord
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" th:classappend="${active == 'analytics'} ? ' active'"
-                       th:href="@{/backoffice/analytics}">
-                        <i data-lucide="bar-chart-2" aria-hidden="true"></i>Analytiques
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" th:classappend="${active == 'users'} ? ' active'"
-                       th:href="@{/backoffice/users}">
-                        <i data-lucide="users" aria-hidden="true"></i>Utilisateurs
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" th:classappend="${active == 'biens'} ? ' active'"
-                       th:href="@{/backoffice/biens}">
-                        <i data-lucide="building-2" aria-hidden="true"></i>Biens
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" th:classappend="${active == 'emails'} ? ' active'"
-                       th:href="@{/backoffice/emails}">
-                        <i data-lucide="mail" aria-hidden="true"></i>E-mails
-                    </a>
-                </li>
-            </ul>
-        </nav>
+    <nav class="kp-sidebar__nav" aria-label="Navigation principale">
+        <a class="kp-entree" th:href="@{/backoffice/dashboard}" th:attr="aria-current=${active == 'dashboard'} ? 'page'">
+            <i data-lucide="layout-dashboard" aria-hidden="true"></i><span class="kp-entree__libelle">Tableau de bord</span>
+        </a>
+        <a class="kp-entree" th:href="@{/backoffice/analytics}" th:attr="aria-current=${active == 'analytics'} ? 'page'">
+            <i data-lucide="chart-column" aria-hidden="true"></i><span class="kp-entree__libelle">Analytiques</span>
+        </a>
+        <div class="kp-sidebar__section">Gestion</div>
+        <a class="kp-entree" th:href="@{/backoffice/users}" th:attr="aria-current=${active == 'users'} ? 'page'">
+            <i data-lucide="users" aria-hidden="true"></i><span class="kp-entree__libelle">Utilisateurs</span>
+        </a>
+        <a class="kp-entree" th:href="@{/backoffice/biens}" th:attr="aria-current=${active == 'biens'} ? 'page'">
+            <i data-lucide="building-2" aria-hidden="true"></i><span class="kp-entree__libelle">Biens</span>
+        </a>
+        <a class="kp-entree" th:href="@{/backoffice/emails}" th:attr="aria-current=${active == 'emails'} ? 'page'">
+            <i data-lucide="mail" aria-hidden="true"></i><span class="kp-entree__libelle">E-mails</span>
+        </a>
+    </nav>
 
-        <div class="sidebar-footer">
-            <form th:action="@{/backoffice/logout}" method="post">
-                <button type="submit"
-                        class="btn btn-outline-light w-100 d-flex align-items-center justify-content-center gap-2">
-                    <i data-lucide="log-out" style="width:15px;height:15px;" aria-hidden="true"></i>
-                    Déconnexion
-                </button>
-            </form>
+    <div class="kp-sidebar__bas">
+        <div class="kp-compte">
+            <span class="kp-compte__avatar" aria-hidden="true"><i data-lucide="shield-check"></i></span>
+            <span class="kp-compte__texte">
+                <span class="kp-compte__nom" style="display:block">Administrateur</span>
+                <span class="kp-compte__email kp-ellipsis" style="display:block" th:text="${adminEmail}">admin</span>
+            </span>
+            <button type="button" class="kp-icone-btn kp-theme" data-kp-theme aria-label="Changer de thème" title="Thème clair ou sombre">
+                <i data-lucide="moon" class="kp-theme__lune" aria-hidden="true"></i>
+                <i data-lucide="sun" class="kp-theme__soleil" aria-hidden="true"></i>
+            </button>
         </div>
+        <form th:action="@{/backoffice/logout}" method="post">
+            <button type="submit" class="kp-btn kp-btn--bloc">
+                <i data-lucide="log-out" aria-hidden="true"></i>Se déconnecter
+            </button>
+        </form>
     </div>
+</aside>
+
+<!-- ═══════════════════════════════════════════════════
+     Fragment : barre du haut (téléphone et tablette : logo + bouton du menu)
+     Usage    : th:replace="~{backoffice/fragments/layout :: topbar}"
+     ═══════════════════════════════════════════════════ -->
+<div th:fragment="topbar" th:remove="tag">
+    <div class="kp-topbar">
+        <a th:href="@{/backoffice/dashboard}" aria-label="Kupanga, tableau de bord">
+            <img class="kp-logo--clair" th:src="@{/backoffice/assets/logo-clair.svg}" alt=""/>
+            <img class="kp-logo--sombre" th:src="@{/backoffice/assets/logo-sombre.svg}" alt=""/>
+        </a>
+        <button type="button" class="kp-icone-btn" data-kp-menu aria-controls="kp-menu" aria-expanded="false" aria-label="Ouvrir le menu">
+            <i data-lucide="menu" aria-hidden="true"></i>
+        </button>
+    </div>
+    <div class="kp-voile" data-kp-menu-fermer></div>
 </div>
 
 <!-- ═══════════════════════════════════════════════════
-     Fragment : topbar
-     Usage    : th:replace="~{backoffice/fragments/layout :: topbar}"
+     Fragment : pastille d'évolution sur 30 jours (Indicateur du tableau de bord)
+     Usage    : th:replace="~{backoffice/fragments/layout :: delta(${indicateur})}"
      ═══════════════════════════════════════════════════ -->
-<div th:fragment="topbar">
-    <div class="topbar">
-        <button id="themeToggle" class="btn-theme-toggle" aria-label="Changer de thème" title="Mode clair / sombre">
-            <i data-lucide="sun"  id="icon-sun"  style="width:16px;height:16px;" aria-hidden="true"></i>
-            <i data-lucide="moon" id="icon-moon" style="width:16px;height:16px;" aria-hidden="true"></i>
-        </button>
-        <div class="topbar-admin">
-            <div class="topbar-admin-avatar">
-                <i data-lucide="shield" aria-hidden="true"></i>
-            </div>
-            <span th:text="${adminEmail}">admin</span>
-        </div>
-    </div>
+<th:block th:fragment="delta(ind)">
+    <span th:if="${ind.variation() != null}" class="kp-delta"
+          th:classappend="${ind.variation() > 0} ? 'kp-delta--hausse' : (${ind.variation() < 0} ? 'kp-delta--baisse' : '')"
+          th:attr="aria-label=${ind.variation() > 0 ? 'en hausse de ' : (ind.variation() < 0 ? 'en baisse de ' : 'stable, ')} + ${ind.variation() < 0 ? -ind.variation() : ind.variation()} + ' % par rapport aux 30 jours précédents'">
+        <i th:attr="data-lucide=${ind.variation() > 0 ? 'trending-up' : (ind.variation() < 0 ? 'trending-down' : 'minus')}" aria-hidden="true"></i>
+        <span th:text="(${ind.variation() > 0} ? '+' : '') + ${ind.variation()} + ' %'">+0 %</span>
+    </span>
+    <span th:if="${ind.variation() == null and ind.nouveaux > 0}" class="kp-delta kp-delta--hausse">Nouveau</span>
+</th:block>
+
+
+<!-- ═══════════════════════════════════════════════════
+     Fragment : pagination (pages voisines, première et dernière)
+     Usage    : <nav th:replace="~{backoffice/fragments/layout :: pagination(${page}, @{/backoffice/users(size=${size})})}"></nav>
+     page : DTO avec pageActuelle, totalPages, totalElements ; base : URL avec les filtres, sans « page »
+     ═══════════════════════════════════════════════════ -->
+<div th:fragment="pagination(p, base)" class="kp-card__pied" th:if="${p.totalPages > 1}"
+     th:with="sep=${#strings.contains(base, '?')} ? '&amp;' : '?'">
+    <span class="kp-mention" th:text="'Page ' + ${p.pageActuelle + 1} + ' sur ' + ${p.totalPages} + ' · ' + ${p.totalElements} + ' résultats'">Page 1 sur 1</span>
+    <nav aria-label="Pagination">
+        <ul class="kp-pagination">
+            <li>
+                <a th:if="${p.pageActuelle > 0}" th:href="${base + sep + 'page=' + (p.pageActuelle - 1)}" aria-label="Page précédente">
+                    <i data-lucide="chevron-left" aria-hidden="true"></i></a>
+                <span th:unless="${p.pageActuelle > 0}" class="kp-desactive" aria-hidden="true"><i data-lucide="chevron-left"></i></span>
+            </li>
+            <li th:each="i : ${#numbers.sequence(0, p.totalPages - 1)}"
+                th:if="${i == 0 or i == p.totalPages - 1 or (i >= p.pageActuelle - 2 and i <= p.pageActuelle + 2)}">
+                <span th:if="${i == p.totalPages - 1 and p.pageActuelle + 3 < p.totalPages - 1}" class="kp-desactive" aria-hidden="true">…</span>
+                <a th:href="${base + sep + 'page=' + i}" th:text="${i + 1}"
+                   th:attr="aria-current=${i == p.pageActuelle} ? 'page'">1</a>
+                <span th:if="${i == 0 and p.pageActuelle - 3 > 0}" class="kp-desactive" aria-hidden="true">…</span>
+            </li>
+            <li>
+                <a th:if="${p.pageActuelle < p.totalPages - 1}" th:href="${base + sep + 'page=' + (p.pageActuelle + 1)}" aria-label="Page suivante">
+                    <i data-lucide="chevron-right" aria-hidden="true"></i></a>
+                <span th:unless="${p.pageActuelle < p.totalPages - 1}" class="kp-desactive" aria-hidden="true"><i data-lucide="chevron-right"></i></span>
+            </li>
+        </ul>
+    </nav>
 </div>
 
 <!-- ═══════════════════════════════════════════════════
      Fragment : scripts (bas de body)
      ═══════════════════════════════════════════════════ -->
-<div th:fragment="scripts">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-    <script>
-        lucide.createIcons();
-
-        /* ── Toggle thème clair / sombre ── */
-        (function () {
-            const root   = document.documentElement;
-            const toggle = document.getElementById('themeToggle');
-            const sun    = document.getElementById('icon-sun');
-            const moon   = document.getElementById('icon-moon');
-
-            function applyTheme(theme) {
-                root.dataset.theme = theme;
-                if (sun && moon) {
-                    sun.style.display  = theme === 'light' ? 'none' : '';
-                    moon.style.display = theme === 'light' ? ''     : 'none';
-                }
-            }
-
-            /* Applique le thème sauvegardé (déjà positionné en head, on sync juste les icônes) */
-            applyTheme(root.dataset.theme || 'dark');
-
-            if (toggle) {
-                toggle.addEventListener('click', function () {
-                    const next = root.dataset.theme === 'light' ? 'dark' : 'light';
-                    localStorage.setItem('kupanga-admin-theme', next);
-                    applyTheme(next);
-                });
-            }
-        })();
-    </script>
+<div th:fragment="scripts" th:remove="tag">
+    <!-- Aucun script tiers : Lucide 0.460.0 (licence ISC) est servi par l'API -->
+    <script th:src="@{/backoffice/assets/lucide-0.460.0.min.js}"></script>
+    <script th:src="@{/backoffice/assets/backoffice.js}"></script>
 </div>
 
 </html>

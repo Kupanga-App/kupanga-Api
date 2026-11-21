@@ -11,6 +11,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.ExceptionMappingAuthenticationFailureHandler;
 import org.springframework.security.web.csrf.CsrfFilter;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.filter.OncePerRequestFilter;
 import jakarta.servlet.FilterChain;
@@ -51,6 +52,8 @@ public class BackOfficeSecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/backoffice/login").permitAll()
+                        // Feuille de style, script et logos (classpath:/static/backoffice/assets), aussi pour l'écran de connexion
+                        .requestMatchers(HttpMethod.GET, "/backoffice/assets/**").permitAll()
                         // Défense en profondeur (BO-LOGIN) : l'autorité admin, pas seulement « authentifié »
                         .anyRequest().hasAuthority(AdminCredentialsAuthProvider.AUTORITE_ADMIN)
                 )

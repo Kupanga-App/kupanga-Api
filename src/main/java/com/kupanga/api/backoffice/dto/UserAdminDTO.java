@@ -3,6 +3,8 @@ package com.kupanga.api.backoffice.dto;
 import com.kupanga.api.user.entity.Role;
 import com.kupanga.api.user.entity.User;
 
+import java.time.LocalDateTime;
+
 public record UserAdminDTO(
         Long    id,
         String  firstName,
@@ -11,7 +13,9 @@ public record UserAdminDTO(
         Role    role,
         Boolean hasCompleteProfil,
         String  urlProfile,
-        boolean anonymise
+        boolean anonymise,
+        boolean emailVerifie,
+        LocalDateTime dateCreation
 ) {
     /** @param urlProfile URL de la photo (S2 : présignée, construite par {@code PhotoProfilUrlMapper}) */
     public static UserAdminDTO from(User user, String urlProfile) {
@@ -23,7 +27,9 @@ public record UserAdminDTO(
                 user.getRole(),
                 user.getHasCompleteProfil(),
                 urlProfile,
-                user.isAnonymise()
+                user.isAnonymise(),
+                user.isEmailVerifie(),
+                user.getDateCreation()
         );
     }
 }

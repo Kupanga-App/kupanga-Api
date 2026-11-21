@@ -2,364 +2,159 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="fr">
 <head th:replace="~{backoffice/fragments/layout :: head('Biens')}"></head>
 <body>
+<div class="kp-shell">
+<aside th:replace="~{backoffice/fragments/layout :: sidebar('biens')}"></aside>
 
-<div th:replace="~{backoffice/fragments/layout :: sidebar('biens')}"></div>
-
-<div class="main-wrapper">
-
+<main class="kp-main">
     <div th:replace="~{backoffice/fragments/layout :: topbar}"></div>
 
-    <div class="container-fluid px-4 py-4">
-
-        <!-- En-tête -->
-        <div class="d-flex align-items-center justify-content-between mb-4">
+    <div class="kp-contenu">
+        <header class="kp-page-header">
             <div>
-                <h5 class="mb-0">Gestion des biens</h5>
-                <p class="text-muted small mb-0"
-                   th:text="${page.totalElements} + ' bien(s) trouvé(s)'">0 bien(s)</p>
+                <h1 class="kp-page-title">Biens</h1>
+                <p class="kp-page-sub" th:text="${page.totalElements} + (${page.totalElements} > 1 ? ' biens trouvés' : ' bien trouvé')">0 bien</p>
             </div>
+        </header>
+
+        <!-- Message après une action (B12) -->
+        <div th:if="${message}" class="kp-message" role="status">
+            <i data-lucide="info" aria-hidden="true"></i><span th:text="${message}">Message</span>
         </div>
 
-        <!-- ── Message après une action (B12) ──────── -->
-        <div th:if="${message}" class="alert alert-info small py-2" role="status" th:text="${message}"></div>
-
-        <!-- ── Formulaire de recherche ──────────────── -->
-        <div class="search-card">
-            <form th:action="@{/backoffice/biens}" method="get">
-                <div class="row g-2 align-items-end">
-                    <div class="col-sm-6 col-md-3">
-                        <label class="form-label">Titre</label>
-                        <input type="text" name="titre" class="form-control"
-                               placeholder="Rechercher..." th:value="${titre}"/>
-                    </div>
-                    <div class="col-sm-6 col-md-3">
-                        <label class="form-label">Ville</label>
-                        <input type="text" name="ville" class="form-control"
-                               placeholder="Rechercher..." th:value="${ville}"/>
-                    </div>
-                    <div class="col-sm-6 col-md-2">
-                        <label class="form-label">Pays</label>
-                        <select name="pays" class="form-select">
-                            <option value="">Tous les pays</option>
-                            <option th:each="p : ${listePays}"
-                                    th:value="${p.name()}"
-                                    th:text="${p.libelle}"
-                                    th:selected="${p == pays}"></option>
-                        </select>
-                    </div>
-                    <div class="col-sm-6 col-md-3">
-                        <label class="form-label">Type de bien</label>
-                        <select name="typeBien" class="form-select">
-                            <option value="">Tous les types</option>
-                            <option th:each="t : ${typesBien}"
-                                    th:value="${t.name()}"
-                                    th:text="${t.name()}"
-                                    th:selected="${t == typeBien}"></option>
-                        </select>
-                    </div>
-                    <input type="hidden" name="size" th:value="${size}"/>
-                    <div class="col-sm-6 col-md-1 d-flex gap-2">
-                        <button type="submit" class="btn btn-search flex-grow-1"
-                                aria-label="Rechercher">
-                            <i data-lucide="search" style="width:16px;height:16px;" aria-hidden="true"></i>
-                        </button>
-                        <a th:href="@{/backoffice/biens}"
-                           class="btn btn-reset flex-grow-1 d-flex align-items-center justify-content-center"
-                           aria-label="Réinitialiser">
-                            <i data-lucide="x" style="width:16px;height:16px;" aria-hidden="true"></i>
-                        </a>
-                    </div>
+        <!-- Recherche -->
+        <section class="kp-card" aria-label="Recherche">
+            <form th:action="@{/backoffice/biens}" method="get" class="kp-filtres">
+                <label class="kp-field">
+                    <span class="kp-label">Titre</span>
+                    <input type="text" name="titre" class="kp-input" placeholder="Ex. Appartement lumineux" th:value="${titre}"/>
+                </label>
+                <label class="kp-field">
+                    <span class="kp-label">Ville</span>
+                    <input type="text" name="ville" class="kp-input" placeholder="Ex. Kinshasa" th:value="${ville}"/>
+                </label>
+                <label class="kp-field">
+                    <span class="kp-label">Pays</span>
+                    <select name="pays" class="kp-input">
+                        <option value="">Tous les pays</option>
+                        <option th:each="p : ${listePays}" th:value="${p.name()}" th:selected="${p == pays}" th:text="${p.libelle}"></option>
+                    </select>
+                </label>
+                <label class="kp-field">
+                    <span class="kp-label">Type de bien</span>
+                    <select name="typeBien" class="kp-input">
+                        <option value="">Tous les types</option>
+                        <option th:each="t : ${typesBien}" th:value="${t.name()}" th:selected="${t == typeBien}" th:text="${t.libelle}"></option>
+                    </select>
+                </label>
+                <input type="hidden" name="size" th:value="${size}"/>
+                <div class="kp-filtres__actions">
+                    <button type="submit" class="kp-btn kp-btn--primary"><i data-lucide="search" aria-hidden="true"></i>Rechercher</button>
+                    <a th:href="@{/backoffice/biens}" class="kp-btn kp-btn--ghost">Effacer</a>
                 </div>
             </form>
-        </div>
+        </section>
 
-        <!-- ── État vide ───────────────────────────── -->
-        <div th:if="${#lists.isEmpty(page.contenu)}"
-             class="card content-card text-center py-5 text-muted">
-            <i data-lucide="building-2"
-               style="width:40px;height:40px;display:block;margin:0 auto 0.75rem;opacity:0.4;"
-               aria-hidden="true"></i>
-            Aucun bien trouvé pour ces critères
-        </div>
-
-        <!-- ── Carte par bien ──────────────────────── -->
-        <div th:each="bien : ${page.contenu}" class="bien-card">
-            <div class="row g-0">
-
-                <!-- Colonne gauche : Carousel photos -->
-                <div class="col-md-4 col-lg-3 position-relative"
-                     style="min-height:210px;background:var(--night-light);">
-
-                    <div th:id="'carousel-' + ${bien.id}"
-                         class="carousel slide h-100"
-                         style="min-height:210px;"
-                         data-bs-ride="false">
-
-                        <!-- Indicateurs -->
-                        <div th:if="${bien.images.size() > 1}" class="carousel-indicators">
-                            <button th:each="img, stat : ${bien.images}"
-                                    type="button"
-                                    th:attr="data-bs-target='#carousel-' + ${bien.id},
-                                             data-bs-slide-to=${stat.index}"
-                                    th:classappend="${stat.first} ? ' active'"
-                                    th:aria-label="'Photo ' + ${stat.count}">
-                            </button>
-                        </div>
-
-                        <div class="carousel-inner h-100">
-                            <div th:each="img, stat : ${bien.images}"
-                                 class="carousel-item"
-                                 th:classappend="${stat.first} ? ' active'"
-                                 style="height:210px;">
-                                <img th:src="${img}"
-                                     class="d-block w-100 h-100"
-                                     style="object-fit:cover;"
-                                     loading="lazy"
-                                     alt="Photo du bien"/>
-                            </div>
-
-                            <!-- Placeholder si aucune photo -->
-                            <div th:if="${#lists.isEmpty(bien.images)}"
-                                 class="carousel-item active"
-                                 style="height:210px;">
-                                <div class="d-flex flex-column align-items-center justify-content-center h-100 text-muted">
-                                    <i data-lucide="image"
-                                       style="width:36px;height:36px;opacity:0.35;"
-                                       aria-hidden="true"></i>
-                                    <small class="mt-1" style="font-size:0.75rem;opacity:0.5;">Aucune photo</small>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Contrôles -->
-                        <button th:if="${bien.images.size() > 1}"
-                                class="carousel-control-prev" type="button"
-                                th:attr="data-bs-target='#carousel-' + ${bien.id}"
-                                data-bs-slide="prev">
-                            <span class="carousel-control-prev-icon"></span>
-                            <span class="visually-hidden">Précédent</span>
-                        </button>
-                        <button th:if="${bien.images.size() > 1}"
-                                class="carousel-control-next" type="button"
-                                th:attr="data-bs-target='#carousel-' + ${bien.id}"
-                                data-bs-slide="next">
-                            <span class="carousel-control-next-icon"></span>
-                            <span class="visually-hidden">Suivant</span>
-                        </button>
-
-                        <!-- Badge compteur -->
-                        <div th:if="${!#lists.isEmpty(bien.images)}"
-                             class="position-absolute top-0 end-0 m-2">
-                            <span style="background:rgba(16,33,43,0.75);color:rgba(239,251,219,0.80);
-                                         font-family:'DM Mono',monospace;font-size:0.62rem;
-                                         padding:0.2rem 0.6rem;border-radius:100px;
-                                         border:1px solid rgba(143,164,100,0.20);
-                                         display:inline-flex;align-items:center;gap:0.3rem;">
-                                <i data-lucide="images" style="width:11px;height:11px;" aria-hidden="true"></i>
-                                <span th:text="${bien.images.size()}"></span>
-                            </span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Colonne droite : Informations -->
-                <div class="col-md-8 col-lg-9">
-                    <div class="card-body d-flex flex-column h-100 py-3 px-4">
-
-                        <!-- Titre + badge type -->
-                        <div class="d-flex align-items-start justify-content-between gap-2 mb-2">
-                            <div>
-                                <div class="fw-medium lh-sm" style="color:var(--mint);font-size:1rem;"
-                                     th:text="${bien.titre != null ? bien.titre : 'Sans titre'}">
-                                    Titre
-                                </div>
-                                <span th:if="${bien.archive}" class="badge-type badge-default mt-1 d-inline-block">Archivé</span>
-                                <div class="text-muted small mt-1 d-flex align-items-center gap-1">
-                                    <i data-lucide="map-pin" style="width:12px;height:12px;" aria-hidden="true"></i>
-                                    <span th:text="${bien.ville != null ? bien.ville : '—'}"></span>
-                                    <span th:if="${bien.pays != null}"
-                                          th:text="', ' + ${bien.pays}"></span>
-                                </div>
-                            </div>
-                            <div class="flex-shrink-0">
-                                <span th:switch="${bien.typeBien?.name()}">
-                                    <span th:case="'APPARTEMENT'" class="badge-type badge-appartement">
-                                        <i data-lucide="building" aria-hidden="true"></i>Appartement
-                                    </span>
-                                    <span th:case="'MAISON'" class="badge-type badge-maison">
-                                        <i data-lucide="home" aria-hidden="true"></i>Maison
-                                    </span>
-                                    <span th:case="'STUDIO'" class="badge-type badge-studio">
-                                        <i data-lucide="door-open" aria-hidden="true"></i>Studio
-                                    </span>
-                                    <span th:case="*" class="badge-type badge-default"
-                                          th:text="${bien.typeBien}">—</span>
-                                </span>
-                            </div>
-                        </div>
-
-                        <hr class="my-2"/>
-
-                        <!-- Détails (grille 3 colonnes) -->
-                        <div class="row g-3 flex-grow-1">
-                            <div class="col-sm-4">
-                                <div class="text-muted small mb-1 d-flex align-items-center gap-1">
-                                    <i data-lucide="credit-card" style="width:13px;height:13px;" aria-hidden="true"></i>
-                                    Loyer / mois
-                                </div>
-                                <div class="fw-medium"
-                                     style="font-family:'DM Mono',monospace;color:var(--mint);"
-                                     th:text="${bien.loyerMensuel != null
-                                        ? #numbers.formatDecimal(bien.loyerMensuel, 0, 'COMMA', 0, 'POINT') + ' ' + bien.devise
-                                        : '—'}">
-                                    —
-                                </div>
-                            </div>
-                            <div class="col-sm-4">
-                                <div class="text-muted small mb-1 d-flex align-items-center gap-1">
-                                    <i data-lucide="user" style="width:13px;height:13px;" aria-hidden="true"></i>
-                                    Propriétaire
-                                </div>
-                                <div class="small text-truncate"
-                                     style="font-family:'DM Mono',monospace;color:var(--mint-80);font-size:0.78rem;"
-                                     th:text="${bien.proprietaireMail}"
-                                     th:title="${bien.proprietaireMail}">
-                                    —
-                                </div>
-                            </div>
-                            <div class="col-sm-4">
-                                <div class="text-muted small mb-1 d-flex align-items-center gap-1">
-                                    <i data-lucide="calendar" style="width:13px;height:13px;" aria-hidden="true"></i>
-                                    Ajouté le
-                                </div>
-                                <div style="font-family:'DM Mono',monospace;color:var(--mint-80);font-size:0.78rem;"
-                                     th:text="${bien.createdAt != null
-                                        ? #temporals.format(bien.createdAt, 'dd/MM/yyyy')
-                                        : '—'}">
-                                    —
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Footer carte : ID + actions -->
-                        <div class="d-flex align-items-center justify-content-between mt-3 pt-2 border-top">
-                            <span class="text-muted"
-                                  style="font-family:'DM Mono',monospace;font-size:0.72rem;">
-                                ID <strong style="color:var(--mint-80);" th:text="${bien.id}"></strong>
-                            </span>
-                            <div class="d-flex align-items-center gap-2">
-                                <a th:href="@{'/backoffice/biens/' + ${bien.id} + '/documents'}"
-                                   class="btn btn-outline-light btn-sm d-inline-flex align-items-center gap-1"
-                                   title="Voir les documents">
-                                    <i data-lucide="files" style="width:14px;height:14px;" aria-hidden="true"></i>
-                                    Documents
-                                </a>
-                                <button th:unless="${bien.archive}"
-                                        class="btn btn-danger btn-sm d-inline-flex align-items-center gap-1"
-                                        title="Archiver ce bien"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#deleteModal"
-                                        th:attr="data-bien-id=${bien.id},
-                                                 data-bien-titre=${bien.titre != null ? bien.titre : 'ce bien'}">
-                                    <i data-lucide="archive" style="width:14px;height:14px;" aria-hidden="true"></i>
-                                    Archiver
-                                </button>
-                                <form th:if="${bien.archive}"
-                                      th:action="@{'/backoffice/biens/' + ${bien.id} + '/desarchiver'}" method="post">
-                                    <button type="submit"
-                                            class="btn btn-outline-light btn-sm d-inline-flex align-items-center gap-1"
-                                            title="Remettre ce bien en ligne">
-                                        <i data-lucide="archive-restore" style="width:14px;height:14px;" aria-hidden="true"></i>
-                                        Désarchiver
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
+        <!-- Aucun résultat -->
+        <section th:if="${#lists.isEmpty(page.contenu)}" class="kp-card">
+            <div class="kp-vide">
+                <i data-lucide="building-2" aria-hidden="true"></i>
+                <span class="kp-vide__titre">Aucun bien trouvé</span>
+                <span>Modifiez ou effacez les filtres.</span>
             </div>
-        </div>
+        </section>
 
-        <!-- ── Pagination ──────────────────────────── -->
-        <div th:if="${page.totalPages > 1}"
-             class="card content-card d-flex flex-row align-items-center
-                    justify-content-between py-2 px-3">
-            <span class="text-muted small">
-                Page <strong th:text="${page.pageActuelle + 1}"></strong>
-                sur <strong th:text="${page.totalPages}"></strong>
-                &nbsp;·&nbsp;
-                <strong th:text="${page.totalElements}"></strong> biens
-            </span>
-            <nav>
-                <ul class="pagination pagination-sm mb-0">
-                    <li class="page-item" th:classappend="${page.premierePage} ? 'disabled'">
-                        <a class="page-link"
-                           th:href="@{/backoffice/biens(page=${page.pageActuelle - 1}, size=${size},
-                                      titre=${titre}, ville=${ville}, pays=${pays}, typeBien=${typeBien})}">
-                            <i data-lucide="chevron-left" style="width:14px;height:14px;" aria-hidden="true"></i>
-                        </a>
-                    </li>
-                    <li th:each="i : ${#numbers.sequence(0, page.totalPages - 1)}"
-                        class="page-item"
-                        th:classappend="${i == page.pageActuelle} ? 'active'">
-                        <a class="page-link"
-                           th:href="@{/backoffice/biens(page=${i}, size=${size},
-                                      titre=${titre}, ville=${ville}, pays=${pays}, typeBien=${typeBien})}"
-                           th:text="${i + 1}"></a>
-                    </li>
-                    <li class="page-item" th:classappend="${page.dernierePage} ? 'disabled'">
-                        <a class="page-link"
-                           th:href="@{/backoffice/biens(page=${page.pageActuelle + 1}, size=${size},
-                                      titre=${titre}, ville=${ville}, pays=${pays}, typeBien=${typeBien})}">
-                            <i data-lucide="chevron-right" style="width:14px;height:14px;" aria-hidden="true"></i>
-                        </a>
-                    </li>
-                </ul>
-            </nav>
-        </div>
+        <!-- Biens -->
+        <section class="kp-biens" th:unless="${#lists.isEmpty(page.contenu)}" aria-label="Biens">
+            <article th:each="bien : ${page.contenu}" class="kp-card kp-bien">
+                <div class="kp-galerie-wrap" data-kp-galerie>
+                    <div class="kp-galerie" tabindex="0" th:attr="aria-label='Photos de ' + ${bien.titre != null ? bien.titre : 'ce bien'}">
+                        <img th:each="img, it : ${bien.images}" th:src="${img}" th:alt="'Photo ' + ${it.count}" loading="lazy"/>
+                        <div th:if="${#lists.isEmpty(bien.images)}" class="kp-galerie__vide">
+                            <i data-lucide="image-off" aria-hidden="true"></i>
+                        </div>
+                    </div>
+                    <div class="kp-galerie__badges">
+                        <span th:if="${bien.archive}" class="kp-statut">Archivé</span>
+                        <span th:if="${!bien.archive and bien.loue}" class="kp-statut kp-statut--ok">Loué</span>
+                        <span th:if="${!bien.archive and !bien.loue}" class="kp-statut kp-statut--accent">En ligne</span>
+                    </div>
+                    <th:block th:if="${bien.images != null and bien.images.size() > 1}">
+                        <button type="button" class="kp-galerie__nav kp-galerie__nav--prec" data-kp-sens="-1" aria-label="Photo précédente">
+                            <i data-lucide="chevron-left" aria-hidden="true"></i></button>
+                        <button type="button" class="kp-galerie__nav kp-galerie__nav--suiv" data-kp-sens="1" aria-label="Photo suivante">
+                            <i data-lucide="chevron-right" aria-hidden="true"></i></button>
+                        <span class="kp-galerie__compteur"><i data-lucide="images" aria-hidden="true"></i>
+                            <span data-kp-compteur th:text="'1 / ' + ${bien.images.size()}">1 / 1</span></span>
+                    </th:block>
+                </div>
 
+                <div class="kp-bien__corps">
+                    <div>
+                        <h2 class="kp-bien__titre" th:text="${bien.titre != null ? bien.titre : 'Sans titre'}">Titre</h2>
+                        <p class="kp-bien__adresse">
+                            <i data-lucide="map-pin" aria-hidden="true"></i>
+                            <span th:text="${bien.ville != null ? bien.ville : '—'} + (${bien.pays != null} ? ', ' + ${bien.pays} : '')">Ville</span>
+                        </p>
+                    </div>
+                    <div class="kp-bien__prix" th:if="${bien.loyerMensuel != null}">
+                        <span th:text="${#numbers.formatDecimal(bien.loyerMensuel, 1, 'WHITESPACE', 0, 'COMMA')} + ' ' + ${bien.devise}">0 EUR</span>
+                        <small>par mois</small>
+                    </div>
+                    <div class="kp-caracs">
+                        <span class="kp-tag" th:if="${bien.typeBien != null}"><i data-lucide="house" aria-hidden="true"></i><span th:text="${bien.typeBien.libelle}">Type</span></span>
+                        <span class="kp-tag kp-nums" th:text="'N° ' + ${bien.id}">N° 1</span>
+                    </div>
+                    <div class="kp-bien__parties">
+                        <div style="min-width:0">
+                            <div class="kp-mention">Propriétaire</div>
+                            <div class="kp-small kp-ellipsis" th:text="${bien.proprietaireMail}" th:title="${bien.proprietaireMail}">—</div>
+                        </div>
+                        <div>
+                            <div class="kp-mention">Publié le</div>
+                            <div class="kp-small" th:text="${bien.createdAt != null} ? ${#temporals.format(bien.createdAt, 'd MMM yyyy', new java.util.Locale('fr', 'FR'))} : '—'">—</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="kp-bien__actions">
+                    <a th:href="@{/backoffice/biens/{id}/documents(id=${bien.id})}" class="kp-btn kp-btn--sm">
+                        <i data-lucide="files" aria-hidden="true"></i>Documents
+                    </a>
+                    <button th:unless="${bien.archive}" type="button" class="kp-btn kp-btn--sm kp-btn--danger"
+                            data-kp-confirmer="#dialog-archivage"
+                            th:attr="data-action=@{/backoffice/biens/{id}/archiver(id=${bien.id})}, data-nom=${bien.titre != null ? bien.titre : 'ce bien'}">
+                        <i data-lucide="archive" aria-hidden="true"></i>Archiver
+                    </button>
+                    <form th:if="${bien.archive}" th:action="@{/backoffice/biens/{id}/desarchiver(id=${bien.id})}" method="post">
+                        <button type="submit" class="kp-btn kp-btn--sm"><i data-lucide="archive-restore" aria-hidden="true"></i>Remettre en ligne</button>
+                    </form>
+                </div>
+            </article>
+        </section>
+
+        <section class="kp-card kp-card--flush" th:if="${page.totalPages > 1}">
+            <div th:replace="~{backoffice/fragments/layout :: pagination(${page}, @{/backoffice/biens(size=${size}, titre=${titre}, ville=${ville}, pays=${pays}, typeBien=${typeBien})})}"></div>
+        </section>
     </div>
+</main>
 </div>
 
-<!-- ── Modal confirmation archivage ──────────── -->
-<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-sm">
-        <div class="modal-content">
-            <div class="modal-body text-center p-4">
-                <div class="d-inline-flex align-items-center justify-content-center mb-3"
-                     style="width:56px;height:56px;border-radius:50%;background:rgba(192,97,74,0.15);border:1px solid rgba(192,97,74,0.25);">
-                    <i data-lucide="home"
-                       style="width:24px;height:24px;color:#C0614A;"
-                       aria-hidden="true"></i>
-                </div>
-                <h6 class="mb-1">Confirmer l'archivage</h6>
-                <p class="text-muted small mb-4">
-                    Archiver <strong id="deleteTargetTitre" style="color:var(--mint);"></strong> ?
-                    Il ne sera plus visible en ligne ; ses baux, quittances et états des lieux sont conservés.
-                </p>
-                <form id="deleteForm" th:action="@{/backoffice/biens/0/archiver}" method="post">
-                    <div class="d-flex gap-2 justify-content-center">
-                        <button type="button"
-                                class="btn btn-outline-secondary btn-sm px-3"
-                                data-bs-dismiss="modal">Annuler</button>
-                        <button type="submit" class="btn btn-danger btn-sm px-3">Archiver</button>
-                    </div>
-                </form>
-            </div>
+<!-- Confirmation d'archivage -->
+<dialog class="kp-dialog" id="dialog-archivage" aria-labelledby="titre-archivage">
+    <div class="kp-dialog__icone"><i data-lucide="archive" aria-hidden="true"></i></div>
+    <h2 id="titre-archivage">Archiver ce bien ?</h2>
+    <p>
+        <strong data-kp-nom></strong> ne sera plus visible en ligne et passera en lecture seule.
+        Ses baux, quittances et états des lieux sont conservés ; vous pourrez le remettre en ligne.
+    </p>
+    <form th:action="@{/backoffice/biens/0/archiver}" method="post">
+        <div class="kp-dialog__actions">
+            <button type="button" class="kp-btn" data-kp-fermer>Annuler</button>
+            <button type="submit" class="kp-btn kp-btn--danger-plein">Archiver</button>
         </div>
-    </div>
-</div>
+    </form>
+</dialog>
 
 <div th:replace="~{backoffice/fragments/layout :: scripts}"></div>
-<script>
-    document.getElementById('deleteModal').addEventListener('show.bs.modal', function (event) {
-        const btn   = event.relatedTarget;
-        const id    = btn.dataset.bienId;
-        const titre = btn.dataset.bienTitre;
-        document.getElementById('deleteTargetTitre').textContent = titre;
-        document.getElementById('deleteForm').action = '/backoffice/biens/' + id + '/archiver';
-    });
-</script>
 </body>
 </html>

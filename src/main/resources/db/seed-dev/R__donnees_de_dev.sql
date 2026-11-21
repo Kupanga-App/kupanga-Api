@@ -373,6 +373,13 @@ BEGIN
              b.proprietaire_id, b.candidat, cid);
     END LOOP;
 
+    -- ───────────────────────────── Dates d'inscription (tableau de bord du back-office) ─────────────────────────────
+    -- Réparties sur les 11 derniers mois ; un propriétaire est inscrit avant son premier bien
+    UPDATE utilisateurs SET date_creation = now() - make_interval(days => pg_temp.entre(1, 330), hours => pg_temp.entre(0, 23));
+    UPDATE utilisateurs u SET date_creation = p.premier - make_interval(days => pg_temp.entre(1, 15))
+    FROM (SELECT proprietaire_id, min(created_at) AS premier FROM biens GROUP BY proprietaire_id) p
+    WHERE p.proprietaire_id = u.id AND u.date_creation > p.premier;
+
     SELECT count(*) INTO n FROM biens;
     RAISE NOTICE 'Données de dev : % comptes, % biens insérés.', (SELECT count(*) FROM utilisateurs), n;
 END

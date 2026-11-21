@@ -30,7 +30,6 @@ public class BackOfficeAnalyticsController {
         model.addAttribute("totalBiens",         bienAdminService.countAll());
         model.addAttribute("totalVilles",        bienAdminService.countDistinctVilles());
         model.addAttribute("biensParVille",      bienAdminService.getBiensParVille());
-        model.addAttribute("biensParType",       bienAdminService.getBiensParType());
         model.addAttribute("totalContrats",      documentAdminService.countTotalContrats());
         model.addAttribute("totalEdl",           documentAdminService.countTotalEdl());
         model.addAttribute("totalQuittances",    documentAdminService.countTotalQuittances());

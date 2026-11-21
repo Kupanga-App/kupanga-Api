@@ -19,7 +19,8 @@ public record BienAdminDTO(
         String        proprietaireMail,
         LocalDateTime createdAt,
         List<String>  images,
-        boolean       archive
+        boolean       archive,
+        boolean       loue
 ) {
     /** @param urls URL des photos (S2 : construites depuis les clés par {@code PhotoBienUrlMapper}) */
     public static BienAdminDTO from(Bien bien, List<String> urls) {
@@ -34,7 +35,8 @@ public record BienAdminDTO(
                 bien.getProprietaire() != null ? bien.getProprietaire().getMail() : "—",
                 bien.getCreatedAt(),
                 urls,
-                bien.isArchive()
+                bien.isArchive(),
+                bien.getLocataire() != null
         );
     }
 }

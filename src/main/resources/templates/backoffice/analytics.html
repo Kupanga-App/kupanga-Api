@@ -2,595 +2,127 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="fr">
 <head th:replace="~{backoffice/fragments/layout :: head('Analytiques')}"></head>
 <body>
+<div class="kp-shell">
+<aside th:replace="~{backoffice/fragments/layout :: sidebar('analytics')}"></aside>
 
-<div th:replace="~{backoffice/fragments/layout :: sidebar('analytics')}"></div>
-
-<div class="main-wrapper">
-
+<main class="kp-main">
     <div th:replace="~{backoffice/fragments/layout :: topbar}"></div>
 
-    <div class="container-fluid px-4 py-4">
-
-        <!-- En-tête page -->
-        <div class="d-flex align-items-center justify-content-between mb-4">
+    <div class="kp-contenu" th:with="total=${totalUsers > 0 ? totalUsers : 1}">
+        <header class="kp-page-header">
             <div>
-                <h5 class="mb-0">Analytiques</h5>
-                <p class="text-muted small mb-0">Vue graphique de la plateforme</p>
+                <h1 class="kp-page-title">Analytiques</h1>
+                <p class="kp-page-sub">Détail des comptes, des villes et des documents par bien. Biens archivés compris.</p>
             </div>
-            <a th:href="@{/backoffice/dashboard}"
-               class="btn btn-outline-light d-inline-flex align-items-center gap-2"
-               style="font-size:0.82rem;">
-                <i data-lucide="layout-dashboard" style="width:15px;height:15px;" aria-hidden="true"></i>
-                Tableau de bord
-            </a>
+            <div class="kp-page-actions">
+                <a class="kp-btn" th:href="@{/backoffice/dashboard}"><i data-lucide="layout-dashboard" aria-hidden="true"></i>Tableau de bord</a>
+            </div>
+        </header>
+
+        <!-- Comptes : un compte peut posséder un bien et en louer un autre, les parts ne s'additionnent pas -->
+        <section aria-labelledby="titre-comptes" style="display:flex;flex-direction:column;gap:12px">
+            <div class="kp-section-title">
+                <h2 id="titre-comptes">Comptes</h2>
+                <span class="kp-mention">Un même compte peut posséder un bien et en louer un autre.</span>
+            </div>
+            <div class="kp-grid kp-grid--4">
+                <div class="kp-card kp-stat">
+                    <span class="kp-stat__label"><i data-lucide="users" aria-hidden="true"></i>Comptes</span>
+                    <span class="kp-stat__valeur" th:text="${totalUsers}">0</span>
+                    <span class="kp-stat__detail">anonymisés compris</span>
+                </div>
+                <div class="kp-card kp-stat">
+                    <span class="kp-stat__label"><i data-lucide="house" aria-hidden="true"></i>Propriétaires</span>
+                    <span class="kp-stat__valeur" th:text="${totalProprietaires}">0</span>
+                    <div class="kp-jauge" aria-hidden="true"><span th:style="'width:' + ${totalProprietaires * 100 / total} + '%'"></span></div>
+                    <span class="kp-stat__detail" th:text="${totalProprietaires * 100 / total} + ' % des comptes possèdent un bien'">0 %</span>
+                </div>
+                <div class="kp-card kp-stat">
+                    <span class="kp-stat__label"><i data-lucide="key-round" aria-hidden="true"></i>Locataires</span>
+                    <span class="kp-stat__valeur" th:text="${totalLocataires}">0</span>
+                    <div class="kp-jauge" aria-hidden="true"><span th:style="'width:' + ${totalLocataires * 100 / total} + '%'"></span></div>
+                    <span class="kp-stat__detail" th:text="${totalLocataires * 100 / total} + ' % des comptes louent un logement'">0 %</span>
+                </div>
+                <div class="kp-card kp-stat">
+                    <span class="kp-stat__label"><i data-lucide="search" aria-hidden="true"></i>Sans bien ni logement</span>
+                    <span class="kp-stat__valeur" th:text="${totalSansBienNiLogement}">0</span>
+                    <div class="kp-jauge" aria-hidden="true"><span th:style="'width:' + ${totalSansBienNiLogement * 100 / total} + '%'"></span></div>
+                    <span class="kp-stat__detail" th:text="${totalSansBienNiLogement * 100 / total} + ' % cherchent ou débutent'">0 %</span>
+                </div>
+            </div>
+        </section>
+
+        <section aria-labelledby="titre-docs" style="display:flex;flex-direction:column;gap:12px">
+            <div class="kp-section-title"><h2 id="titre-docs">Documents générés</h2></div>
+            <div class="kp-grid kp-grid--3">
+                <div class="kp-card kp-stat">
+                    <span class="kp-stat__label"><i data-lucide="file-text" aria-hidden="true"></i>Baux</span>
+                    <span class="kp-stat__valeur" th:text="${totalContrats}">0</span>
+                </div>
+                <div class="kp-card kp-stat">
+                    <span class="kp-stat__label"><i data-lucide="clipboard-list" aria-hidden="true"></i>États des lieux</span>
+                    <span class="kp-stat__valeur" th:text="${totalEdl}">0</span>
+                </div>
+                <div class="kp-card kp-stat">
+                    <span class="kp-stat__label"><i data-lucide="receipt" aria-hidden="true"></i>Quittances</span>
+                    <span class="kp-stat__valeur" th:text="${totalQuittances}">0</span>
+                </div>
+            </div>
+        </section>
+
+        <div class="kp-grid kp-grid--principal">
+            <!-- Documents par bien -->
+            <section class="kp-card kp-card--flush" aria-labelledby="titre-par-bien">
+                <div class="kp-card__head">
+                    <div>
+                        <h2 class="kp-card__titre" id="titre-par-bien">Documents par bien</h2>
+                        <p class="kp-card__sous-titre" th:text="${#lists.size(documentsParBien)} + ' biens avec au moins un document'">0 biens</p>
+                    </div>
+                </div>
+                <div class="kp-table-wrap">
+                    <table class="kp-table">
+                        <thead><tr><th>Bien</th><th class="kp-num">Baux</th><th class="kp-num">EDL</th><th class="kp-num">Quittances</th><th class="kp-num">Total</th></tr></thead>
+                        <tbody>
+                        <tr th:each="d : ${documentsParBien}">
+                            <td>
+                                <a th:href="@{/backoffice/biens/{id}/documents(id=${d.bienId})}" style="font-weight:500" th:text="${d.titre != null ? d.titre : 'Sans titre'}">Titre</a>
+                                <div class="kp-mention" th:text="${d.ville != null ? d.ville : '—'} + ' · N° ' + ${d.bienId}">Ville</div>
+                            </td>
+                            <td class="kp-num" th:text="${d.nbContrats}">0</td>
+                            <td class="kp-num" th:text="${d.nbEdl}">0</td>
+                            <td class="kp-num" th:text="${d.nbQuittances}">0</td>
+                            <td class="kp-num" style="font-weight:600" th:text="${d.total()}">0</td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(documentsParBien)}">
+                            <td colspan="5"><div class="kp-vide"><i data-lucide="files" aria-hidden="true"></i><span>Aucun document généré pour le moment</span></div></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Toutes les villes -->
+            <section class="kp-card" aria-labelledby="titre-villes">
+                <div class="kp-card__head">
+                    <div>
+                        <h2 class="kp-card__titre" id="titre-villes">Toutes les villes</h2>
+                        <p class="kp-card__sous-titre" th:text="${totalBiens} + ' biens dans ' + ${totalVilles} + ' villes'">0 biens</p>
+                    </div>
+                </div>
+                <ul class="kp-barres" th:if="${!#maps.isEmpty(biensParVille)}"
+                    th:with="max=${biensParVille.values().iterator().next()}">
+                    <li class="kp-barre" th:each="v : ${biensParVille}" th:title="${v.key} + ' : ' + ${v.value}">
+                        <span class="kp-barre__nom" th:text="${v.key}">Ville</span>
+                        <span class="kp-barre__piste"><span th:style="'width:' + ${max > 0 ? v.value * 100 / max : 0} + '%'"></span></span>
+                        <span class="kp-barre__valeur" th:text="${v.value}">0</span>
+                    </li>
+                </ul>
+                <div class="kp-vide" th:if="${#maps.isEmpty(biensParVille)}"><i data-lucide="map-pin" aria-hidden="true"></i><span>Aucun bien</span></div>
+            </section>
         </div>
-
-        <!-- ── Stat cards ──────────────────────────── -->
-        <div class="row g-3 mb-4">
-
-            <div class="col-sm-6 col-xl-4">
-                <div class="card stat-card">
-                    <div class="card-body d-flex align-items-center gap-3">
-                        <div class="stat-icon">
-                            <i data-lucide="users" aria-hidden="true"></i>
-                        </div>
-                        <div>
-                            <div class="stat-label">Total Utilisateurs</div>
-                            <div class="stat-value" th:text="${totalUsers}">0</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-sm-6 col-xl-4">
-                <div class="card stat-card">
-                    <div class="card-body d-flex align-items-center gap-3">
-                        <div class="stat-icon">
-                            <i data-lucide="building-2" aria-hidden="true"></i>
-                        </div>
-                        <div>
-                            <div class="stat-label">Total Biens</div>
-                            <div class="stat-value" th:text="${totalBiens}">0</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-sm-6 col-xl-4">
-                <div class="card stat-card">
-                    <div class="card-body d-flex align-items-center gap-3">
-                        <div class="stat-icon">
-                            <i data-lucide="map-pin" aria-hidden="true"></i>
-                        </div>
-                        <div>
-                            <div class="stat-label">Villes couvertes</div>
-                            <div class="stat-value" th:text="${totalVilles}">0</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-sm-6 col-xl-4">
-                <div class="card stat-card">
-                    <div class="card-body d-flex align-items-center gap-3">
-                        <div class="stat-icon">
-                            <i data-lucide="file-text" aria-hidden="true"></i>
-                        </div>
-                        <div>
-                            <div class="stat-label">Contrats générés</div>
-                            <div class="stat-value" th:text="${totalContrats}">0</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-sm-6 col-xl-4">
-                <div class="card stat-card">
-                    <div class="card-body d-flex align-items-center gap-3">
-                        <div class="stat-icon">
-                            <i data-lucide="clipboard-list" aria-hidden="true"></i>
-                        </div>
-                        <div>
-                            <div class="stat-label">États des lieux</div>
-                            <div class="stat-value" th:text="${totalEdl}">0</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-sm-6 col-xl-4">
-                <div class="card stat-card">
-                    <div class="card-body d-flex align-items-center gap-3">
-                        <div class="stat-icon">
-                            <i data-lucide="receipt" aria-hidden="true"></i>
-                        </div>
-                        <div>
-                            <div class="stat-label">Quittances émises</div>
-                            <div class="stat-value" th:text="${totalQuittances}">0</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-
-        <!-- ── Ligne 1 : Utilisateurs + Biens par ville ── -->
-        <div class="row g-3 mb-3">
-
-            <!-- Donut : répartition utilisateurs -->
-            <div class="col-lg-5">
-                <div class="card content-card h-100">
-                    <div class="card-header">
-                        <i data-lucide="users" aria-hidden="true"></i>
-                        Répartition des utilisateurs
-                    </div>
-                    <div class="card-body d-flex flex-column align-items-center justify-content-center gap-3"
-                         style="min-height:300px;">
-                        <div style="position:relative;width:220px;height:220px;">
-                            <canvas id="chartUsers"></canvas>
-                            <div id="chartUsersCenter"
-                                 style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
-                                        text-align:center;pointer-events:none;">
-                                <div style="font-family:'DM Mono',monospace;font-size:1.6rem;font-weight:500;
-                                            color:var(--mint);line-height:1;"
-                                     th:text="${totalUsers}">0</div>
-                                <div style="font-size:0.7rem;color:var(--mint-55);margin-top:2px;">total</div>
-                            </div>
-                        </div>
-                        <!-- Légende manuelle -->
-                        <div class="d-flex gap-3 flex-wrap justify-content-center" id="legendUsers"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Bar : biens par ville -->
-            <div class="col-lg-7">
-                <div class="card content-card h-100">
-                    <div class="card-header">
-                        <i data-lucide="map-pin" aria-hidden="true"></i>
-                        Biens par ville
-                    </div>
-                    <div class="card-body d-flex align-items-center" style="min-height:300px;">
-                        <canvas id="chartVilles" style="width:100%;"></canvas>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-
-        <!-- ── Ligne 2 : Biens par type ──────────────── -->
-        <div class="row g-3">
-
-            <!-- Donut : répartition par type -->
-            <div class="col-lg-5">
-                <div class="card content-card h-100">
-                    <div class="card-header">
-                        <i data-lucide="layout-grid" aria-hidden="true"></i>
-                        Répartition par type de bien
-                    </div>
-                    <div class="card-body d-flex flex-column align-items-center justify-content-center gap-3"
-                         style="min-height:280px;">
-                        <div style="position:relative;width:200px;height:200px;">
-                            <canvas id="chartTypes"></canvas>
-                            <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
-                                        text-align:center;pointer-events:none;">
-                                <div style="font-family:'DM Mono',monospace;font-size:1.6rem;font-weight:500;
-                                            color:var(--mint);line-height:1;"
-                                     th:text="${totalBiens}">0</div>
-                                <div style="font-size:0.7rem;color:var(--mint-55);margin-top:2px;">biens</div>
-                            </div>
-                        </div>
-                        <div class="d-flex gap-3 flex-wrap justify-content-center" id="legendTypes"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Résumé textuel -->
-            <div class="col-lg-7">
-                <div class="card content-card h-100">
-                    <div class="card-header">
-                        <i data-lucide="bar-chart-2" aria-hidden="true"></i>
-                        Résumé des indicateurs
-                    </div>
-                    <div class="card-body p-0">
-                        <table class="table table-hover mb-0">
-                            <thead>
-                                <tr>
-                                    <th>Indicateur</th>
-                                    <th class="text-end">Valeur</th>
-                                    <th class="text-end">Part</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>
-                                        <span class="d-inline-flex align-items-center gap-2">
-                                            <span style="width:10px;height:10px;border-radius:50%;
-                                                         background:#8FA464;display:inline-block;flex-shrink:0;"></span>
-                                            Locataires
-                                            <small class="text-muted">(louent un logement)</small>
-                                        </span>
-                                    </td>
-                                    <td class="text-end">
-                                        <span class="badge-count" th:text="${totalLocataires}"></span>
-                                    </td>
-                                    <td class="text-end text-muted small" id="pctLocataires">—</td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <span class="d-inline-flex align-items-center gap-2">
-                                            <span style="width:10px;height:10px;border-radius:50%;
-                                                         background:#5A8FAF;display:inline-block;flex-shrink:0;"></span>
-                                            Propriétaires
-                                            <small class="text-muted">(possèdent un bien)</small>
-                                        </span>
-                                    </td>
-                                    <td class="text-end">
-                                        <span class="badge-count" th:text="${totalProprietaires}"></span>
-                                    </td>
-                                    <td class="text-end text-muted small" id="pctProprietaires">—</td>
-                                </tr>
-                                <tr th:each="entry : ${biensParType}">
-                                    <td>
-                                        <span class="d-inline-flex align-items-center gap-2">
-                                            <span class="type-dot" th:attr="data-type=${entry.key}"
-                                                  style="width:10px;height:10px;border-radius:50%;display:inline-block;flex-shrink:0;"></span>
-                                            <span th:text="${entry.key}"></span>
-                                        </span>
-                                    </td>
-                                    <td class="text-end">
-                                        <span class="badge-count" th:text="${entry.value}"></span>
-                                    </td>
-                                    <td class="text-end text-muted small"
-                                        th:text="${totalBiens > 0}
-                                            ? ${#numbers.formatDecimal(entry.value * 100.0 / totalBiens, 1, 1)} + ' %'
-                                            : '—'">
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-
-        <!-- ── Ligne 3 : Documents par bien ──────────── -->
-        <div class="row g-3 mt-1">
-
-            <!-- Donut : répartition documents -->
-            <div class="col-lg-5">
-                <div class="card content-card h-100">
-                    <div class="card-header">
-                        <i data-lucide="files" aria-hidden="true"></i>
-                        Répartition des documents
-                    </div>
-                    <div class="card-body d-flex flex-column align-items-center justify-content-center gap-3"
-                         style="min-height:280px;">
-                        <div style="position:relative;width:200px;height:200px;">
-                            <canvas id="chartDocs"></canvas>
-                            <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
-                                        text-align:center;pointer-events:none;">
-                                <div style="font-family:'DM Mono',monospace;font-size:1.6rem;font-weight:500;
-                                            color:var(--mint);line-height:1;"
-                                     th:text="${totalContrats + totalEdl + totalQuittances}">0</div>
-                                <div style="font-size:0.7rem;color:var(--mint-55);margin-top:2px;">docs</div>
-                            </div>
-                        </div>
-                        <div class="d-flex gap-3 flex-wrap justify-content-center" id="legendDocs"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Tableau : documents par bien -->
-            <div class="col-lg-7">
-                <div class="card content-card h-100">
-                    <div class="card-header">
-                        <i data-lucide="building-2" aria-hidden="true"></i>
-                        Documents générés par bien
-                    </div>
-                    <div class="card-body p-0">
-                        <div class="table-responsive">
-                            <table class="table table-hover mb-0">
-                                <thead>
-                                    <tr>
-                                        <th>Bien</th>
-                                        <th class="text-center">
-                                            <i data-lucide="file-text" style="width:13px;height:13px;" aria-hidden="true"></i>
-                                            Contrats
-                                        </th>
-                                        <th class="text-center">
-                                            <i data-lucide="clipboard-list" style="width:13px;height:13px;" aria-hidden="true"></i>
-                                            EDL
-                                        </th>
-                                        <th class="text-center">
-                                            <i data-lucide="receipt" style="width:13px;height:13px;" aria-hidden="true"></i>
-                                            Quittances
-                                        </th>
-                                        <th class="text-end">Total</th>
-                                        <th></th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr th:each="row : ${documentsParBien}">
-                                        <td>
-                                            <div class="fw-medium" style="color:var(--mint);font-size:0.88rem;"
-                                                 th:text="${row.titre != null ? row.titre : 'Sans titre'}"></div>
-                                            <div class="text-muted" style="font-size:0.75rem;"
-                                                 th:text="${row.ville != null ? row.ville : '—'}"></div>
-                                        </td>
-                                        <td class="text-center">
-                                            <span class="badge-count" th:text="${row.nbContrats}"></span>
-                                        </td>
-                                        <td class="text-center">
-                                            <span class="badge-count" th:text="${row.nbEdl}"></span>
-                                        </td>
-                                        <td class="text-center">
-                                            <span class="badge-count" th:text="${row.nbQuittances}"></span>
-                                        </td>
-                                        <td class="text-end">
-                                            <span class="badge-count-alt"
-                                                  style="font-family:'DM Mono',monospace;"
-                                                  th:text="${row.total()}"></span>
-                                        </td>
-                                        <td class="text-end">
-                                            <a th:href="@{'/backoffice/biens/' + ${row.bienId} + '/documents'}"
-                                               class="btn btn-outline-light btn-sm"
-                                               style="font-size:0.72rem;padding:0.2rem 0.6rem;">
-                                                <i data-lucide="eye" style="width:12px;height:12px;" aria-hidden="true"></i>
-                                                Voir
-                                            </a>
-                                        </td>
-                                    </tr>
-                                    <tr th:if="${#lists.isEmpty(documentsParBien)}">
-                                        <td colspan="6" class="text-center text-muted py-5">
-                                            <i data-lucide="inbox" style="width:32px;height:32px;display:block;margin:0 auto 0.5rem;" aria-hidden="true"></i>
-                                            Aucun document généré
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-
     </div>
+</main>
 </div>
-
 <div th:replace="~{backoffice/fragments/layout :: scripts}"></div>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
-
-<script th:inline="javascript">
-/*<![CDATA[*/
-(function () {
-
-    /* ── Données injectées par Thymeleaf ── */
-    const totalLocataires    = /*[[${totalLocataires}]]*/ 0;
-    const totalProprietaires = /*[[${totalProprietaires}]]*/ 0;
-    const totalUsers         = /*[[${totalUsers}]]*/ 0;
-    const biensParVille      = /*[[${biensParVille}]]*/ {};
-    const biensParType       = /*[[${biensParType}]]*/ {};
-    const totalContrats      = /*[[${totalContrats}]]*/ 0;
-    const totalEdl           = /*[[${totalEdl}]]*/ 0;
-    const totalQuittances    = /*[[${totalQuittances}]]*/ 0;
-
-    // Lot 3 : un compte peut être propriétaire ET locataire (les parts ne s'additionnent pas)
-    const totalSansBienNiLogement = /*[[${totalSansBienNiLogement}]]*/ 0;
-
-    /* ── Palette cohérente avec le design system ── */
-    const COLORS = {
-        olive:   { bg: 'rgba(143,164,100,0.75)', border: '#8FA464' },
-        info:    { bg: 'rgba(90,143,175,0.75)',  border: '#5A8FAF' },
-        warning: { bg: 'rgba(212,168,83,0.75)',  border: '#D4A853' },
-        danger:  { bg: 'rgba(192,97,74,0.75)',   border: '#C0614A' },
-        muted:   { bg: 'rgba(239,251,219,0.18)', border: 'rgba(239,251,219,0.35)' },
-    };
-
-    const TYPE_COLORS = {
-        'APPARTEMENT': COLORS.info,
-        'MAISON':      COLORS.olive,
-        'STUDIO':      COLORS.warning,
-    };
-
-    /* ── Defaults Chart.js (adaptatifs au thème) ── */
-    const _light = document.documentElement.dataset.theme === 'light';
-    Chart.defaults.color       = _light ? 'rgba(16,33,43,0.55)'   : 'rgba(239,251,219,0.55)';
-    Chart.defaults.borderColor = _light ? 'rgba(107,124,75,0.15)' : 'rgba(143,164,100,0.15)';
-    Chart.defaults.font.family = "'DM Sans', system-ui, sans-serif";
-    Chart.defaults.font.size   = 12;
-
-    /* ── Helpers ── */
-    function pct(val, total) {
-        if (!total) return '0 %';
-        return (val * 100 / total).toFixed(1) + ' %';
-    }
-
-    function buildLegend(containerId, labels, colors) {
-        const el = document.getElementById(containerId);
-        if (!el) return;
-        el.innerHTML = labels.map((lbl, i) =>
-            `<span style="display:inline-flex;align-items:center;gap:6px;font-size:0.78rem;
-                          color:rgba(239,251,219,0.7);">
-                <span style="width:10px;height:10px;border-radius:50%;
-                             background:${colors[i]};flex-shrink:0;display:inline-block;"></span>
-                ${lbl}
-            </span>`
-        ).join('');
-    }
-
-    /* ══════════════════════════════════════════
-       Chart 1 — Répartition des utilisateurs
-       ══════════════════════════════════════════ */
-    const usersLabels = ['Locataires', 'Propriétaires'];
-    const usersData   = [totalLocataires, totalProprietaires];
-    const usersBg     = [COLORS.olive.bg, COLORS.info.bg];
-    const usersBorder = [COLORS.olive.border, COLORS.info.border];
-
-    if (totalSansBienNiLogement > 0) {
-        usersLabels.push('Sans bien ni logement');
-        usersData.push(totalSansBienNiLogement);
-        usersBg.push(COLORS.muted.bg);
-        usersBorder.push(COLORS.muted.border);
-    }
-
-    new Chart(document.getElementById('chartUsers'), {
-        type: 'doughnut',
-        data: {
-            labels: usersLabels,
-            datasets: [{
-                data: usersData,
-                backgroundColor: usersBg,
-                borderColor: usersBorder,
-                borderWidth: 1.5,
-                hoverOffset: 6,
-            }]
-        },
-        options: {
-            cutout: '68%',
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    callbacks: {
-                        label: ctx => ` ${ctx.label}: ${ctx.raw} (${pct(ctx.raw, totalUsers)})`
-                    }
-                }
-            }
-        }
-    });
-
-    buildLegend('legendUsers', usersLabels, usersBg);
-
-    /* ── Pourcentages dans le tableau récap ── */
-    const elPctLoc  = document.getElementById('pctLocataires');
-    const elPctProp = document.getElementById('pctProprietaires');
-    if (elPctLoc)  elPctLoc.textContent  = pct(totalLocataires, totalUsers);
-    if (elPctProp) elPctProp.textContent = pct(totalProprietaires, totalUsers);
-
-    /* ══════════════════════════════════════════
-       Chart 2 — Biens par ville (barres horizontales)
-       ══════════════════════════════════════════ */
-    const villeLabels = Object.keys(biensParVille);
-    const villeData   = Object.values(biensParVille);
-
-    new Chart(document.getElementById('chartVilles'), {
-        type: 'bar',
-        data: {
-            labels: villeLabels,
-            datasets: [{
-                label: 'Biens',
-                data: villeData,
-                backgroundColor: COLORS.olive.bg,
-                borderColor: COLORS.olive.border,
-                borderWidth: 1.5,
-                borderRadius: 6,
-                borderSkipped: false,
-            }]
-        },
-        options: {
-            indexAxis: 'y',
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    callbacks: {
-                        label: ctx => ` ${ctx.raw} bien(s)`
-                    }
-                }
-            },
-            scales: {
-                x: {
-                    grid: { color: _light ? 'rgba(107,124,75,0.10)' : 'rgba(143,164,100,0.10)' },
-                    ticks: { precision: 0 }
-                },
-                y: {
-                    grid: { display: false },
-                }
-            }
-        }
-    });
-
-    /* ══════════════════════════════════════════
-       Chart 3 — Répartition par type de bien
-       ══════════════════════════════════════════ */
-    const typeLabels = Object.keys(biensParType);
-    const typeData   = Object.values(biensParType);
-    const typeBg     = typeLabels.map(t => (TYPE_COLORS[t] || COLORS.muted).bg);
-    const typeBorder = typeLabels.map(t => (TYPE_COLORS[t] || COLORS.muted).border);
-
-    new Chart(document.getElementById('chartTypes'), {
-        type: 'doughnut',
-        data: {
-            labels: typeLabels,
-            datasets: [{
-                data: typeData,
-                backgroundColor: typeBg,
-                borderColor: typeBorder,
-                borderWidth: 1.5,
-                hoverOffset: 6,
-            }]
-        },
-        options: {
-            cutout: '65%',
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    callbacks: {
-                        label: ctx => ` ${ctx.label}: ${ctx.raw} bien(s)`
-                    }
-                }
-            }
-        }
-    });
-
-    buildLegend('legendTypes', typeLabels, typeBg);
-
-    /* ══════════════════════════════════════════
-       Chart 4 — Répartition des documents
-       ══════════════════════════════════════════ */
-    const docsLabels = ['Contrats', 'États des lieux', 'Quittances'];
-    const docsData   = [totalContrats, totalEdl, totalQuittances];
-    const docsBg     = [COLORS.info.bg, COLORS.warning.bg, COLORS.olive.bg];
-    const docsBorder = [COLORS.info.border, COLORS.warning.border, COLORS.olive.border];
-    const totalDocs  = totalContrats + totalEdl + totalQuittances;
-
-    new Chart(document.getElementById('chartDocs'), {
-        type: 'doughnut',
-        data: {
-            labels: docsLabels,
-            datasets: [{
-                data: docsData,
-                backgroundColor: docsBg,
-                borderColor: docsBorder,
-                borderWidth: 1.5,
-                hoverOffset: 6,
-            }]
-        },
-        options: {
-            cutout: '65%',
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    callbacks: {
-                        label: ctx => ` ${ctx.label}: ${ctx.raw} (${pct(ctx.raw, totalDocs)})`
-                    }
-                }
-            }
-        }
-    });
-
-    buildLegend('legendDocs', docsLabels, docsBg);
-
-    /* ── Couleurs des points dans le tableau récap ── */
-    document.querySelectorAll('.type-dot').forEach(dot => {
-        const c = TYPE_COLORS[dot.dataset.type] || COLORS.muted;
-        dot.style.background = c.border;
-    });
-
-})();
-/*]]>*/
-</script>
-
 </body>
 </html>

@@ -5,6 +5,7 @@ import com.kupanga.api.chat.entity.Message;
 import com.kupanga.api.user.utils.EmailUtils;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -68,6 +69,11 @@ public class User {
 
     @Column(name = "date_anonymisation")
     private LocalDateTime dateAnonymisation;
+
+    /** Date d'inscription (V56), lue par le tableau de bord du back-office. */
+    @CreationTimestamp
+    @Column(name = "date_creation", nullable = false, updatable = false)
+    private LocalDateTime dateCreation;
 
     // relations (B12 : aucune cascade, supprimer un compte ne supprime ni ses biens ni les messages des autres)
     @OneToMany(mappedBy = "proprietaire" , fetch = FetchType.LAZY)

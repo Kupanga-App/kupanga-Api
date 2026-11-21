@@ -27,7 +27,7 @@ public class BackOfficeBienController {
             @RequestParam(required = false)    Pays     pays,
             @RequestParam(required = false)    TypeBien typeBien,
             @RequestParam(defaultValue = "0")  int      page,
-            @RequestParam(defaultValue = "10") int      size,
+            @RequestParam(defaultValue = "12") int      size,
             Model model,
             Principal principal
     ) {
