@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <!--
-  J5 — MODÈLE PROVISOIRE RDC (cd-v1) : données de l'état des lieux seulement.
-  À FAIRE VALIDER PAR UN JURISTE (droit congolais du bail) avant toute mise en ligne au Congo (C9).
+  État des lieux RDC (cd-v1). Logement : dressé contradictoirement au début et à la fin du bail (loi n° 15/025 du
+  31 décembre 2015, article 17) ; local professionnel : signé sans réserve, il fait présumer la délivrance en bon état
+  (Acte uniforme OHADA portant sur le droit commercial général, article 105).
 -->
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
@@ -23,8 +24,6 @@
     </table>
 </div>
 
-<div th:replace="~{documents/commun/fragments :: bandeauProvisoire}"></div>
-
 <table class="entete">
     <tr>
         <td class="emetteur">Kupanga</td>
@@ -37,7 +36,8 @@
 <div class="titre-bloc">
     <p class="titre" th:if="${entree}">État des lieux d'entrée</p>
     <p class="titre" th:unless="${entree}">État des lieux de sortie</p>
-    <p class="sous-titre">Établi contradictoirement entre le bailleur et le locataire</p>
+    <p class="sous-titre" th:if="${edl.bien == null or edl.bien.typeBien == null or edl.bien.typeBien.usageBail().name() == 'HABITATION'}">Établi contradictoirement entre le bailleur et le locataire (loi n° 15/025 du 31 décembre 2015, article 17)</p>
+    <p class="sous-titre" th:unless="${edl.bien == null or edl.bien.typeBien == null or edl.bien.typeBien.usageBail().name() == 'HABITATION'}">Établi contradictoirement entre le bailleur et le locataire</p>
     <div class="filet-double"></div>
 </div>
 

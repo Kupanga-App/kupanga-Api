@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <!--
-  J5 — MODÈLE PROVISOIRE RDC (cd-v1) : données du bail seulement.
-  Aucune clause juridique n'est rédigée ici : chaque clause à écrire est un bloc « clauseAValider ».
-  À FAIRE VALIDER PAR UN JURISTE (droit congolais du bail) avant toute mise en ligne au Congo (C9).
+  Bail RDC (cd-v1) : un régime par usage du bien (habitation, usage professionnel, terrain nu), choisi par
+  TypeBien.usageBail() ; textes de référence et sanctions dans RegleRdc. Chaque clause renvoie à l'article dont elle
+  reprend la règle. Texte vérifié sur les textes officiels le 2026-11-21.
 -->
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
@@ -13,7 +13,13 @@
 <body th:with="bien=${contrat.bien},
                nomBailleur=${proprietaire.firstName + ' ' + proprietaire.lastName},
                nomLocataire=${locataire.firstName + ' ' + locataire.lastName},
-               etageTexte=${bien.etage == null ? null : (bien.etage == 0 ? 'rez-de-chaussée' : (bien.etage == 1 ? '1er étage' : bien.etage + 'e étage'))}">
+               etageTexte=${bien.etage == null ? null : (bien.etage == 0 ? 'rez-de-chaussée' : (bien.etage == 1 ? '1er étage' : bien.etage + 'e étage'))},
+               usage=${bien.typeBien != null ? bien.typeBien.usageBail().name() : 'HABITATION'},
+               hab=${usage == 'HABITATION'},
+               pro=${usage == 'PROFESSIONNEL'},
+               nu=${usage == 'TERRAIN_NU'},
+               enFrancs=${contrat.devise != null and contrat.devise.name() == 'CDF'},
+               nomDevise=${contrat.devise != null and contrat.devise.name() == 'USD' ? 'dollars américains (USD)' : (contrat.devise != null ? contrat.devise.name() : '')}">
 
 <div class="pied">
     <table>
@@ -23,8 +29,6 @@
         </tr>
     </table>
 </div>
-
-<div th:replace="~{documents/commun/fragments :: bandeauProvisoire}"></div>
 
 <table class="entete">
     <tr>
@@ -36,15 +40,19 @@
 </table>
 
 <div class="titre-bloc">
-    <p class="titre">Contrat de location</p>
-    <p class="sous-titre">Bien situé en République démocratique du Congo</p>
+    <p class="titre" th:if="${hab}">Contrat de bail à usage d'habitation</p>
+    <p class="titre" th:if="${pro}">Contrat de bail à usage professionnel</p>
+    <p class="titre" th:if="${nu}">Contrat de location d'un terrain</p>
+    <p class="sous-titre" th:if="${hab}">Régi par la loi n° 15/025 du 31 décembre 2015 relative aux baux à loyer non professionnels</p>
+    <p class="sous-titre" th:if="${pro}">Régi par l'Acte uniforme OHADA portant sur le droit commercial général (articles 101 à 134)</p>
+    <p class="sous-titre" th:if="${nu}">Régi par le Code civil congolais, livre III, relatif au louage des choses</p>
     <div class="filet-double"></div>
 </div>
 
 <!-- ── Article 1 ── -->
 <div class="indivisible">
     <div class="article">Article premier : Désignation des parties</div>
-    <p>Le présent contrat est conclu entre les soussignés :</p>
+    <p>Le présent contrat est conclu entre :</p>
     <table class="parties">
         <tr>
             <td>
@@ -61,14 +69,30 @@
             </td>
         </tr>
     </table>
+    <p th:if="${hab}">
+        Le bailleur déclare être titulaire d'un droit de propriété ou d'un droit réel de jouissance sur le bien loué
+        (article 2, 6° de la loi n° 15/025).
+    </p>
 </div>
 
 <!-- ── Article 2 ── -->
 <div class="indivisible">
-    <div class="article">Article 2 : Objet du contrat et désignation du bien</div>
+    <div class="article">Article 2 : Objet du contrat, destination et désignation du bien</div>
     <p>
         Le bailleur donne en location au locataire, qui l'accepte, le bien situé au
         <strong th:text="${bien.adresseComplete() + ', ' + bien.pays?.libelle}"></strong>.
+    </p>
+    <p th:if="${hab}">
+        Le bien est loué à usage exclusif d'habitation, avec ses dépendances. Le bailleur ne peut en changer la
+        destination pendant la durée du bail sans l'accord des deux parties (article 11, 7°).
+    </p>
+    <p th:if="${pro}">
+        Le bien est loué à usage professionnel. Le locataire y exerce l'activité convenue avec le bailleur ; il peut y
+        adjoindre des activités connexes ou complémentaires après en avoir avisé le bailleur, et tout changement
+        d'activité exige l'accord préalable du bailleur (article 113 de l'Acte uniforme).
+    </p>
+    <p th:if="${nu}">
+        Le terrain est loué nu. Le locataire ne peut y édifier aucune construction sans l'accord écrit du bailleur.
     </p>
     <table class="tableau">
         <tr><td class="libelle">Désignation</td><td th:text="${bien.titre}"></td></tr>
@@ -93,11 +117,11 @@
 
 <!-- ── Article 3 ── -->
 <div class="indivisible">
-    <div class="article">Article 3 : Caractéristiques du bien</div>
+    <div class="article">Article 3 : Caractéristiques et équipements</div>
     <table class="tableau">
         <!-- C10 : ni surface habitable ni pièces pour une parcelle ou un terrain -->
         <tr th:if="${bien.surfaceHabitable != null}">
-            <td class="libelle">Surface habitable</td><td><span th:text="${bien.surfaceHabitable == null ? '—' : (bien.surfaceHabitable % 1 == 0 ? #numbers.formatInteger(bien.surfaceHabitable, 1, 'WHITESPACE') : #numbers.formatDecimal(bien.surfaceHabitable, 1, 'WHITESPACE', 2, 'COMMA')) + ' m²'}"></span></td>
+            <td class="libelle">Surface</td><td><span th:text="${bien.surfaceHabitable == null ? '—' : (bien.surfaceHabitable % 1 == 0 ? #numbers.formatInteger(bien.surfaceHabitable, 1, 'WHITESPACE') : #numbers.formatDecimal(bien.surfaceHabitable, 1, 'WHITESPACE', 2, 'COMMA')) + ' m²'}"></span></td>
         </tr>
         <tr th:if="${bien.nombrePieces != null}">
             <td class="libelle">Nombre de pièces principales</td><td th:text="${bien.nombrePieces}"></td>
@@ -112,24 +136,33 @@
         <tr th:if="${bien.anneeConstruction != null}">
             <td class="libelle">Année de construction</td><td th:text="${bien.anneeConstruction}"></td>
         </tr>
-        <tr>
+        <tr th:if="${!nu}">
             <td class="libelle">Meublé</td>
             <td th:text="${bien.meuble == true ? 'Oui' : 'Non (loué vide)'}"></td>
         </tr>
-        <tr>
-            <td class="libelle">Colocation</td>
-            <td th:text="${bien.colocation == true ? 'Autorisée par le bailleur' : 'Non autorisée'}"></td>
+        <tr th:if="${bien.equipements != null and !bien.equipements.isEmpty()}">
+            <td class="libelle">Équipements dont le locataire a la jouissance</td>
+            <td><span th:each="eq, it : ${bien.equipements}" th:text="${eq.libelle + (it.last ? '' : ', ')}"></span></td>
+        </tr>
+        <tr th:if="${bien.heuresElectriciteParJour != null}">
+            <td class="libelle">Fourniture d'électricité constatée</td>
+            <td th:text="${bien.heuresElectriciteParJour + ' heures par jour en moyenne'}"></td>
         </tr>
         <tr th:if="${bien.disponibleDe != null}">
             <td class="libelle">Disponible à compter du</td>
             <td th:text="${#temporals.format(bien.disponibleDe, 'dd/MM/yyyy')}"></td>
         </tr>
     </table>
+    <p th:if="${hab}">
+        Les parties de l'immeuble et les équipements à usage commun sont ceux décrits dans l'état des lieux d'entrée
+        (article 5, 4°). Lorsque l'immeuble compte plusieurs logements, les locataires participent aux charges communes
+        et respectent les règles de cohabitation (article 16).
+    </p>
 </div>
 
 <!-- ── Article 4 ── -->
 <div class="indivisible">
-    <div class="article">Article 4 : Conditions financières</div>
+    <div class="article">Article 4 : Loyer, charges et paiement</div>
     <table class="tableau">
         <tr><th>Désignation</th><th class="montant">Montant</th></tr>
         <tr>
@@ -149,17 +182,31 @@
                                        th:text="${' (' + contrat.garantieMois + ' mois de loyer)'}"></span></td>
             <td class="montant" th:text="${montants.f(contrat.depotGarantie)}"></td>
         </tr>
-        <!-- C12 : loyers payés d'avance (en mois) -->
-        <tr th:if="${contrat.avanceMois != null}">
+        <!-- Avance sur loyers : interdite pour un logement (voir RegleRdc), possible pour un local professionnel -->
+        <tr th:if="${!hab and contrat.avanceMois != null and contrat.avanceMois > 0}">
             <td>Loyers payés d'avance</td>
             <td class="montant" th:text="${contrat.avanceMois + ' mois'}"></td>
         </tr>
     </table>
+    <p>Le loyer et les charges sont payables chaque mois, pour le mois en cours, entre les mains du bailleur ou de son mandataire.</p>
+    <p th:if="${hab}">
+        Le loyer est fixé librement par les parties. Il est payé en monnaie ayant cours légal en République démocratique
+        du Congo, en espèces ou par voie bancaire (article 21). Le bailleur ne peut exiger le paiement anticipé du loyer
+        (article 22).
+    </p>
+    <p th:if="${!enFrancs}">
+        Le montant ci-dessus est exprimé en <span th:text="${nomDevise}"></span>. Il est payé en francs congolais, au
+        taux de change publié par la Banque centrale du Congo le jour du paiement.
+    </p>
+    <p th:if="${hab}">
+        Les impôts et taxes dus sur les lieux loués sont à la charge du bailleur, qui ne peut les répartir sur le locataire
+        (article 11, 6°).
+    </p>
 </div>
 
 <!-- ── Article 5 ── -->
 <div class="indivisible">
-    <div class="article">Article 5 : Durée du contrat</div>
+    <div class="article">Article 5 : Durée et renouvellement</div>
     <table class="tableau">
         <tr>
             <td class="libelle">Date de prise d'effet</td>
@@ -174,33 +221,286 @@
             <td><span th:text="${contrat.dureeBailMois}"></span> mois</td>
         </tr>
     </table>
+    <th:block th:if="${hab}">
+        <p>
+            Le bail peut être renouvelé à l'initiative de l'une des parties, trois mois avant son expiration ; le bail
+            renouvelé est soumis aux mêmes conditions que le précédent, sauf clauses nouvelles convenues entre les parties
+            (article 23).
+        </p>
+        <p>
+            Si le locataire reste dans les lieux après l'expiration du bail sans opposition du bailleur, il est censé les
+            occuper aux mêmes conditions et pour la même durée ; il ne peut alors en sortir ni en être expulsé qu'après le
+            préavis prévu à l'article 11 du présent contrat (article 24).
+        </p>
+    </th:block>
+    <th:block th:if="${pro}">
+        <p>
+            Le locataire qui a exploité dans les lieux, conformément au bail, l'activité prévue pendant au moins deux ans a
+            droit au renouvellement du bail, auquel aucune clause ne peut faire échec ; le bail renouvelé est conclu pour
+            trois ans au moins (article 123).
+        </p>
+        <p>
+            Le locataire demande le renouvellement par signification d'huissier ou par tout moyen permettant d'établir sa
+            réception, au plus tard trois mois avant l'expiration du bail, sous peine de perdre ce droit. Le bailleur qui
+            n'a pas répondu au plus tard un mois avant l'expiration est réputé accepter le principe du renouvellement
+            (article 124). Le bailleur qui refuse le renouvellement verse au locataire une indemnité d'éviction, sauf
+            motif grave et légitime ou démolition et reconstruction de l'immeuble (articles 126 et 127).
+        </p>
+    </th:block>
+    <p th:if="${nu}">
+        Le bail prend fin à son échéance. Il peut être renouvelé d'un commun accord, par écrit, aux conditions convenues
+        entre les parties.
+    </p>
 </div>
 
-<!-- ── Articles 6 à 9 : clauses à rédiger (C9), aucun texte juridique avant validation par un juriste ── -->
+<!-- ── Article 6 ── -->
 <div class="indivisible">
-    <div class="article">Article 6 : Garantie locative et avance sur loyers</div>
-    <div th:replace="~{documents/commun/fragments :: clauseAValider('Montant de la garantie, nombre de mois payés en avance, conditions de restitution')}"></div>
+    <div class="article">Article 6 : Garantie locative</div>
+    <th:block th:if="${hab}">
+        <p>
+            Au début du bail, le locataire verse au bailleur ou à son mandataire la garantie locative indiquée à
+            l'article 4, destinée à couvrir son éventuelle insolvabilité et les dégradations du bien loué (article 2, 9°).
+            Elle ne peut excéder trois mois de loyer. Elle ne peut être réajustée en cours de bail, ne produit pas
+            d'intérêts et ne peut être affectée au paiement du loyer (article 18).
+        </p>
+        <p>
+            Elle est restituée à la fin du bail, au moment où le locataire libère les lieux, déduction faite des sommes
+            qu'il doit encore au bailleur (articles 11, 8° et 19). Le bailleur ne peut percevoir de garantie d'un autre
+            locataire tant que le présent bail n'est pas arrivé à son terme (article 20).
+        </p>
+    </th:block>
+    <th:block th:unless="${hab}">
+        <p>
+            Le locataire verse au bailleur, au début du bail, la garantie indiquée à l'article 4. Elle lui est restituée à
+            la fin du bail, au moment où il libère les lieux, déduction faite des sommes qu'il doit encore au bailleur.
+        </p>
+        <p th:if="${contrat.avanceMois != null and contrat.avanceMois > 0}">
+            Les loyers payés d'avance indiqués à l'article 4 s'imputent sur les premiers termes du bail.
+        </p>
+    </th:block>
 </div>
 
+<!-- ── Article 7 ── -->
 <div class="indivisible">
-    <div class="article">Article 7 : Obligations des parties</div>
-    <div th:replace="~{documents/commun/fragments :: clauseAValider('Obligations du bailleur')}"></div>
-    <div th:replace="~{documents/commun/fragments :: clauseAValider('Obligations du locataire')}"></div>
+    <div class="article">Article 7 : Obligations du bailleur</div>
+    <th:block th:if="${hab}">
+        <p>Le bailleur est tenu (article 11) :</p>
+        <ol>
+            <li>de mettre le logement à la disposition du locataire dans un état approprié à sa destination ;</li>
+            <li>d'assurer au locataire la jouissance paisible du bien, notamment contre les troubles causés par le bailleur
+                ou les membres de sa famille et contre toute éviction partielle ou totale ;</li>
+            <li>de garantir le locataire contre les vices cachés qui empêchent l'usage normal du bien ;</li>
+            <li>de prendre en charge les grosses réparations de l'immeuble ;</li>
+            <li>de payer sa part des factures d'eau, d'électricité, de téléphone ou autres en cas de cohabitation avec un
+                ou plusieurs locataires ;</li>
+            <li>de supporter les impôts et taxes dus sur les lieux loués ;</li>
+            <li>de ne pas changer la destination du bien pendant la durée du bail sans l'accord des deux parties ;</li>
+            <li>de rembourser la garantie locative à la fin du bail.</li>
+        </ol>
+        <p>
+            S'il entend vendre le bien, le bailleur en informe d'abord le locataire par écrit afin qu'il puisse exercer
+            son droit de préemption ; sans réponse ou en cas de refus dans les quinze jours, il est libre de le vendre.
+            En cas de vente, le bail se poursuit jusqu'à son terme (article 12).
+        </p>
+    </th:block>
+    <th:block th:if="${pro}">
+        <p>Le bailleur est tenu :</p>
+        <ol>
+            <li>de délivrer les locaux en bon état (article 105) ;</li>
+            <li>de faire procéder à ses frais aux grosses réparations devenues nécessaires et urgentes, notamment celles
+                des gros murs, des voûtes, des poutres, des toitures, des murs de soutènement et de clôture, des fosses
+                septiques et des puisards ; le loyer est alors diminué en proportion du temps et de l'usage dont le
+                locataire a été privé (article 106) ;</li>
+            <li>de ne pas modifier de son seul gré l'état des locaux ni en restreindre l'usage (article 108) ;</li>
+            <li>de répondre des troubles de jouissance survenus de son fait, de celui de ses ayants droit ou de ses
+                préposés (article 109).</li>
+        </ol>
+        <p>
+            Le bail ne prend pas fin si le bailleur perd ses droits sur les locaux : le nouveau bailleur lui est substitué
+            de plein droit et poursuit le bail (article 110).
+        </p>
+    </th:block>
+    <th:block th:if="${nu}">
+        <p>
+            Le bailleur délivre le terrain au locataire et lui en assure la jouissance paisible pendant toute la durée
+            du bail. Il garantit le locataire contre toute éviction de son fait.
+        </p>
+    </th:block>
 </div>
 
+<!-- ── Article 8 ── -->
 <div class="indivisible">
-    <div class="article">Article 8 : Résiliation et préavis</div>
-    <div th:replace="~{documents/commun/fragments :: clauseAValider('Durée du préavis et conditions de résiliation')}"></div>
+    <div class="article">Article 8 : Obligations du locataire</div>
+    <th:block th:if="${hab}">
+        <p>Le locataire est tenu (article 13) :</p>
+        <ol>
+            <li>de payer le loyer selon les modalités convenues ;</li>
+            <li>d'user du logement en bon père de famille ;</li>
+            <li>de répondre des pertes et dégâts qui lui sont imputables pendant la durée du bail ;</li>
+            <li>d'entretenir le logement et les équipements mentionnés au contrat et de faire les réparations locatives,
+                sauf celles dues à la vétusté, à l'usure, aux malfaçons, aux vices de construction ou au cas fortuit ;</li>
+            <li>d'informer le bailleur de toute destruction due à l'une de ces causes ou nécessitant de grosses
+                réparations ;</li>
+            <li>de n'entreprendre aucune grosse réparation sans l'autorisation du bailleur, sur un devis approuvé par les
+                deux parties ;</li>
+            <li>de ne pas modifier ni transformer le bien sans l'accord préalable du bailleur, qui peut sinon exiger la
+                remise en l'état ou garder les modifications sans indemnité ;</li>
+            <li>de convenir au préalable avec le bailleur des aménagements qu'il souhaite réaliser ;</li>
+            <li>de laisser le bailleur inspecter les lieux selon la périodicité convenue.</li>
+        </ol>
+        <p>
+            Lorsque le locataire exécute des travaux autorisés par le bailleur, sur devis approuvé par les deux parties,
+            leur coût lui est remboursé intégralement aux conditions convenues ; tant qu'il ne l'est pas, le bailleur ne
+            peut ni résilier le bail ni réajuster le loyer (articles 13, 6° et 14).
+        </p>
+    </th:block>
+    <th:block th:if="${pro}">
+        <p>Le locataire est tenu :</p>
+        <ol>
+            <li>de payer le loyer aux termes convenus, entre les mains du bailleur ou de son représentant (article 112) ;</li>
+            <li>d'exploiter les locaux en bon père de famille, conformément à la destination prévue au bail
+                (article 113) ;</li>
+            <li>de faire les réparations d'entretien et de répondre des dégradations ou pertes dues à un défaut
+                d'entretien (article 114).</li>
+        </ol>
+        <p>
+            À l'expiration du bail, le locataire qui se maintient dans les lieux contre la volonté du bailleur, hors le
+            cas où il a droit au renouvellement, lui doit une indemnité d'occupation égale au loyer (article 115).
+        </p>
+    </th:block>
+    <th:block th:if="${nu}">
+        <p>
+            Le locataire paie le loyer aux termes convenus, use du terrain en bon père de famille suivant la destination
+            convenue et le rend à la fin du bail dans l'état où il l'a reçu.
+        </p>
+    </th:block>
 </div>
 
+<!-- ── Article 9 ── -->
 <div class="indivisible">
-    <div class="article">Article 9 : Règlement des litiges</div>
-    <div th:replace="~{documents/commun/fragments :: clauseAValider('Juridiction compétente et règlement amiable')}"></div>
+    <div class="article">Article 9 : État des lieux</div>
+    <p th:if="${hab}">
+        Un état des lieux contradictoire est dressé au début et à la fin du bail (article 17).
+    </p>
+    <p th:if="${pro}">
+        Un état des lieux contradictoire est dressé à l'entrée et à la sortie du locataire. Le locataire qui signe le
+        bail sans réserve sur l'état des locaux est présumé les avoir reçus en bon état (article 105).
+    </p>
+    <p th:if="${nu}">
+        Un état des lieux contradictoire du terrain est dressé à l'entrée et à la sortie du locataire.
+    </p>
 </div>
 
-<!-- ── Signatures ── -->
+<!-- ── Article 10 ── -->
 <div class="indivisible">
-    <div class="article">Article 10 : Signatures</div>
+    <div class="article">Article 10 : Sous-location et cession du bail</div>
+    <p th:if="${hab}">
+        Le locataire ne peut sous-louer le logement ni céder le bail sans l'accord écrit du bailleur. Une sous-location
+        ou une cession autorisée est conclue pour une durée au plus égale à celle qui reste à courir et aux mêmes
+        conditions (article 25).
+    </p>
+    <p th:if="${pro}">
+        Toute sous-location, totale ou partielle, est interdite sauf accord écrit du bailleur ; une sous-location
+        autorisée lui est notifiée par écrit (article 121). La cession du bail avec la totalité des éléments permettant
+        l'activité s'impose au bailleur ; la cession du bail seul est soumise à son accord. Toute cession lui est
+        notifiée par signification d'huissier ou par tout moyen permettant d'établir sa réception (articles 118 à 120).
+    </p>
+    <p th:if="${nu}">
+        Le locataire ne peut sous-louer le terrain ni céder le bail sans l'accord écrit du bailleur.
+    </p>
+</div>
+
+<!-- ── Article 11 ── -->
+<div class="indivisible">
+    <div class="article">Article 11 : Fin du bail, préavis et résiliation</div>
+    <th:block th:if="${hab}">
+        <p>
+            Le bail prend fin à l'expiration du terme convenu, à tout moment d'un commun accord, à l'initiative de l'une
+            des parties moyennant préavis, par la perte du bien ou en cas de force majeure le rendant inhabitable
+            (article 28).
+        </p>
+        <p>
+            La partie qui met fin au bail donne à l'autre un préavis écrit de trois mois (article 30). Si, à l'expiration
+            du préavis, le locataire n'a pas trouvé de logement, ce délai est prorogé d'un mois (article 31). Le loyer
+            reste dû pendant le préavis et sa prorogation (article 32).
+        </p>
+        <p>
+            Le bailleur peut résilier le bail de plein droit en cas de sous-location non autorisée, de changement de
+            destination des lieux, de tentative ou de complicité de spoliation, ou de loyers impayés atteignant au moins
+            trois mois (article 29).
+        </p>
+        <p>
+            En cas de décès du bailleur ou du locataire, le bail continue à l'égard de ses héritiers, représentés par le
+            liquidateur (article 27).
+        </p>
+    </th:block>
+    <th:block th:if="${pro}">
+        <p>
+            Si le bail se poursuit pour une durée indéterminée, la partie qui entend y mettre fin donne congé au moins six
+            mois à l'avance, par signification d'huissier ou par tout moyen permettant d'établir sa réception ; le
+            locataire qui a droit au renouvellement peut contester ce congé jusqu'à sa date d'effet (article 125).
+        </p>
+        <p>
+            Chaque partie respecte les clauses du bail sous peine de résiliation. La partie qui entend la demander adresse
+            d'abord à l'autre une mise en demeure indiquant les clauses non respectées. Si, un mois après la réception de
+            cette mise en demeure, l'autre partie ne s'est pas exécutée, la juridiction compétente, statuant à bref délai,
+            constate la résiliation du bail et prononce, le cas échéant, l'expulsion du locataire et de tout occupant de
+            son chef (article 133).
+        </p>
+        <p>
+            Le bail ne prend pas fin par le décès de l'une des parties ; il se poursuit avec le conjoint, les ascendants ou
+            les descendants en ligne directe du locataire qui en font la demande au bailleur dans les trois mois du décès
+            (article 111).
+        </p>
+    </th:block>
+    <th:block th:if="${nu}">
+        <p>
+            Chaque partie peut mettre fin au bail moyennant un préavis écrit de trois mois. Le loyer reste dû pendant le
+            préavis. En cas de manquement grave de l'une des parties à ses obligations, l'autre peut demander la
+            résiliation du bail au tribunal compétent.
+        </p>
+    </th:block>
+</div>
+
+<!-- ── Article 12 ── -->
+<div class="indivisible">
+    <div class="article">Article 12 : Règlement des différends</div>
+    <th:block th:if="${hab}">
+        <p>
+            Tout différend entre les parties est d'abord réglé à l'amiable. À défaut, après une mise en demeure de quinze
+            jours restée sans effet, la partie lésée saisit le service compétent en matière de baux à loyer, qui siège dans
+            les soixante-douze heures. Ce service dresse un procès-verbal de conciliation ou de non-conciliation
+            (article 34).
+        </p>
+        <p>
+            Aucun tribunal ne peut être saisi sans cette conciliation préalable (article 36). Le tribunal compétent est
+            saisi dans les six mois du procès-verbal de non-conciliation et statue à bref délai (article 37). Le locataire
+            paie le loyer et les charges pendant le règlement du différend (article 38).
+        </p>
+    </th:block>
+    <p th:if="${pro}">
+        Les parties recherchent d'abord une solution amiable. À défaut, la partie la plus diligente saisit la juridiction
+        compétente, statuant à bref délai, dans le ressort de laquelle sont situés les locaux (article 132).
+    </p>
+    <p th:if="${nu}">
+        Les parties recherchent d'abord une solution amiable. À défaut, le différend est porté devant le tribunal
+        compétent du lieu où se trouve le terrain.
+    </p>
+</div>
+
+<!-- ── Article 13 ── -->
+<div class="indivisible">
+    <div class="article">Article 13 : Enregistrement et signatures</div>
+    <p th:if="${hab}">
+        Dans les trente jours de sa conclusion, et à chaque avenant, les parties présentent le présent contrat en trois
+        exemplaires au service compétent pour enregistrement ; chaque partie en reçoit un exemplaire original, le
+        troisième restant à ce service (articles 3 et 4). À défaut d'enregistrement dans ce délai, chaque partie doit, en
+        plus des frais d'enregistrement, une pénalité égale à la moitié d'un mois de loyer (article 41).
+    </p>
+    <p>
+        Le présent contrat est signé électroniquement par les deux parties sur la plateforme Kupanga ; chaque partie en
+        conserve un exemplaire.
+    </p>
     <table class="signatures">
         <tr>
             <td th:replace="~{documents/commun/fragments :: signature('Le bailleur', ${nomBailleur},

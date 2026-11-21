@@ -1,7 +1,9 @@
 package com.kupanga.api.immobilier.service;
 
 import com.kupanga.api.immobilier.service.LocationService;
+import com.kupanga.api.immobilier.entity.TypeBien;
 import com.kupanga.api.juridiction.Devise;
+import java.util.List;
 import com.kupanga.api.juridiction.JuridictionRegistry;
 import com.kupanga.api.juridiction.JuridictionsDeTest;
 import com.kupanga.api.juridiction.Pays;
@@ -125,7 +127,7 @@ class ContratServiceImplTest {
         bien.setPays(Pays.CD);
         bien.setDevise(Devise.CDF);
         bien.setGarantieMois(2);
-        bien.setAvanceMois(3);
+        bien.setAvanceMois(0);
         ContratFormDTO dto = buildValidContratFormDTO();
         dto.setLoyerMensuel(new BigDecimal("250000"));
         dto.setDepotGarantie(null);
@@ -144,9 +146,37 @@ class ContratServiceImplTest {
         assertThat(captor.getValue().getModeleVersion()).isEqualTo("cd-v1");
         // C12 : garantie et avance du bien figées, montant de la garantie = loyer × mois
         assertThat(captor.getValue().getGarantieMois()).isEqualTo(2);
-        assertThat(captor.getValue().getAvanceMois()).isEqualTo(3);
+        assertThat(captor.getValue().getAvanceMois()).isZero();
         assertThat(captor.getValue().getDepotGarantie()).isEqualByComparingTo("500000");
         assertThat(captor.getValue().getLoyerMensuel()).isEqualByComparingTo("250000");
+    }
+
+    @Test
+    @DisplayName("Loi n° 15/025 : bail d'un logement en RDC — garantie de 4 mois ou avance de 2 mois → 400, ni PDF ni contrat")
+    void creerContrat_logementRdc_garantieEtAvanceIllegales_400() {
+        bien.setPays(Pays.CD);
+        bien.setDevise(Devise.USD);
+        bien.setTypeBien(TypeBien.VILLA);
+        bien.setGarantieMois(3);
+        bien.setAvanceMois(0);
+        when(userService.getUserByEmail(proprietaire.getMail())).thenReturn(proprietaire);
+        when(bienService.verifierProprietaire(1L, proprietaire.getMail())).thenReturn(bien);
+        when(locationService.locataireDuBail(bien, locataire.getMail())).thenReturn(locataire);
+
+        ContratFormDTO garantie = buildValidContratFormDTO();
+        garantie.setDepotGarantie(null);
+        garantie.setGarantieMois(4);
+        ContratFormDTO avance = buildValidContratFormDTO();
+        avance.setDepotGarantie(null);
+        avance.setAvanceMois(2);
+
+        for (ContratFormDTO dto : List.of(garantie, avance)) {
+            KupangaBusinessException ex = assertThrows(KupangaBusinessException.class,
+                    () -> contratService.creerContrat(dto, proprietaire.getMail()));
+            assertThat(ex.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
+        }
+        verify(contratPdfService, never()).genererEtUploaderPdf(any(Contrat.class));
+        verify(contratRepository, never()).save(any(Contrat.class));
     }
 
     @Test

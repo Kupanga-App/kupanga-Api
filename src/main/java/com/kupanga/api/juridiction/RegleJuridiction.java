@@ -1,5 +1,7 @@
 package com.kupanga.api.juridiction;
 
+import com.kupanga.api.immobilier.entity.TypeBien;
+
 import java.util.List;
 
 /**
@@ -21,6 +23,19 @@ public interface RegleJuridiction {
      * @param formulaire {@code BienFormDTO} (création) ou {@code BienUpdateDTO} (modification)
      */
     default List<ViolationChamp> validerBien(Object formulaire) {
+        return List.of();
+    }
+
+    /**
+     * Garantie et loyers d'avance (en mois de loyer) d'un bien ou d'un bail, selon la loi du pays et l'usage du bien.
+     * Appelé à la création et à la modification d'un bien (valeurs effectives) et à la création d'un bail.
+     * Aucun contrôle par défaut.
+     *
+     * @param type          type du bien (null : rien à contrôler)
+     * @param garantieMois  garantie en mois de loyer (null : non renseignée)
+     * @param avanceMois    loyers payés d'avance, en mois (null : non renseignée)
+     */
+    default List<ViolationChamp> validerConditionsBail(TypeBien type, Integer garantieMois, Integer avanceMois) {
         return List.of();
     }
 }

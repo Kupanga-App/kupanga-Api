@@ -249,6 +249,20 @@ public class JuridictionRegistry {
         return new FormatMontant(profil(pays).locale(), devise);
     }
 
+    /**
+     * Garantie et loyers d'avance d'un bien ou d'un bail selon la loi du pays et l'usage du bien
+     * ({@link RegleJuridiction#validerConditionsBail}) : 400 avec la première violation.
+     */
+    public void verifierConditionsBail(Pays pays, TypeBien type, Integer garantieMois, Integer avanceMois) {
+        if (!estPrisEnCharge(pays)) {
+            return;
+        }
+        List<ViolationChamp> violations = regles.get(pays).validerConditionsBail(type, garantieMois, avanceMois);
+        if (!violations.isEmpty()) {
+            throw new KupangaBusinessException(violations.get(0).message(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
     /** C13 : compteurs d'état des lieux proposés dans le pays du bien (400 sinon). */
     public void verifierCompteursEdl(Pays pays, Collection<TypeCompteur> types) {
         if (!profil(pays).compteursEdl().containsAll(types)) {

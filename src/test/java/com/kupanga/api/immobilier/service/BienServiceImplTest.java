@@ -953,7 +953,7 @@ class BienServiceImplTest {
         // C12 : garantie et avance en mois, dépôt en montant masqué
         dto.setDepotGarantie(null);
         dto.setGarantieMois(2);
-        dto.setAvanceMois(3);
+        dto.setAvanceMois(0); // logement : aucun loyer d'avance (loi n° 15/025, art. 22)
         return dto;
     }
 
@@ -993,8 +993,46 @@ class BienServiceImplTest {
         assertThat(cree.getEquipements()).containsExactlyInAnyOrder(Equipement.FORAGE, Equipement.GROUPE_ELECTROGENE, Equipement.GARDIENNAGE);
         assertThat(cree.getHeuresElectriciteParJour()).isEqualTo(12);
         assertThat(cree.getGarantieMois()).isEqualTo(2);
-        assertThat(cree.getAvanceMois()).isEqualTo(3);
+        assertThat(cree.getAvanceMois()).isZero();
         assertThat(cree.getDepotGarantie()).isNull();
+    }
+
+    @Test
+    @DisplayName("Loi n° 15/025 : logement en RDC — garantie de plus de 3 mois ou loyers d'avance → 400, rien d'enregistré")
+    void createBien_logementRdc_garantieEtAvanceIllegales_400() {
+        when(userService.getUserByEmail(proprietaire.getMail())).thenReturn(proprietaire);
+        BienFormDTO garantie = buildValidFormDTOKinshasa();
+        garantie.setTypeBien(TypeBien.VILLA);
+        garantie.setGarantieMois(4);
+        BienFormDTO avance = buildValidFormDTOKinshasa();
+        avance.setTypeBien(TypeBien.CHAMBRE);
+        avance.setAvanceMois(1);
+
+        for (BienFormDTO dto : List.of(garantie, avance)) {
+            KupangaBusinessException ex = assertThrows(KupangaBusinessException.class, () -> bienService.createBien(auth, dto,
+                    List.of(new MockMultipartFile("files", "p.jpg", "image/jpeg", PHOTO_JPEG))));
+            assertThat(ex.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
+            assertThat(ex.getMessage()).contains("loi n° 15/025");
+        }
+        verify(bienRepository, never()).save(any(Bien.class));
+    }
+
+    @Test
+    @DisplayName("OHADA : local commercial en RDC — garantie de 6 mois et avance de 3 mois acceptées")
+    void createBien_localCommercialRdc_garantieEtAvanceLibres() {
+        when(userService.getUserByEmail(proprietaire.getMail())).thenReturn(proprietaire);
+        when(geocodingService.geocode(anyString(), anyString(), any(), any(Pays.class))).thenReturn(point);
+        BienFormDTO dto = buildValidFormDTOKinshasa();
+        dto.setTypeBien(TypeBien.LOCAL_COMMERCIAL);
+        dto.setGarantieMois(6);
+        dto.setAvanceMois(3);
+
+        bienService.createBien(auth, dto, List.of(new MockMultipartFile("files", "p.jpg", "image/jpeg", PHOTO_JPEG)));
+
+        ArgumentCaptor<Bien> captor = ArgumentCaptor.forClass(Bien.class);
+        verify(bienRepository).save(captor.capture());
+        assertThat(captor.getValue().getGarantieMois()).isEqualTo(6);
+        assertThat(captor.getValue().getAvanceMois()).isEqualTo(3);
     }
 
     @Test

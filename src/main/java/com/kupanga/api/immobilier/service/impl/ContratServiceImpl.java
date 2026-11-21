@@ -68,6 +68,8 @@ public class ContratServiceImpl implements ContratService {
                 throw new KupangaBusinessException(
                         "La garantie et l'avance (en mois de loyer) sont obligatoires", HttpStatus.BAD_REQUEST);
             }
+            // RDC, logement : garantie de 3 mois au plus et aucun loyer d'avance (loi n° 15/025, art. 18 et 22)
+            juridictionRegistry.verifierConditionsBail(bien.getPays(), bien.getTypeBien(), garantieMois, avanceMois);
             depotGarantie = dto.getLoyerMensuel().multiply(BigDecimal.valueOf(garantieMois))
                     .setScale(2, RoundingMode.HALF_UP);
         } else {

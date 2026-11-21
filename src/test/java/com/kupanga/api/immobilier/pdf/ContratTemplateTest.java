@@ -195,13 +195,24 @@ class ContratTemplateTest {
     }
 
     @Test
-    @DisplayName("C9 : bail RDC = modèle provisoire, bandeau « À FAIRE VALIDER PAR UN JURISTE », aucune référence au droit français")
-    void bailRdc_provisoire_sansDroitFrancais() {
-        String html = rendre(contrat(bienKinshasa()));
+    @DisplayName("Bail RDC d'un logement : loi n° 15/025 (garantie, préavis, conciliation, enregistrement), plus de bandeau provisoire")
+    void bailRdc_habitation_loi15025() {
+        Contrat bail = contrat(bienKinshasa());
+        bail.setGarantieMois(3);
+        bail.setAvanceMois(0);
+        String html = rendre(bail);
 
-        assertThat(html).contains("MODÈLE PROVISOIRE, À FAIRE VALIDER PAR UN JURISTE");
-        assertThat(html).contains("À RÉDIGER ET À FAIRE VALIDER PAR UN JURISTE");
-        assertThat(html).contains("Obligations du bailleur", "Durée du préavis et conditions de résiliation");
+        assertThat(html).contains("Contrat de bail à usage d'habitation",
+                "loi n° 15/025 du 31 décembre 2015 relative aux baux à loyer non professionnels",
+                "Elle ne peut excéder trois mois de loyer", "(article 18)",
+                "ne peut exiger le paiement anticipé du loyer", "(article 22)",
+                "préavis écrit de trois mois (article 30)", "prorogé d'un mois (article 31)",
+                "loyers impayés atteignant au moins", "(article 29)",
+                "droit de préemption", "quinze jours",
+                "soixante-douze heures", "(article 36)",
+                "trente jours", "(articles 3 et 4)", "(article 41)",
+                "payé en francs congolais", "Banque centrale du Congo");
+        assertThat(html).doesNotContain("PROVISOIRE", "RÉDIGER", "juriste", "Loyers payés d'avance", "Acte uniforme");
         assertThat(html).doesNotContain("89-462", "6 juillet 1989", "Diagnostic de performance énergétique");
         // Adresse congolaise, champs facultatifs absents sans « null »
         assertThat(html).contains("Matonge", "Kalamu", "En face de la station");
@@ -223,8 +234,8 @@ class ContratTemplateTest {
     }
 
     @Test
-    @DisplayName("C9 : quittance et état des lieux RDC provisoires, sans référence au droit français ; EDL FR inchangé")
-    void quittanceEtEdlRdc_provisoires() {
+    @DisplayName("Quittance et état des lieux RDC : loi n° 15/025, sans référence au droit français ; EDL FR inchangé")
+    void quittanceEtEdlRdc_loi15025() {
         Quittance quittance = Quittance.builder().id(5L).bien(bienKinshasa()).proprietaire(proprio).locataire(locataire)
                 .pays(Pays.CD).devise(Devise.USD).modeleVersion("cd-v1").mois("janvier").annee(2026)
                 .loyerMensuel(new BigDecimal("500")).chargesMensuelles(BigDecimal.ZERO)
@@ -235,15 +246,16 @@ class ContratTemplateTest {
         String edlRdc = rendre(edl(bienKinshasa()));
         String edlFrance = rendre(edl(bien(Pays.FR, Devise.EUR)));
 
-        assertThat(recu).contains("À FAIRE VALIDER PAR UN JURISTE").doesNotContain("article 21", "1989");
+        assertThat(recu).contains("ne vaut pas renonciation", "article 18", "payé en francs congolais")
+                .doesNotContain("PROVISOIRE", "RÉDIGER", "1989");
         // C8-bis : sans mode déclaré, pas de ligne vide ; avec, « par Mobile Money »
         assertThat(recu).doesNotContain("Mode de paiement");
         quittance.setStatut(StatutQuittance.PAYEE);
         quittance.setDatePaiement(LocalDate.of(2026, 1, 3));
         quittance.setModePaiement(ModePaiement.MOBILE_MONEY);
         assertThat(rendre(quittance)).contains("Mode de paiement", "par Mobile Money", "03/01/2026");
-        assertThat(edlRdc).contains("À FAIRE VALIDER PAR UN JURISTE").doesNotContain("89-462");
-        assertThat(edlFrance).contains("89-462").doesNotContain("MODÈLE PROVISOIRE");
+        assertThat(edlRdc).contains("article 17").doesNotContain("89-462", "PROVISOIRE");
+        assertThat(edlFrance).contains("89-462").doesNotContain("PROVISOIRE");
     }
 
     @Test
@@ -297,6 +309,43 @@ class ContratTemplateTest {
                 .typeCompteur(com.kupanga.api.immobilier.entity.TypeCompteur.CASH_POWER).index(42.5).unite("kWh")
                 .etatDesLieux(edl).build());
         assertThat(rendre(edl)).contains("Électricité prépayée (Cash Power)").doesNotContain("CASH_POWER");
+    }
+
+    @Test
+    @DisplayName("Bail RDC d'un local commercial : Acte uniforme OHADA (renouvellement, congé de six mois, résiliation), avance possible")
+    void bailRdc_localCommercial_ohada() {
+        Bien local = bienKinshasa();
+        local.setTypeBien(TypeBien.LOCAL_COMMERCIAL);
+        Contrat bail = contrat(local);
+        bail.setGarantieMois(6);
+        bail.setAvanceMois(3);
+
+        String html = rendre(bail);
+
+        assertThat(html).contains("Contrat de bail à usage professionnel",
+                "Acte uniforme OHADA portant sur le droit commercial général",
+                "pendant au moins deux ans", "(article 123)", "mois à l'avance", "(article 125)",
+                "(article 133)", "(article 132)", "Loyers payés d'avance", "3 mois", "s'imputent sur les premiers termes");
+        assertThat(html).doesNotContain("15/025", "(article 30)", "Elle ne peut excéder trois mois");
+    }
+
+    @Test
+    @DisplayName("Bail RDC d'un terrain nu : Code civil, livre III, sans les règles du logement ni de l'OHADA ; CDF sans conversion")
+    void bailRdc_terrain_codeCivil() {
+        Bien terrain = bienKinshasa();
+        terrain.setTypeBien(TypeBien.TERRAIN);
+        terrain.setDevise(Devise.CDF);
+        Contrat bail = contrat(terrain);
+        bail.setDevise(Devise.CDF);
+        bail.setGarantieMois(2);
+        bail.setAvanceMois(0);
+
+        String html = rendre(bail);
+
+        assertThat(html).contains("Contrat de location d'un terrain", "Code civil congolais, livre III",
+                "préavis écrit de trois mois");
+        assertThat(html).doesNotContain("15/025", "Acte uniforme", "Banque centrale du Congo", "Meublé",
+                "Loyers payés d'avance");
     }
 
     @Test

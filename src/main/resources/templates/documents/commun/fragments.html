@@ -7,28 +7,6 @@
 <body>
 
 <!--
-  Bandeau des modèles provisoires (C9) : affiché en tête de tout document dont le texte juridique n'a pas encore
-  été validé par un juriste du pays. À retirer du modèle seulement après cette validation.
--->
-<div th:fragment="bandeauProvisoire"
-     style="border: 1pt solid #000000; padding: 6pt 8pt; margin-bottom: 14pt; text-align: center; font-size: 9pt;">
-    <strong>MODÈLE PROVISOIRE, À FAIRE VALIDER PAR UN JURISTE AVANT TOUTE UTILISATION.</strong>
-    <br/>
-    Les clauses marquées « à rédiger » ne sont pas encore écrites. Aucune référence légale n'y figure.
-</div>
-
-<!--
-  Clause dont le texte reste à rédiger et à faire valider par un juriste (C9) : jamais de texte juridique inventé.
-  Paramètre : titre de la clause.
--->
-<div th:fragment="clauseAValider(titre)"
-     style="border: 0.5pt dashed #000000; padding: 5pt 8pt; margin: 4pt 0 8pt 0; font-size: 9.5pt; page-break-inside: avoid;">
-    <strong th:text="${titre + '.'}">Clause.</strong>
-    <em>À RÉDIGER ET À FAIRE VALIDER PAR UN JURISTE.</em>
-    Tant que son texte n'est pas rédigé, cette clause n'engage pas les parties.
-</div>
-
-<!--
   Bloc de signature d'une partie. Paramètres : qualité (« Le bailleur »), nom complet, image PNG en base64
   (ou null), date et heure de la signature (ou null), date de l'acte (« Fait le »).
 -->

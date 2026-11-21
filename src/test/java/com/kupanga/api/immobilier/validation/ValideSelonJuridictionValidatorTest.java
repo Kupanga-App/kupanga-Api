@@ -71,7 +71,7 @@ class ValideSelonJuridictionValidatorTest {
         // C12 : garantie et avance en mois, pas de dépôt en montant
         return base().pays(Pays.CD).adresse("N° 12, Av. Kasa-Vubu").ville("Kinshasa")
                 .commune("Kalamu").quartier("Matonge")
-                .depotGarantie(null).garantieMois(2).avanceMois(3);
+                .depotGarantie(null).garantieMois(2).avanceMois(0);
     }
 
     /** Champ → message des violations. */

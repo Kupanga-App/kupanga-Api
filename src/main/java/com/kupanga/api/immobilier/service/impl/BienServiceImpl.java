@@ -301,6 +301,9 @@ public class BienServiceImpl implements BienService {
         // C11 / C12 (champs masqués dans le pays déjà refusés par verifierBien)
         if (dto.getGarantieMois()      != null) bien.setGarantieMois(dto.getGarantieMois());
         if (dto.getAvanceMois()        != null) bien.setAvanceMois(dto.getAvanceMois());
+        // Loi du pays sur la garantie et l'avance, avec le type et les durées après modification
+        juridictionRegistry.verifierConditionsBail(bien.getPays(), bien.getTypeBien(),
+                bien.getGarantieMois(), bien.getAvanceMois());
         if (dto.getHeuresElectriciteParJour() != null) bien.setHeuresElectriciteParJour(dto.getHeuresElectriciteParJour());
         if (dto.getEquipements()       != null) {
             bien.getEquipements().clear();

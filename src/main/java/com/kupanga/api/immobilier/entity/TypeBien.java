@@ -40,4 +40,20 @@ public enum TypeBien {
     public boolean estSansLogement() {
         return SANS_LOGEMENT.contains(this);
     }
+
+    /**
+     * Usage du bien, qui détermine le régime juridique du bail (RDC) : habitation (loi n° 15/025 du 31 décembre 2015
+     * relative aux baux à loyer non professionnels), usage professionnel (Acte uniforme OHADA portant sur le droit
+     * commercial général, art. 101 à 134) ou terrain nu (droit commun du louage).
+     * Une parcelle (terrain avec ses constructions) est louée comme habitation.
+     */
+    public UsageBail usageBail() {
+        return switch (this) {
+            case LOCAL_COMMERCIAL, ENTREPOT -> UsageBail.PROFESSIONNEL;
+            case TERRAIN -> UsageBail.TERRAIN_NU;
+            default -> UsageBail.HABITATION;
+        };
+    }
+
+    public enum UsageBail { HABITATION, PROFESSIONNEL, TERRAIN_NU }
 }

@@ -298,7 +298,11 @@ BEGIN
                 surface, pieces, greatest(pieces - 2, 0), FALSE, loyer, 0, meuble, FALSE,
                 current_date + pg_temp.entre(-20, 60), FALSE, devise, z.commune, quartier, pg_temp.entre(1, 9999)::TEXT,
                 CASE WHEN random() < 0.75 THEN pg_temp.un(reperes) END, prec,
-                pg_temp.un(ARRAY['1','2','3','3','6'])::INT, pg_temp.un(ARRAY['1','2','3','3','6','12'])::INT,
+                -- Logement : garantie de 3 mois au plus, aucun loyer d'avance (loi n° 15/025, art. 18 et 22) ;
+                -- local commercial et entrepôt : droit OHADA, sans plafond
+                CASE WHEN t IN ('LOCAL_COMMERCIAL', 'ENTREPOT') THEN pg_temp.un(ARRAY['3','6','6','12'])::INT
+                     ELSE pg_temp.un(ARRAY['1','2','3','3'])::INT END,
+                CASE WHEN t IN ('LOCAL_COMMERCIAL', 'ENTREPOT') THEN pg_temp.un(ARRAY['0','3','6'])::INT ELSE 0 END,
                 pg_temp.un(ARRAY['6','8','12','16','18','20','24'])::INT)
         RETURNING id INTO bid;
         IF proprio = patrick THEN biens_patrick := biens_patrick || bid; END IF;

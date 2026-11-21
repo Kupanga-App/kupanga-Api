@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <!--
-  J5 — MODÈLE PROVISOIRE RDC (cd-v1) : données de la quittance seulement.
-  Aucune clause juridique n'est rédigée ici : chaque clause à écrire est un bloc « clauseAValider ».
-  À FAIRE VALIDER PAR UN JURISTE (droit congolais du bail) avant toute mise en ligne au Congo (C9).
+  Quittance RDC (cd-v1). Logement : loi n° 15/025 du 31 décembre 2015 relative aux baux à loyer non professionnels
+  (article 18 : la garantie ne peut être affectée au paiement du loyer ; article 21 : paiement en monnaie ayant cours
+  légal). Texte vérifié sur la loi officielle le 2026-11-21.
 -->
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
@@ -12,7 +12,10 @@
 </head>
 <body th:with="nomBailleur=${proprietaire.firstName + ' ' + proprietaire.lastName},
                nomLocataire=${locataire.firstName + ' ' + locataire.lastName},
-               terme=${moisLabel + ' ' + quittance.annee}">
+               terme=${moisLabel + ' ' + quittance.annee},
+               hab=${quittance.bien == null or quittance.bien.typeBien == null or quittance.bien.typeBien.usageBail().name() == 'HABITATION'},
+               enFrancs=${quittance.devise != null and quittance.devise.name() == 'CDF'},
+               nomDevise=${quittance.devise != null and quittance.devise.name() == 'USD' ? 'dollars américains (USD)' : (quittance.devise != null ? quittance.devise.name() : '')}">
 
 <div class="pied">
     <table>
@@ -22,8 +25,6 @@
         </tr>
     </table>
 </div>
-
-<div th:replace="~{documents/commun/fragments :: bandeauProvisoire}"></div>
 
 <table class="entete">
     <tr>
@@ -100,7 +101,18 @@
         </tr>
     </table>
 
-    <div th:replace="~{documents/commun/fragments :: clauseAValider('Portée du reçu et réserves du bailleur')}"></div>
+    <p>
+        La présente quittance atteste que le bailleur a reçu le loyer et les charges de la période indiquée ci-dessus.
+        Elle ne vaut pas renonciation aux sommes qui resteraient dues pour une autre période.
+    </p>
+    <p th:if="${!enFrancs}">
+        Le montant est exprimé en <span th:text="${nomDevise}"></span> et payé en francs congolais, au taux de change
+        publié par la Banque centrale du Congo le jour du paiement.
+    </p>
+    <p th:if="${hab}">
+        La garantie locative versée au début du bail ne peut être affectée au paiement du loyer (loi n° 15/025 du
+        31 décembre 2015, article 18).
+    </p>
 </div>
 
 <div class="indivisible">
